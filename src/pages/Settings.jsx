@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import DashboardLayout from "@/components/DashboardLayout"
+// import DashboardLayout from "@/components/DashboardLayout"
 
 export default function SettingsPage() {
   const [showPassword, setShowPassword] = useState(false)

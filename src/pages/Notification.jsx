@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import DashboardLayout from "@/components/DashboardLayout"
+
 
 const teamMembers = [ 
   {
@@ -142,7 +142,7 @@ const roles = [
   },
 ]
 
-export default function TeamPage() {
+export default function Notification() {
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredMembers = teamMembers.filter(

@@ -1,0 +1,55 @@
+flowchart TD
+  subgraph Pages
+    DB["DashBoard.jsx\n- Render AMRWarehouseMap"]
+  end
+
+  subgraph Components
+    AMR["AMRWarehouseMap.jsx\n- UI điều khiển\n- Import ZIP\n- Đọc localStorage\n- Truyền props xuống LeafletMap"]
+    MAP["Map.jsx (LeafletMap)\n- Khởi tạo Leaflet\n- Vẽ Paths/Nodes/Charge Stations/Robot"]
+  end
+
+  subgraph Hooks
+    ZIP["useZipImport.jsx\n- JSZip đọc compress.json\n- convertMapData()\n- setMapData()\n- lưu localStorage"]
+    CTRL["useMapControl.jsx\n- handleMapReady(map)\n- handleReset() dùng _mapData"]
+    WS["useAGVWebSocket.jsx\n- Cấp agvData\n- Cập nhật robotPosition"]
+  end
+
+  subgraph Storage
+    LS[(localStorage\nmapData, securityData)]
+  end
+
+  DB --> AMR
+  AMR -- onClick Import ZIP --> ZIP
+  ZIP -- setMapData/ setSecurityConfig --> AMR
+  ZIP -- lưu --> LS
+
+  AMR -- mount/load --> LS
+  LS -- mapData/securityData --> AMR
+
+  AMR -- onMapReady(map) --> CTRL
+  AMR -- props: mapData, securityConfig, robotPosition, flags --> MAP
+  WS -- agvData --> AMR
+  AMR -- robotPosition --> MAP
+
+  MAP -- khởi tạo --> L["Leaflet Map\nCRS.Simple, fitBounds"]
+  MAP -- set --> L_.["map._mapData = mapData"]
+  CTRL -- handleReset() dùng _mapData --> MAP
+
+  %% Render chi tiết trong Map.jsx
+  subgraph Render trong Map.jsx
+    LA["lineArr"]
+    NA["nodeArr"]
+    PATHS["Vẽ Paths\n- Dùng line.path nếu có\n- fallback line thẳng\n- smoothPathCoordinates"]
+    NODES["Vẽ Nodes\n- circle + label (tùy chọn)\n- Camera node: tạm vẽ như node thường"]
+    CHARGE["Vẽ Charge Stations\n- node.type==='charge' hoặc key chứa 'charge'"]
+    ROBOT["Vẽ Robot\n- Marker AMR\n- cập nhật mượt theo robotPosition"]
+  end
+
+  MAP -- dùng --> LA
+  MAP -- dùng --> NA
+  LA --> PATHS
+  NA --> NODES
+  NA --> CHARGE
+  AMR --> ROBOT
+
+

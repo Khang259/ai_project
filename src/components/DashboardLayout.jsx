@@ -15,10 +15,10 @@ import {
 
 const navigation = [
   { name: "Overview", href: "/", icon: Home },
-  { name: "Workflows", href: "/workflows", icon: Workflow },
+  { name: "TaskManagement", href: "/task", icon: Workflow },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Templates", href: "/templates", icon: Database },
-  { name: "Team", href: "/team", icon: Users },
+  { name: "Notification", href: "/notification", icon: Users },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8 bg-gray-50">{children}</main>
+        <main className="flex-1 bg-gray-50">{children}</main>
       </div>
 
     </div>
