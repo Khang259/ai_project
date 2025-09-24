@@ -9,12 +9,13 @@ from queue_store import SQLiteQueue
 
 
 class ROIProcessor:
-    def __init__(self, db_path: str = "queues.db"):
+    def __init__(self, db_path: str = "queues.db", show_video: bool = True):
         """
         Khởi tạo ROI Processor
         
         Args:
             db_path: Đường dẫn đến database SQLite
+            show_video: Hiển thị video real-time
         """
         self.queue = SQLiteQueue(db_path)
         # Cache ROI theo camera_id: {camera_id: [slots]}
@@ -23,6 +24,14 @@ class ROIProcessor:
         self.cache_lock = threading.Lock()
         # Running flag
         self.running = False
+        # Video display
+        self.show_video = show_video
+        # Video capture cho mỗi camera
+        self.video_captures: Dict[str, cv2.VideoCapture] = {}
+        # Frame cache cho mỗi camera
+        self.frame_cache: Dict[str, np.ndarray] = {}
+        # Latest detection data cho mỗi camera
+        self.latest_detections: Dict[str, Dict[str, Any]] = {}
         
     def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
         """
@@ -175,6 +184,215 @@ class ROIProcessor:
         
         return roi_detection_payload
     
+    def draw_roi_on_frame(self, frame: np.ndarray, camera_id: str) -> np.ndarray:
+        """
+        Vẽ ROI lên frame
+        
+        Args:
+            frame: Frame gốc
+            camera_id: ID của camera
+            
+        Returns:
+            Frame đã được vẽ ROI
+        """
+        with self.cache_lock:
+            roi_slots = self.roi_cache.get(camera_id, [])
+        
+        if not roi_slots:
+            return frame
+        
+        annotated_frame = frame.copy()
+        
+        for i, slot in enumerate(roi_slots):
+            points = slot["points"]
+            if len(points) >= 3:  # Cần ít nhất 3 điểm để tạo polygon
+                # Chuyển đổi points thành numpy array
+                pts = np.array(points, dtype=np.int32)
+                
+                # Vẽ polygon ROI
+                cv2.polylines(annotated_frame, [pts], True, (0, 255, 0), 2)
+                
+                # Vẽ vertices
+                for point in points:
+                    cv2.circle(annotated_frame, tuple(point), 4, (0, 255, 0), -1)
+                
+                # Vẽ label cho ROI
+                if points:
+                    label_pos = (points[0][0], points[0][1] - 10)
+                    cv2.putText(annotated_frame, f"ROI-{i+1}", label_pos, 
+                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+        
+        return annotated_frame
+    
+    def draw_detections_on_frame(self, frame: np.ndarray, detections: List[Dict[str, Any]], 
+                                camera_id: str) -> np.ndarray:
+        """
+        Vẽ detections lên frame với highlight cho ROI detections
+        
+        Args:
+            frame: Frame gốc
+            detections: Danh sách detections
+            camera_id: ID của camera
+            
+        Returns:
+            Frame đã được vẽ detections
+        """
+        annotated_frame = frame.copy()
+        
+        # Lấy ROI detections
+        with self.cache_lock:
+            roi_slots = self.roi_cache.get(camera_id, [])
+        
+        for detection in detections:
+            bbox = detection["bbox"]
+            x1, y1 = int(bbox["x1"]), int(bbox["y1"])
+            x2, y2 = int(bbox["x2"]), int(bbox["y2"])
+            confidence = detection["confidence"]
+            class_name = detection["class_name"]
+            
+            # Kiểm tra xem detection có trong ROI không
+            is_in_roi = self.is_detection_in_roi(detection, roi_slots)
+            
+            # Chọn màu và style dựa trên việc có trong ROI hay không
+            if is_in_roi:
+                # Highlight detections trong ROI
+                color = (0, 0, 255)  # Đỏ cho ROI detections
+                thickness = 3
+                label_color = (0, 0, 255)
+            else:
+                # Detections ngoài ROI
+                color = (128, 128, 128)  # Xám cho detections ngoài ROI
+                thickness = 1
+                label_color = (128, 128, 128)
+            
+            # Vẽ bounding box
+            cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, thickness)
+            
+            # Tạo label
+            label = f"{class_name}: {confidence:.2f}"
+            if is_in_roi:
+                label += " [ROI]"
+            
+            label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
+            
+            # Vẽ background cho label
+            cv2.rectangle(annotated_frame, (x1, y1 - label_size[1] - 10), 
+                        (x1 + label_size[0], y1), color, -1)
+            
+            # Vẽ text
+            cv2.putText(annotated_frame, label, (x1, y1 - 5), 
+                      cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        
+        return annotated_frame
+    
+    def get_video_capture(self, camera_id: str) -> Optional[cv2.VideoCapture]:
+        """
+        Lấy video capture cho camera
+        
+        Args:
+            camera_id: ID của camera
+            
+        Returns:
+            VideoCapture object hoặc None
+        """
+        if camera_id not in self.video_captures:
+            # Thử các nguồn video phổ biến
+            video_sources = [
+                "rtsp://192.168.1.162:8080/h264_ulaw.sdp",  # RTSP mặc định
+                0,  # Webcam
+                f"video_{camera_id}.mp4",  # File video
+            ]
+            
+            for source in video_sources:
+                cap = cv2.VideoCapture(source)
+                if cap.isOpened():
+                    self.video_captures[camera_id] = cap
+                    print(f"Đã kết nối video source cho camera {camera_id}: {source}")
+                    break
+                cap.release()
+            
+            if camera_id not in self.video_captures:
+                print(f"Không thể kết nối video source cho camera {camera_id}")
+                return None
+        
+        return self.video_captures[camera_id]
+    
+    def update_frame_cache(self, camera_id: str) -> bool:
+        """
+        Cập nhật frame cache cho camera
+        
+        Args:
+            camera_id: ID của camera
+            
+        Returns:
+            True nếu cập nhật thành công
+        """
+        cap = self.get_video_capture(camera_id)
+        if cap is None:
+            return False
+        
+        ret, frame = cap.read()
+        if ret:
+            self.frame_cache[camera_id] = frame
+            return True
+        
+        return False
+    
+    def display_video(self) -> None:
+        """
+        Hiển thị video real-time với ROI và detections
+        """
+        if not self.show_video:
+            return
+        
+        print("Bắt đầu hiển thị video...")
+        
+        while self.running:
+            try:
+                # Cập nhật frame cho tất cả camera
+                for camera_id in list(self.roi_cache.keys()):
+                    if self.update_frame_cache(camera_id):
+                        frame = self.frame_cache[camera_id]
+                        
+                        # Vẽ ROI lên frame
+                        frame_with_roi = self.draw_roi_on_frame(frame, camera_id)
+                        
+                        # Lấy detections mới nhất cho camera này
+                        with self.cache_lock:
+                            latest_detection = self.latest_detections.get(camera_id)
+                        
+                        if latest_detection and latest_detection.get("detections"):
+                            # Vẽ detections lên frame
+                            frame_with_detections = self.draw_detections_on_frame(
+                                frame_with_roi, latest_detection["detections"], camera_id
+                            )
+                            
+                            # Hiển thị thông tin
+                            info_text = f"Camera: {camera_id} | Frame: {latest_detection.get('frame_id', 'N/A')}"
+                            roi_count = latest_detection.get('roi_detection_count', 0)
+                            total_count = latest_detection.get('original_detection_count', 0)
+                            info_text += f" | ROI Detections: {roi_count}/{total_count}"
+                            
+                            cv2.putText(frame_with_detections, info_text, (10, 30), 
+                                      cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                            
+                            # Hiển thị frame
+                            cv2.imshow(f"ROI Detection - {camera_id}", frame_with_detections)
+                        else:
+                            # Chỉ hiển thị ROI nếu chưa có detection
+                            cv2.imshow(f"ROI Detection - {camera_id}", frame_with_roi)
+                
+                # Xử lý phím bấm
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    break
+                
+                time.sleep(0.03)  # ~30 FPS
+                
+            except Exception as e:
+                print(f"Lỗi khi hiển thị video: {e}")
+                time.sleep(1)
+    
     def subscribe_roi_config(self) -> None:
         """
         Subscribe ROI config queue và cập nhật cache
@@ -259,6 +477,10 @@ class ROIProcessor:
                         detection_data = detection_row["payload"]
                         last_detection_ids[camera_id] = detection_row["id"]
                         
+                        # Lưu detection data để hiển thị video
+                        with self.cache_lock:
+                            self.latest_detections[camera_id] = detection_data
+                        
                         # Xử lý detection
                         roi_detection_payload = self.process_detection(detection_data)
                         
@@ -280,14 +502,21 @@ class ROIProcessor:
         """
         self.running = True
         
-        # Tạo threads cho ROI config và raw detection
+        # Tạo threads cho ROI config, raw detection và video display
         roi_thread = threading.Thread(target=self.subscribe_roi_config, daemon=True)
         detection_thread = threading.Thread(target=self.subscribe_raw_detection, daemon=True)
         
         roi_thread.start()
         detection_thread.start()
         
+        # Thread cho video display
+        if self.show_video:
+            video_thread = threading.Thread(target=self.display_video, daemon=True)
+            video_thread.start()
+        
         print("ROI Processor đã bắt đầu chạy...")
+        if self.show_video:
+            print("Video display đã được bật - Nhấn 'q' trong cửa sổ video để thoát")
         print("Nhấn Ctrl+C để dừng")
         
         try:
@@ -297,6 +526,11 @@ class ROIProcessor:
             print("\nĐang dừng ROI Processor...")
             self.running = False
         
+        # Đóng video captures
+        for cap in self.video_captures.values():
+            cap.release()
+        cv2.destroyAllWindows()
+        
         print("ROI Processor đã dừng")
 
 
@@ -305,6 +539,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="ROI Processor - Filter detections by ROI")
     parser.add_argument("--db-path", type=str, default="queues.db", 
                        help="Đường dẫn đến database SQLite")
+    parser.add_argument("--no-video", action="store_true", 
+                       help="Tắt hiển thị video")
     
     return parser.parse_args()
 
@@ -314,7 +550,7 @@ def main():
     args = parse_args()
     
     try:
-        processor = ROIProcessor(args.db_path)
+        processor = ROIProcessor(args.db_path, show_video=not args.no_video)
         processor.run()
     except Exception as e:
         print(f"Lỗi: {e}")
