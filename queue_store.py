@@ -106,5 +106,3 @@ class SQLiteQueue:
 
 
 __all__ = ["SQLiteQueue"]
-
-
