@@ -4,6 +4,8 @@ import numpy as np
 from datetime import datetime
 from typing import List, Dict, Any
 import torch
+import threading
+import time
 from ultralytics import YOLO
 from queue_store import SQLiteQueue
 
@@ -21,6 +23,7 @@ class YOLODetector:
         self.camera_id = camera_id
         self.confidence_threshold = confidence_threshold
         self.queue = SQLiteQueue("queues.db")
+        self.running = False
         
         # Load YOLO model
         print(f"Đang tải model YOLO từ {model_path}...")
@@ -167,12 +170,13 @@ class YOLODetector:
         print("Nhấn 'q' để thoát, 's' để lưu ảnh hiện tại")
         
         frame_count = 0
+        self.running = True
         
         try:
-            while True:
+            while self.running:
                 ret, frame = cap.read()
                 if not ret:
-                    print("Không thể đọc frame từ video source")
+                    print(f"Không thể đọc frame từ video source cho camera {self.camera_id}")
                     break
                 
                 # Chạy detection
@@ -199,6 +203,7 @@ class YOLODetector:
                 # Xử lý phím bấm
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
+                    self.running = False
                     break
                 elif key == ord('s'):
                     # Lưu ảnh hiện tại
@@ -209,11 +214,107 @@ class YOLODetector:
                 frame_count += 1
                 
         except KeyboardInterrupt:
-            print("\nĐang dừng detection...")
+            print(f"\nĐang dừng detection cho camera {self.camera_id}...")
         finally:
+            self.running = False
             cap.release()
-            cv2.destroyAllWindows()
+            cv2.destroyWindow(f"YOLO Detection - {self.camera_id}")
             print(f"Đã dừng detection cho camera {self.camera_id}")
+    
+    def stop(self) -> None:
+        """Dừng detection"""
+        self.running = False
+
+
+class MultiCameraDetector:
+    def __init__(self, model_path: str, confidence_threshold: float = 0.5):
+        """
+        Khởi tạo Multi Camera Detector
+        
+        Args:
+            model_path: Đường dẫn đến file model .pt
+            confidence_threshold: Ngưỡng tin cậy cho detection
+        """
+        self.model_path = model_path
+        self.confidence_threshold = confidence_threshold
+        self.detectors = {}
+        self.threads = {}
+        self.running = False
+        
+    def add_camera(self, camera_id: str, video_source: str) -> None:
+        """
+        Thêm camera vào hệ thống
+        
+        Args:
+            camera_id: ID của camera
+            video_source: Nguồn video cho camera
+        """
+        detector = YOLODetector(
+            model_path=self.model_path,
+            camera_id=camera_id,
+            confidence_threshold=self.confidence_threshold
+        )
+        self.detectors[camera_id] = detector
+        print(f"Đã thêm camera {camera_id} với video source: {video_source}")
+    
+    def start_detection(self, camera_id: str, video_source: str) -> None:
+        """
+        Bắt đầu detection cho một camera trong thread riêng
+        
+        Args:
+            camera_id: ID của camera
+            video_source: Nguồn video cho camera
+        """
+        if camera_id not in self.detectors:
+            self.add_camera(camera_id, video_source)
+        
+        def detection_worker():
+            try:
+                self.detectors[camera_id].run_video_detection(video_source)
+            except Exception as e:
+                print(f"Lỗi trong detection thread cho camera {camera_id}: {e}")
+        
+        thread = threading.Thread(target=detection_worker, daemon=True)
+        thread.start()
+        self.threads[camera_id] = thread
+        print(f"Đã bắt đầu detection thread cho camera {camera_id}")
+    
+    def start_all_detections(self, camera_configs: Dict[str, str]) -> None:
+        """
+        Bắt đầu detection cho tất cả camera
+        
+        Args:
+            camera_configs: Dict với key là camera_id và value là video_source
+        """
+        self.running = True
+        print("Bắt đầu detection cho tất cả camera...")
+        
+        for camera_id, video_source in camera_configs.items():
+            self.start_detection(camera_id, video_source)
+        
+        print(f"Đã khởi động {len(camera_configs)} camera")
+        print("Nhấn Ctrl+C để dừng tất cả camera")
+        
+        try:
+            while self.running:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("\nĐang dừng tất cả camera...")
+            self.stop_all()
+    
+    def stop_camera(self, camera_id: str) -> None:
+        """Dừng detection cho một camera"""
+        if camera_id in self.detectors:
+            self.detectors[camera_id].stop()
+            print(f"Đã dừng camera {camera_id}")
+    
+    def stop_all(self) -> None:
+        """Dừng tất cả camera"""
+        self.running = False
+        for camera_id in self.detectors:
+            self.stop_camera(camera_id)
+        cv2.destroyAllWindows()
+        print("Đã dừng tất cả camera")
 
 
 def parse_args():
@@ -222,11 +323,15 @@ def parse_args():
     parser.add_argument("--model", type=str, default="model/model-hanam_0506.pt", 
                        help="Đường dẫn đến file model YOLO")
     parser.add_argument("--camera-id", type=str, default="cam-1", 
-                       help="ID của camera")
+                       help="ID của camera (chỉ dùng với --single-camera)")
     parser.add_argument("--video-source", type=str, default="video/hanam.mp4", 
-                       help="Nguồn video (mặc định: video/hanam.mp4; cũng hỗ trợ 0=webcam hoặc RTSP URL)")
+                       help="Nguồn video (chỉ dùng với --single-camera)")
     parser.add_argument("--confidence", type=float, default=0.5, 
                        help="Ngưỡng tin cậy cho detection (0.0-1.0)")
+    parser.add_argument("--single-camera", action="store_true",
+                       help="Chạy detection cho một camera duy nhất")
+    parser.add_argument("--multi-camera", action="store_true", default=True,
+                       help="Chạy detection cho nhiều camera đồng thời (mặc định)")
     
     return parser.parse_args()
 
@@ -235,19 +340,38 @@ def main():
     """Hàm main"""
     args = parse_args()
     
-    # Chuyển đổi video_source thành số nếu là "0"
-    video_source = int(args.video_source) if args.video_source.isdigit() else args.video_source
-    
     try:
-        # Tạo detector
-        detector = YOLODetector(
-            model_path=args.model,
-            camera_id=args.camera_id,
-            confidence_threshold=args.confidence
-        )
-        
-        # Chạy detection
-        detector.run_video_detection(video_source)
+        if args.single_camera:
+            # Chế độ single camera
+            video_source = int(args.video_source) if args.video_source.isdigit() else args.video_source
+            
+            detector = YOLODetector(
+                model_path=args.model,
+                camera_id=args.camera_id,
+                confidence_threshold=args.confidence
+            )
+            
+            detector.run_video_detection(video_source)
+            
+        else:
+            # Chế độ multi camera (mặc định)
+            multi_detector = MultiCameraDetector(
+                model_path=args.model,
+                confidence_threshold=args.confidence
+            )
+            
+            # Cấu hình camera
+            camera_configs = {
+                "cam-1": "video/hanam.mp4",
+                "cam-2": "video/vinhPhuc.mp4"
+            }
+            
+            print("=== Multi Camera Detection ===")
+            print("Camera 1: video/hanam.mp4")
+            print("Camera 2: video/vinhPhuc.mp4")
+            print("Kết quả sẽ được lưu vào queue với key tương ứng")
+            
+            multi_detector.start_all_detections(camera_configs)
         
     except Exception as e:
         print(f"Lỗi: {e}")

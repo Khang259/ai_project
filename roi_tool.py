@@ -136,14 +136,23 @@ class RoiDrawer:
         return self.rect_polygons
 
 
-def capture_one_frame(rtsp_url: str):
-    cap = cv2.VideoCapture(rtsp_url)
+def capture_one_frame(video_source: str):
+    """
+    Capture một frame từ video source
+    
+    Args:
+        video_source: Đường dẫn đến file video hoặc RTSP URL
+        
+    Returns:
+        Frame đã capture
+    """
+    cap = cv2.VideoCapture(video_source)
     if not cap.isOpened():
-        raise RuntimeError(f"Không mở được RTSP: {rtsp_url}")
+        raise RuntimeError(f"Không mở được video source: {video_source}")
     ok, frame = cap.read()
     cap.release()
     if not ok:
-        raise RuntimeError("Không đọc được frame từ RTSP")
+        raise RuntimeError("Không đọc được frame từ video source")
     return frame
 
 
@@ -156,14 +165,29 @@ def parse_args() -> argparse.Namespace:
         default="video/hanam.mp4",
         help="Đường dẫn file video đầu vào",
     )
+    parser.add_argument(
+        "--vinhphuc",
+        action="store_true",
+        help="Sử dụng video/vinhPhuc.mp4 cho camera cam-2",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
 
-    frame = capture_one_frame(args.video)
-    drawer = RoiDrawer(frame, window_name=f"ROI - {args.camera_id}")
+    # Xác định video source và camera_id
+    if args.vinhphuc:
+        video_source = "video/vinhPhuc.mp4"
+        camera_id = "cam-2"
+        print("🎬 Sử dụng video/vinhPhuc.mp4 cho camera cam-2")
+    else:
+        video_source = args.video
+        camera_id = args.camera_id
+        print(f"🎬 Sử dụng {video_source} cho camera {camera_id}")
+
+    frame = capture_one_frame(video_source)
+    drawer = RoiDrawer(frame, window_name=f"ROI - {camera_id}")
     polygons = drawer.run()
 
     # Chuẩn hoá payload
@@ -177,16 +201,18 @@ def main() -> None:
         )
 
     payload = {
-        "camera_id": args.camera_id,
+        "camera_id": camera_id,
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "slots": slots,
         "image_wh": [int(frame.shape[1]), int(frame.shape[0])],
     }
 
     queue = SQLiteQueue("queues.db")
-    queue.publish("roi_config", args.camera_id, payload)
+    queue.publish("roi_config", camera_id, payload)
 
-    print(f"Đã lưu roi_config của {args.camera_id} với {len(slots)} ROI vào queue.")
+    print(f"✅ Đã lưu roi_config của {camera_id} với {len(slots)} ROI vào queue.")
+    print(f"📁 Video source: {video_source}")
+    print(f"🆔 Camera ID: {camera_id}")
 
 
 if __name__ == "__main__":

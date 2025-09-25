@@ -1,0 +1,12 @@
+1. File roi_tool
+Vẽ roi trên video và lưu vào cấu hình vào queue
+
+2. File yolo_detector
+Chạy model nhận diện trong toàn bộ frames, input đầu vào là video.mp4, output là các object được detect. Sau đó raw data được lưu vào trong queues.db
+
+3. File roi_processor
+Sub vào queues.db lấy data detect (toạ độ) để xử lý với thuật toán IoU để chốt nhận diện trong ROI đã vẽ (toạ độ lấy từ queue mà file roi_tool đã lưu vào)
+Đồng thời lưu vào queue, và vẽ các class trên video để hiển thị trên video trực quan
+
+4. File view_roi_results để xem kết quả của file roi_processor trên terminal
+

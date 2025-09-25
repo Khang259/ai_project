@@ -403,21 +403,22 @@ class ROIProcessor:
             VideoCapture object hoặc None
         """
         if camera_id not in self.video_captures:
-            # Sử dụng cố định file video video/hanam.mp4 theo yêu cầu
-            video_sources = [
-                "video/hanam.mp4",
-            ]
+            # Mapping camera_id với video source tương ứng
+            video_mapping = {
+                "cam-1": "video/hanam.mp4",
+                "cam-2": "video/vinhPhuc.mp4"
+            }
             
-            for source in video_sources:
-                cap = cv2.VideoCapture(source)
-                if cap.isOpened():
-                    self.video_captures[camera_id] = cap
-                    print(f"Đã kết nối video source cho camera {camera_id}: {source}")
-                    break
+            # Lấy video source cho camera này
+            video_source = video_mapping.get(camera_id, "video/hanam.mp4")
+            
+            cap = cv2.VideoCapture(video_source)
+            if cap.isOpened():
+                self.video_captures[camera_id] = cap
+                print(f"Đã kết nối video source cho camera {camera_id}: {video_source}")
+            else:
                 cap.release()
-            
-            if camera_id not in self.video_captures:
-                print(f"Không thể kết nối video source cho camera {camera_id}")
+                print(f"Không thể kết nối video source cho camera {camera_id}: {video_source}")
                 return None
         
         return self.video_captures[camera_id]
@@ -454,7 +455,7 @@ class ROIProcessor:
         
         while self.running:
             try:
-                # Cập nhật frame cho tất cả camera
+                # Cập nhật frame cho tất cả camera có ROI config
                 for camera_id in list(self.roi_cache.keys()):
                     if self.update_frame_cache(camera_id):
                         frame = self.frame_cache[camera_id]
@@ -472,8 +473,14 @@ class ROIProcessor:
                                 frame_with_roi, latest_roi_detection["roi_detections"], camera_id
                             )
                             
-                            # Hiển thị thông tin
-                            info_text = f"Camera: {camera_id} | Frame: {latest_roi_detection.get('frame_id', 'N/A')}"
+                            # Hiển thị thông tin với video source
+                            video_mapping = {
+                                "cam-1": "hanam.mp4",
+                                "cam-2": "vinhPhuc.mp4"
+                            }
+                            video_name = video_mapping.get(camera_id, "unknown")
+                            
+                            info_text = f"Camera: {camera_id} ({video_name}) | Frame: {latest_roi_detection.get('frame_id', 'N/A')}"
                             roi_count = latest_roi_detection.get('roi_detection_count', 0)
                             total_count = latest_roi_detection.get('original_detection_count', 0)
                             
@@ -488,10 +495,15 @@ class ROIProcessor:
                                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
                             
                             # Hiển thị frame
-                            cv2.imshow(f"ROI Detection - {camera_id}", frame_with_detections)
+                            cv2.imshow(f"ROI Detection - {camera_id} ({video_name})", frame_with_detections)
                         else:
                             # Chỉ hiển thị ROI nếu chưa có detection
-                            cv2.imshow(f"ROI Detection - {camera_id}", frame_with_roi)
+                            video_mapping = {
+                                "cam-1": "hanam.mp4",
+                                "cam-2": "vinhPhuc.mp4"
+                            }
+                            video_name = video_mapping.get(camera_id, "unknown")
+                            cv2.imshow(f"ROI Detection - {camera_id} ({video_name})", frame_with_roi)
                 
                 # Xử lý phím bấm
                 key = cv2.waitKey(1) & 0xFF
@@ -576,6 +588,11 @@ class ROIProcessor:
         while self.running:
             try:
                 for camera_id in camera_ids:
+                    # Chỉ xử lý camera có ROI config
+                    with self.cache_lock:
+                        if camera_id not in self.roi_cache:
+                            continue
+                    
                     # Lấy detections mới
                     new_detections = self.queue.get_after_id(
                         "raw_detection", 
@@ -606,7 +623,14 @@ class ROIProcessor:
                         shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'shelf')
                         empty_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'empty')
                         
-                        print(f"Camera {camera_id} - Frame {detection_data['frame_id']}: "
+                        # Hiển thị thông tin với video source
+                        video_mapping = {
+                            "cam-1": "hanam.mp4",
+                            "cam-2": "vinhPhuc.mp4"
+                        }
+                        video_name = video_mapping.get(camera_id, "unknown")
+                        
+                        print(f"Camera {camera_id} ({video_name}) - Frame {detection_data['frame_id']}: "
                               f"Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_detection_payload['roi_detection_count']}")
                 
                 time.sleep(0.1)  # Check mỗi 100ms
