@@ -18,7 +18,7 @@ Tool nhận diện vật thể sử dụng YOLO11s model với khả năng hiể
 pip install -r requirements.txt
 ```
 
-2. Đảm bảo có file model `yolo11s_candy_model.pt` trong thư mục dự án
+2. Đảm bảo có file model `model/model-hanam_0506.pt` trong thư mục dự án
 
 ## Sử dụng
 
@@ -49,7 +49,7 @@ python yolo_detector.py --camera-id cam-1 --confidence 0.7
 
 ## Tham số
 
-- `--model`: Đường dẫn đến file model YOLO (mặc định: yolo11s_candy_model.pt)
+- `--model`: Đường dẫn đến file model YOLO (mặc định: model/model-hanam_0506.pt)
 - `--camera-id`: ID của camera (mặc định: cam-1)
 - `--video-source`: Nguồn video (0=webcam, đường dẫn file, hoặc RTSP URL)
 - `--confidence`: Ngưỡng tin cậy cho detection từ 0.0 đến 1.0 (mặc định: 0.5)

@@ -4,18 +4,22 @@ from datetime import datetime
 from queue_store import SQLiteQueue
 
 
-def view_roi_detection_results(db_path: str = "queues.db", camera_id: str = None, limit: int = 10):
+def view_roi_detection_results(db_path: str = "queues.db", camera_id: str = None, limit: int = 10, show_all: bool = False):
     """
     Xem kết quả ROI detection từ queue
     
     Args:
         db_path: Đường dẫn database
         camera_id: ID camera cụ thể (None = tất cả)
-        limit: Số lượng kết quả hiển thị
+        limit: Số lượng kết quả hiển thị (0 = tất cả khi show_all=True)
+        show_all: Hiển thị tất cả kết quả thay vì chỉ kết quả mới nhất
     """
     queue = SQLiteQueue(db_path)
     
-    print("=== ROI DETECTION RESULTS ===\n")
+    if show_all:
+        print("=== TẤT CẢ KẾT QUẢ ROI DETECTION ===\n")
+    else:
+        print("=== ROI DETECTION RESULTS ===\n")
     
     # Lấy danh sách camera IDs
     with queue._connect() as conn:
@@ -35,26 +39,77 @@ def view_roi_detection_results(db_path: str = "queues.db", camera_id: str = None
         print(f"📹 Camera: {cam_id}")
         print("-" * 50)
         
-        # Lấy kết quả mới nhất
-        latest_result = queue.get_latest("roi_detection", cam_id)
-        if latest_result:
-            print(f"🕐 Timestamp: {latest_result['timestamp']}")
-            print(f"🎬 Frame ID: {latest_result['frame_id']}")
-            print(f"📊 ROI Detections: {latest_result['roi_detection_count']}")
-            print(f"📊 Original Detections: {latest_result['original_detection_count']}")
-            print(f"📐 Frame Size: {latest_result['frame_shape']['width']}x{latest_result['frame_shape']['height']}")
+        if show_all:
+            # Lấy tất cả kết quả ROI detection cho camera này
+            with queue._connect() as conn:
+                if limit > 0:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload, created_at FROM messages 
+                        WHERE topic = 'roi_detection' AND key = ?
+                        ORDER BY id DESC LIMIT ?
+                        """,
+                        (cam_id, limit)
+                    )
+                else:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload, created_at FROM messages 
+                        WHERE topic = 'roi_detection' AND key = ?
+                        ORDER BY id DESC
+                        """,
+                        (cam_id,)
+                    )
+                rows = cur.fetchall()
             
-            if latest_result['roi_detections']:
-                print("\n🎯 Detected Objects:")
-                for i, detection in enumerate(latest_result['roi_detections'], 1):
-                    print(f"  {i}. {detection['class_name']} (ID: {detection['class_id']})")
-                    print(f"     Confidence: {detection['confidence']:.3f}")
-                    print(f"     BBox: ({detection['bbox']['x1']:.1f}, {detection['bbox']['y1']:.1f}) -> ({detection['bbox']['x2']:.1f}, {detection['bbox']['y2']:.1f})")
-                    print(f"     Center: ({detection['center']['x']:.1f}, {detection['center']['y']:.1f})")
-            else:
-                print("\n❌ Không có object nào trong ROI")
+            if not rows:
+                print("Không có dữ liệu")
+                continue
+            
+            print(f"Tổng số kết quả: {len(rows)}")
+            print()
+            
+            for idx, (msg_id, payload_json, created_at) in enumerate(rows, 1):
+                payload = json.loads(payload_json)
+                print(f"--- Kết quả {idx} (ID: {msg_id}) ---")
+                print(f"Timestamp: {payload['timestamp']}")
+                print(f"Frame ID: {payload['frame_id']}")
+                print(f"ROI Detections: {payload['roi_detection_count']}")
+                print(f"Original Detections: {payload['original_detection_count']}")
+                print(f"Frame Size: {payload['frame_shape']['width']}x{payload['frame_shape']['height']}")
+                
+                if payload['roi_detections']:
+                    print("Detected Objects:")
+                    for i, detection in enumerate(payload['roi_detections'], 1):
+                        print(f"  {i}. {detection['class_name']} (ID: {detection['class_id']})")
+                        print(f"     Confidence: {detection['confidence']:.3f}")
+                        print(f"     BBox: ({detection['bbox']['x1']:.1f}, {detection['bbox']['y1']:.1f}) -> ({detection['bbox']['x2']:.1f}, {detection['bbox']['y2']:.1f})")
+                        print(f"     Center: ({detection['center']['x']:.1f}, {detection['center']['y']:.1f})")
+                else:
+                    print("Không có object nào trong ROI")
+                
+                print()
         else:
-            print("❌ Không có dữ liệu")
+            # Lấy kết quả mới nhất
+            latest_result = queue.get_latest("roi_detection", cam_id)
+            if latest_result:
+                print(f"Timestamp: {latest_result['timestamp']}")
+                print(f"Frame ID: {latest_result['frame_id']}")
+                print(f"ROI Detections: {latest_result['roi_detection_count']}")
+                print(f"Original Detections: {latest_result['original_detection_count']}")
+                print(f"Frame Size: {latest_result['frame_shape']['width']}x{latest_result['frame_shape']['height']}")
+                
+                if latest_result['roi_detections']:
+                    print("\nDetected Objects:")
+                    for i, detection in enumerate(latest_result['roi_detections'], 1):
+                        print(f"  {i}. {detection['class_name']} (ID: {detection['class_id']})")
+                        print(f"     Confidence: {detection['confidence']:.3f}")
+                        print(f"     BBox: ({detection['bbox']['x1']:.1f}, {detection['bbox']['y1']:.1f}) -> ({detection['bbox']['x2']:.1f}, {detection['bbox']['y2']:.1f})")
+                        print(f"     Center: ({detection['center']['x']:.1f}, {detection['center']['y']:.1f})")
+                else:
+                    print("\nKhông có object nào trong ROI")
+            else:
+                print("Không có dữ liệu")
         
         print("\n" + "="*60 + "\n")
 
@@ -87,7 +142,7 @@ def view_recent_history(db_path: str = "queues.db", camera_id: str = None, limit
         return
     
     for cam_id in camera_ids:
-        print(f"📹 Camera: {cam_id}")
+        print(f"Camera: {cam_id}")
         print("-" * 50)
         
         # Lấy lịch sử gần đây
@@ -103,7 +158,7 @@ def view_recent_history(db_path: str = "queues.db", camera_id: str = None, limit
             rows = cur.fetchall()
         
         if not rows:
-            print("❌ Không có dữ liệu")
+            print("Không có dữ liệu")
             continue
         
         for i, (msg_id, payload_json, created_at) in enumerate(rows, 1):
@@ -147,7 +202,7 @@ def view_queue_stats(db_path: str = "queues.db"):
         topics = cur.fetchall()
         
         for topic, count, first_msg, last_msg in topics:
-            print(f"📋 Topic: {topic}")
+            print(f"Topic: {topic}")
             print(f"   Messages: {count}")
             print(f"   First: {first_msg}")
             print(f"   Last: {last_msg}")
@@ -214,7 +269,7 @@ def export_results_to_json(db_path: str = "queues.db", camera_id: str = None, ou
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     
-    print(f"✅ Đã export {len(results)} kết quả ra file: {output_file}")
+    print(f"Đã export {len(results)} kết quả ra file: {output_file}")
 
 
 def parse_args():
@@ -225,7 +280,9 @@ def parse_args():
     parser.add_argument("--camera-id", type=str, 
                        help="ID camera cụ thể (mặc định: tất cả)")
     parser.add_argument("--limit", type=int, default=10, 
-                       help="Số lượng kết quả hiển thị")
+                       help="Số lượng kết quả hiển thị (0 = tất cả khi dùng --all)")
+    parser.add_argument("--all", action="store_true", 
+                       help="Xem tất cả kết quả thay vì chỉ kết quả mới nhất")
     parser.add_argument("--history", action="store_true", 
                        help="Xem lịch sử gần đây")
     parser.add_argument("--stats", action="store_true", 
@@ -248,7 +305,7 @@ def main():
         elif args.export:
             export_results_to_json(args.db_path, args.camera_id, args.export)
         else:
-            view_roi_detection_results(args.db_path, args.camera_id, args.limit)
+            view_roi_detection_results(args.db_path, args.camera_id, args.limit, args.all)
             
     except Exception as e:
         print(f"Lỗi: {e}")

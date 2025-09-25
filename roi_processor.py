@@ -296,11 +296,9 @@ class ROIProcessor:
             VideoCapture object hoặc None
         """
         if camera_id not in self.video_captures:
-            # Thử các nguồn video phổ biến
+            # Sử dụng cố định file video video/hanam.mp4 theo yêu cầu
             video_sources = [
-                "rtsp://192.168.1.162:8080/h264_ulaw.sdp",  # RTSP mặc định
-                0,  # Webcam
-                f"video_{camera_id}.mp4",  # File video
+                "video/hanam.mp4",
             ]
             
             for source in video_sources:

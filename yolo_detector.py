@@ -219,12 +219,12 @@ class YOLODetector:
 def parse_args():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(description="YOLO Object Detection với video stream")
-    parser.add_argument("--model", type=str, default="yolo11s_candy_model.pt", 
+    parser.add_argument("--model", type=str, default="model/model-hanam_0506.pt", 
                        help="Đường dẫn đến file model YOLO")
     parser.add_argument("--camera-id", type=str, default="cam-1", 
                        help="ID của camera")
-    parser.add_argument("--video-source", type=str, default="0", 
-                       help="Nguồn video (0=webcam, đường dẫn file, hoặc RTSP URL)")
+    parser.add_argument("--video-source", type=str, default="video/hanam.mp4", 
+                       help="Nguồn video (mặc định: video/hanam.mp4; cũng hỗ trợ 0=webcam hoặc RTSP URL)")
     parser.add_argument("--confidence", type=float, default=0.5, 
                        help="Ngưỡng tin cậy cho detection (0.0-1.0)")
     

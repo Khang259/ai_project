@@ -151,10 +151,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Tool vẽ ROI theo camera")
     parser.add_argument("--camera-id", type=str, default="cam-1", help="ID camera")
     parser.add_argument(
-        "--rtsp",
+        "--video",
         type=str,
-        default="rtsp://192.168.1.162:8080/h264_ulaw.sdp",
-        help="RTSP URL của camera",
+        default="video/hanam.mp4",
+        help="Đường dẫn file video đầu vào",
     )
     return parser.parse_args()
 
@@ -162,7 +162,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    frame = capture_one_frame(args.rtsp)
+    frame = capture_one_frame(args.video)
     drawer = RoiDrawer(frame, window_name=f"ROI - {args.camera_id}")
     polygons = drawer.run()
 
