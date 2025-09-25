@@ -32,6 +32,8 @@ class ROIProcessor:
         self.frame_cache: Dict[str, np.ndarray] = {}
         # Latest detection data cho mỗi camera
         self.latest_detections: Dict[str, Dict[str, Any]] = {}
+        # Latest ROI detection data cho mỗi camera (bao gồm empty)
+        self.latest_roi_detections: Dict[str, Dict[str, Any]] = {}
         
     def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
         """
@@ -118,7 +120,7 @@ class ROIProcessor:
     
     def filter_detections_by_roi(self, detections: List[Dict[str, Any]], camera_id: str) -> List[Dict[str, Any]]:
         """
-        Lọc detections theo ROI
+        Lọc detections theo ROI và thêm "empty" cho ROI không có shelf hoặc confidence < 0.5
         
         Args:
             detections: Danh sách detections
@@ -134,9 +136,37 @@ class ROIProcessor:
             return []
         
         filtered_detections = []
+        roi_has_shelf = [False] * len(roi_slots)  # Track xem ROI nào có shelf
+        
+        # Lọc detections có trong ROI và là shelf với confidence >= 0.5
         for detection in detections:
-            if self.is_detection_in_roi(detection, roi_slots):
-                filtered_detections.append(detection)
+            if detection.get("class_name") == "shelf" and detection.get("confidence", 0) >= 0.5:
+                for i, slot in enumerate(roi_slots):
+                    if self.is_detection_in_roi(detection, [slot]):
+                        filtered_detections.append(detection)
+                        roi_has_shelf[i] = True
+                        break
+        
+        # Thêm "empty" cho các ROI không có shelf hoặc confidence < 0.5
+        for i, slot in enumerate(roi_slots):
+            if not roi_has_shelf[i]:
+                # Tạo detection "empty" cho ROI này
+                empty_detection = {
+                    "class_name": "empty",
+                    "confidence": 1.0,  # Confidence cao cho empty
+                    "class_id": -1,  # ID đặc biệt cho empty
+                    "bbox": {
+                        "x1": min(point[0] for point in slot["points"]),
+                        "y1": min(point[1] for point in slot["points"]),
+                        "x2": max(point[0] for point in slot["points"]),
+                        "y2": max(point[1] for point in slot["points"])
+                    },
+                    "center": {
+                        "x": sum(point[0] for point in slot["points"]) / len(slot["points"]),
+                        "y": sum(point[1] for point in slot["points"]) / len(slot["points"])
+                    }
+                }
+                filtered_detections.append(empty_detection)
         
         return filtered_detections
     
@@ -160,16 +190,13 @@ class ROIProcessor:
             detection_data: Dữ liệu detection từ queue
             
         Returns:
-            Dữ liệu đã được filter hoặc None nếu không có detection nào
+            Dữ liệu đã được filter (luôn có kết quả cho mỗi ROI)
         """
         camera_id = detection_data["camera_id"]
         detections = detection_data["detections"]
         
-        # Lọc detections theo ROI
+        # Lọc detections theo ROI (sẽ luôn có kết quả cho mỗi ROI)
         filtered_detections = self.filter_detections_by_roi(detections, camera_id)
-        
-        if not filtered_detections:
-            return None
         
         # Tạo payload cho roi_detection_queue
         roi_detection_payload = {
@@ -250,28 +277,43 @@ class ROIProcessor:
             confidence = detection["confidence"]
             class_name = detection["class_name"]
             
-            # Kiểm tra xem detection có trong ROI không
-            is_in_roi = self.is_detection_in_roi(detection, roi_slots)
-            
-            # Chọn màu và style dựa trên việc có trong ROI hay không
-            if is_in_roi:
-                # Highlight detections trong ROI
-                color = (0, 0, 255)  # Đỏ cho ROI detections
-                thickness = 3
-                label_color = (0, 0, 255)
+            # Xử lý empty detections (luôn trong ROI)
+            if class_name == "empty":
+                # Màu vàng cho empty ROI
+                color = (128, 0, 0)  # Vàng cho empty
+                thickness = 2
+                label_color = (0, 255, 255)
+                is_in_roi = True
             else:
-                # Detections ngoài ROI
-                color = (128, 128, 128)  # Xám cho detections ngoài ROI
-                thickness = 1
-                label_color = (128, 128, 128)
+                # Kiểm tra xem detection có trong ROI không (cho các class khác)
+                is_in_roi = self.is_detection_in_roi(detection, roi_slots)
+                
+                # Chọn màu và style dựa trên việc có trong ROI hay không
+                if is_in_roi:
+                    # Highlight detections trong ROI (shelf)
+                    color = (0, 0, 255)  # Đỏ cho shelf trong ROI
+                    thickness = 3
+                    label_color = (0, 0, 255)
+                else:
+                    # Detections ngoài ROI
+                    color = (128, 128, 128)  # Xám cho detections ngoài ROI
+                    thickness = 1
+                    label_color = (128, 128, 128)
             
             # Vẽ bounding box
-            cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, thickness)
+            if class_name == "empty":
+                # Vẽ bounding box đứt nét cho empty ROI
+                self.draw_dashed_rectangle(annotated_frame, (x1, y1), (x2, y2), color, thickness)
+            else:
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, thickness)
             
             # Tạo label
-            label = f"{class_name}: {confidence:.2f}"
-            if is_in_roi:
-                label += " [ROI]"
+            if class_name == "empty":
+                label = f"EMPTY [ROI]"
+            else:
+                label = f"{class_name}: {confidence:.2f}"
+                if is_in_roi:
+                    label += " [ROI]"
             
             label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
             
@@ -284,6 +326,71 @@ class ROIProcessor:
                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
         return annotated_frame
+    
+    def draw_dashed_rectangle(self, image: np.ndarray, pt1: Tuple[int, int], pt2: Tuple[int, int], 
+                             color: Tuple[int, int, int], thickness: int, dash_length: int = 10) -> None:
+        """
+        Vẽ hình chữ nhật đứt nét
+        
+        Args:
+            image: Hình ảnh để vẽ
+            pt1: Điểm góc trên trái (x1, y1)
+            pt2: Điểm góc dưới phải (x2, y2)
+            color: Màu sắc
+            thickness: Độ dày đường
+            dash_length: Độ dài mỗi đoạn đứt nét
+        """
+        x1, y1 = pt1
+        x2, y2 = pt2
+        
+        # Vẽ 4 cạnh đứt nét
+        # Cạnh trên
+        self.draw_dashed_line(image, (x1, y1), (x2, y1), color, thickness, dash_length)
+        # Cạnh phải
+        self.draw_dashed_line(image, (x2, y1), (x2, y2), color, thickness, dash_length)
+        # Cạnh dưới
+        self.draw_dashed_line(image, (x2, y2), (x1, y2), color, thickness, dash_length)
+        # Cạnh trái
+        self.draw_dashed_line(image, (x1, y2), (x1, y1), color, thickness, dash_length)
+    
+    def draw_dashed_line(self, image: np.ndarray, pt1: Tuple[int, int], pt2: Tuple[int, int], 
+                        color: Tuple[int, int, int], thickness: int, dash_length: int) -> None:
+        """
+        Vẽ đường thẳng đứt nét
+        
+        Args:
+            image: Hình ảnh để vẽ
+            pt1: Điểm đầu (x1, y1)
+            pt2: Điểm cuối (x2, y2)
+            color: Màu sắc
+            thickness: Độ dày đường
+            dash_length: Độ dài mỗi đoạn đứt nét
+        """
+        x1, y1 = pt1
+        x2, y2 = pt2
+        
+        # Tính khoảng cách và hướng
+        dx = x2 - x1
+        dy = y2 - y1
+        distance = int(np.sqrt(dx*dx + dy*dy))
+        
+        if distance == 0:
+            return
+        
+        # Tính số đoạn đứt nét
+        dash_count = distance // (dash_length * 2)
+        
+        # Vẽ các đoạn đứt nét
+        for i in range(dash_count):
+            start_ratio = (i * 2 * dash_length) / distance
+            end_ratio = ((i * 2 + 1) * dash_length) / distance
+            
+            start_x = int(x1 + dx * start_ratio)
+            start_y = int(y1 + dy * start_ratio)
+            end_x = int(x1 + dx * end_ratio)
+            end_y = int(y1 + dy * end_ratio)
+            
+            cv2.line(image, (start_x, start_y), (end_x, end_y), color, thickness)
     
     def get_video_capture(self, camera_id: str) -> Optional[cv2.VideoCapture]:
         """
@@ -355,21 +462,27 @@ class ROIProcessor:
                         # Vẽ ROI lên frame
                         frame_with_roi = self.draw_roi_on_frame(frame, camera_id)
                         
-                        # Lấy detections mới nhất cho camera này
+                        # Lấy ROI detections mới nhất cho camera này (bao gồm empty)
                         with self.cache_lock:
-                            latest_detection = self.latest_detections.get(camera_id)
+                            latest_roi_detection = self.latest_roi_detections.get(camera_id)
                         
-                        if latest_detection and latest_detection.get("detections"):
-                            # Vẽ detections lên frame
+                        if latest_roi_detection and latest_roi_detection.get("roi_detections"):
+                            # Vẽ ROI detections lên frame (bao gồm empty)
                             frame_with_detections = self.draw_detections_on_frame(
-                                frame_with_roi, latest_detection["detections"], camera_id
+                                frame_with_roi, latest_roi_detection["roi_detections"], camera_id
                             )
                             
                             # Hiển thị thông tin
-                            info_text = f"Camera: {camera_id} | Frame: {latest_detection.get('frame_id', 'N/A')}"
-                            roi_count = latest_detection.get('roi_detection_count', 0)
-                            total_count = latest_detection.get('original_detection_count', 0)
-                            info_text += f" | ROI Detections: {roi_count}/{total_count}"
+                            info_text = f"Camera: {camera_id} | Frame: {latest_roi_detection.get('frame_id', 'N/A')}"
+                            roi_count = latest_roi_detection.get('roi_detection_count', 0)
+                            total_count = latest_roi_detection.get('original_detection_count', 0)
+                            
+                            # Đếm shelf và empty trong ROI detections
+                            roi_detections = latest_roi_detection.get('roi_detections', [])
+                            shelf_count = sum(1 for d in roi_detections if d.get('class_name') == 'shelf')
+                            empty_count = sum(1 for d in roi_detections if d.get('class_name') == 'empty')
+                            
+                            info_text += f" | Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_count}"
                             
                             cv2.putText(frame_with_detections, info_text, (10, 30), 
                                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
@@ -479,14 +592,22 @@ class ROIProcessor:
                         with self.cache_lock:
                             self.latest_detections[camera_id] = detection_data
                         
-                        # Xử lý detection
+                        # Xử lý detection (luôn có kết quả cho mỗi ROI)
                         roi_detection_payload = self.process_detection(detection_data)
                         
-                        if roi_detection_payload:
-                            # Push vào roi_detection_queue
-                            self.queue.publish("roi_detection", camera_id, roi_detection_payload)
-                            print(f"Camera {camera_id} - Frame {detection_data['frame_id']}: "
-                                  f"{roi_detection_payload['roi_detection_count']}/{roi_detection_payload['original_detection_count']} detections")
+                        # Lưu ROI detection data để hiển thị video (bao gồm empty)
+                        with self.cache_lock:
+                            self.latest_roi_detections[camera_id] = roi_detection_payload
+                        
+                        # Push vào roi_detection_queue
+                        self.queue.publish("roi_detection", camera_id, roi_detection_payload)
+                        
+                        # Đếm số shelf và empty
+                        shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'shelf')
+                        empty_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'empty')
+                        
+                        print(f"Camera {camera_id} - Frame {detection_data['frame_id']}: "
+                              f"Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_detection_payload['roi_detection_count']}")
                 
                 time.sleep(0.1)  # Check mỗi 100ms
                 
