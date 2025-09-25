@@ -27,8 +27,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import useAGVWebSocket from '@/hooks/MapDashboard/useAGVWebsocket';
-import AMRWarehouseMap from "@/components/map/AMRWarehouseMap/AMRWarehouseMap"
-import LeafletMap from "@/components/map/AMRWarehouseMap/Map"
+import AMRWarehouseMap from "@/components/Overview/map/AMRWarehouseMap/AMRWarehouseMap"
+import LeafletMap from "@/components/Overview/map/AMRWarehouseMap/Map"
+import StatisticsLeftSide from "@/components/Overview/statistics/StatisticsLeftSide"
 
 // const { loading: zipLoading, error: zipError, zipFileName, handleZipImport } = useZipImport();
 
@@ -73,25 +74,39 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-white"> 
-      <div className="flex">
-        {/* Main Content */}
-        <main className="flex-1 bg-gray-50">
-           <div className="grid grid-cols-3 gap-8">
-             {/* Main Content Area */}
-             <div className="col-span-4">
-               {/* Charts Section */}
-               <AMRWarehouseMap />
-               <Card className="border-gray-200">
-                 <CardContent>
-                 </CardContent>
-               </Card>
+      <div className="flex h-[calc(100vh-4rem)">
+        {/* Left Column - 30% */} 
+        <div className="w-[25%] bg-gray-50 rounded-lg p-6">
+          <StatisticsLeftSide />
+        </div>
 
-               {/* Workflow Status Table */}
-               <Card className="border-gray-200">
-               </Card>
-             </div>
-           </div>  
-        </main>
+        {/* Right Column - 70% */}
+        <div className="w-[75%] bg-gray-50 p-6">
+          <div className="h-full space-y-6">
+            {/* Charts Section */}
+            {/* 
+              rounded-lg: bo góc lớn cho phần tử (large rounded corners)
+              overflow-hidden: ẩn phần nội dung bị tràn ra ngoài (hide overflow content)
+              shadow-sm: đổ bóng nhẹ cho phần tử (small box shadow)
+            */}
+            <div className="rounded-lg overflow-hidden shadow-sm">
+              <AMRWarehouseMap />
+            </div>
+            
+            <Card className="border-gray-200 rounded-lg shadow-sm">
+              <CardContent className="p-6">
+                <p className="text-sm text-gray-600">Nội dung card chính</p>
+              </CardContent>
+            </Card>
+
+            {/* Workflow Status Table */}
+            <Card className="border-gray-200 rounded-lg shadow-sm">
+              <CardContent className="p-6">
+                <p className="text-sm text-gray-600">Bảng trạng thái workflow</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

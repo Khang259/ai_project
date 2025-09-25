@@ -21,7 +21,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DashboardLayout from "../components/DashboardLayout";
+import WeatherCard from "@/components/AGVCard";
+import AGVCard from "@/components/AGVCard";
+
 
 const performanceData = [
   { name: "Jan", executions: 4000, success: 3800, failed: 200, avgDuration: 45 },
@@ -95,6 +97,7 @@ export default function AnalyticsPage() {
             <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
             <p className="text-gray-600 mt-1">Monitor performance and gain insights into your workflows</p>
           </div>
+          {/* Filter */}
           <div className="flex items-center gap-3">
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-40">
@@ -115,7 +118,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {kpiData.map((kpi, index) => (
             <Card key={index} className="border-gray-200">
               <CardContent className="p-6">
@@ -138,6 +141,24 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
           ))}
+        </div> */}
+
+        {/* Weather Card */}
+        <div className="grid grid-cols-1 gap-6 bg-gray-100 border border-2 border-gray-200 rounded-xl m-6">
+          <Card className="border-2 border-gray-200 rounded-xl">
+            <CardHeader>
+              <CardTitle className="text">Thông tin AGV</CardTitle>
+              <CardDescription>Thông tin hiện tại của AGV</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-6">
+              <AGVCard />
+              <AGVCard />
+              <AGVCard />
+              <AGVCard />
+              <AGVCard />
+              <AGVCard />
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="performance" className="space-y-6">
