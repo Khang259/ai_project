@@ -143,18 +143,21 @@ class ROIProcessor:
             if detection.get("class_name") == "shelf" and detection.get("confidence", 0) >= 0.5:
                 for i, slot in enumerate(roi_slots):
                     if self.is_detection_in_roi(detection, [slot]):
-                        filtered_detections.append(detection)
+                        # Gắn slot_number cho detection thuộc ROI i
+                        detection_with_slot = dict(detection)
+                        detection_with_slot["slot_number"] = i + 1
+                        filtered_detections.append(detection_with_slot)
                         roi_has_shelf[i] = True
                         break
         
         # Thêm "empty" cho các ROI không có shelf hoặc confidence < 0.5
         for i, slot in enumerate(roi_slots):
             if not roi_has_shelf[i]:
-                # Tạo detection "empty" cho ROI này
+                # Tạo detection "empty" cho ROI này và gắn slot_number
                 empty_detection = {
                     "class_name": "empty",
-                    "confidence": 1.0,  # Confidence cao cho empty
-                    "class_id": -1,  # ID đặc biệt cho empty
+                    "confidence": 1.0,
+                    "class_id": -1,
                     "bbox": {
                         "x1": min(point[0] for point in slot["points"]),
                         "y1": min(point[1] for point in slot["points"]),
@@ -164,7 +167,8 @@ class ROIProcessor:
                     "center": {
                         "x": sum(point[0] for point in slot["points"]) / len(slot["points"]),
                         "y": sum(point[1] for point in slot["points"]) / len(slot["points"])
-                    }
+                    },
+                    "slot_number": i + 1,
                 }
                 filtered_detections.append(empty_detection)
         

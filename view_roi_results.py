@@ -36,7 +36,7 @@ def view_roi_detection_results(db_path: str = "queues.db", camera_id: str = None
         return
     
     for cam_id in camera_ids:
-        print(f"📹 Camera: {cam_id}")
+        print(f"Camera: {cam_id}")
         print("-" * 50)
         
         if show_all:
@@ -82,6 +82,9 @@ def view_roi_detection_results(db_path: str = "queues.db", camera_id: str = None
                     print("Detected Objects:")
                     for i, detection in enumerate(payload['roi_detections'], 1):
                         print(f"  {i}. {detection['class_name']} (ID: {detection['class_id']})")
+                        # Hiển thị slot_number nếu có
+                        if 'slot_number' in detection:
+                            print(f"     Slot: {detection['slot_number']}")
                         print(f"     Confidence: {detection['confidence']:.3f}")
                         print(f"     BBox: ({detection['bbox']['x1']:.1f}, {detection['bbox']['y1']:.1f}) -> ({detection['bbox']['x2']:.1f}, {detection['bbox']['y2']:.1f})")
                         print(f"     Center: ({detection['center']['x']:.1f}, {detection['center']['y']:.1f})")
@@ -103,6 +106,9 @@ def view_roi_detection_results(db_path: str = "queues.db", camera_id: str = None
                     print("\nDetected Objects:")
                     for i, detection in enumerate(latest_result['roi_detections'], 1):
                         print(f"  {i}. {detection['class_name']} (ID: {detection['class_id']})")
+                        # Hiển thị slot_number nếu có
+                        if 'slot_number' in detection:
+                            print(f"     Slot: {detection['slot_number']}")
                         print(f"     Confidence: {detection['confidence']:.3f}")
                         print(f"     BBox: ({detection['bbox']['x1']:.1f}, {detection['bbox']['y1']:.1f}) -> ({detection['bbox']['x2']:.1f}, {detection['bbox']['y2']:.1f})")
                         print(f"     Center: ({detection['center']['x']:.1f}, {detection['center']['y']:.1f})")

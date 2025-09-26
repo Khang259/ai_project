@@ -1,0 +1,74 @@
+{
+  "starts": [
+    {
+      "slot_number": 1,
+      "camera_id": "cam-1",
+      "qr_code": 1111
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-1",
+      "qr_code": 2222
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-1",
+      "qr_code": 3333
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-1",
+      "qr_code": 4444
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-2",
+      "qr_code": 1234
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-2",
+      "qr_code": 2345
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-2",
+      "qr_code": 3456
+    }
+  ],
+  "ends": [
+    {
+      "slot_number": 5,
+      "camera_id": "cam-1",
+      "qr_code": 5555
+    },
+    {
+      "slot_number": 6,
+      "camera_id": "cam-1",
+      "qr_code": 6666
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-2",
+      "qr_code": 4567
+    },
+    {
+      "slot_number": 5,
+      "camera_id": "cam-2",
+      "qr_code": 5678
+    },
+    {
+      "slot_number": 6,
+      "camera_id": "cam-2",
+      "qr_code": 6789
+    }
+  ],
+  "pairs": [
+    { "start_qr": 1111, "end_qrs": 4567 },
+    { "start_qr": 1234, "end_qrs": 5555 },
+    { "start_qr": 2222, "end_qrs": 5678 },
+    { "start_qr": 3333, "end_qrs": 6789 },
+    { "start_qr": 4444, "end_qrs": 5678 }
+   
+  ]
+}

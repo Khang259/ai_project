@@ -180,11 +180,11 @@ def main() -> None:
     if args.vinhphuc:
         video_source = "video/vinhPhuc.mp4"
         camera_id = "cam-2"
-        print("🎬 Sử dụng video/vinhPhuc.mp4 cho camera cam-2")
+        print("Sử dụng video/vinhPhuc.mp4 cho camera cam-2")
     else:
         video_source = args.video
         camera_id = args.camera_id
-        print(f"🎬 Sử dụng {video_source} cho camera {camera_id}")
+        print(f"Sử dụng {video_source} cho camera {camera_id}")
 
     frame = capture_one_frame(video_source)
     drawer = RoiDrawer(frame, window_name=f"ROI - {camera_id}")
@@ -210,9 +210,9 @@ def main() -> None:
     queue = SQLiteQueue("queues.db")
     queue.publish("roi_config", camera_id, payload)
 
-    print(f"✅ Đã lưu roi_config của {camera_id} với {len(slots)} ROI vào queue.")
-    print(f"📁 Video source: {video_source}")
-    print(f"🆔 Camera ID: {camera_id}")
+    print(f"Đã lưu roi_config của {camera_id} với {len(slots)} ROI vào queue.")
+    print(f"Video source: {video_source}")
+    print(f"Camera ID: {camera_id}")
 
 
 if __name__ == "__main__":
