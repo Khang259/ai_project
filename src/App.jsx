@@ -6,11 +6,13 @@ import TaskManagement from './pages/TaskManagement';
 import Notification from './pages/Notification';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import LoginPage from './pages/Login';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
+      <Route path="/login" element={<DashboardLayout><LoginPage /></DashboardLayout>} />
+      <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
       <Route path="/analytics" element={<DashboardLayout><Analytics /></DashboardLayout>} />
       <Route path="/task" element={<DashboardLayout><TaskManagement /></DashboardLayout>} />
       <Route path="/notification" element={<DashboardLayout><Notification /></DashboardLayout>} />
