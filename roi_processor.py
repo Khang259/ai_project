@@ -281,7 +281,7 @@ class ROIProcessor:
             if class_name == "empty":
                 # Màu vàng cho empty ROI
                 color = (128, 0, 0)  # Vàng cho empty
-                thickness = 2
+                thickness = 0.5
                 label_color = (0, 255, 255)
                 is_in_roi = True
             else:
@@ -292,7 +292,7 @@ class ROIProcessor:
                 if is_in_roi:
                     # Highlight detections trong ROI (shelf)
                     color = (0, 0, 255)  # Đỏ cho shelf trong ROI
-                    thickness = 3
+                    thickness = 1
                     label_color = (0, 0, 255)
                 else:
                     # Detections ngoài ROI
@@ -301,11 +301,13 @@ class ROIProcessor:
                     label_color = (128, 128, 128)
             
             # Vẽ bounding box
+            # Ép thickness về số nguyên tối thiểu 1 để tránh lỗi OpenCV
+            draw_thickness = max(1, int(round(thickness)))
             if class_name == "empty":
                 # Vẽ bounding box đứt nét cho empty ROI
-                self.draw_dashed_rectangle(annotated_frame, (x1, y1), (x2, y2), color, thickness)
+                self.draw_dashed_rectangle(annotated_frame, (x1, y1), (x2, y2), color, draw_thickness)
             else:
-                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, thickness)
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, draw_thickness)
             
             # Tạo label
             if class_name == "empty":
@@ -343,6 +345,9 @@ class ROIProcessor:
         x1, y1 = pt1
         x2, y2 = pt2
         
+        # Ép thickness về số nguyên tối thiểu 1 để tránh lỗi OpenCV
+        thickness = max(1, int(round(thickness)))
+
         # Vẽ 4 cạnh đứt nét
         # Cạnh trên
         self.draw_dashed_line(image, (x1, y1), (x2, y1), color, thickness, dash_length)
@@ -377,8 +382,12 @@ class ROIProcessor:
         if distance == 0:
             return
         
+        # Ép tham số về số nguyên hợp lệ
+        thickness = max(1, int(round(thickness)))
+        dash_length = max(1, int(round(dash_length)))
+
         # Tính số đoạn đứt nét
-        dash_count = distance // (dash_length * 2)
+        dash_count = max(1, distance // (dash_length * 2))
         
         # Vẽ các đoạn đứt nét
         for i in range(dash_count):

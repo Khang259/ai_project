@@ -75,7 +75,7 @@ class YOLODetector:
                         
                         # Tạo label
                         label = f"{class_name}: {confidence:.2f}"
-                        label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
+                        label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)[0]
                         
                         # Vẽ background cho label
                         cv2.rectangle(annotated_frame, (x1, y1 - label_size[1] - 10), 
@@ -83,7 +83,7 @@ class YOLODetector:
                         
                         # Vẽ text
                         cv2.putText(annotated_frame, label, (x1, y1 - 5), 
-                                  cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                                  cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
         
         return annotated_frame
     
@@ -195,7 +195,7 @@ class YOLODetector:
                 # Hiển thị thông tin trên frame
                 info_text = f"Camera: {self.camera_id} | Detections: {len(detections)} | Frame: {frame_count}"
                 cv2.putText(annotated_frame, info_text, (10, 30), 
-                          cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                          cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1) # Tên font chữ , kích thước chữ/ màu chữ/ độ dày chữ
                 
                 # Hiển thị frame
                 cv2.imshow(f"YOLO Detection - {self.camera_id}", annotated_frame)
