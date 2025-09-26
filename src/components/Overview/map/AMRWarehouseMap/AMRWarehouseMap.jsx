@@ -29,7 +29,6 @@ const AMRWarehouseMap = () => {
   const { 
     mapInstance,
     handleMapReady,
-    handleReset
   } = useLeafletMapControls();
   
   // WebSocket hook cho AGV data
@@ -123,7 +122,7 @@ const AMRWarehouseMap = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         {/* Title */}
         <Title level={2} style={{ color: 'black', fontWeight: 700, fontSize: 32, padding: 10 }}>
-          AMR Map View
+          Bản đồ quan sát AMR
         </Title>
         {/* Status Connection to AGV Server */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -132,9 +131,9 @@ const AMRWarehouseMap = () => {
             icon={isConnected ? <WifiOutlined /> : <WifiDisconnectedOutlined />}
             style={{ fontSize: 14, padding: '4px 12px' }}
           >
-            {isConnected ? 'Connected to AGV Server' : 'Disconnected from AGV Server'}
+            {isConnected ? 'ết nối đến RCS' : 'Mất kết nối đến RCS'}
           </Tag>
-          {wsError && (
+          {/* {wsError && (
             <Alert 
               message="WebSocket Error" 
               description={wsError} 
@@ -142,21 +141,21 @@ const AMRWarehouseMap = () => {
               showIcon 
               style={{ maxWidth: 300 }}
             />
-          )}
+          )} */}
         </div> 
 
         {/* Nhóm nút điều khiển - Đặt sang bên phải */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12, minWidth: 180 }}>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 16, marginRight: 10}}>
             <Tooltip title="Import Map Files">
               <Dropdown menu={{ items: importMenuItems }} placement="bottom">
                 <Button 
                   icon={<FileAddOutlined />} 
                   size="large"
                   style={{ 
-                    background: '#192040', 
-                    border: '2px solid #00f2fe', 
-                    color: '#00f2fe',
+                    // background: '#192040', 
+                    // border: '2px solid #00f2fe', 
+                    // color: '#00f2fe',
                     borderRadius: '50%',
                     width: 60,
                     height: 60,
@@ -175,7 +174,7 @@ const AMRWarehouseMap = () => {
                   size="large"
                   style={{ 
                     background: 'white', 
-                    border: '2px solid black', 
+                    // border: '2px solid black', 
                     color: 'black',
                     borderRadius: '50%',
                     width: 60,
@@ -255,26 +254,6 @@ const AMRWarehouseMap = () => {
           </Dropdown>
         </Tooltip>
 
-        <Tooltip title="Display Options">
-          <Dropdown menu={{ items: displayMenuItems }} placement="bottom">
-            <Button 
-              icon={<SettingOutlined />} 
-              size="large"
-              style={{ 
-                background: 'white', 
-                border: '2px solid black', 
-                color: 'black',
-                borderRadius: '50%',
-                width: 60,
-                height: 60,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            />
-          </Dropdown>
-        </Tooltip>
-
         {zipLoading && (
           <div style={{ 
             display: 'flex', 
@@ -316,46 +295,44 @@ const AMRWarehouseMap = () => {
         )}
       </div> */}
 
-      {/* Legend - moved to top */}
+      {/* Chú thích */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        gap: 16, 
-        marginBottom: 16, 
-        padding: '16px 24px', 
-        background: '#192040', 
         borderRadius: 12,
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
+        marginLeft: 16,
+        marginRight: 16
       }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
           <span className="legend-icon" style={{ background: '#34d399', display: 'inline-block', width: 16, height: 16, borderRadius: 4 }}></span>
-          Regular Waypoint
+          Các điểm QR code
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
           <span className="legend-icon" style={{ background: '#f87171', display: 'inline-block', width: 16, height: 16, borderRadius: 4 }}></span>
-          Special Node
+          Vị trí camera
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
           <span className="legend-icon" style={{ background: '#fcd34d', display: 'inline-block', width: 16, height: 16, borderRadius: 4 }}></span>
-          Charge Station
+          Điểm sạc
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
           <span className="legend-icon" style={{ background: '#60a5fa', borderRadius: '0.25em', display: 'inline-block', width: 16, height: 16 }}></span>
-          AMR Robot
+          Robot AMR
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
           <ThunderboltOutlined style={{ color: '#fcd34d' }} />
-          Charging Symbol
+          Đang sạc
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
           <span className="legend-path" style={{ display: 'inline-block', width: 32, height: 4, background: 'linear-gradient(90deg,#60a5fa,#3b82f6)', borderRadius: 2 }}></span>
-          Path
+          Khu vực đường đi AMR
         </span>
       </div>
 
       {/* Map Container */}
-      <Card variant="borderless" style={{ borderRadius: 16, background: 'red', color: '#fff', minHeight: 700 }} styles={{ body: { padding: 0 } }}>
+      <Card variant="borderless" style={{ borderRadius: 16, color: '#fff' }} styles={{ body: { padding: 0 } }}>
         <div style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
             {agvData && agvData.data && agvData.data.length > 0 && (
@@ -378,11 +355,8 @@ const AMRWarehouseMap = () => {
               </>
             )}
           </div>
-          <Button icon={<ReloadOutlined />} onClick={handleReset} style={{ background: '#00f2fe', color: '#181f36', fontWeight: 600 }}>
-            Reset
-          </Button>
         </div>
-        <div className="map-area-box" style={{ padding: 8 }}>
+        <div className="map-area-box" style={{ padding: 4}}>
           <LeafletMap
             mapData={mapData}
             securityConfig={securityConfig}

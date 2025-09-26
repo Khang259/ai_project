@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Overview", href: "/", icon: Home },
-  { name: "TaskManagement", href: "/task", icon: Workflow },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Notification", href: "/notification", icon: Database },
-  { name: "Users", href: "/users", icon: Users },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Tổng quan", href: "/", icon: Home },
+  { name: "Quản lý nhiệm vụ", href: "/task", icon: Workflow },
+  { name: "Thống kê", href: "/analytics", icon: BarChart3 },
+  { name: "Thông báo", href: "/notification", icon: Database },
+  { name: "Quản lý người dùng", href: "/users", icon: Users },
+  { name: "Cài đặt", href: "/settings", icon: Settings },
 ];
 
 export default function DashboardLayout({ children }) {  // Bỏ interface, dùng { children }
@@ -31,10 +31,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
       <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <Workflow className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold text-gray-900">Emmanuel</span>
+            <img src="/src/assets/logo_cty.png" alt="Company Logo" className="w-60 h-12" />
           </div>
           
           {/* Navigation trong header */}
@@ -47,11 +44,11 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                   to={item.href}
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                      ? "bg-[rgb(34,189,189)/.1] text-[rgb(34,189,189)] hover:bg-[rgb(34,189,189)/.2]"
                       : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
-                  <item.icon className="w-4 h-4 mr-2" />
+                  <item.icon className="w-7 h-7 mr-2" />
                   {item.name}
                 </Link>
               );
@@ -76,11 +73,9 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Alex Evans</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem>Thay đổi mật khẩu</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Sign out</DropdownMenuItem>
+              <DropdownMenuItem>Đăng xuất</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

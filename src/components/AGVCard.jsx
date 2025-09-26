@@ -12,23 +12,12 @@ const AGVCard = () => {
           <div className="mainsub">Device Model: HAIFLEXK600A-E2</div>
         </div>
         <div className="card2">
-          <div className="upper">
-            <div className="deviceip">
-              <div className="deviceiptext">Device IP<br />127.0.0.1</div>
-            </div>
-            <div className="devicestate">
-              <div className="devicestatetext">Device State<br />Online</div>
-            </div>
-          </div>
           <div className="lower">
             <div className="battery">
               <div className="batterytext">Battery<br />100%</div>
             </div>
             <div className="speed">
               <div className="speedtext">Speed<br />100 mm/s</div>
-            </div>
-            <div className="card3">
-              Healthy
             </div>
           </div>
         </div>
@@ -78,11 +67,12 @@ const StyledWrapper = styled.div`
     display: flex;
     flex-direction: row;
     width: 240px;
-    height: 130px;
+    height: 90px;
     border-radius: 35px;
     background: blue;
     z-index: 1;
     transition: .4s ease-in-out;
+    top: 40px; 
   }
 
   .card:hover {
@@ -91,23 +81,14 @@ const StyledWrapper = styled.div`
   }
 
   .card:hover + .card2 {
-    height: 300px;
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
+    height: 200px;
+    border-bottom-left-radius: 35px;
+    border-bottom-right-radius: 35px;
   }
 
   .card:hover + .card2 .lower {
-    top: 20.2em;
-  }
-
-  .upper {
-    display: flex;
-    flex-direction: row;
-    position: relative;
-    color: white;
-    left: 1.8em;
-    top: 0.5em;
-    gap: 4em;
+    top: 13em;
+    z-index:3;
   }
 
   .deviceiptext {
@@ -132,6 +113,7 @@ const StyledWrapper = styled.div`
     color: white;
     left: 3em;
     top: 1em;
+    z-index: 0;
     margin-top: 0.7em;
     font-size: 0.7em;
     transition: .4s ease-in-out;
@@ -144,22 +126,6 @@ const StyledWrapper = styled.div`
   .speedtext {
     margin-right: 1.8em;
   }
-
-  .card3 {
-    position: absolute;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    width: 240px;
-    height: 30px;
-    top: 4.7em;
-    left: -2.4em;
-    font-size: 1.24em;
-    border-bottom-left-radius: 35px;
-    border-bottom-right-radius: 35px;
-    background: limegreen;
-    transition: .4s ease-in-out;
-  }`;
+`;
 
 export default AGVCard;

@@ -258,11 +258,11 @@ const LeafletMap = ({
             // Smooth the path coordinates for curved lines
             const smoothPath = smoothPathCoordinates(pathCoordinates);
             
-            // Create clean path with better visibility
+            // Màu path
             const path = L.polyline(smoothPath, {
-              color: '#ffffff',
+              color: 'rgb(17, 113, 223)',
               weight: 3,
-              opacity: 0.9,
+              opacity: 0.8,
               lineCap: 'round',
               lineJoin: 'round',
               smoothFactor: 1,
@@ -415,7 +415,7 @@ const LeafletMap = ({
         const nodeShadow = L.circle([node.y, node.x], {
           radius: 12,
           fillColor: '#000000',
-          color: 'transparent',
+          color: 'rgb(236, 230, 134)',
           weight: 0,
           opacity: 0,
           fillOpacity: 0.3,
@@ -425,7 +425,7 @@ const LeafletMap = ({
         const circle = L.circle([node.y, node.x], {
           radius: 10,
           fillColor: '#ffffff',
-          color: '#00f2fe',
+          color: 'rgb(218, 213, 144)',
           weight: 2,
           opacity: 1,
           fillOpacity: 1,
@@ -646,12 +646,12 @@ const LeafletMap = ({
         ref={mapRef} 
         style={{ 
           width: '100%', 
-          height: '600px',
-          backgroundColor: '#1a2035',
+          height: '750px',
+          backgroundColor: 'rgb(255, 255, 255)',
           position: 'relative',
           borderRadius: '8px',
           overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
         }} 
       />
     </>

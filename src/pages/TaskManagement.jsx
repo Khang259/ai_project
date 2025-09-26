@@ -88,7 +88,7 @@ export default function TasksPage() {
     <div className="container mx-auto py-8 px-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Chào mừng trở lại!</CardTitle>
+          <CardTitle className="text-3xl font-semibold">Trang quản lý nhiệm vụ</CardTitle>
           {/* <CardDescription>Đây là danh sách các công việc của bạn trong tháng này.</CardDescription> */}
         </CardHeader>
         <CardContent>

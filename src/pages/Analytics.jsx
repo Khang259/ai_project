@@ -94,8 +94,8 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
-            <p className="text-gray-600 mt-1">Monitor performance and gain insights into your workflows</p>
+            <h1 className="text-4xl font-semibold text-gray-900 mt-4 ml-4">Trang thống kê</h1>
+            <p className="text-gray-600 mt-1 ml-7">Monitor performance and gain insights into your workflows</p>
           </div>
           {/* Filter */}
           <div className="flex items-center gap-3">
@@ -104,10 +104,10 @@ export default function AnalyticsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
-                <SelectItem value="1y">Last year</SelectItem>
+                <SelectItem value="7d">7 ngày gần nhất</SelectItem>
+                <SelectItem value="30d">30 ngày gần nhất</SelectItem>
+                <SelectItem value="90d">90 ngày gần nhất</SelectItem>
+                <SelectItem value="1y">1 năm gần nhất</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" className="gap-2 bg-transparent">
@@ -117,33 +117,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* KPI Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {kpiData.map((kpi, index) => (
-            <Card key={index} className="border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <kpi.icon className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div
-                    className={`flex items-center gap-1 text-sm ${
-                      kpi.trend === "up" ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {kpi.trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {kpi.change}
-                  </div>
-                </div>
-                <div className="text-2xl font-semibold text-gray-900 mb-1">{kpi.value}</div>
-                <div className="text-sm text-gray-600">{kpi.title}</div>
-                <div className="text-xs text-gray-500 mt-1">{kpi.description}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div> */}
-
-        {/* Weather Card */}
         <div className="grid grid-cols-1 gap-6 bg-gray-100 border border-2 border-gray-200 rounded-xl m-6">
           <Card className="border-2 border-gray-200 rounded-xl">
             <CardHeader>
@@ -174,13 +147,12 @@ export default function AnalyticsPage() {
               {/* Execution Trends */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Execution Trends</CardTitle>
-                  <CardDescription>Workflow executions over time</CardDescription>
+                  <CardTitle>Thời gian tải và không tải</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={performanceData}>
+                      <BarChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                         <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
                         <YAxis stroke="#6b7280" fontSize={12} />
@@ -192,15 +164,9 @@ export default function AnalyticsPage() {
                             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                           }}
                         />
-                        <Area
-                          type="monotone"
-                          dataKey="executions"
-                          stroke="#8b5cf6"
-                          fill="#8b5cf6"
-                          fillOpacity={0.1}
-                          strokeWidth={2}
-                        />
-                      </AreaChart>
+                        <Bar dataKey="success" fill="#10b981" name="Success" />
+                        <Bar dataKey="failed" fill="#ef4444" name="Failed" />
+                      </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </CardContent>
@@ -209,8 +175,7 @@ export default function AnalyticsPage() {
               {/* Success vs Failed */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Success vs Failed</CardTitle>
-                  <CardDescription>Execution outcomes comparison</CardDescription>
+                  <CardTitle>Thời gian làm và nghỉ</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
