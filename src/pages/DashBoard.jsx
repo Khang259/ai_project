@@ -45,16 +45,16 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white"> 
       <div className="flex h-[100%]">
         {/* Left Column - 30% */} 
-        <div className="w-[25%] bg-gray-50 rounded-lg p-6">
+        {/* <div className="w-[25%] bg-gray-50 rounded-lg p-6">
           <div className="h-full space-y-6">
             <div className="rounded-lg overflow-hidden shadow-lg">
               <StatisticsLeftSide />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Right Column - 70% */}
-        <div className="w-[75%] bg-gray-50 p-6">
+        <div className="w-[100%] bg-gray-50 p-6">
           <div className="h-full space-y-6">
             <div className="rounded-lg overflow-hidden shadow-md">
               <AMRWarehouseMap />

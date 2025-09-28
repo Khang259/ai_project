@@ -11,7 +11,8 @@ import LoginPage from './pages/Login';
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<DashboardLayout><LoginPage /></DashboardLayout>} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<LoginPage />} />
       <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
       <Route path="/analytics" element={<DashboardLayout><Analytics /></DashboardLayout>} />
       <Route path="/task" element={<DashboardLayout><TaskManagement /></DashboardLayout>} />

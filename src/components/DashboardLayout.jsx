@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Trang đăng nhập", href: "/login", icon: Home },
   { name: "Tổng quan", href: "/dashboard", icon: Home },
   { name: "Quản lý nhiệm vụ", href: "/task", icon: Workflow },
   { name: "Thống kê", href: "/analytics", icon: BarChart3 },

@@ -26,4 +26,3 @@ dist-ssr
 #Model weights
 model_0702.pt
 *.pt
-*.mp4

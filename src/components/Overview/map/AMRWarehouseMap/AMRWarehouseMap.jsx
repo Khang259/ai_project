@@ -1,11 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Row, Col, Card, Button, Checkbox, Typography, Divider, Tag, Alert, Dropdown, Space, Tooltip } from 'antd';
-import { FileAddOutlined, EyeOutlined, ShareAltOutlined, ThunderboltOutlined, AimOutlined, ReloadOutlined, WifiOutlined, WifiOutlined as WifiDisconnectedOutlined, SettingOutlined, UploadOutlined, FileZipOutlined } from '@ant-design/icons';
+import { Card, Button, Typography, Tag, Dropdown, Tooltip } from 'antd';
+import { FileAddOutlined, ThunderboltOutlined, WifiOutlined as WifiDisconnectedOutlined, FileZipOutlined } from '@ant-design/icons';
 import LeafletMap from '@/components/Overview/map/AMRWarehouseMap/Map';
 import useZipImport from '@/hooks/MapDashboard/useZipImport';
 import useLeafletMapControls from '@/hooks/MapDashboard/useMapControl';
 import useAGVWebSocket from '@/hooks/MapDashboard/useAGVWebsocket';
-// import thadorobotLogo from '@/assets/images/thadorobot.png';
 import CameraViewer from '@/components/Overview/map/camera/CameraViewer.jsx';
 
 const { Title } = Typography;
@@ -13,15 +12,18 @@ const { Title } = Typography;
 const AMRWarehouseMap = () => {
   const [mapData, setMapData] = useState(null);
   const [securityConfig, setSecurityConfig] = useState(null);
-  const [robotPosition, setRobotPosition] = useState({ x: 49043, y: 74172, angle: 0 });
   const [selectedAvoidanceMode, setSelectedAvoidanceMode] = useState(1);
-  const [showNodes, setShowNodes] = useState(true);
+  
+  // Chỉ giữ lại các state cần thiết
+  const [showNodes, setShowNodes] = useState(false);
+  const [showCameras, setShowCameras] = useState(true);
   const [showPaths, setShowPaths] = useState(true);
   const [showChargeStations, setShowChargeStations] = useState(true);
+  
   // Node customization states
-  const [nodeRadius, setNodeRadius] = useState(100);
-  const [nodeStrokeWidth, setNodeStrokeWidth] = useState(20);
-  const [nodeFontSize, setNodeFontSize] = useState(500);
+  const [nodeRadius] = useState(100);
+  const [nodeStrokeWidth] = useState(20);
+  const [nodeFontSize] = useState(500);
   const [selectedCamera, setSelectedCamera] = useState(null);
 
   // Custom hooks
@@ -29,6 +31,8 @@ const AMRWarehouseMap = () => {
   const { 
     mapInstance,
     handleMapReady,
+    handleReset,
+    setOffset
   } = useLeafletMapControls();
   
   // WebSocket hook cho AGV data
@@ -51,19 +55,19 @@ const AMRWarehouseMap = () => {
   }, []);
 
   // Cập nhật vị trí robot từ dữ liệu AGV realtime
-  useEffect(() => {
-    if (agvData && agvData.data && agvData.data.length > 0) {
-      const agv = agvData.data[0]; // Lấy AGV đầu tiên
-      if (agv.devicePostionRec && agv.devicePostionRec.length >= 2) {
-        const newPosition = {
-          x: agv.devicePostionRec[0],
-          y: agv.devicePostionRec[1],
-          angle: agv.oritation ? (agv.oritation * Math.PI / 180) : 0 // Chuyển độ sang radian
-        };
-        setRobotPosition(newPosition);
-      }
-    }
-  }, [agvData]);
+  // useEffect(() => {
+  //   if (agvData && agvData.data && agvData.data.length > 0) {
+  //     const agv = agvData.data[0]; // Lấy AGV đầu tiên
+  //     if (agv.devicePostionRec && agv.devicePostionRec.length >= 2) {
+  //       const newPosition = {
+  //         x: agv.devicePostionRec[0],
+  //         y: agv.devicePostionRec[1],
+  //         angle: agv.oritation ? (agv.oritation * Math.PI / 180) : 0 // Chuyển độ sang radian
+  //       };
+  //       setRobotPosition(newPosition);
+  //     }
+  //   }
+  // }, [agvData]);
 
   // File input refs
   const zipFileInputRef = useRef(null);
@@ -75,49 +79,18 @@ const AMRWarehouseMap = () => {
     }
   };
 
-
-
-  // Dropdown menu items
+  // Dropdown menu items - chỉ giữ Import
   const importMenuItems = [
     {
       key: 'zip',
       icon: <FileZipOutlined />,
-      label: 'Import ZIP File',
+      label: 'Import Map File',
       onClick: () => zipFileInputRef.current?.click()
-    }
-  ];
-
-  const displayMenuItems = [
-    {
-      key: 'nodes',
-      label: (
-        <Checkbox checked={showNodes} onChange={e => setShowNodes(e.target.checked)} style={{ color: '#00f2fe' }}>
-          Show Waypoints
-        </Checkbox>
-      )
-    },
-    {
-      key: 'paths',
-      label: (
-        <Checkbox checked={showPaths} onChange={e => setShowPaths(e.target.checked)} style={{ color: '#00f2fe' }}>
-          Show Paths
-        </Checkbox>
-      )
-    },
-    {
-      key: 'charge',
-      label: (
-        <Checkbox checked={showChargeStations} onChange={e => setShowChargeStations(e.target.checked)} style={{ color: '#00f2fe' }}>
-          Show Charge Stations
-        </Checkbox>
-      )
     }
   ];
 
   return (
     <div className="dashboard-page" style={{background: 'white', minHeight: '100vh' }}>
-      {/* <img src={thadorobotLogo} alt="THADO ROBOT Logo" style={{ height: 60, margin: '0 auto', display: 'block' }} /> */}
-      
       {/* Header Section - Horizontal Layout */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         {/* Title */}
@@ -131,20 +104,11 @@ const AMRWarehouseMap = () => {
             icon={isConnected ? <WifiOutlined /> : <WifiDisconnectedOutlined />}
             style={{ fontSize: 14, padding: '4px 12px' }}
           >
-            {isConnected ? 'ết nối đến RCS' : 'Mất kết nối đến RCS'}
+            {isConnected ? 'Kết nối đến RCS' : 'Mất kết nối đến RCS'}
           </Tag>
-          {/* {wsError && (
-            <Alert 
-              message="WebSocket Error" 
-              description={wsError} 
-              type="error" 
-              showIcon 
-              style={{ maxWidth: 300 }}
-            />
-          )} */}
         </div> 
 
-        {/* Nhóm nút điều khiển - Đặt sang bên phải */}
+        {/* Nhóm nút điều khiển - Chỉ giữ Import */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12, minWidth: 180 }}>
           <div style={{ display: 'flex', gap: 16, marginRight: 10}}>
             <Tooltip title="Import Map Files">
@@ -153,29 +117,6 @@ const AMRWarehouseMap = () => {
                   icon={<FileAddOutlined />} 
                   size="large"
                   style={{ 
-                    // background: '#192040', 
-                    // border: '2px solid #00f2fe', 
-                    // color: '#00f2fe',
-                    borderRadius: '50%',
-                    width: 60,
-                    height: 60,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                />
-              </Dropdown>
-            </Tooltip>
-
-            <Tooltip title="Display Options">
-              <Dropdown menu={{ items: displayMenuItems }} placement="bottom">
-                <Button 
-                  icon={<SettingOutlined />} 
-                  size="large"
-                  style={{ 
-                    background: 'white', 
-                    // border: '2px solid black', 
-                    color: 'black',
                     borderRadius: '50%',
                     width: 60,
                     height: 60,
@@ -232,68 +173,6 @@ const AMRWarehouseMap = () => {
           </div>
         </div>
       </div>
-{/* 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-        <Tooltip title="Import Map Files">
-          <Dropdown menu={{ items: importMenuItems }} placement="bottom">
-            <Button 
-              icon={<FileAddOutlined />} 
-              size="large"
-              style={{ 
-                background: '#192040', 
-                border: '2px solid #00f2fe', 
-                color: '#00f2fe',
-                borderRadius: '50%',
-                width: 60,
-                height: 60,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            />
-          </Dropdown>
-        </Tooltip>
-
-        {zipLoading && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 8, 
-            padding: '8px 16px', 
-            background: 'rgba(0, 242, 254, 0.1)', 
-            borderRadius: 20,
-            border: '1px solid #00f2fe'
-          }}>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            <span style={{ color: '#00f2fe' }}>Loading...</span>
-          </div>
-        )}
-
-        {zipError && (
-          <div style={{ 
-            padding: '8px 16px', 
-            background: 'rgba(255, 77, 79, 0.1)', 
-            borderRadius: 20,
-            border: '1px solid #ff4d4f',
-            color: '#ff4d4f'
-          }}>
-            {zipError}
-          </div>
-        )}
-
-        {zipFileName && (
-          <div style={{ 
-            padding: '8px 16px', 
-            background: 'rgba(82, 196, 26, 0.1)', 
-            borderRadius: 20,
-            border: '1px solid #52c41a',
-            color: '#52c41a',
-            fontSize: 12
-          }}>
-            ✓ {zipFileName}
-          </div>
-        )}
-      </div> */}
 
       {/* Chú thích */}
       <div style={{ 
@@ -306,15 +185,11 @@ const AMRWarehouseMap = () => {
         marginRight: 16
       }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
-          <span className="legend-icon" style={{ background: '#34d399', display: 'inline-block', width: 16, height: 16, borderRadius: 4 }}></span>
-          Các điểm QR code
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
           <span className="legend-icon" style={{ background: '#f87171', display: 'inline-block', width: 16, height: 16, borderRadius: 4 }}></span>
           Vị trí camera
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
-          <span className="legend-icon" style={{ background: '#fcd34d', display: 'inline-block', width: 16, height: 16, borderRadius: 4 }}></span>
+          <span className="legend-icon" style={{ background: 'green', display: 'inline-block', width: 16, height: 16, borderRadius: 4 }}></span>
           Điểm sạc
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'black' }}>
@@ -360,8 +235,9 @@ const AMRWarehouseMap = () => {
           <LeafletMap
             mapData={mapData}
             securityConfig={securityConfig}
-            robotPosition={robotPosition}
+            // robotPosition={robotPosition}
             showNodes={showNodes}
+            showCameras={showCameras}
             showPaths={showPaths}
             showChargeStations={showChargeStations}
             selectedAvoidanceMode={selectedAvoidanceMode}
@@ -376,6 +252,13 @@ const AMRWarehouseMap = () => {
           )}
         </div>
       </Card>
+      <input
+        ref={zipFileInputRef}
+        type="file"
+        accept=".zip"
+        style={{ display: 'none' }}
+        onChange={handleZipFileChange}
+      />
     </div>
   );
 };
