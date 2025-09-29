@@ -1,0 +1,28 @@
+// src/hooks/useAuth.js
+import { useState } from "react";
+import { login as loginService } from "@/services/auth";
+
+export function useAuth() {
+  const [auth, setAuth] = useState({
+    token: localStorage.getItem("token") || null,
+    user: JSON.parse(localStorage.getItem("user")) || null,
+  });
+
+  const login = async (credentials) => {
+    try {
+      const response = await loginService(credentials);
+      setAuth({ token: response.token, user: response.user });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setAuth({ token: null, user: null });
+  };
+
+  return { auth, login, logout };
+}
