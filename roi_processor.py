@@ -643,8 +643,8 @@ class ROIProcessor:
                         }
                         video_name = video_mapping.get(camera_id, "unknown")
                         
-                        print(f"Camera {camera_id} ({video_name}) - Frame {detection_data['frame_id']}: "
-                              f"Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_detection_payload['roi_detection_count']}")
+                        # print(f"Camera {camera_id} ({video_name}) - Frame {detection_data['frame_id']}: "
+                            #   f"Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_detection_payload['roi_detection_count']}")
                 
                 time.sleep(0.1)  # Check mỗi 100ms
                 

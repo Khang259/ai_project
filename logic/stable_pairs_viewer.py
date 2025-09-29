@@ -2,6 +2,9 @@ import time
 import json
 from typing import Dict, Any, List
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
@@ -16,7 +19,7 @@ def list_keys(queue: SQLiteQueue, topic: str) -> List[str]:
 
 def main() -> int:
     topic = "stable_pairs"
-    queue = SQLiteQueue("queues.db")
+    queue = SQLiteQueue("../queues.db")
 
     print(f"Viewer listening on topic: {topic}")
 

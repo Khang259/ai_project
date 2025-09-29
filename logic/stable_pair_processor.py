@@ -3,6 +3,9 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Tuple, Optional, Set
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
@@ -34,7 +37,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 
 class StablePairProcessor:
-    def __init__(self, db_path: str = "queues.db", config_path: str = "logic/slot_pairing_config.json",
+    def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
                  stable_seconds: float = 20.0, cooldown_seconds: float = 10.0) -> None:
         self.queue = SQLiteQueue(db_path)
         self.config_path = config_path
@@ -47,6 +50,10 @@ class StablePairProcessor:
 
         # Pair blocklist to avoid spamming: pair_id -> last_published_epoch
         self.published_at: Dict[str, float] = {}
+        
+        # Track published pairs by minute to avoid duplicates
+        # Format: {pair_id: {minute_key: True}} where minute_key = "YYYY-MM-DD HH:MM"
+        self.published_by_minute: Dict[str, Dict[str, bool]] = {}
 
         # Pairing config
         self.qr_to_slot: Dict[int, Tuple[str, int]] = {}  # qr_code -> (camera_id, slot_number)
@@ -127,12 +134,44 @@ class StablePairProcessor:
         stable = (now - st["since"]) >= self.stable_seconds
         return stable, st["since"] if stable else None
 
+    def _get_minute_key(self, epoch_seconds: float) -> str:
+        """Convert epoch seconds to minute key format: YYYY-MM-DD HH:MM"""
+        dt = datetime.utcfromtimestamp(epoch_seconds)
+        return dt.strftime("%Y-%m-%d %H:%M")
+    
+    def _is_already_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> bool:
+        """Check if this pair was already published in the same minute"""
+        minute_key = self._get_minute_key(stable_since_epoch)
+        
+        if pair_id not in self.published_by_minute:
+            self.published_by_minute[pair_id] = {}
+        
+        return minute_key in self.published_by_minute[pair_id]
+    
+    def _mark_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> None:
+        """Mark this pair as published for this minute"""
+        minute_key = self._get_minute_key(stable_since_epoch)
+        
+        if pair_id not in self.published_by_minute:
+            self.published_by_minute[pair_id] = {}
+        
+        self.published_by_minute[pair_id][minute_key] = True
+
     def _maybe_publish_pair(self, start_qr: int, end_qr: int, stable_since_epoch: float) -> None:
         pair_id = f"{start_qr} -> {end_qr}"
+        
+        # Check if already published in the same minute
+        if self._is_already_published_this_minute(pair_id, stable_since_epoch):
+            return
+        
+        # Check cooldown period
         last_pub = self.published_at.get(pair_id, 0.0)
         now = time.time()
         if now - last_pub < self.cooldown_seconds:
             return
+        
+        # Mark as published for this minute and update cooldown
+        self._mark_published_this_minute(pair_id, stable_since_epoch)
         self.published_at[pair_id] = now
 
         payload = {
