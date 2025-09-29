@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -7,7 +7,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    permissions: Optional[List[str]] = []  # Thêm field permissions
+    roles: Optional[List[str]] = []  # Thêm field permissions
 
 class UserLogin(BaseModel):
     username: str
@@ -18,6 +18,7 @@ class UserOut(UserBase):
     is_active: bool
     is_superuser: bool
     permissions: List[str] = []  # Thêm field permissions
+    roles: List[str] = []
     created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
 
@@ -38,6 +39,13 @@ class RoleOut(BaseModel):
     permissions: List[str]
     is_active: bool
     created_at: datetime
+    updated_at: datetime
+
+class RoleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    permissions: Optional[List[str]] = None
+    is_active: Optional[bool] = None
 
 class PermissionCreate(BaseModel):
     name: str

@@ -15,7 +15,7 @@ from app.core.config import settings
 from app.api import auth, users, permissions
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
-from shared.logging import get_logger
+from shared.logging import setup_logger
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
