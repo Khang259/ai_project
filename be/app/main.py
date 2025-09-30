@@ -15,6 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
 from app.api import auth, users, permissions
+from app.api import realtime
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
 from shared.logging import get_logger
@@ -53,6 +54,8 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["User Management"])
 app.include_router(permissions.router, prefix="/permissions", tags=["Permission Management"])
+# WebSocket router (must be included without prefix to keep ws path exact)
+app.include_router(realtime.router, tags=["Realtime"])
 
 @app.get("/")
 async def root():

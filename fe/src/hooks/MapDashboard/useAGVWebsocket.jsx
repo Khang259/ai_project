@@ -1,14 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 
-const useAGVWebSocket = (url = 'ws://localhost:8000/ws/agv') => {
+const API_HTTP_URL = import.meta.env.VITE_API_URL || '';
+// Tự động chuyển http(s) -> ws(s)
+const DEFAULT_WS_URL = API_HTTP_URL
+  ? API_HTTP_URL.replace(/^http/i, (m) => (m.toLowerCase() === 'https' ? 'wss' : 'ws')).replace(/^https/i, 'wss')
+  : '';
+
+const useAGVWebSocket = (url = DEFAULT_WS_URL) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [agvData, setAgvData] = useState(null);
   const [error, setError] = useState(null);
   const [isReconnecting, setIsReconnecting] = useState(false);
-
-  // console.log('🔧 useAGVWebSocket initialized with URL:', url);
-  // console.log('🔧 Current state - isConnected:', isConnected, 'error:', error, 'hasSocket:', !!socket);
 
   const connect = useCallback(() => {
     // Nếu đã có socket đang kết nối hoặc mở, không tạo mới
@@ -98,14 +101,6 @@ const useAGVWebSocket = (url = 'ws://localhost:8000/ws/agv') => {
       };
     }
   }, [isConnected, socket, error, isReconnecting]);
-
-  // console.log('🔄 Hook return - Current state:', {
-  //   isConnected,
-  //   hasAgvData: !!agvData,
-  //   error,
-  //   hasSocket: !!socket,
-  //   socketReadyState: socket ? socket.readyState : 'null'
-  // });
 
   return {
     isConnected,

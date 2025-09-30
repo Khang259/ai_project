@@ -12,7 +12,6 @@ export default function UsersTable({ users, onDelete }) {
           <TableRow>
             <TableHead>ID</TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Action</TableHead>
@@ -23,7 +22,6 @@ export default function UsersTable({ users, onDelete }) {
             <TableRow key={user.id}>
               <TableCell>{user.id}</TableCell>
               <TableCell>{user.name}</TableCell>
-              <TableCell>{user.email}</TableCell>
               <TableCell>
                 <Badge variant="secondary">{user.role}</Badge>
               </TableCell>

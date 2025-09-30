@@ -28,10 +28,10 @@ export const deleteUser = async (id) => {
   }
 };
 
-// Thêm addUser nếu cần
+// Thêm user mới qua API signup
 export const addUser = async (userData) => {
   try {
-    const response = await api.post("/users", userData);
+    const response = await api.post("/auth/signup", userData);
     return response.data;
   } catch (error) {
     const status = error.response?.status;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getUsers, deleteUser } from "@/services/users";
+import { getUsers, deleteUser, addUser } from "@/services/users";
 
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
@@ -14,6 +14,7 @@ export const useUsers = () => {
         setLoading(true);
         const data = await getUsers();
         setUsers(Array.isArray(data) ? data : []);
+        console.log('data', data)
       } catch (err) {
         setError(err?.message || "Không thể tải danh sách người dùng");
       } finally {
@@ -26,8 +27,8 @@ export const useUsers = () => {
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase();
     return users.filter((u) => {
-      const matchSearch = (u.name || "").toLowerCase().includes(q);
-      const matchRole = roleFilter === "" || u.role === roleFilter;
+      const matchSearch = (u.username || "").toLowerCase().includes(q);
+      const matchRole = roleFilter === "" || (u.is_superuser ? "Admin" : "User" ) === roleFilter;
       return matchSearch && matchRole;
     });
   }, [users, search, roleFilter]);
@@ -44,6 +45,22 @@ export const useUsers = () => {
     }
   }, []);
 
+  const handleAddUser = useCallback(async (userData) => {
+    try {
+      setLoading(true);
+      const newUser = await addUser(userData);
+      // Refresh danh sách users sau khi thêm thành công
+      const updatedUsers = await getUsers();
+      setUsers(Array.isArray(updatedUsers) ? updatedUsers : []);
+      console.log("Thêm user thành công:", newUser);
+    } catch (err) {
+      setError(err?.message || "Thêm người dùng thất bại");
+      throw err; // Re-throw để component có thể handle
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     users,
     setUsers,
@@ -53,6 +70,7 @@ export const useUsers = () => {
     setRoleFilter,
     filteredUsers,
     handleDelete,
+    handleAddUser,
     loading,
     error,
   };

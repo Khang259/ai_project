@@ -6,8 +6,10 @@ class UserBase(BaseModel):
     username: str
 
 class UserCreate(UserBase):
+    username: str # thêm field username /khang
     password: str
-    permissions: Optional[List[str]] = []  # Thêm field permissions
+    roles: Optional[List[str]] = []  #Thêm field để đảm bảo khi add user sẽ có thêm cả roles ở đâu
+    #permissions: Optional[List[str]] = []  # Bỏ field permissions
 
 class UserLogin(BaseModel):
     username: str
@@ -17,7 +19,8 @@ class UserOut(UserBase):
     id: str
     is_active: bool
     is_superuser: bool
-    permissions: List[str] = []  # Thêm field permissions
+    roles: List[str] = [] #Thêm field để đảm bảo khi add user sẽ có thêm cả roles ở đâu
+    permissions: List[str] = []  # Bỏ field permissions
     created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
 
