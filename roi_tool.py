@@ -1,6 +1,8 @@
 import argparse
+import json
+import os
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 import cv2
 
@@ -156,6 +158,78 @@ def capture_one_frame(video_source: str):
     return frame
 
 
+def load_config(config_path: str) -> Dict[str, Any]:
+    """
+    Đọc file config slot pairing
+    
+    Args:
+        config_path: Đường dẫn đến file config
+        
+    Returns:
+        Dictionary chứa nội dung config
+    """
+    if not os.path.exists(config_path):
+        # Tạo config mới nếu file không tồn tại
+        return {
+            "starts": [],
+            "ends": [],
+            "pairs": [],
+            "roi_coordinates": []
+        }
+    
+    with open(config_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def save_config(config: Dict[str, Any], config_path: str) -> None:
+    """
+    Lưu config vào file
+    
+    Args:
+        config: Dictionary chứa nội dung config
+        config_path: Đường dẫn đến file config
+    """
+    # Tạo thư mục nếu chưa tồn tại
+    dir_path = os.path.dirname(config_path)
+    if dir_path:  # Chỉ tạo thư mục nếu có đường dẫn thư mục
+        os.makedirs(dir_path, exist_ok=True)
+    
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+
+
+def update_roi_coordinates(config: Dict[str, Any], camera_id: str, polygons: List[List[Point]]) -> None:
+    """
+    Cập nhật tọa độ ROI vào config theo dạng points (danh sách các điểm polygon)
+    
+    Args:
+        config: Dictionary chứa nội dung config
+        camera_id: ID của camera
+        polygons: Danh sách các polygon ROI
+    """
+    # Khởi tạo roi_coordinates nếu chưa có
+    if "roi_coordinates" not in config:
+        config["roi_coordinates"] = []
+    
+    # Xóa các tọa độ cũ của camera này
+    config["roi_coordinates"] = [
+        coord for coord in config["roi_coordinates"] 
+        if coord.get("camera_id") != camera_id
+    ]
+    
+    # Thêm tọa độ mới theo dạng points
+    for idx, poly in enumerate(polygons):
+        if len(poly) >= 3:  # Cần ít nhất 3 điểm để tạo polygon hợp lệ
+            roi_coord = {
+                "slot_number": idx + 1,
+                "camera_id": camera_id,
+                "points": [[int(x), int(y)] for (x, y) in poly],
+            }
+            config["roi_coordinates"].append(roi_coord)
+    
+    print(f"Đã cập nhật {len(polygons)} ROI coordinates cho camera {camera_id}")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Tool vẽ ROI theo camera")
     parser.add_argument("--camera-id", type=str, default="cam-1", help="ID camera")
@@ -169,6 +243,17 @@ def parse_args() -> argparse.Namespace:
         "--vinhphuc",
         action="store_true",
         help="Sử dụng video/vinhPhuc.mp4 cho camera cam-2",
+    )
+    parser.add_argument(
+        "--config-path",
+        type=str,
+        default="logic/slot_pairing_config.json",
+        help="Đường dẫn đến file config slot pairing",
+    )
+    parser.add_argument(
+        "--save-coords",
+        action="store_true",
+        help="Lưu tọa độ ROI vào file config slot pairing",
     )
     return parser.parse_args()
 
@@ -213,9 +298,31 @@ def main() -> None:
     print(f"Đã lưu roi_config của {camera_id} với {len(slots)} ROI vào queue.")
     print(f"Video source: {video_source}")
     print(f"Camera ID: {camera_id}")
+    
+    # Lưu tọa độ ROI vào file config nếu được yêu cầu
+    if args.save_coords:
+        print(f"\nĐang lưu tọa độ ROI vào {args.config_path}...")
+        
+        # Đọc config hiện tại
+        config = load_config(args.config_path)
+        
+        # Cập nhật tọa độ ROI
+        update_roi_coordinates(config, camera_id, polygons)
+        
+        # Lưu config
+        save_config(config, args.config_path)
+        
+        print(f"Đã lưu tọa độ ROI vào file config thành công!")
+        print(f"Tổng số ROI coordinates: {len(config['roi_coordinates'])}")
+        
+        # Hiển thị tọa độ đã lưu
+        print("\nTọa độ ROI đã lưu:")
+        for coord in config["roi_coordinates"]:
+            if coord["camera_id"] == camera_id:
+                print(f"  Slot {coord['slot_number']}: points={coord['points']}")
+    else:
+        print("\nĐể lưu tọa độ ROI vào file config, sử dụng flag --save-coords")
 
 
 if __name__ == "__main__":
     main()
-
-

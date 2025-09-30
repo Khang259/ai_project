@@ -1,8 +1,10 @@
 import argparse
 import time
 import threading
+import json
+import os
 from datetime import datetime
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any, Optional, Set
 import numpy as np
 import cv2
 from queue_store import SQLiteQueue
@@ -34,6 +36,38 @@ class ROIProcessor:
         self.latest_detections: Dict[str, Dict[str, Any]] = {}
         # Latest ROI detection data cho mỗi camera (bao gồm empty)
         self.latest_roi_detections: Dict[str, Dict[str, Any]] = {}
+        # Blocked ROI slots theo camera: {camera_id: {slot_number: expire_epoch}}
+        self.blocked_slots: Dict[str, Dict[int, float]] = {}
+        # Thời gian block mặc định (giây)
+        self.block_seconds: float = 300.0
+        # Mapping qr_code -> (camera_id, slot_number)
+        self.qr_to_slot: Dict[int, Tuple[str, int]] = {}
+        # Đường dẫn file pairing config
+        self.pairing_config_path: str = os.path.join("logic", "slot_pairing_config.json")
+        # Tải mapping ban đầu (nếu có)
+        self._load_qr_mapping()
+
+    def _load_qr_mapping(self) -> None:
+        try:
+            if not os.path.exists(self.pairing_config_path):
+                return
+            with open(self.pairing_config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            mapping: Dict[int, Tuple[str, int]] = {}
+            for item in cfg.get("starts", []):
+                try:
+                    mapping[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+                except Exception:
+                    continue
+            for item in cfg.get("ends", []):
+                try:
+                    mapping[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+                except Exception:
+                    continue
+            self.qr_to_slot = mapping
+            print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries")
+        except Exception as e:
+            print(f"Lỗi khi load pairing config: {e}")
         
     def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
         """
@@ -135,14 +169,27 @@ class ROIProcessor:
         if not roi_slots:
             return []
         
+        now_epoch = time.time()
+        # Làm sạch các block đã hết hạn
+        with self.cache_lock:
+            cam_blocks = self.blocked_slots.get(camera_id, {})
+            expired = [s for s, exp in cam_blocks.items() if exp <= now_epoch]
+            for s in expired:
+                del cam_blocks[s]
+            self.blocked_slots[camera_id] = cam_blocks
+
         filtered_detections = []
-        roi_has_shelf = [False] * len(roi_slots)  # Track xem ROI nào có shelf
+        roi_has_shelf = [False] * len(roi_slots)  # Track xem ROI nào có shelf (không tính ROI bị block)
         
         # Lọc detections có trong ROI và là shelf với confidence >= 0.5
         for detection in detections:
             if detection.get("class_name") == "shelf" and detection.get("confidence", 0) >= 0.5:
                 for i, slot in enumerate(roi_slots):
                     if self.is_detection_in_roi(detection, [slot]):
+                        # Nếu slot này đang bị block thì bỏ qua shelf này (để cuối cùng sẽ thêm empty)
+                        if self.blocked_slots.get(camera_id, {}).get(i + 1):
+                            # Bị block: không đánh dấu roi_has_shelf -> sẽ tạo empty
+                            continue
                         # Gắn slot_number cho detection thuộc ROI i
                         detection_with_slot = dict(detection)
                         detection_with_slot["slot_number"] = i + 1
@@ -152,7 +199,8 @@ class ROIProcessor:
         
         # Thêm "empty" cho các ROI không có shelf hoặc confidence < 0.5
         for i, slot in enumerate(roi_slots):
-            if not roi_has_shelf[i]:
+            # Nếu bị block hoặc không có shelf -> tạo empty
+            if (i + 1) in self.blocked_slots.get(camera_id, {}) or not roi_has_shelf[i]:
                 # Tạo detection "empty" cho ROI này và gắn slot_number
                 empty_detection = {
                     "class_name": "empty",
@@ -173,6 +221,63 @@ class ROIProcessor:
                 filtered_detections.append(empty_detection)
         
         return filtered_detections
+
+    def _subscribe_stable_pairs(self) -> None:
+        """Subscribe topic stable_pairs để nhận start_qr và block ROI tương ứng."""
+        print("Bắt đầu subscribe stable_pairs để nhận lệnh block ROI...")
+        # track latest global id for the topic
+        last_global_id: int = 0
+        try:
+            with self.queue._connect() as conn:
+                cur = conn.execute(
+                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                    ("stable_pairs",),
+                )
+                row = cur.fetchone()
+                if row:
+                    last_global_id = row[0]
+        except Exception as e:
+            print(f"Lỗi khi khởi tạo stable_pairs cursor: {e}")
+
+        while self.running:
+            try:
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 200
+                        """,
+                        ("stable_pairs", last_global_id),
+                    )
+                    rows = cur.fetchall()
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_global_id = msg_id
+                    # stable_pairs payload: { pair_id, start_slot: str(start_qr), end_slot: str(end_qr), ... }
+                    start_qr_str = payload.get("start_slot")
+                    try:
+                        start_qr = int(start_qr_str)
+                    except Exception:
+                        continue
+                    # Đảm bảo mapping mới nhất
+                    self._load_qr_mapping()
+                    cam_slot = self.qr_to_slot.get(start_qr)
+                    if not cam_slot:
+                        continue
+                    cam_id, slot_number = cam_slot
+                    expire_at = time.time() + self.block_seconds
+                    with self.cache_lock:
+                        if cam_id not in self.blocked_slots:
+                            self.blocked_slots[cam_id] = {}
+                        self.blocked_slots[cam_id][slot_number] = expire_at
+                    print(f"[BLOCK] Đã block ROI slot {slot_number} trên {cam_id} đến {datetime.fromtimestamp(expire_at)} do start_qr={start_qr}")
+                time.sleep(0.2)
+            except Exception as e:
+                print(f"Lỗi khi subscribe stable_pairs: {e}")
+                time.sleep(1.0)
     
     def update_roi_cache(self, camera_id: str, roi_data: Dict[str, Any]) -> None:
         """
@@ -658,12 +763,14 @@ class ROIProcessor:
         """
         self.running = True
         
-        # Tạo threads cho ROI config, raw detection và video display
+        # Tạo threads cho ROI config, raw detection, stable_pairs và video display
         roi_thread = threading.Thread(target=self.subscribe_roi_config, daemon=True)
         detection_thread = threading.Thread(target=self.subscribe_raw_detection, daemon=True)
+        stable_pairs_thread = threading.Thread(target=self._subscribe_stable_pairs, daemon=True)
         
         roi_thread.start()
         detection_thread.start()
+        stable_pairs_thread.start()
         
         # Thread cho video display
         if self.show_video:

@@ -10,4 +10,3 @@ Sub vào queues.db lấy data detect (toạ độ) để xử lý với thuật 
 
 4. File view_roi_results để xem kết quả của file roi_processor trên terminal
 
-aaaaa
