@@ -7,7 +7,8 @@ import Notification from './pages/Notification';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import LoginPage from './pages/Login';
-import PrivateRoute from './components/PrivateRoute'; // thêm
+import MobileGridDisplay from './pages/MobileGridDisplay';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -16,11 +17,21 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<LoginPage />} />
 
-      {/* Protected routes */}
+      {/* User routes - Mobile Grid Display */}
+      <Route
+        path="/mobile-grid-display"
+        element={
+          <PrivateRoute>
+            <MobileGridDisplay />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Admin routes - Dashboard Layout */}
       <Route
         path="/dashboard"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <Dashboard />
             </DashboardLayout>
@@ -30,7 +41,7 @@ function App() {
       <Route
         path="/analytics"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <Analytics />
             </DashboardLayout>
@@ -40,7 +51,7 @@ function App() {
       <Route
         path="/task"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <TaskManagement />
             </DashboardLayout>
@@ -50,7 +61,7 @@ function App() {
       <Route
         path="/notification"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <Notification />
             </DashboardLayout>
@@ -60,7 +71,7 @@ function App() {
       <Route
         path="/users"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <Users />
             </DashboardLayout>
@@ -70,7 +81,7 @@ function App() {
       <Route
         path="/settings"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <Settings />
             </DashboardLayout>

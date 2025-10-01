@@ -26,12 +26,25 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { auth, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
+
+  // Lọc menu dựa trên role
+  const filteredNavigation = navigation.filter(item => {
+    // Nếu user có role admin hoặc superuser, hiển thị tất cả menu
+    if (auth.user?.roles?.includes('admin') || auth.user?.roles?.includes('superuser')) {
+      return true;
+    }
+    // Nếu chỉ có role user, ẩn một số menu nhạy cảm
+    if (auth.user?.roles?.includes('user') && !auth.user?.roles?.includes('admin')) {
+      return !['Quản lý người dùng', 'Cài đặt'].includes(item.name);
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -44,7 +57,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
           
           {/* Navigation trong header */}
           <nav className="flex items-center space-x-1">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -79,7 +92,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Alex Evans</DropdownMenuLabel>
+              <DropdownMenuLabel>{auth.user?.username || 'User'}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
             </DropdownMenuContent>

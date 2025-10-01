@@ -10,7 +10,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    roles: ["viewer"], // Default role theo backend
+    roles: ["user"], // Default role theo backend
     permissions: []
   });
 
@@ -29,10 +29,6 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
       newErrors.password = "Mật khẩu là bắt buộc";
     } else if (formData.password.length < 3) {
       newErrors.password = "Mật khẩu phải có ít nhất 3 ký tự";
-    }
-
-    if (!formData.roles.trim()) {
-      newErrors.roles = "Vai trò là bắt buộc";
     }
     
     setErrors(newErrors);
@@ -65,7 +61,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     setFormData({
       username: "",
       password: "",
-      roles: ["viewer"]
+      roles: ["user"]
     });
     setErrors({});
     onClose();
@@ -125,7 +121,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
             <div className="space-y-2">
               <Label htmlFor="roles">Vai trò *</Label>
               <Select
-                value={formData.roles[0] || "viewer"}
+                value={formData.roles[0] || "user"}
                 onValueChange={(value) => handleInputChange("roles", [value])}
               >
                 <SelectTrigger style={{ backgroundColor: "#fff" }}>

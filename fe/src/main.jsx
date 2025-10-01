@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
+// Bootstrap CSS (utilities, grid, helpers)
+import 'bootstrap/dist/css/bootstrap.min.css'
+// Bootstrap Icons (for bi- classes)
 import { Toaster } from 'sonner'
 
 ReactDOM.createRoot(document.getElementById('root')).render(

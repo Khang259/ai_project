@@ -53,7 +53,7 @@ export default function UserDashboard() {
         users={filteredUsers.map((u) => ({ 
           ...u, 
           name: <Username name={u.username} />,
-          role: u.is_superuser ? "Admin" : "User",
+          role: u.roles && u.roles.length > 0 ? u.roles[0].charAt(0).toUpperCase() + u.roles[0].slice(1) : "User",
           status: u.is_active ? "Active" : "Inactive",
           email: "-"  // API không có email field
         }))}

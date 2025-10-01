@@ -16,9 +16,7 @@ export default function UsersFilters({ search, onSearchChange, roleFilter, onRol
           <SelectValue placeholder="Filter by role" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="All">All</SelectItem>
           <SelectItem value="Admin">Admin</SelectItem>
-          <SelectItem value="Manager">Manager</SelectItem>
           <SelectItem value="User">User</SelectItem>
         </SelectContent>
       </Select>

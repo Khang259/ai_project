@@ -3,9 +3,20 @@ import { useState } from "react";
 import { login as loginService } from "@/services/auth";
 
 export function useAuth() {
+  // Safe JSON parsing
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      console.error("Error parsing user from localStorage:", error);
+      return null;
+    }
+  };
+
   const [auth, setAuth] = useState({
     token: localStorage.getItem("token") || null,
-    user: JSON.parse(localStorage.getItem("user")) || null,
+    user: getUserFromStorage(),
   });
 
   const login = async (credentials) => {
