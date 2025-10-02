@@ -1,0 +1,51 @@
+import React from 'react';
+import { Trash2 } from 'lucide-react';
+
+const mockData = ["A", "B"];
+
+const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-medium text-foreground">Xem Trước Lưới</h3>
+      <div
+        className="grid gap-2 p-4 bg-muted/30 rounded-lg border"
+        style={{
+          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+        }}
+      >
+        {cells.slice(0, rows * columns).map((cell, index) => (
+          <div
+            key={cell.id}
+            className="aspect-video bg-card border-2 border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
+          >
+            {/* Nút xóa hiện khi hover */}
+            {onDeleteCell && (
+              <button
+                onClick={() => onDeleteCell(cell.id)}
+                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                title="Xóa ô này"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+            
+            <div className="text-center space-y-1">
+              <p className="text-xs font-mono text-muted-foreground">{cell.id}</p>
+              <p className="text-xs font-medium text-foreground truncate max-w-full">{cell.name}</p>
+              <div className="flex gap-1 justify-center mt-2">
+                {mockData.map((data, i) => (
+                  <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
+                    {data}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default GridPreview;
