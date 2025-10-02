@@ -169,7 +169,7 @@ def main() -> int:
                     if send_post(body):
                         ok = True
                         break
-                    time.sleep(1)
+                    time.sleep(2)
                 if not ok:
                     print(f"[FAIL] Could not POST after retries | pair_id={pair_id}")
 

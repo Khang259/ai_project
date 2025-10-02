@@ -1,5 +1,6 @@
 import argparse
 import time
+import math
 import threading
 import json
 import os
@@ -22,8 +23,8 @@ class ROIProcessor:
         self.queue = SQLiteQueue(db_path)
         # Cache ROI theo camera_id: {camera_id: [slots]}
         self.roi_cache: Dict[str, List[Dict[str, Any]]] = {}
-        # Lock để thread-safe
-        self.cache_lock = threading.Lock()
+        # Lock để thread-safe (RLock để tránh deadlock khi tái nhập trong cùng thread)
+        self.cache_lock = threading.RLock()
         # Running flag
         self.running = False
         # Video display
@@ -38,14 +39,22 @@ class ROIProcessor:
         self.latest_roi_detections: Dict[str, Dict[str, Any]] = {}
         # Blocked ROI slots theo camera: {camera_id: {slot_number: expire_epoch}}
         self.blocked_slots: Dict[str, Dict[int, float]] = {}
-        # Thời gian block mặc định (giây)
-        self.block_seconds: float = 300.0
+        # Thời gian block mặc định (giây) - vô thời hạn, chỉ unlock khi end đạt điều kiện
+        self.block_seconds: float = math.inf
         # Mapping qr_code -> (camera_id, slot_number)
         self.qr_to_slot: Dict[int, Tuple[str, int]] = {}
         # Đường dẫn file pairing config
         self.pairing_config_path: str = os.path.join("logic", "slot_pairing_config.json")
         # Tải mapping ban đầu (nếu có)
         self._load_qr_mapping()
+        
+        # End slot monitoring system
+        # Mapping end_slot -> start_slot để theo dõi unlock
+        self.end_to_start_mapping: Dict[Tuple[str, int], Tuple[str, int]] = {}
+        # Trạng thái shelf của end slots: {(camera_id, slot_number): {'state': 'empty'|'shelf', 'first_shelf_time': timestamp}}
+        self.end_slot_states: Dict[Tuple[str, int], Dict[str, Any]] = {}
+        # Thời gian cần giữ shelf để unlock (giây)
+        self.shelf_stable_time: float = 20.0
 
     def _load_qr_mapping(self) -> None:
         try:
@@ -68,6 +77,125 @@ class ROIProcessor:
             print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries")
         except Exception as e:
             print(f"Lỗi khi load pairing config: {e}")
+    
+    def _setup_end_to_start_mapping(self) -> None:
+        """Thiết lập mapping từ end slot đến start slot dựa trên pairs config"""
+        try:
+            if not os.path.exists(self.pairing_config_path):
+                return
+            with open(self.pairing_config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            
+            # Tạo mapping từ QR code đến (camera_id, slot_number)
+            qr_to_slot = {}
+            for item in cfg.get("starts", []):
+                try:
+                    qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+                except Exception:
+                    continue
+            for item in cfg.get("ends", []):
+                try:
+                    qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+                except Exception:
+                    continue
+            
+            # Tạo mapping end_slot -> start_slot từ pairs
+            end_to_start = {}
+            for pair in cfg.get("pairs", []):
+                try:
+                    start_qr = int(pair["start_qr"])
+                    end_qr = int(pair["end_qrs"])
+                    
+                    if start_qr in qr_to_slot and end_qr in qr_to_slot:
+                        start_slot = qr_to_slot[start_qr]
+                        end_slot = qr_to_slot[end_qr]
+                        end_to_start[end_slot] = start_slot
+                except Exception:
+                    continue
+            
+            self.end_to_start_mapping = end_to_start
+            print(f"Đã thiết lập end_to_start mapping: {len(end_to_start)} pairs")
+            for end_slot, start_slot in end_to_start.items():
+                print(f"  End {end_slot} -> Start {start_slot}")
+        except Exception as e:
+            print(f"Lỗi khi thiết lập end_to_start mapping: {e}")
+    
+    def _add_end_slot_monitoring(self, end_qr: int) -> None:
+        """Thêm end slot vào danh sách theo dõi"""
+        end_slot = self.qr_to_slot.get(end_qr)
+        if not end_slot:
+            print(f"Không tìm thấy end slot cho QR {end_qr}")
+            return
+        
+        camera_id, slot_number = end_slot
+        
+        # Khởi tạo trạng thái theo dõi cho end slot này
+        with self.cache_lock:
+            self.end_slot_states[end_slot] = {
+                'state': 'empty',
+                'first_shelf_time': None,
+                'last_update_time': time.time()
+            }
+        
+        print(f"[END_MONITOR] Bắt đầu theo dõi end slot {slot_number} trên {camera_id} (QR: {end_qr})")
+    
+    def _update_end_slot_state(self, camera_id: str, slot_number: int, current_state: str) -> None:
+        """Cập nhật trạng thái của end slot và kiểm tra điều kiện unlock"""
+        end_slot = (camera_id, slot_number)
+        current_time = time.time()
+        
+        with self.cache_lock:
+            if end_slot not in self.end_slot_states:
+                return
+            
+            slot_state = self.end_slot_states[end_slot]
+            previous_state = slot_state['state']
+            
+            # Cập nhật trạng thái
+            slot_state['state'] = current_state
+            slot_state['last_update_time'] = current_time
+            
+            # Xử lý chuyển đổi trạng thái
+            if previous_state == 'empty' and current_state == 'shelf':
+                # Chuyển từ empty -> shelf: bắt đầu đếm thời gian
+                slot_state['first_shelf_time'] = current_time
+                print(f"[END_MONITOR] End slot {slot_number} trên {camera_id}: empty -> shelf (bắt đầu đếm)")
+            
+            elif previous_state == 'shelf' and current_state == 'empty':
+                # Chuyển từ shelf -> empty: reset thời gian
+                slot_state['first_shelf_time'] = None
+                print(f"[END_MONITOR] End slot {slot_number} trên {camera_id}: shelf -> empty (reset)")
+            
+            elif current_state == 'shelf' and slot_state['first_shelf_time'] is not None:
+                # Đang ở trạng thái shelf: kiểm tra thời gian stable
+                shelf_duration = current_time - slot_state['first_shelf_time']
+                if shelf_duration >= self.shelf_stable_time:
+                    # Đã giữ shelf đủ 20s: unlock start slot
+                    self._unlock_start_slot(end_slot)
+                    # Reset để tránh unlock nhiều lần
+                    slot_state['first_shelf_time'] = None
+    
+    def _unlock_start_slot(self, end_slot: Tuple[str, int]) -> None:
+        """Unlock start slot tương ứng với end slot"""
+        start_slot = self.end_to_start_mapping.get(end_slot)
+        if not start_slot:
+            print(f"[UNLOCK] Không tìm thấy start slot cho end slot {end_slot}")
+            return
+        
+        start_camera_id, start_slot_number = start_slot
+        end_camera_id, end_slot_number = end_slot
+        
+        # Unlock start slot
+        with self.cache_lock:
+            if start_camera_id in self.blocked_slots:
+                if start_slot_number in self.blocked_slots[start_camera_id]:
+                    del self.blocked_slots[start_camera_id][start_slot_number]
+                    print(f"[UNLOCK] Đã unlock start slot {start_slot_number} trên {start_camera_id} "
+                          f"(do end slot {end_slot_number} trên {end_camera_id} có shelf stable {self.shelf_stable_time}s)")
+                else:
+                    print(f"[UNLOCK] Start slot {start_slot_number} trên {start_camera_id} không bị block")
+            else:
+                print(f"[UNLOCK] Camera {start_camera_id} không có slot nào bị block")
         
     def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
         """
@@ -169,14 +297,7 @@ class ROIProcessor:
         if not roi_slots:
             return []
         
-        now_epoch = time.time()
-        # Làm sạch các block đã hết hạn
-        with self.cache_lock:
-            cam_blocks = self.blocked_slots.get(camera_id, {})
-            expired = [s for s, exp in cam_blocks.items() if exp <= now_epoch]
-            for s in expired:
-                del cam_blocks[s]
-            self.blocked_slots[camera_id] = cam_blocks
+        # Không còn cơ chế tự hết hạn block; giữ block đến khi end đủ điều kiện để unlock
 
         filtered_detections = []
         roi_has_shelf = [False] * len(roi_slots)  # Track xem ROI nào có shelf (không tính ROI bị block)
@@ -199,8 +320,9 @@ class ROIProcessor:
         
         # Thêm "empty" cho các ROI không có shelf hoặc confidence < 0.5
         for i, slot in enumerate(roi_slots):
+            slot_number = i + 1
             # Nếu bị block hoặc không có shelf -> tạo empty
-            if (i + 1) in self.blocked_slots.get(camera_id, {}) or not roi_has_shelf[i]:
+            if (slot_number) in self.blocked_slots.get(camera_id, {}) or not roi_has_shelf[i]:
                 # Tạo detection "empty" cho ROI này và gắn slot_number
                 empty_detection = {
                     "class_name": "empty",
@@ -216,15 +338,25 @@ class ROIProcessor:
                         "x": sum(point[0] for point in slot["points"]) / len(slot["points"]),
                         "y": sum(point[1] for point in slot["points"]) / len(slot["points"])
                     },
-                    "slot_number": i + 1,
+                    "slot_number": slot_number,
                 }
                 filtered_detections.append(empty_detection)
+                
+                # Cập nhật trạng thái end slot nếu đang theo dõi
+                self._update_end_slot_state(camera_id, slot_number, "empty")
+            else:
+                # Có shelf trong ROI này
+                self._update_end_slot_state(camera_id, slot_number, "shelf")
         
         return filtered_detections
 
     def _subscribe_stable_pairs(self) -> None:
-        """Subscribe topic stable_pairs để nhận start_qr và block ROI tương ứng."""
-        print("Bắt đầu subscribe stable_pairs để nhận lệnh block ROI...")
+        """Subscribe topic stable_pairs để nhận start_qr và block ROI tương ứng, đồng thời theo dõi end_qr."""
+        print("Bắt đầu subscribe stable_pairs để nhận lệnh block ROI và theo dõi end slot...")
+        
+        # Thiết lập end_to_start mapping
+        self._setup_end_to_start_mapping()
+        
         # track latest global id for the topic
         last_global_id: int = 0
         try:
@@ -256,24 +388,41 @@ class ROIProcessor:
                     msg_id = r[0]
                     payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
                     last_global_id = msg_id
+                    
                     # stable_pairs payload: { pair_id, start_slot: str(start_qr), end_slot: str(end_qr), ... }
                     start_qr_str = payload.get("start_slot")
-                    try:
-                        start_qr = int(start_qr_str)
-                    except Exception:
-                        continue
-                    # Đảm bảo mapping mới nhất
-                    self._load_qr_mapping()
-                    cam_slot = self.qr_to_slot.get(start_qr)
-                    if not cam_slot:
-                        continue
-                    cam_id, slot_number = cam_slot
-                    expire_at = time.time() + self.block_seconds
-                    with self.cache_lock:
-                        if cam_id not in self.blocked_slots:
-                            self.blocked_slots[cam_id] = {}
-                        self.blocked_slots[cam_id][slot_number] = expire_at
-                    print(f"[BLOCK] Đã block ROI slot {slot_number} trên {cam_id} đến {datetime.fromtimestamp(expire_at)} do start_qr={start_qr}")
+                    end_qr_str = payload.get("end_slot")
+                    
+                    # Xử lý start_qr (block ROI)
+                    if start_qr_str:
+                        try:
+                            start_qr = int(start_qr_str)
+                        except Exception:
+                            continue
+                        # Đảm bảo mapping mới nhất
+                        self._load_qr_mapping()
+                        cam_slot = self.qr_to_slot.get(start_qr)
+                        if not cam_slot:
+                            continue
+                        cam_id, slot_number = cam_slot
+                        expire_at = self.block_seconds  # vô thời hạn
+                        with self.cache_lock:
+                            if cam_id not in self.blocked_slots:
+                                self.blocked_slots[cam_id] = {}
+                            self.blocked_slots[cam_id][slot_number] = expire_at
+                        print(f"[BLOCK] Đã block ROI slot {slot_number} trên {cam_id} (vô thời hạn) do start_qr={start_qr}")
+                    
+                    # Xử lý end_qr (bắt đầu theo dõi)
+                    if end_qr_str:
+                        try:
+                            end_qr = int(end_qr_str)
+                        except Exception:
+                            continue
+                        # Đảm bảo mapping mới nhất
+                        self._load_qr_mapping()
+                        # Thêm end slot vào danh sách theo dõi
+                        self._add_end_slot_monitoring(end_qr)
+                        
                 time.sleep(0.2)
             except Exception as e:
                 print(f"Lỗi khi subscribe stable_pairs: {e}")
@@ -607,7 +756,13 @@ class ROIProcessor:
                             shelf_count = sum(1 for d in roi_detections if d.get('class_name') == 'shelf')
                             empty_count = sum(1 for d in roi_detections if d.get('class_name') == 'empty')
                             
+                            # Đếm end slots đang được theo dõi
+                            end_monitoring_count = sum(1 for end_slot in self.end_slot_states.keys() 
+                                                    if end_slot[0] == camera_id)
+                            
                             info_text += f" | Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_count}"
+                            if end_monitoring_count > 0:
+                                info_text += f" | End Monitoring: {end_monitoring_count}"
                             
                             cv2.putText(frame_with_detections, info_text, (10, 30), 
                                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
@@ -781,6 +936,15 @@ class ROIProcessor:
         if self.show_video:
             print("Video display đã được bật - Nhấn 'q' trong cửa sổ video để thoát")
         print("Nhấn Ctrl+C để dừng")
+        
+        # Hiển thị thông tin end slot monitoring
+        if self.end_to_start_mapping:
+            print(f"\nEnd Slot Monitoring System:")
+            print(f"- Đang theo dõi {len(self.end_to_start_mapping)} end slots")
+            print(f"- Thời gian shelf stable để unlock: {self.shelf_stable_time}s")
+            print(f"- Mapping:")
+            for end_slot, start_slot in self.end_to_start_mapping.items():
+                print(f"  End {end_slot} -> Start {start_slot}")
         
         try:
             while self.running:
