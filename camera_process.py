@@ -30,8 +30,8 @@ def camera_process_worker(process_id, camera_list, shared_dict, max_retry_attemp
             # Copy dữ liệu từ local_dict lên shared_dict
             for cam_name, data in local_dict.items():
                 shared_dict[cam_name] = data
-            
-            time.sleep(0.1)  # Update mỗi 100ms
+
+            time.sleep(0.5)  # Update mỗi 500ms
             
     except KeyboardInterrupt:
         print(f"Process {process_id}: Đang dừng...")

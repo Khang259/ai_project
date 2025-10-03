@@ -66,14 +66,12 @@ class CameraOrchestrator:
         
         if self.use_ai:
             print("Khởi động AI inference processes...")
-            for i, camera_group in enumerate(camera_groups):
-                ai_cam_names = [cam[0] for cam in camera_group]
-                ai_process = Process(
-                    target=ai_inference_worker,
-                    args=(self.shared_dict, self.result_dict, ai_cam_names, self.model_path)
-                )
-                self.processes.append(ai_process)
-                ai_process.start()
+            ai_process = Process(
+                target=ai_inference_worker,
+                args=(self.shared_dict, self.result_dict, self.model_path)  # None = process tất cả camera
+            )
+            self.processes.append(ai_process)
+            ai_process.start()
             
             # AI display worker (hiển thị kết quả có AI)
             ai_display_process = Process(
