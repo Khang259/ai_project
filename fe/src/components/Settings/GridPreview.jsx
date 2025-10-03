@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 
+// lấy hook từ collection task_path_{username}_{khu}
 const mockData = ["A", "B"];
 
 const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
