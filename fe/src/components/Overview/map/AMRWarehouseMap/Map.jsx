@@ -8,6 +8,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import onlineCameraIcon from '@/assets/online_camera.png';
 import offlineCameraIcon from '@/assets/offline_camera.png';
 import cameraConfig from '@/components/config/camera';
+import agvIconImg from '@/assets/agv_icon_1-removebg.png';
 
 
 
@@ -71,6 +72,7 @@ const smoothPathCoordinates = (coordinates, tension = 0.3, numSegments = 5) => {
 const LeafletMap = ({
   mapData,
   robotPosition,
+  robotList,
   showNodes,
   showCameras,
   showPaths,
@@ -92,7 +94,8 @@ const LeafletMap = ({
     nodes: null,
     cameras: null,
     chargeStations: null,
-    robot: null
+    robot: null,
+    robotsMulti: null
   });
 
   useEffect(() => {
@@ -426,7 +429,72 @@ const LeafletMap = ({
     layersRef.current.chargeStations = chargeStationsLayer;
   }, [mapData, showChargeStations]);
 
-  // Draw robot with smooth movement
+  // Draw multiple robots from robotList
+  useEffect(() => {
+    if (!mapInstanceRef.current || !Array.isArray(robotList)) {
+      if (layersRef.current.robotsMulti) {
+        mapInstanceRef.current.removeLayer(layersRef.current.robotsMulti);
+        layersRef.current.robotsMulti = null;
+      }
+      return;
+    }
+
+    // Create or reset multi-robot layer
+    if (layersRef.current.robotsMulti) {
+      mapInstanceRef.current.removeLayer(layersRef.current.robotsMulti);
+    }
+    const robotsLayer = L.layerGroup();
+
+    try {
+      console.log('[MAP] render robots count:', robotList.length);
+    } catch {}
+
+    robotList.forEach((bot, idx) => {
+      // Extract position; adjust if your data fields differ
+      const pos = bot.devicePositionParsed || bot.devicePosition || bot.position || null;
+      // Expect pos like { x, y } or [y, x]
+      let y, x;
+      if (pos && typeof pos === 'object' && 'x' in pos && 'y' in pos) {
+        x = pos.x; y = pos.y;
+      } else if (Array.isArray(pos) && pos.length >= 2) {
+        y = pos[0]; x = pos[1];
+      } else {
+        return; // skip if no position
+      }
+
+      const angleRad = typeof bot.angle === 'number' ? bot.angle : 0;
+
+      const icon = L.icon({
+        iconUrl: agvIconImg,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        className: 'amr-circular-icon'
+      });
+
+      const marker = L.marker([y, x], { icon, zIndexOffset: 900 });
+      marker.bindTooltip(
+        `<div style="font-size:12px;">
+          <div><b>${bot.device_name || bot.deviceName || bot.device_code || bot.deviceCode || 'AGV'}</b></div>
+          <div>Battery: ${bot.battery ?? 'N/A'}</div>
+          <div>Speed: ${bot.speed ?? 'N/A'}</div>
+        </div>`,
+        { direction: 'top' }
+      );
+      robotsLayer.addLayer(marker);
+    });
+
+    robotsLayer.addTo(mapInstanceRef.current);
+    layersRef.current.robotsMulti = robotsLayer;
+
+    return () => {
+      if (layersRef.current.robotsMulti) {
+        mapInstanceRef.current.removeLayer(layersRef.current.robotsMulti);
+        layersRef.current.robotsMulti = null;
+      }
+    };
+  }, [robotList]);
+
+  // Draw robot with smooth movement (single robot API, kept for backward compatibility)
   useEffect(() => {
     if (!mapInstanceRef.current || !robotPosition) {
       if (layersRef.current.robot) {
@@ -443,53 +511,12 @@ const LeafletMap = ({
       robotLayer.addTo(mapInstanceRef.current);
     }
 
-    // Create AMR circular icon with enhanced animations
-    const robotIcon = L.divIcon({
-      className: 'amr-circular-icon',
-      html: `<div style="
-        width: 36px; 
-        height: 36px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center;
-        transform: rotate(${robotPosition.angle * 180 / Math.PI}deg);
-        filter: drop-shadow(0 4px 16px rgba(0,0,0,0.9));
-        transition: all 0.3s ease-in-out;
-        animation: float 3s ease-in-out infinite;
-      ">
-        <svg width="32" height="32" viewBox="0 0 100 100">
-          <!-- Outer pulsing glow -->
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#000099" stroke-width="2" opacity="0.6">
-            <animate attributeName="r" values="45;50;45" dur="2s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/>
-          </circle>
-          
-          <!-- Inner pulsing glow -->
-          <circle cx="50" cy="50" r="35" fill="none" stroke="#000099" stroke-width="1.5" opacity="0.8">
-            <animate attributeName="r" values="35;40;35" dur="1.5s" repeatCount="indefinite"/>
-          </circle>
-          
-          <!-- Main robot circle with breathing effect -->
-          <circle cx="50" cy="50" r="25" fill="#000099" stroke="#ffffff" stroke-width="3">
-            <animate attributeName="r" values="25;27;25" dur="2s" repeatCount="indefinite"/>
-          </circle>
-          
-          <!-- Direction indicator -->
-          <circle cx="50" cy="50" r="15" fill="#ffffff" stroke="#000099" stroke-width="2"/>
-          
-          <!-- Center dot with pulse -->
-          <circle cx="50" cy="50" r="6" fill="#000099" stroke="#ffffff" stroke-width="1">
-            <animate attributeName="r" values="6;8;6" dur="1s" repeatCount="indefinite"/>
-          </circle>
-          
-          <!-- Direction arrow with rotation -->
-          <polygon points="50,20 45,35 55,35" fill="#ffffff" stroke="#000099" stroke-width="1">
-            <animateTransform attributeName="transform" type="rotate" values="0 50 50;5 50 50;0 50 50" dur="2s" repeatCount="indefinite"/>
-          </polygon>
-        </svg>
-      </div>`,
+    // Create robot icon from image
+    const robotIcon = L.icon({
+      iconUrl: agvIconImg,
       iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconAnchor: [18, 18],
+      className: 'amr-circular-icon'
     });
 
     // Create or update robot marker

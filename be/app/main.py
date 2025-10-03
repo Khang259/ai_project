@@ -3,10 +3,8 @@ CameraAI Backend Application
 Main FastAPI application with authentication
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 
 import sys
@@ -14,11 +12,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions
-from app.api import realtime
+from app.api import auth, users, permissions, agv_dashboard, agv_websocket
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
-from shared.logging import get_logger
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -44,7 +40,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # allow from every origin
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,8 +50,8 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["User Management"])
 app.include_router(permissions.router, prefix="/permissions", tags=["Permission Management"])
-# WebSocket router (must be included without prefix to keep ws path exact)
-app.include_router(realtime.router, tags=["Realtime"])
+app.include_router(agv_dashboard.router, tags=["AGV Dashboard"])
+app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
 
 @app.get("/")
 async def root():
@@ -70,6 +66,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=settings.debug
+        port=8001,
+        reload=settings.app_debug
     )

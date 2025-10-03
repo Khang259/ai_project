@@ -1,8 +1,10 @@
+from re import U
 from app.core.database import get_collection
 from shared.logging import get_logger
 from typing import List, Dict, Optional
 from datetime import datetime
 from bson import ObjectId
+from app.schemas.user import RoleOut
 
 logger = get_logger("camera_ai_app")
 
@@ -105,7 +107,8 @@ async def create_permission(permission_data: Dict, created_by: str) -> Dict:
     }
     
     result = await permissions_collection.insert_one(permission)
-    permission["_id"] = str(result.inserted_id)
+    permission["id"] = str(result.inserted_id)
+    del permission["_id"]
     
     logger.info(f"Created new permission: {permission_data['name']} by {created_by}")
     return permission
@@ -117,7 +120,8 @@ async def get_all_permissions() -> List[Dict]:
     
     # Convert ObjectId to string
     for perm in permissions:
-        perm["_id"] = str(perm["_id"])
+        perm["id"] = str(perm["_id"])
+        del perm["_id"]
     
     return permissions
 
@@ -128,7 +132,8 @@ async def get_permission_by_id(permission_id: str) -> Optional[Dict]:
         permission = await permissions_collection.find_one({"_id": ObjectId(permission_id)})
         
         if permission:
-            permission["_id"] = str(permission["_id"])
+            permission["id"] = str(permission["_id"])
+            del permission["_id"]
         
         return permission
     except Exception as e:
@@ -197,6 +202,114 @@ async def initialize_default_roles():
             await roles_collection.insert_one(role)
             logger.info(f"Created role: {role_data['name']}")
 
+async def create_role(role_data: Dict, created_by: str) -> Dict:
+    """Create a new role"""
+    roles_collection = get_collection("roles")
+    existing = await roles_collection.find_one({"name": role_data["name"]})
+    if existing:
+        raise ValueError(f"Role '{role_data['name']}' already exists")
+    role = {
+        **role_data,
+        "is_active": True,
+        "created_at": datetime.utcnow(),
+        "created_by": created_by
+        }
+    result = await roles_collection.insert_one(role)
+    role["id"] = str(result.inserted_id)
+    del role["_id"]
+    logger.info(f"Created new role: {role_data['name']} by {created_by}")
+    return role
+
+async def update_role(role_id: str, update_data: Dict, updated_by: str) -> bool:
+    """Update role"""
+    try:
+        roles_collection = get_collection("roles")
+        
+        # Check if role exists
+        existing_role = await roles_collection.find_one({"_id": ObjectId(role_id)})
+        if not existing_role:
+            logger.error(f"Role '{role_id}' not found")
+            return False
+        
+        # Check if new name conflicts with existing role
+        if "name" in update_data and update_data["name"] != existing_role["name"]:
+            name_conflict = await roles_collection.find_one({"name": update_data["name"]})
+            if name_conflict:
+                raise ValueError(f"Role name '{update_data['name']}' already exists")
+        
+        update_data["updated_at"] = datetime.utcnow()
+        update_data["updated_by"] = updated_by
+        
+        result = await roles_collection.update_one(
+            {"_id": ObjectId(role_id)},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            logger.info(f"Updated role '{role_id}' by {updated_by}")
+            return True
+        
+        return False
+    except ValueError as e:
+        logger.error(f"Validation error updating role '{role_id}': {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Error updating role '{role_id}': {e}")
+        return False
+
+async def delete_role(role_id: str, deleted_by: str) -> bool:
+    """Soft delete role (set is_active to False)"""
+    try:
+        roles_collection = get_collection("roles")
+        
+        # Check if role exists
+        existing_role = await roles_collection.find_one({"_id": ObjectId(role_id)})
+        if not existing_role:
+            logger.error(f"Role '{role_id}' not found")
+            return False
+        
+        # Check if role is in use
+        users_collection = get_collection("users")
+        users_with_role = await users_collection.count_documents({"roles": existing_role["name"]})
+        if users_with_role > 0:
+            raise ValueError(f"Cannot delete role '{existing_role['name']}' - {users_with_role} users still have this role")
+        
+        result = await roles_collection.update_one(
+            {"_id": ObjectId(role_id)},
+            {"$set": {
+                "is_active": False,
+                "deleted_at": datetime.utcnow(),
+                "deleted_by": deleted_by
+            }}
+        )
+        
+        if result.modified_count > 0:
+            logger.info(f"Deleted role '{role_id}' by {deleted_by}")
+            return True
+        
+        return False
+    except ValueError as e:
+        logger.error(f"Validation error deleting role '{role_id}': {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting role '{role_id}': {e}")
+        return False
+
+async def get_role_by_id(role_id: str) -> Optional[Dict]:
+    """Get role by ID"""
+    try:
+        roles_collection = get_collection("roles")
+        role = await roles_collection.find_one({"_id": ObjectId(role_id)})
+        
+        if role:
+            role["id"] = str(role["_id"])
+            del role["_id"]
+        
+        return role
+    except Exception as e:
+        logger.error(f"Error getting role by ID {role_id}: {e}")
+        return None
+
 async def get_all_roles() -> List[Dict]:
     """Get all roles"""
     roles_collection = get_collection("roles")
@@ -204,9 +317,10 @@ async def get_all_roles() -> List[Dict]:
     
     # Convert ObjectId to string
     for role in roles:
-        role["_id"] = str(role["_id"])
+        role["id"] = str(role["_id"])
+        del role["_id"]
     
-    return roles
+    return roles  # ✅ Trả về List[Dict]
 
 async def get_role_by_name(role_name: str) -> Optional[Dict]:
     """Get role by name"""
@@ -238,6 +352,7 @@ async def assign_role_to_user(user_id: str, role_name: str) -> bool:
         
         # Add role to user's roles if not already present
         current_roles = user.get("roles", [])
+        username = user.get("username", user_id)
         if role_name not in current_roles:
             await users_collection.update_one(
                 {"_id": ObjectId(user_id)},
@@ -246,10 +361,10 @@ async def assign_role_to_user(user_id: str, role_name: str) -> bool:
                     "$set": {"updated_at": datetime.utcnow()}
                 }
             )
-            logger.info(f"Assigned role '{role_name}' to user '{user_id}'")
+            logger.info(f"Assigned role '{role_name}' to user '{username}'")
             return True
         else:
-            logger.info(f"User '{user_id}' already has role '{role_name}'")
+            logger.info(f"User '{username}' already has role '{role_name}'")
             return True
             
     except Exception as e:
@@ -269,6 +384,7 @@ async def remove_role_from_user(user_id: str, role_name: str) -> bool:
         
         # Remove role from user's roles
         current_roles = user.get("roles", [])
+        username = user.get("username", user_id)
         if role_name in current_roles:
             await users_collection.update_one(
                 {"_id": ObjectId(user_id)},
@@ -277,10 +393,10 @@ async def remove_role_from_user(user_id: str, role_name: str) -> bool:
                     "$set": {"updated_at": datetime.utcnow()}
                 }
             )
-            logger.info(f"Removed role '{role_name}' from user '{user_id}'")
+            logger.info(f"Removed role '{role_name}' from user '{username}'")
             return True
         else:
-            logger.info(f"User '{user_id}' does not have role '{role_name}'")
+            logger.info(f"User '{username}' does not have role '{role_name}'")
             return True
             
     except Exception as e:
@@ -362,7 +478,8 @@ async def get_permissions_by_resource(resource: str) -> List[Dict]:
     
     # Convert ObjectId to string
     for perm in permissions:
-        perm["_id"] = str(perm["_id"])
+        perm["id"] = str(perm["_id"])
+        del perm["_id"]
     
     return permissions
 
@@ -376,6 +493,7 @@ async def get_permissions_by_action(action: str) -> List[Dict]:
     
     # Convert ObjectId to string
     for perm in permissions:
-        perm["_id"] = str(perm["_id"])
+        perm["id"] = str(perm["_id"])
+        del perm["_id"]
     
     return permissions

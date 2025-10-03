@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 
 const API_HTTP_URL = import.meta.env.VITE_API_URL || '';
-// Tự động chuyển http(s) -> ws(s)
+// Tự động chuyển http(s) -> ws(s) 11
 const DEFAULT_WS_URL = API_HTTP_URL
   ? API_HTTP_URL.replace(/^http/i, (m) => (m.toLowerCase() === 'https' ? 'wss' : 'ws')).replace(/^https/i, 'wss')
   : '';
 
-const useAGVWebSocket = (url = DEFAULT_WS_URL) => {
+const WS_URL = 'ws://192.168.1.6:8001/ws/full-agv-data'
+
+const useAGVWebSocket = (url = WS_URL) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [agvData, setAgvData] = useState(null);
@@ -30,8 +32,23 @@ const useAGVWebSocket = (url = DEFAULT_WS_URL) => {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+
+          // Chỉ in ra firstItemKeys khi data là mảng
+          if (Array.isArray(data)) {
+            if (data[0]) {
+              try {
+                console.table(data);
+                console.log(data)
+              } catch {}
+            }
+          } else if (data && typeof data === 'object') {
+            // Fallback: nếu là object, in keys của object
+            console.log('[WS RECEIVE] keys:', Object.keys(data));
+          }
+
           setAgvData(data);
         } catch (err) {
+          // Dữ liệu không phải JSON – không log thêm để tránh rác dữ lêu
           setError('Invalid data format received');
         }
       };

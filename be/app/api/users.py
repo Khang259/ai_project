@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from app.core.database import get_collection
-from app.schemas.user import UserOut, UserUpdate, UserCreate
-from app.core.permissions import get_current_active_user, require_permission, require_superuser
+from app.schemas.user import UserOut, UserUpdate
+from app.core.permissions import require_permission
 from shared.logging import get_logger
 from typing import List, Optional
 from bson import ObjectId

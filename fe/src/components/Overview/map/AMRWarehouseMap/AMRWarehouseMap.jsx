@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Card, Button, Typography, Tag, Dropdown, Tooltip } from 'antd';
-import { FileAddOutlined, ThunderboltOutlined, WifiOutlined as WifiDisconnectedOutlined, FileZipOutlined } from '@ant-design/icons';
+import { FileAddOutlined, ThunderboltOutlined, WifiOutlined, DisconnectOutlined, FileZipOutlined } from '@ant-design/icons';
 import LeafletMap from '@/components/Overview/map/AMRWarehouseMap/Map';
 import useZipImport from '@/hooks/MapDashboard/useZipImport';
 import useLeafletMapControls from '@/hooks/MapDashboard/useMapControl';
@@ -101,7 +101,7 @@ const AMRWarehouseMap = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Tag 
             color={isConnected ? 'green' : 'red'} 
-            icon={isConnected ? <WifiOutlined /> : <WifiDisconnectedOutlined />}
+            icon={isConnected ? <WifiOutlined /> : <DisconnectOutlined />}
             style={{ fontSize: 14, padding: '4px 12px' }}
           >
             {isConnected ? 'Kết nối đến RCS' : 'Mất kết nối đến RCS'}
@@ -232,10 +232,18 @@ const AMRWarehouseMap = () => {
           </div>
         </div>
         <div className="map-area-box" style={{ padding: 4}}>
-          <LeafletMap
+          {(() => {
+            const rawList = Array.isArray(agvData) ? agvData : (agvData?.data || []);
+            const filteredList = rawList.filter(item => item && item.devicePosition != null);
+            try {
+              console.log('[AMR MAP] robots total:', rawList.length, 'visible (devicePosition!=null):', filteredList.length);
+            } catch {}
+            return (
+              <LeafletMap
             mapData={mapData}
             securityConfig={securityConfig}
             // robotPosition={robotPosition}
+            robotList={filteredList}
             showNodes={showNodes}
             showCameras={showCameras}
             showPaths={showPaths}
@@ -246,7 +254,9 @@ const AMRWarehouseMap = () => {
             nodeFontSize={nodeFontSize}
             onMapReady={handleMapReady}
             onCameraClick={setSelectedCamera}
-          />
+            />
+            );
+          })()}
           {selectedCamera && (
             <CameraViewer camId={selectedCamera} onClose={() => setSelectedCamera(null)} />
           )}

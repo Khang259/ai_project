@@ -16,10 +16,9 @@ async def register_user(user_in: UserCreate):
         logger.warning(f"Signup failed: username '{user_in.username}' already exists")
         raise ValueError("User already exists")
 
-    hashed_pw = get_password_hash(user_in.password)
     user_data = {
         "username": user_in.username,
-        "hashed_password": hashed_pw,
+        "hashed_password": user_in.password,
         "is_active": True,
         "is_superuser": False,
         "roles": user_in.roles or ["viewer"],  # Default role

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -19,8 +19,8 @@ class UserOut(UserBase):
     id: str
     is_active: bool
     is_superuser: bool
-    roles: List[str] = [] #Thêm field để đảm bảo khi add user sẽ có thêm cả roles ở đâu
-    permissions: List[str] = []  # Bỏ field permissions
+    permissions: List[str] = []  # Thêm field permissions
+    roles: List[str] = []
     created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
 
@@ -41,6 +41,13 @@ class RoleOut(BaseModel):
     permissions: List[str]
     is_active: bool
     created_at: datetime
+    updated_at: datetime
+
+class RoleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    permissions: Optional[List[str]] = None
+    is_active: Optional[bool] = None
 
 class PermissionCreate(BaseModel):
     name: str
