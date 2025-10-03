@@ -70,6 +70,8 @@ class Node(BaseModel):
     row: int = Field(..., ge=0)
     column: int = Field(..., ge=0)
     area: str = Field(..., min_length=1, max_length=100)
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

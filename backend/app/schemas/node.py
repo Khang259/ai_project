@@ -9,6 +9,8 @@ class NodeCreate(BaseModel):
     row: int
     column: int
     area: str
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
 
 class NodeOut(BaseModel):
     id: str
@@ -17,6 +19,8 @@ class NodeOut(BaseModel):
     row: int
     column: int
     area: str
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -26,3 +30,5 @@ class NodeUpdate(BaseModel):
     row: Optional[int] = None
     column: Optional[int] = None
     area: Optional[str] = None
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
