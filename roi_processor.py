@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple, Any, Optional, Set
 import numpy as np
 import cv2
 from queue_store import SQLiteQueue
+from roi_visualizer import ROIVisualizer, VideoDisplayManager
 
 
 class ROIProcessor:
@@ -33,6 +34,10 @@ class ROIProcessor:
         self.video_captures: Dict[str, cv2.VideoCapture] = {}
         # Frame cache cho mỗi camera
         self.frame_cache: Dict[str, np.ndarray] = {}
+        # ROI Visualizer
+        self.roi_visualizer = ROIVisualizer()
+        # Video Display Manager
+        self.video_display_manager = VideoDisplayManager(show_video)
         # Latest detection data cho mỗi camera
         self.latest_detections: Dict[str, Dict[str, Any]] = {}
         # Latest ROI detection data cho mỗi camera (bao gồm empty)
@@ -231,38 +236,10 @@ class ROIProcessor:
         
         return intersection / union
     
-    def is_point_in_polygon(self, point: Tuple[float, float], polygon: List[List[int]]) -> bool:
-        """
-        Kiểm tra điểm có nằm trong polygon không
-        
-        Args:
-            point: Điểm (x, y)
-            polygon: Danh sách các điểm của polygon [[x1, y1], [x2, y2], ...]
-            
-        Returns:
-            True nếu điểm nằm trong polygon
-        """
-        x, y = point
-        n = len(polygon)
-        inside = False
-        
-        p1x, p1y = polygon[0]
-        for i in range(1, n + 1):
-            p2x, p2y = polygon[i % n]
-            if y > min(p1y, p2y):
-                if y <= max(p1y, p2y):
-                    if x <= max(p1x, p2x):
-                        if p1y != p2y:
-                            xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                        if p1x == p2x or x <= xinters:
-                            inside = not inside
-            p1x, p1y = p2x, p2y
-        
-        return inside
     
     def is_detection_in_roi(self, detection: Dict[str, Any], roi_slots: List[Dict[str, Any]]) -> bool:
         """
-        Kiểm tra detection có nằm trong ROI không
+        Kiểm tra detection có nằm trong ROI không (delegate to roi_visualizer)
         
         Args:
             detection: Thông tin detection
@@ -275,7 +252,7 @@ class ROIProcessor:
         
         for slot in roi_slots:
             points = slot["points"]
-            if self.is_point_in_polygon((detection_center["x"], detection_center["y"]), points):
+            if self.roi_visualizer._is_point_in_polygon((detection_center["x"], detection_center["y"]), points):
                 return True
         
         return False
@@ -410,7 +387,7 @@ class ROIProcessor:
                             if cam_id not in self.blocked_slots:
                                 self.blocked_slots[cam_id] = {}
                             self.blocked_slots[cam_id][slot_number] = expire_at
-                        print(f"[BLOCK] Đã block ROI slot {slot_number} trên {cam_id} (vô thời hạn) do start_qr={start_qr}")
+                            print(f"[BLOCK] Đã block ROI slot {slot_number} trên {cam_id} (vô thời hạn) do start_qr={start_qr}")
                     
                     # Xử lý end_qr (bắt đầu theo dõi)
                     if end_qr_str:
@@ -471,7 +448,7 @@ class ROIProcessor:
     
     def draw_roi_on_frame(self, frame: np.ndarray, camera_id: str) -> np.ndarray:
         """
-        Vẽ ROI lên frame
+        Vẽ ROI lên frame (delegate to roi_visualizer)
         
         Args:
             frame: Frame gốc
@@ -483,36 +460,12 @@ class ROIProcessor:
         with self.cache_lock:
             roi_slots = self.roi_cache.get(camera_id, [])
         
-        if not roi_slots:
-            return frame
-        
-        annotated_frame = frame.copy()
-        
-        for i, slot in enumerate(roi_slots):
-            points = slot["points"]
-            if len(points) >= 3:  # Cần ít nhất 3 điểm để tạo polygon
-                # Chuyển đổi points thành numpy array
-                pts = np.array(points, dtype=np.int32)
-                
-                # Vẽ polygon ROI
-                cv2.polylines(annotated_frame, [pts], True, (0, 255, 0), 2)
-                
-                # Vẽ vertices
-                for point in points:
-                    cv2.circle(annotated_frame, tuple(point), 4, (0, 255, 0), -1)
-                
-                # Vẽ label cho ROI
-                if points:
-                    label_pos = (points[0][0], points[0][1] - 10)
-                    cv2.putText(annotated_frame, f"ROI-{i+1}", label_pos, 
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        
-        return annotated_frame
+        return self.roi_visualizer.draw_roi_on_frame(frame, camera_id, roi_slots)
     
     def draw_detections_on_frame(self, frame: np.ndarray, detections: List[Dict[str, Any]], 
                                 camera_id: str) -> np.ndarray:
         """
-        Vẽ detections lên frame với highlight cho ROI detections
+        Vẽ detections lên frame với highlight cho ROI detections (delegate to roi_visualizer)
         
         Args:
             frame: Frame gốc
@@ -522,142 +475,11 @@ class ROIProcessor:
         Returns:
             Frame đã được vẽ detections
         """
-        annotated_frame = frame.copy()
-        
-        # Lấy ROI detections
         with self.cache_lock:
             roi_slots = self.roi_cache.get(camera_id, [])
         
-        for detection in detections:
-            bbox = detection["bbox"]
-            x1, y1 = int(bbox["x1"]), int(bbox["y1"])
-            x2, y2 = int(bbox["x2"]), int(bbox["y2"])
-            confidence = detection["confidence"]
-            class_name = detection["class_name"]
-            
-            # Xử lý empty detections (luôn trong ROI)
-            if class_name == "empty":
-                # Màu vàng cho empty ROI
-                color = (128, 0, 0)  # Vàng cho empty
-                thickness = 0.5
-                label_color = (0, 255, 255)
-                is_in_roi = True
-            else:
-                # Kiểm tra xem detection có trong ROI không (cho các class khác)
-                is_in_roi = self.is_detection_in_roi(detection, roi_slots)
-                
-                # Chọn màu và style dựa trên việc có trong ROI hay không
-                if is_in_roi:
-                    # Highlight detections trong ROI (shelf)
-                    color = (0, 0, 255)  # Đỏ cho shelf trong ROI
-                    thickness = 1
-                    label_color = (0, 0, 255)
-                else:
-                    # Detections ngoài ROI
-                    color = (128, 128, 128)  # Xám cho detections ngoài ROI
-                    thickness = 1
-                    label_color = (128, 128, 128)
-            
-            # Vẽ bounding box
-            # Ép thickness về số nguyên tối thiểu 1 để tránh lỗi OpenCV
-            draw_thickness = max(1, int(round(thickness)))
-            if class_name == "empty":
-                # Vẽ bounding box đứt nét cho empty ROI
-                self.draw_dashed_rectangle(annotated_frame, (x1, y1), (x2, y2), color, draw_thickness)
-            else:
-                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, draw_thickness)
-            
-            # Tạo label
-            if class_name == "empty":
-                label = f"EMPTY [ROI]"
-            else:
-                label = f"{class_name}: {confidence:.2f}"
-                if is_in_roi:
-                    label += " [ROI]"
-            
-            label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
-            
-            # Vẽ background cho label
-            cv2.rectangle(annotated_frame, (x1, y1 - label_size[1] - 10), 
-                        (x1 + label_size[0], y1), color, -1)
-            
-            # Vẽ text
-            cv2.putText(annotated_frame, label, (x1, y1 - 5), 
-                      cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-        
-        return annotated_frame
+        return self.roi_visualizer.draw_detections_on_frame(frame, detections, camera_id, roi_slots)
     
-    def draw_dashed_rectangle(self, image: np.ndarray, pt1: Tuple[int, int], pt2: Tuple[int, int], 
-                             color: Tuple[int, int, int], thickness: int, dash_length: int = 10) -> None:
-        """
-        Vẽ hình chữ nhật đứt nét
-        
-        Args:
-            image: Hình ảnh để vẽ
-            pt1: Điểm góc trên trái (x1, y1)
-            pt2: Điểm góc dưới phải (x2, y2)
-            color: Màu sắc
-            thickness: Độ dày đường
-            dash_length: Độ dài mỗi đoạn đứt nét
-        """
-        x1, y1 = pt1
-        x2, y2 = pt2
-        
-        # Ép thickness về số nguyên tối thiểu 1 để tránh lỗi OpenCV
-        thickness = max(1, int(round(thickness)))
-
-        # Vẽ 4 cạnh đứt nét
-        # Cạnh trên
-        self.draw_dashed_line(image, (x1, y1), (x2, y1), color, thickness, dash_length)
-        # Cạnh phải
-        self.draw_dashed_line(image, (x2, y1), (x2, y2), color, thickness, dash_length)
-        # Cạnh dưới
-        self.draw_dashed_line(image, (x2, y2), (x1, y2), color, thickness, dash_length)
-        # Cạnh trái
-        self.draw_dashed_line(image, (x1, y2), (x1, y1), color, thickness, dash_length)
-    
-    def draw_dashed_line(self, image: np.ndarray, pt1: Tuple[int, int], pt2: Tuple[int, int], 
-                        color: Tuple[int, int, int], thickness: int, dash_length: int) -> None:
-        """
-        Vẽ đường thẳng đứt nét
-        
-        Args:
-            image: Hình ảnh để vẽ
-            pt1: Điểm đầu (x1, y1)
-            pt2: Điểm cuối (x2, y2)
-            color: Màu sắc
-            thickness: Độ dày đường
-            dash_length: Độ dài mỗi đoạn đứt nét
-        """
-        x1, y1 = pt1
-        x2, y2 = pt2
-        
-        # Tính khoảng cách và hướng
-        dx = x2 - x1
-        dy = y2 - y1
-        distance = int(np.sqrt(dx*dx + dy*dy))
-        
-        if distance == 0:
-            return
-        
-        # Ép tham số về số nguyên hợp lệ
-        thickness = max(1, int(round(thickness)))
-        dash_length = max(1, int(round(dash_length)))
-
-        # Tính số đoạn đứt nét
-        dash_count = max(1, distance // (dash_length * 2))
-        
-        # Vẽ các đoạn đứt nét
-        for i in range(dash_count):
-            start_ratio = (i * 2 * dash_length) / distance
-            end_ratio = ((i * 2 + 1) * dash_length) / distance
-            
-            start_x = int(x1 + dx * start_ratio)
-            start_y = int(y1 + dy * start_ratio)
-            end_x = int(x1 + dx * end_ratio)
-            end_y = int(y1 + dy * end_ratio)
-            
-            cv2.line(image, (start_x, start_y), (end_x, end_y), color, thickness)
     
     def get_video_capture(self, camera_id: str) -> Optional[cv2.VideoCapture]:
         """
@@ -713,81 +535,16 @@ class ROIProcessor:
     
     def display_video(self) -> None:
         """
-        Hiển thị video real-time với ROI và detections
+        Hiển thị video real-time với ROI và detections (delegate to video_display_manager)
         """
-        if not self.show_video:
-            return
-        
-        print("Bắt đầu hiển thị video...")
-        
-        while self.running:
-            try:
-                # Cập nhật frame cho tất cả camera có ROI config
-                for camera_id in list(self.roi_cache.keys()):
-                    if self.update_frame_cache(camera_id):
-                        frame = self.frame_cache[camera_id]
-                        
-                        # Vẽ ROI lên frame
-                        frame_with_roi = self.draw_roi_on_frame(frame, camera_id)
-                        
-                        # Lấy ROI detections mới nhất cho camera này (bao gồm empty)
-                        with self.cache_lock:
-                            latest_roi_detection = self.latest_roi_detections.get(camera_id)
-                        
-                        if latest_roi_detection and latest_roi_detection.get("roi_detections"):
-                            # Vẽ ROI detections lên frame (bao gồm empty)
-                            frame_with_detections = self.draw_detections_on_frame(
-                                frame_with_roi, latest_roi_detection["roi_detections"], camera_id
-                            )
-                            
-                            # Hiển thị thông tin với video source
-                            video_mapping = {
-                                "cam-1": "hanam.mp4",
-                                "cam-2": "vinhPhuc.mp4"
-                            }
-                            video_name = video_mapping.get(camera_id, "unknown")
-                            
-                            info_text = f"Camera: {camera_id} ({video_name}) | Frame: {latest_roi_detection.get('frame_id', 'N/A')}"
-                            roi_count = latest_roi_detection.get('roi_detection_count', 0)
-                            total_count = latest_roi_detection.get('original_detection_count', 0)
-                            
-                            # Đếm shelf và empty trong ROI detections
-                            roi_detections = latest_roi_detection.get('roi_detections', [])
-                            shelf_count = sum(1 for d in roi_detections if d.get('class_name') == 'shelf')
-                            empty_count = sum(1 for d in roi_detections if d.get('class_name') == 'empty')
-                            
-                            # Đếm end slots đang được theo dõi
-                            end_monitoring_count = sum(1 for end_slot in self.end_slot_states.keys() 
-                                                    if end_slot[0] == camera_id)
-                            
-                            info_text += f" | Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_count}"
-                            if end_monitoring_count > 0:
-                                info_text += f" | End Monitoring: {end_monitoring_count}"
-                            
-                            cv2.putText(frame_with_detections, info_text, (10, 30), 
-                                      cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                            
-                            # Hiển thị frame
-                            cv2.imshow(f"ROI Detection - {camera_id} ({video_name})", frame_with_detections)
-                        else:
-                            # Chỉ hiển thị ROI nếu chưa có detection
-                            video_mapping = {
-                                "cam-1": "hanam.mp4",
-                                "cam-2": "vinhPhuc.mp4"
-                            }
-                            video_name = video_mapping.get(camera_id, "unknown")
-                            cv2.imshow(f"ROI Detection - {camera_id} ({video_name})", frame_with_roi)
-                
-                # Xử lý phím bấm
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord('q'):
-                    break
-                
-                time.sleep(0.03)  # ~30 FPS
-                
-            except Exception as e:
-                print(f"Lỗi khi hiển thị video: {e}")
-                time.sleep(1)
+        self.video_display_manager.display_video(
+            roi_cache=self.roi_cache,
+            latest_roi_detections=self.latest_roi_detections,
+            end_slot_states=self.end_slot_states,
+            video_captures=self.video_captures,
+            frame_cache=self.frame_cache,
+            update_frame_cache_func=self.update_frame_cache
+        )
     
     def subscribe_roi_config(self) -> None:
         """
@@ -956,7 +713,9 @@ class ROIProcessor:
         # Đóng video captures
         for cap in self.video_captures.values():
             cap.release()
-        cv2.destroyAllWindows()
+        
+        # Dừng video display manager
+        self.video_display_manager.stop()
         
         print("ROI Processor đã dừng")
 
