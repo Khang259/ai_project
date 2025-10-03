@@ -304,6 +304,10 @@ async def get_role_by_id(role_id: str) -> Optional[Dict]:
         if role:
             role["id"] = str(role["_id"])
             del role["_id"]
+            
+            # Ensure required fields exist with default values
+            if "updated_at" not in role:
+                role["updated_at"] = role.get("created_at", datetime.utcnow())
         
         return role
     except Exception as e:
@@ -315,10 +319,14 @@ async def get_all_roles() -> List[Dict]:
     roles_collection = get_collection("roles")
     roles = await roles_collection.find({"is_active": True}).to_list(length=None)
     
-    # Convert ObjectId to string
+    # Convert ObjectId to string and ensure all required fields exist
     for role in roles:
         role["id"] = str(role["_id"])
         del role["_id"]
+        
+        # Ensure required fields exist with default values
+        if "updated_at" not in role:
+            role["updated_at"] = role.get("created_at", datetime.utcnow())
     
     return roles  # ✅ Trả về List[Dict]
 
@@ -497,3 +505,109 @@ async def get_permissions_by_action(action: str) -> List[Dict]:
         del perm["_id"]
     
     return permissions
+
+async def assign_permission_to_role(role_id: str, permission_id: str) -> bool:
+    """Gán permission cho role"""
+    roles_collection = get_collection("roles")
+    permissions_collection = get_collection("permissions")
+    
+    # Kiểm tra role có tồn tại không
+    if not ObjectId.is_valid(role_id):
+        logger.warning(f"Invalid role ID format: {role_id}")
+        return False
+    
+    role = await roles_collection.find_one({"_id": ObjectId(role_id)})
+    if not role:
+        logger.warning(f"Role not found: {role_id}")
+        return False
+    
+    # Kiểm tra permission có tồn tại không
+    if not ObjectId.is_valid(permission_id):
+        logger.warning(f"Invalid permission ID format: {permission_id}")
+        return False
+    
+    permission = await permissions_collection.find_one({"_id": ObjectId(permission_id)})
+    if not permission:
+        logger.warning(f"Permission not found: {permission_id}")
+        return False
+    
+    # Kiểm tra permission đã có trong role chưa
+    current_permissions = role.get("permissions", [])
+    permission_name = permission["name"]
+    
+    if permission_name in current_permissions:
+        logger.warning(f"Permission '{permission_name}' already assigned to role '{role['name']}'")
+        return False
+    
+    # Thêm permission vào role
+    current_permissions.append(permission_name)
+    
+    result = await roles_collection.update_one(
+        {"_id": ObjectId(role_id)},
+        {
+            "$set": {
+                "permissions": current_permissions,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    if result.modified_count > 0:
+        logger.info(f"Permission '{permission_name}' assigned to role '{role['name']}' successfully")
+        return True
+    else:
+        logger.error(f"Failed to assign permission to role")
+        return False
+
+async def remove_permission_from_role(role_id: str, permission_id: str) -> bool:
+    """Xóa permission khỏi role"""
+    roles_collection = get_collection("roles")
+    permissions_collection = get_collection("permissions")
+    
+    # Kiểm tra role có tồn tại không
+    if not ObjectId.is_valid(role_id):
+        logger.warning(f"Invalid role ID format: {role_id}")
+        return False
+    
+    role = await roles_collection.find_one({"_id": ObjectId(role_id)})
+    if not role:
+        logger.warning(f"Role not found: {role_id}")
+        return False
+    
+    # Kiểm tra permission có tồn tại không
+    if not ObjectId.is_valid(permission_id):
+        logger.warning(f"Invalid permission ID format: {permission_id}")
+        return False
+    
+    permission = await permissions_collection.find_one({"_id": ObjectId(permission_id)})
+    if not permission:
+        logger.warning(f"Permission not found: {permission_id}")
+        return False
+    
+    # Kiểm tra permission có trong role không
+    current_permissions = role.get("permissions", [])
+    permission_name = permission["name"]
+    
+    if permission_name not in current_permissions:
+        logger.warning(f"Permission '{permission_name}' not found in role '{role['name']}'")
+        return False
+    
+    # Xóa permission khỏi role
+    current_permissions.remove(permission_name)
+    
+    result = await roles_collection.update_one(
+        {"_id": ObjectId(role_id)},
+        {
+            "$set": {
+                "permissions": current_permissions,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    if result.modified_count > 0:
+        logger.info(f"Permission '{permission_name}' removed from role '{role['name']}' successfully")
+        return True
+    else:
+        logger.error(f"Failed to remove permission from role")
+        return False

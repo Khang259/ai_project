@@ -9,13 +9,13 @@ router = APIRouter()
 async def receive_robot_data(request: Request):
     payload = await request.json()
     # nhận dữ liệu từ robot
-    result = await save_agv_data(payload)
+    #result = await save_agv_data(payload)
     agv_info = get_agv_position(payload)
     # Broadcast đến WebSocket clients
     message = json.dumps(agv_info)
     await manager.broadcast(message)
 
-    return result
+    return {"status": "success"}
 
 @router.get("/payload-statistics")
 async def get_payload_statistics(
