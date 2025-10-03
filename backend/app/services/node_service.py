@@ -31,7 +31,7 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         "area": node_in.area
     })
     if existing_position:
-        logger.warning(f"Node creation failed: position ({node_in.row}, {node_in.column}) already occupied in area '{area}'")
+        logger.warning(f"Node creation failed: position ({node_in.row}, {node_in.column}) already occupied in area '{node_in.area}'")
         raise ValueError("Position already occupied in this area")
     
     node_data = {
