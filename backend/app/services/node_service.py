@@ -19,7 +19,7 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         raise ValueError("Area does not exist")
     
     # Kiểm tra xem node_name đã tồn tại chưa
-    existing = await nodes.find_one({"node_name": node_in.node_name})
+    existing = await nodes.find_one({"node_name": node_in.node_name, "area": node_in.area})
     if existing:
         logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists")
         raise ValueError("Node name already exists")
@@ -60,7 +60,7 @@ async def update_node(node_id: str, node_update: NodeUpdate) -> Optional[NodeOut
         return None
     
     # Kiểm tra node có tồn tại không
-    existing_node = await nodes.find_one({"_id": ObjectId(node_id)})
+    existing_node = await nodes.find_one({"_id": ObjectId(node_id), "area": node_update.area})
     if not existing_node:
         logger.warning(f"Node not found for update: {node_id}")
         return None
@@ -75,6 +75,7 @@ async def update_node(node_id: str, node_update: NodeUpdate) -> Optional[NodeOut
     if "node_name" in update_data:
         existing_name = await nodes.find_one({
             "node_name": update_data["node_name"],
+            "area": node_update.area,
             "_id": {"$ne": ObjectId(node_id)}
         })
         if existing_name:
@@ -89,6 +90,7 @@ async def update_node(node_id: str, node_update: NodeUpdate) -> Optional[NodeOut
         existing_position = await nodes.find_one({
             "row": new_row,
             "column": new_column,
+            "area": node_update.area,
             "_id": {"$ne": ObjectId(node_id)}
         })
         if existing_position:
