@@ -3,6 +3,7 @@ import numpy as np
 import time
 from ultralytics import YOLO
 import json
+from datetime import datetime
 
 class YOLOInference:
     """Class xử lý inference YOLO"""
@@ -26,75 +27,68 @@ class YOLOInference:
             results: YOLO results object
         """
         try:
-            results = self.model(frame,device='cuda:0',verbose=False)
+            results = self.model(frame, device='cuda:0', verbose=False)
             return results  # Lấy result đầu tiên
         except Exception as e:
             print(f"Lỗi inference: {e}")
             return None
     
-    def draw_results(self, frame, results):
+    def get_detection_info(self, results, camera_id, frame_id):
         """
-        Vẽ bounding box và label lên frame
-        
-        Args:
-            frame: OpenCV frame
-            results: YOLO results
-            
-        Returns:
-            frame: Frame đã vẽ kết quả
-        """
-        if results is None or len(results.boxes) == 0:
-            return frame
-        
-        # Vẽ từng detection
-        for box in results.boxes:
-            # Lấy tọa độ
-            x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
-            confidence = box.conf[0].cpu().numpy()
-            class_id = int(box.cls[0].cpu().numpy())
-            
-            # Lấy tên class
-            class_name = results.names[class_id]
-            
-            # Vẽ bounding box
-            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-            
-            # Vẽ label
-            label = f"{class_name}: {confidence:.2f}"
-            cv2.putText(frame, label, (int(x1), int(y1)-10), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-        
-        return frame
-    
-    def get_detection_info(self, results):
-        """
-        Lấy thông tin detection để in ra
+        Lấy thông tin detection theo định dạng yêu cầu
         
         Args:
             results: YOLO results
+            camera_id: ID của camera
+            frame_id: ID của frame
             
         Returns:
             dict: Thông tin detection
         """
         if results is None or len(results.boxes) == 0:
-            return {"detections": 0, "objects": []}
+            return {
+                "camera_id": camera_id,
+                "frame_id": frame_id,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "frame_shape": {"height": 720, "width": 1280, "channels": 3},
+                "detections": [],
+                "detection_count": 0
+            }
         
-        objects = []
+        detections = []
         for box in results.boxes:
             confidence = box.conf[0].cpu().numpy()
             class_id = int(box.cls[0].cpu().numpy())
             class_name = results.names[class_id]
             x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
             
-            objects.append({
-                "class": class_name,
+            # Tính center point
+            center_x = (x1 + x2) / 2
+            center_y = (y1 + y2) / 2
+            
+            detections.append({
+                "class_id": class_id,
+                "class_name": class_name,
                 "confidence": float(confidence),
-                "bbox": [float(x1), float(y1), float(x2), float(y2)]
+                "bbox": {
+                    "x1": float(x1),
+                    "y1": float(y1),
+                    "x2": float(x2),
+                    "y2": float(y2)
+                },
+                "center": {
+                    "x": float(center_x),
+                    "y": float(center_y)
+                }
             })
         
         return {
-            "detections": len(objects),
-            "objects": objects
+            "camera_id": camera_id,
+            "frame_id": frame_id,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "frame_shape": {"height": 720, "width": 1280, "channels": 3},
+            "detections": detections,
+            "detection_count": len(detections)
         }
 
 def ai_inference_worker(shared_dict, result_dict, model_path="weights/model-hanam_0506.pt"):
@@ -102,7 +96,7 @@ def ai_inference_worker(shared_dict, result_dict, model_path="weights/model-hana
     AI Inference worker process
     
     Args:
-shared_dict: Dict chứa frame từ camera
+        shared_dict: Dict chứa frame từ camera
         result_dict: Dict để lưu kết quả detection
         model_path: Đường dẫn model YOLO
     """
@@ -125,7 +119,9 @@ shared_dict: Dict chứa frame từ camera
             if not camera_names:
                 time.sleep(0.1)
                 continue
-            frame_id_gui_cho_Duc = 0
+                
+            frame_id = frame_count
+            
             # === TRUE BATCH PROCESSING ===
             # Bước 1: Thu thập tất cả frame hợp lệ
             valid_frames = {}
@@ -146,6 +142,8 @@ shared_dict: Dict chứa frame từ camera
                         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                         
                         if frame is not None:
+                            # Resize frame
+                            frame = cv2.resize(frame, (1280, 720))
                             valid_frames[cam_name] = {
                                 'frame': frame,
                                 'timestamp': current_time,
@@ -168,7 +166,6 @@ shared_dict: Dict chứa frame từ camera
                 
                 # True batch inference với YOLO
                 try:
-                    
                     batch_results = yolo.detect(frames_list)
                     batch_inference_time = time.time() - batch_start_time
                     
@@ -177,38 +174,26 @@ shared_dict: Dict chứa frame từ camera
                         frame_data = valid_frames[cam_name]
                         current_time = frame_data['timestamp']
                         if results is not None:
-                            # Vẽ kết quả lên frame
-                            frame = frames_list[i]
-                            frame_with_results = yolo.draw_results(frame.copy(), results)
-                            
-                            # Encode frame có kết quả
-                            _, buffer = cv2.imencode('.jpg', frame_with_results, 
-                                                    [cv2.IMWRITE_JPEG_QUALITY, 85])
-                            result_jpeg = buffer.tobytes()
-                            
                             # Lấy thông tin detection
-                            detection_info = yolo.get_detection_info(results)
+                            detection_info = yolo.get_detection_info(results, cam_name, frame_id)
                             
                             # Lưu vào result_dict
-                            result_dict[cam_name] = {
-                                'frame': result_jpeg,
-                                'ts': current_time,
-                                'status': 'ok',
-                                'inference_time': batch_inference_time / len(frames_list),
-                                'detections': detection_info['detections'],
-                                'objects': detection_info['objects']
-                            }
+                            result_dict[cam_name] = detection_info
+                            
+                            # In kết quả ra màn hình
+                            print(json.dumps(detection_info, indent=2, ensure_ascii=False))
                         else:
                             # Inference lỗi
                             result_dict[cam_name] = {
-                                'frame': None,
-                                'ts': current_time,
-                                'status': 'inference_error',
-                                'inference_time': 0,
-                                'detections': 0,
-                                'objects': []
+                                "camera_id": cam_name,
+                                "frame_id": frame_id,
+                                "timestamp": datetime.utcnow().isoformat() + "Z",
+                                "frame_shape": {"height": 720, "width": 1280, "channels": 3},
+                                "detections": [],
+                                "detection_count": 0
                             }
-                    frame_id_gui_cho_Duc += 1
+                            print(json.dumps(result_dict[cam_name], indent=2, ensure_ascii=False))
+                    
                     # Log batch performance
                     avg_time_per_frame = batch_inference_time / len(frames_list)
                     print(f"True batch: {len(frames_list)} cameras in {batch_inference_time:.3f}s (avg: {avg_time_per_frame:.3f}s/frame)")
@@ -222,7 +207,16 @@ shared_dict: Dict chứa frame từ camera
             for cam_name in camera_names:
                 if cam_name not in valid_frames:
                     if cam_name in result_dict:
-                        result_dict[cam_name]['status'] = 'no_signal'
+                        result_dict[cam_name] = {
+                            "camera_id": cam_name,
+                            "frame_id": frame_id,
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                            "frame_shape": {"height": 720, "width": 1280, "channels": 3},
+                            "detections": [],
+                            "detection_count": 0,
+                            "status": "no_signal"
+                        }
+                        print(json.dumps(result_dict[cam_name], indent=2, ensure_ascii=False))
             
             frame_count += 1
             
