@@ -15,15 +15,15 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7
     
     # Password
-    password_hash_algorithm: str = "bcrypt"
-    bcrypt_rounds: int = 12
+    hashing_algorithm: str = "bcrypt"
+    hashing_rounds: int = 12
     
     # CORS
     cors_origins: str = "http://localhost:3000"
     
     # Environment
-    environment: str = "development"
-    debug: bool = True
+    app_env: str = "development"
+    app_debug: bool = True
     
     # Logging
     log_level: str = "INFO"
@@ -31,5 +31,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 settings = Settings()

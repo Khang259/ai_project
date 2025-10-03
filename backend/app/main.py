@@ -12,10 +12,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions
+from app.api import auth, users, permissions, agv_dashboard, agv_websocket
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
-from shared.logging import setup_logger
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -51,6 +50,8 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["User Management"])
 app.include_router(permissions.router, prefix="/permissions", tags=["Permission Management"])
+app.include_router(agv_dashboard.router, tags=["AGV Dashboard"])
+app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
 
 @app.get("/")
 async def root():
@@ -65,6 +66,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=settings.debug
+        port=8001,
+        reload=settings.app_debug
     )

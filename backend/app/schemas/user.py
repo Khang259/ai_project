@@ -7,7 +7,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    roles: Optional[List[str]] = []  # Thêm field permissions
+    roles: Optional[List[str]] = []  
 
 class UserLogin(BaseModel):
     username: str
