@@ -16,6 +16,7 @@ async def receive_robot_data(request: Request):
     # Broadcast đến WebSocket clients
     message = json.dumps(agv_info)
     await manager.broadcast(message)
+    print(f"Broadcast to WebSocket clients: {message}")
     return result
 
 @router.get("/payload-statistics")

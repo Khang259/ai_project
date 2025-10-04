@@ -9,6 +9,64 @@ import onlineCameraIcon from '@/assets/online_camera.png';
 import offlineCameraIcon from '@/assets/offline_camera.png';
 import cameraConfig from '@/components/config/camera';
 import agvIconImg from '@/assets/agv_icon_1-removebg.png';
+// Fallback icon import
+import agvIconFallback from '@/assets/agv_icon.png';
+
+// Debug: Log icon URLs
+console.log('AGV Icon URL:', agvIconImg);
+console.log('AGV Fallback Icon URL:', agvIconFallback);
+
+// Helper function to get correct asset URL for Vite
+const getAssetUrl = (assetPath) => {
+  if (assetPath && assetPath.startsWith('/src/')) {
+    // For Vite dev server, use relative path from public
+    return assetPath.replace('/src/', '/');
+  }
+  return assetPath;
+};
+
+// Create SVG icon as base64 to avoid file loading issues
+const createSVGIcon = (size = 28, color = '#4285F4') => {
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+        </filter>
+      </defs>
+      <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 2}" fill="${color}" filter="url(#shadow)"/>
+      <rect x="${size/2 - 6}" y="${size/2 - 3}" width="12" height="6" fill="white" rx="1"/>
+      <circle cx="${size/2 - 3}" cy="${size/2}" r="1.5" fill="${color}"/>
+      <circle cx="${size/2 + 3}" cy="${size/2}" r="1.5" fill="${color}"/>
+    </svg>
+  `;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+};
+
+// Try multiple icon URLs for better compatibility
+const getIconUrl = () => {
+  // Try different approaches in order of preference
+  const urls = [
+    '/assets/agv-icon-simple.svg', // Simple SVG first
+    agvIconImg, // Imported from assets
+    agvIconFallback, // Fallback import
+    '/src/assets/agv_icon_1.png', // Try regular PNG
+    '/assets/agv_icon_1.png', // Public folder regular PNG
+    '/src/assets/agv_icon_1-removebg.png', // Direct path
+    '/assets/agv_icon_1-removebg.png', // Public folder
+    '/src/assets/agv_icon.png', // Fallback direct path
+    '/assets/agv_icon.png', // Public folder fallback
+    createSVGIcon(28, '#4285F4'), // SVG fallback
+  ];
+  
+  for (const url of urls) {
+    if (url) {
+      console.log('Trying icon URL:', url);
+      return url;
+    }
+  }
+  return createSVGIcon(); // Return SVG as final fallback
+};
 
 
 
@@ -431,11 +489,20 @@ const LeafletMap = ({
 
   // Draw multiple robots from robotList
   useEffect(() => {
-    if (!mapInstanceRef.current || !Array.isArray(robotList)) {
+    if (!mapInstanceRef.current) {
       if (layersRef.current.robotsMulti) {
         mapInstanceRef.current.removeLayer(layersRef.current.robotsMulti);
         layersRef.current.robotsMulti = null;
       }
+      return;
+    }
+
+    // Ensure we always have a robot list to display
+    const safeRobotList = Array.isArray(robotList) ? robotList : [];
+    
+    if (safeRobotList.length === 0) {
+      // If no robots, don't remove the layer - keep existing robots
+      console.log('[MAP] No robots to display, keeping existing layer');
       return;
     }
 
@@ -446,45 +513,104 @@ const LeafletMap = ({
     const robotsLayer = L.layerGroup();
 
     try {
-      console.log('[MAP] render robots count:', robotList.length);
+      console.log('[MAP] render robots count:', safeRobotList.length);
     } catch {}
 
-    robotList.forEach((bot, idx) => {
-      // Extract position; adjust if your data fields differ
+    safeRobotList.forEach((bot, idx) => {
+      // Debug: Log bot data
+      console.log(`[MAP] Bot ${idx}:`, {
+        name: bot.device_name || bot.deviceName || 'Unknown',
+        devicePosition: bot.devicePosition,
+        devicePositionParsed: bot.devicePositionParsed,
+        position: bot.position,
+        x: bot.x,
+        y: bot.y,
+        allKeys: Object.keys(bot)
+      });
+      
+      // Extract position - prioritize parsed position from node mapping
       const pos = bot.devicePositionParsed || bot.devicePosition || bot.position || null;
       // Expect pos like { x, y } or [y, x]
       let y, x;
       if (pos && typeof pos === 'object' && 'x' in pos && 'y' in pos) {
         x = pos.x; y = pos.y;
+        // Validate position values
+        if (isNaN(x) || isNaN(y) || x === null || y === null) {
+          console.log(`[MAP] Skipping bot ${idx} - invalid position values: x=${x}, y=${y}`);
+          return;
+        }
+        console.log(`[MAP] Using pos object: x=${x}, y=${y}`);
       } else if (Array.isArray(pos) && pos.length >= 2) {
         y = pos[0]; x = pos[1];
+        if (isNaN(x) || isNaN(y)) {
+          console.log(`[MAP] Skipping bot ${idx} - invalid array position: x=${x}, y=${y}`);
+          return;
+        }
+        console.log(`[MAP] Using pos array: x=${x}, y=${y}`);
+      } else if (bot.x !== undefined && bot.y !== undefined) {
+        x = bot.x; y = bot.y;
+        if (isNaN(x) || isNaN(y)) {
+          console.log(`[MAP] Skipping bot ${idx} - invalid direct position: x=${x}, y=${y}`);
+          return;
+        }
+        console.log(`[MAP] Using direct x,y: x=${x}, y=${y}`);
       } else {
+        console.log(`[MAP] Skipping bot ${idx} - no valid position found`);
         return; // skip if no position
       }
 
       const angleRad = typeof bot.angle === 'number' ? bot.angle : 0;
 
+      // Force use simple SVG icon for all robots (temporary fix)
+      const iconUrl = '/assets/agv-icon-simple.svg';
+      console.log('Using icon URL for robot:', iconUrl);
+      
+      // Test icon loading
+      const testImg = new Image();
+      testImg.onload = () => console.log(`✅ Icon loaded successfully for ${bot.device_name || 'Unknown'}:`, iconUrl);
+      testImg.onerror = () => console.log(`❌ Icon failed to load for ${bot.device_name || 'Unknown'}:`, iconUrl);
+      testImg.src = iconUrl;
+      
       const icon = L.icon({
-        iconUrl: agvIconImg,
+        iconUrl: iconUrl,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
-        className: 'amr-circular-icon'
+        className: 'amr-circular-icon',
+        // Add additional options for better PNG handling
+        crossOrigin: 'anonymous'
       });
 
+      console.log(`[MAP] Creating marker for ${bot.device_name || 'Unknown'} at [${y}, ${x}]`);
+      if (bot.devicePositionOriginal) {
+        console.log(`[MAP] Original devicePosition: "${bot.devicePositionOriginal}" → Parsed: [${x}, ${y}]`);
+      }
+      
       const marker = L.marker([y, x], { icon, zIndexOffset: 900 });
       marker.bindTooltip(
         `<div style="font-size:12px;">
           <div><b>${bot.device_name || bot.deviceName || bot.device_code || bot.deviceCode || 'AGV'}</b></div>
           <div>Battery: ${bot.battery ?? 'N/A'}</div>
           <div>Speed: ${bot.speed ?? 'N/A'}</div>
+          <div>Position: x=${x}, y=${y}</div>
+          ${bot.devicePositionOriginal ? `<div style="font-size:10px; color:#666;">Node: ${bot.devicePositionOriginal}</div>` : ''}
         </div>`,
         { direction: 'top' }
       );
       robotsLayer.addLayer(marker);
+      
+      console.log(`[MAP] ✅ Marker added for ${bot.device_name || 'Unknown'}`);
     });
 
     robotsLayer.addTo(mapInstanceRef.current);
     layersRef.current.robotsMulti = robotsLayer;
+    
+    // Debug: Check map bounds and robot positions
+    if (mapInstanceRef.current) {
+      const bounds = mapInstanceRef.current.getBounds();
+      console.log('[MAP] Map bounds:', bounds);
+      console.log('[MAP] Map center:', mapInstanceRef.current.getCenter());
+      console.log('[MAP] Map zoom:', mapInstanceRef.current.getZoom());
+    }
 
     return () => {
       if (layersRef.current.robotsMulti) {
@@ -512,11 +638,15 @@ const LeafletMap = ({
     }
 
     // Create robot icon from image
+    const singleRobotIconUrl = getIconUrl();
+    console.log('Using icon URL for single robot:', singleRobotIconUrl);
+    
     const robotIcon = L.icon({
-      iconUrl: agvIconImg,
+      iconUrl: singleRobotIconUrl,
       iconSize: [36, 36],
       iconAnchor: [18, 18],
-      className: 'amr-circular-icon'
+      className: 'amr-circular-icon',
+      crossOrigin: 'anonymous'
     });
 
     // Create or update robot marker
@@ -576,11 +706,31 @@ const LeafletMap = ({
           
           .amr-circular-icon {
             transition: all 0.3s ease-in-out;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            background: transparent;
+          }
+          
+          .amr-circular-icon img {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
           }
           
           .amr-circular-icon:hover {
             transform: scale(1.1);
             filter: drop-shadow(0 6px 20px rgba(0,0,0,0.9));
+          }
+          
+          /* Fix for PNG transparency issues */
+          .leaflet-marker-icon {
+            background: transparent !important;
+          }
+          
+          .leaflet-marker-icon img {
+            background: transparent !important;
+            image-rendering: auto;
           }
 
           .camera-marker-icon {

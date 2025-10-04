@@ -12,6 +12,7 @@ const useAGVWebSocket = (url = WS_URL) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [agvData, setAgvData] = useState(null);
+  const [lastValidData, setLastValidData] = useState(null);
   const [error, setError] = useState(null);
   const [isReconnecting, setIsReconnecting] = useState(false);
 
@@ -33,19 +34,26 @@ const useAGVWebSocket = (url = WS_URL) => {
         try {
           const data = JSON.parse(event.data);
 
-          // Chỉ in ra firstItemKeys khi data là mảng
+          // Debug WebSocket data structure
           if (Array.isArray(data)) {
             if (data[0]) {
               try {
-                console.table(data);
-                console.log(data)
+                console.log('[WS RECEIVE] Array length:', data.length);
+                console.log('[WS RECEIVE] First robot data:', data[0]);
+                console.log('[WS RECEIVE] First robot devicePosition:', data[0].devicePosition);
+                console.table(data.slice(0, 3)); // Show first 3 robots
               } catch {}
             }
           } else if (data && typeof data === 'object') {
             // Fallback: nếu là object, in keys của object
-            console.log('[WS RECEIVE] keys:', Object.keys(data));
+            console.log('[WS RECEIVE] Object keys:', Object.keys(data));
+            console.log('[WS RECEIVE] Object data:', data);
           }
 
+          // Store valid data and update current data
+          if (data && (Array.isArray(data) || typeof data === 'object')) {
+            setLastValidData(data);
+          }
           setAgvData(data);
         } catch (err) {
           // Dữ liệu không phải JSON – không log thêm để tránh rác dữ lêu
@@ -56,6 +64,12 @@ const useAGVWebSocket = (url = WS_URL) => {
       ws.onclose = (event) => {
         setIsConnected(false);
         setSocket(null);
+        
+        // Keep showing last valid data even when disconnected
+        if (lastValidData && !agvData) {
+          console.log('[WS] Using last valid data while disconnected');
+          setAgvData(lastValidData);
+        }
         
         if (event.code !== 1000 && !isReconnecting) {
           setError(`Connection lost (Code: ${event.code}). Reconnecting...`);

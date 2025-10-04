@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
-@app.post("/receive-data")
+@app.post("/robot-data")
 async def receive_data(request: Request):
     try:
         # Nhận raw body (có thể là JSON hoặc form-data)

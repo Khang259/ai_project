@@ -38,6 +38,40 @@ const AMRWarehouseMap = () => {
   // WebSocket hook cho AGV data
   const { isConnected, agvData, error: wsError } = useAGVWebSocket();
 
+  // Function to parse devicePosition string and map to node coordinates
+  const parseDevicePosition = (devicePositionStr, mapData) => {
+    if (!devicePositionStr || !mapData || !mapData.nodeArr) {
+      return null;
+    }
+
+    // Convert string to number (remove any non-numeric characters)
+    const nodeId = parseInt(devicePositionStr.toString().replace(/\D/g, ''));
+    
+    if (isNaN(nodeId)) {
+      console.log('[PARSE] Invalid devicePosition string:', devicePositionStr);
+      return null;
+    }
+
+    // Find node in mapData by key
+    const node = mapData.nodeArr.find(n => {
+      // Try different ways to match the node
+      const nodeKey = parseInt(n.key?.toString().replace(/\D/g, ''));
+      return nodeKey === nodeId || n.key === nodeId || n.key === devicePositionStr;
+    });
+
+    if (node && typeof node.x !== 'undefined' && typeof node.y !== 'undefined') {
+      console.log(`[PARSE] Found node for devicePosition "${devicePositionStr}":`, {
+        nodeId: node.key,
+        x: node.x,
+        y: node.y
+      });
+      return { x: node.x, y: node.y };
+    }
+
+    console.log(`[PARSE] No node found for devicePosition "${devicePositionStr}" (nodeId: ${nodeId})`);
+    return null;
+  };
+
   // Tự động nạp lại dữ liệu từ localStorage khi load trang
   useEffect(() => {
     const mapDataStr = localStorage.getItem('mapData');
@@ -234,16 +268,110 @@ const AMRWarehouseMap = () => {
         <div className="map-area-box" style={{ padding: 4}}>
           {(() => {
             const rawList = Array.isArray(agvData) ? agvData : (agvData?.data || []);
-            const filteredList = rawList.filter(item => item && item.devicePosition != null);
+            
+            // Process robots and add parsed positions
+            const processedList = rawList.map(item => {
+              if (!item) return null;
+              
+              // Parse devicePosition string to get node coordinates
+              const parsedPosition = parseDevicePosition(item.devicePosition, mapData);
+              
+              if (parsedPosition) {
+                // Add parsed position to robot data
+                return {
+                  ...item,
+                  devicePositionParsed: parsedPosition,
+                  devicePositionOriginal: item.devicePosition
+                };
+              }
+              
+              // Fallback to existing position fields
+              if (item.devicePosition && typeof item.devicePosition === 'object') {
+                const pos = item.devicePosition;
+                if (pos.x !== undefined && pos.y !== undefined && 
+                    pos.x !== null && pos.y !== null &&
+                    !isNaN(pos.x) && !isNaN(pos.y)) {
+                  return item;
+                }
+              }
+              
+              // Other fallbacks
+              if (item.devicePositionParsed || item.position || 
+                  (item.x !== undefined && item.y !== undefined)) {
+                return item;
+              }
+              
+              return null;
+            }).filter(Boolean);
+            
+            const filteredList = processedList;
+            
+            // Always add test robot for debugging - but position it differently
+            const testRobot = {
+              device_name: 'TEST_AGV_001',
+              devicePosition: { x: 1000, y: 1000 },
+              devicePositionParsed: { x: 1000, y: 1000 },
+              battery: '85%',
+              speed: '2.5 m/s',
+              angle: 0
+            };
+            
+            // Combine real robots with test robot
+            const finalRobotList = [...filteredList, testRobot];
+            
             try {
-              console.log('[AMR MAP] robots total:', rawList.length, 'visible (devicePosition!=null):', filteredList.length);
+              console.log('[AMR MAP] robots total:', rawList.length, 'visible (has position):', filteredList.length);
+              console.log('[AMR MAP] final robot list (with test):', finalRobotList.length);
+              console.log('[AMR MAP] agvData type:', typeof agvData, agvData ? 'exists' : 'null');
+              console.log('[AMR MAP] WebSocket connected:', isConnected);
+              
+              // Debug panel in console
+              window.debugAGV = {
+                rawList,
+                filteredList,
+                finalRobotList,
+                agvData,
+                isConnected,
+                timestamp: new Date().toISOString()
+              };
+              
+              // Log detailed robot position info
+              if (filteredList.length > 0) {
+                console.log('[AMR MAP] First 3 real robots with positions:');
+                filteredList.slice(0, 3).forEach((robot, idx) => {
+                  console.log(`[AMR MAP] Robot ${idx}:`, {
+                    name: robot.device_name || robot.deviceName,
+                    devicePositionOriginal: robot.devicePositionOriginal,
+                    devicePositionParsed: robot.devicePositionParsed,
+                    x: robot.devicePositionParsed?.x || robot.devicePosition?.x,
+                    y: robot.devicePositionParsed?.y || robot.devicePosition?.y
+                  });
+                });
+              }
+              
+              // Log invalid robots for debugging
+              const invalidRobots = rawList.filter(item => {
+                if (!item) return false;
+                if (item.devicePosition && typeof item.devicePosition === 'object') {
+                  const pos = item.devicePosition;
+                  return !(pos.x !== undefined && pos.y !== undefined && 
+                          pos.x !== null && pos.y !== null &&
+                          !isNaN(pos.x) && !isNaN(pos.y));
+                }
+                return true;
+              });
+              
+              if (invalidRobots.length > 0) {
+                console.log('[AMR MAP] Invalid robots (no valid position):', invalidRobots.length);
+                console.log('[AMR MAP] Sample invalid robot:', invalidRobots[0]);
+              }
             } catch {}
             return (
               <LeafletMap
             mapData={mapData}
             securityConfig={securityConfig}
             // robotPosition={robotPosition}
-            robotList={filteredList}
+            robotList={finalRobotList}
             showNodes={showNodes}
             showCameras={showCameras}
             showPaths={showPaths}
