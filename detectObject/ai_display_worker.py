@@ -88,11 +88,11 @@ def ai_display_worker(result_dict):
             total_detections += frame_total_detections
             frame_count += 1
             
-            # In stats định kỳ (mỗi 30 frame)
-            if frame_count % 30 == 0:
-                print(f"Frame {frame_count}: {len(camera_names)} cameras, "
-                      f"Total detections: {total_detections}, "
-                      f"This frame: {frame_total_detections}")
+            # # In stats định kỳ (mỗi 30 frame)
+            # if frame_count % 30 == 0:
+            #     print(f"Frame {frame_count}: {len(camera_names)} cameras, "
+            #           f"Total detections: {total_detections}, "
+            #           f"This frame: {frame_total_detections}")
             
             # Nhấn 'q' để thoát, 's' để save screenshot tất cả window
             key = cv2.waitKey(30) & 0xFF

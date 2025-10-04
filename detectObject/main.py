@@ -6,11 +6,12 @@ from camera_process import camera_process_worker
 from display_worker import display_worker
 from ai_inference import ai_inference_worker
 from ai_display_worker import ai_display_worker
+from fps_config import get_fps_config, print_fps_presets
 
 class CameraOrchestrator:
     """Orchestrator chính quản lý toàn bộ hệ thống"""
     
-    def __init__(self, camera_urls, num_processes=4, max_retry_attempts=5, use_ai=True, model_path="yolov8n.pt"):
+    def __init__(self, camera_urls, num_processes=4, max_retry_attempts=5, use_ai=True, model_path="yolov8n.pt", target_fps=1.0):
         """
         Args:
             camera_urls: List các URL camera
@@ -18,12 +19,14 @@ class CameraOrchestrator:
             max_retry_attempts: Số lần thử kết nối lại tối đa cho mỗi camera
             use_ai: Có sử dụng AI detection không
             model_path: Đường dẫn model YOLO .pt
+            target_fps: FPS mục tiêu cho camera và AI inference (mặc định: 2.0 FPS)
         """
         self.camera_urls = camera_urls
         self.num_processes = num_processes
         self.max_retry_attempts = max_retry_attempts
         self.use_ai = use_ai
         self.model_path = model_path
+        self.target_fps = target_fps
         self.manager = Manager()
         self.shared_dict = self.manager.dict()
         self.result_dict = self.manager.dict()  # Dict cho kết quả AI
@@ -49,6 +52,7 @@ class CameraOrchestrator:
         """Khởi động hệ thống"""
         print("Bắt đầu khởi động hệ thống camera...")
         print(f"AI Detection: {'BẬT' if self.use_ai else 'TẮT'}")
+        print(f"Target FPS: {self.target_fps}")
         if self.use_ai:
             print(f"Model YOLO: {self.model_path}")
         
@@ -59,29 +63,28 @@ class CameraOrchestrator:
         for i, camera_group in enumerate(camera_groups):
             process = Process(
                 target=camera_process_worker,
-                args=(i, camera_group, self.shared_dict, self.max_retry_attempts)
+                args=(i, camera_group, self.shared_dict, self.max_retry_attempts, self.target_fps)
             )
             self.processes.append(process)
             process.start()
         
         if self.use_ai:
-            print("Khởi động AI inference processes...")
-            for i, camera_group in enumerate(camera_groups):
-                ai_cam_names = [cam[0] for cam in camera_group]
-                ai_process = Process(
-                    target=ai_inference_worker,
-                    args=(self.shared_dict, self.result_dict, ai_cam_names, self.model_path)
-                )
-                self.processes.append(ai_process)
-                ai_process.start()
-            
-            # AI display worker tạm thời tắt - chỉ in JSON ra console
-            ai_display_process = Process(
-                target=ai_display_worker,
-                args=(self.result_dict,)
+            print("Khởi động AI inference process (GPU, batch tất cả camera)...")
+            # Một tiến trình AI duy nhất xử lý batch tất cả camera để tận dụng GPU tốt hơn
+            ai_process = Process(
+                target=ai_inference_worker,
+                args=(self.shared_dict, self.result_dict, self.model_path, self.target_fps)
             )
-            self.processes.append(ai_display_process)
-            ai_display_process.start()
+            self.processes.append(ai_process)
+            ai_process.start()
+            
+            # # AI display worker (hiển thị kết quả có AI)
+            # ai_display_process = Process(
+            #     target=ai_display_worker,
+            #     args=(self.result_dict,)
+            # )
+            # self.processes.append(ai_display_process)
+            # ai_display_process.start()
             
         else:
             # Display worker thường (hiển thị frame gốc)
@@ -122,50 +125,59 @@ class CameraOrchestrator:
 def main():
 
     camera_urls = [
-      ("Camera_01","rtsp://192.168.1.252:8554/live/cam1"),
-      ("Camera_02","rtsp://192.168.1.252:8554/live/cam2"),
-      ("Camera_03","rtsp://192.168.1.252:8554/live/cam3"),
-      ("Camera_04","rtsp://192.168.1.252:8554/live/cam4"),
-      ("Camera_05","rtsp://192.168.1.252:8554/live/cam5"),
-      ("Camera_06","rtsp://192.168.1.252:8554/live/cam6"),
-      ("Camera_07","rtsp://192.168.1.252:8554/live/cam7"),
-      ("Camera_08","rtsp://192.168.1.252:8554/live/cam8"),
-      ("Camera_09","rtsp://192.168.1.252:8554/live/cam9"),
-      ("Camera_10","rtsp://192.168.1.252:8554/live/cam10"),
-      ("Camera_11","rtsp://192.168.1.252:8554/live/cam11"),
-      ("Camera_12","rtsp://192.168.1.252:8554/live/cam12"),
-      ("Camera_13","rtsp://192.168.1.252:8554/live/cam13"),
-      ("Camera_14","rtsp://192.168.1.252:8554/live/cam14"),
-      ("Camera_15","rtsp://192.168.1.252:8554/live/cam15"),
-      ("Camera_16","rtsp://192.168.1.252:8554/live/cam16"),
-      ("Camera_17","rtsp://192.168.1.252:8554/live/cam17"),
-      ("Camera_18","rtsp://192.168.1.252:8554/live/cam18"),
-      ("Camera_19","rtsp://192.168.1.252:8554/live/cam19"),
-      ("Camera_20","rtsp://192.168.1.252:8554/live/cam20"),
-      ("Camera_21","rtsp://192.168.1.252:8554/live/cam21"),
-      ("Camera_22","rtsp://192.168.1.252:8554/live/cam22"),
-      ("Camera_23","rtsp://192.168.1.252:8554/live/cam23"),
-      ("Camera_24","rtsp://192.168.1.252:8554/live/cam24"),
-      ("Camera_25","rtsp://192.168.1.252:8554/live/cam25"),
-      ("Camera_26","rtsp://192.168.1.252:8554/live/cam26"),
-      ("Camera_27","rtsp://192.168.1.252:8554/live/cam27"),
-      ("Camera_28","rtsp://192.168.1.252:8554/live/cam28"),
-      ("Camera_29","rtsp://192.168.1.252:8554/live/cam29"),
-      ("Camera_30","rtsp://192.168.1.252:8554/live/cam30"),
-      ("Camera_31","rtsp://192.168.1.252:8554/live/cam31"),
-      ("Camera_32","rtsp://192.168.1.252:8554/live/cam32"),
-      ("Camera_33","rtsp://192.168.1.252:8554/live/cam33"),
-      ("Camera_34","rtsp://192.168.1.252:8554/live/cam34"),
-      ("Camera_35","rtsp://192.168.1.252:8554/live/cam35")
+      ("cam-1","rtsp://192.168.1.252:8554/live/cam1"),
+      ("cam-2","rtsp://192.168.1.252:8554/live/cam2"),
+      ("cam-3","rtsp://192.168.1.252:8554/live/cam3"),
+      ("cam-4","rtsp://192.168.1.252:8554/live/cam4"),
+      ("cam-5","rtsp://192.168.1.252:8554/live/cam5"),
+      ("cam-6","rtsp://192.168.1.252:8554/live/cam6"),
+      ("cam-7","rtsp://192.168.1.252:8554/live/cam7"),
+      ("cam-8","rtsp://192.168.1.252:8554/live/cam8"),
+      ("cam-9","rtsp://192.168.1.252:8554/live/cam9"),
+      ("cam_10","rtsp://192.168.1.252:8554/live/cam10"),
+      ("cam_11","rtsp://192.168.1.252:8554/live/cam11"),
+      ("cam_12","rtsp://192.168.1.252:8554/live/cam12"),
+      ("cam-13","rtsp://192.168.1.252:8554/live/cam13"),
+      ("cam-14","rtsp://192.168.1.252:8554/live/cam14"),
+      ("cam-15","rtsp://192.168.1.252:8554/live/cam15"),
+      ("cam-16","rtsp://192.168.1.252:8554/live/cam16"),
+      ("cam-17","rtsp://192.168.1.252:8554/live/cam17"),
+      ("cam-18","rtsp://192.168.1.252:8554/live/cam18"),
+      ("cam-19","rtsp://192.168.1.252:8554/live/cam19"),
+      ("cam-20","rtsp://192.168.1.252:8554/live/cam20"),
+      ("cam-21","rtsp://192.168.1.252:8554/live/cam21"),
+      ("cam-22","rtsp://192.168.1.252:8554/live/cam22"),
+      ("cam-23","rtsp://192.168.1.252:8554/live/cam23"),
+      ("cam-24","rtsp://192.168.1.252:8554/live/cam24"),
+      ("cam-25","rtsp://192.168.1.252:8554/live/cam25"),
+      ("cam-26","rtsp://192.168.1.252:8554/live/cam26"),
+      ("cam-27","rtsp://192.168.1.252:8554/live/cam27"),
+      ("cam-28","rtsp://192.168.1.252:8554/live/cam28"),
+      ("cam-29","rtsp://192.168.1.252:8554/live/cam29"),
+      ("cam-30","rtsp://192.168.1.252:8554/live/cam30"),
+      ("cam-31","rtsp://192.168.1.252:8554/live/cam31"),
+      ("cam-32","rtsp://192.168.1.252:8554/live/cam32"),
+      ("cam-33","rtsp://192.168.1.252:8554/live/cam33"),
+      ("cam-34","rtsp://192.168.1.252:8554/live/cam34"),
+      ("cam-35","rtsp://192.168.1.252:8554/live/cam35")
     ]
     
     # Tạo orchestrator với số process tùy chỉnh
     NUM_PROCESSES = 5  # Có thể thay đổi số này
     MAX_RETRY_ATTEMPTS = 5  # Số lần thử kết nối lại tối đa
     USE_AI = True  # Bật/tắt AI detection
-    MODEL_PATH = "weights/model_vl_0205.pt"  # Đường dẫn model YOLO
+    MODEL_PATH = "weights/model-hanam_0506.pt"  # Đường dẫn model YOLO
     
-    orchestrator = CameraOrchestrator(camera_urls, NUM_PROCESSES, MAX_RETRY_ATTEMPTS, USE_AI, MODEL_PATH)
+    # Cấu hình FPS - có thể thay đổi ở đây
+    FPS_PRESET = "low"  # Chọn preset: "very_low", "low", "normal", "high", "very_high"
+    # HOẶC sử dụng FPS tùy chỉnh:
+    # CUSTOM_FPS = 1.5  # FPS tùy chỉnh
+    # TARGET_FPS = get_fps_config(custom_fps=CUSTOM_FPS)
+    TARGET_FPS = get_fps_config(preset_name=FPS_PRESET)
+    
+    print(f"Sử dụng FPS preset: {FPS_PRESET} ({TARGET_FPS} FPS)")
+    
+    orchestrator = CameraOrchestrator(camera_urls, NUM_PROCESSES, MAX_RETRY_ATTEMPTS, USE_AI, MODEL_PATH, TARGET_FPS)
     
     # Khởi động và chạy
     orchestrator.start()

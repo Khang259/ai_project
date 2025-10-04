@@ -90,8 +90,7 @@ class RoiDrawer:
 
     def _put_help(self) -> None:
         lines = [
-            "Kéo-thả chuột trái: vẽ hình chữ nhật",
-            "z: undo ROI | r: reset | s: lưu | ESC: thoát",
+            "z: undo ROI | r: reset | s: save | ESC: exit",
         ]
         y = 25
         for line in lines:
@@ -156,6 +155,36 @@ def capture_one_frame(video_source: str):
     if not ok:
         raise RuntimeError("Không đọc được frame từ video source")
     return frame
+
+
+def load_cam_config(cam_config_path: str) -> Dict[str, str]:
+    """
+    Đọc file config camera để lấy mapping camera_id -> RTSP URL
+    
+    Args:
+        cam_config_path: Đường dẫn đến file cam_config.json
+        
+    Returns:
+        Dictionary mapping camera_id -> RTSP URL
+    """
+    if not os.path.exists(cam_config_path):
+        raise FileNotFoundError(f"Không tìm thấy file cam config: {cam_config_path}")
+    
+    with open(cam_config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    
+    # Parse cam_urls từ JSON format
+    cam_urls = config.get("cam_urls", [])
+    cam_dict = {}
+    
+    for cam_entry in cam_urls:
+        if isinstance(cam_entry, list) and len(cam_entry) == 2:
+            cam_id, rtsp_url = cam_entry
+            cam_dict[cam_id] = rtsp_url
+        else:
+            print(f"Warning: Invalid camera entry format: {cam_entry}")
+    
+    return cam_dict
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
@@ -230,19 +259,53 @@ def update_roi_coordinates(config: Dict[str, Any], camera_id: str, polygons: Lis
     print(f"Đã cập nhật {len(polygons)} ROI coordinates cho camera {camera_id}")
 
 
+def list_available_cameras(cam_config_path: str) -> None:
+    """
+    Hiển thị danh sách camera có sẵn trong config
+    
+    Args:
+        cam_config_path: Đường dẫn đến file cam_config.json
+    """
+    try:
+        cam_config = load_cam_config(cam_config_path)
+        print("Danh sách camera có sẵn:")
+        for cam_id, rtsp_url in cam_config.items():
+            print(f"  {cam_id}: {rtsp_url}")
+    except Exception as e:
+        print(f"Không thể load camera config: {e}")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Tool vẽ ROI theo camera")
-    parser.add_argument("--camera-id", type=str, default="cam-1", help="ID camera")
-    parser.add_argument(
+    
+    # Group cho camera selection
+    camera_group = parser.add_mutually_exclusive_group(required=True)
+    camera_group.add_argument(
+        "--camera-id", 
+        type=str, 
+        help="ID camera (ví dụ: cam-1, cam-2, ...)"
+    )
+    camera_group.add_argument(
         "--video",
         type=str,
-        default="video/hanam.mp4",
-        help="Đường dẫn file video đầu vào",
+        help="Đường dẫn file video đầu vào (fallback cho file MP4)",
     )
-    parser.add_argument(
+    camera_group.add_argument(
         "--vinhphuc",
         action="store_true",
         help="Sử dụng video/vinhPhuc.mp4 cho camera cam-2",
+    )
+    camera_group.add_argument(
+        "--list-cameras",
+        action="store_true",
+        help="Hiển thị danh sách camera có sẵn và thoát",
+    )
+    
+    parser.add_argument(
+        "--cam-config-path",
+        type=str,
+        default="logic/cam_config.json",
+        help="Đường dẫn đến file config camera RTSP",
     )
     parser.add_argument(
         "--config-path",
@@ -261,19 +324,54 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
+    # Xử lý list cameras
+    if args.list_cameras:
+        list_available_cameras(args.cam_config_path)
+        return
+
     # Xác định video source và camera_id
-    if args.vinhphuc:
+    video_source = None
+    camera_id = None
+    
+    if args.camera_id:
+        # Sử dụng camera từ RTSP config
+        try:
+            cam_config = load_cam_config(args.cam_config_path)
+            camera_id = args.camera_id
+            
+            if camera_id not in cam_config:
+                available_cams = list(cam_config.keys())
+                raise ValueError(f"Camera {camera_id} không tồn tại trong config. "
+                               f"Các camera có sẵn: {available_cams}")
+            
+            video_source = cam_config[camera_id]
+            print(f"Sử dụng RTSP stream cho camera {camera_id}: {video_source}")
+            
+        except Exception as e:
+            print(f"Lỗi khi load camera config: {e}")
+            return
+            
+    elif args.vinhphuc:
         video_source = "video/vinhPhuc.mp4"
         camera_id = "cam-2"
         print("Sử dụng video/vinhPhuc.mp4 cho camera cam-2")
-    else:
+        
+    elif args.video:
         video_source = args.video
-        camera_id = args.camera_id
+        camera_id = "cam-1"  # Default camera ID cho video file
         print(f"Sử dụng {video_source} cho camera {camera_id}")
+    
+    if not video_source or not camera_id:
+        print("Lỗi: Không xác định được video source hoặc camera_id")
+        return
 
-    frame = capture_one_frame(video_source)
-    drawer = RoiDrawer(frame, window_name=f"ROI - {camera_id}")
-    polygons = drawer.run()
+    try:
+        frame = capture_one_frame(video_source)
+        drawer = RoiDrawer(frame, window_name=f"ROI - {camera_id}")
+        polygons = drawer.run()
+    except Exception as e:
+        print(f"Lỗi khi capture frame từ {video_source}: {e}")
+        return
 
     # Chuẩn hoá payload
     slots = []

@@ -21,3 +21,15 @@ Liệt kê các key có dữ liệu trong topic raw_detection:
 
 
 Kích hoạt venv :"Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
+
+# Xem danh sách camera
+python roi_tool.py --list-cameras
+
+# Vẽ ROI cho camera-1 (RTSP)
+python roi_tool.py --camera-id cam-1 --save-coords
+
+# Vẽ ROI cho camera-2 (RTSP)  
+python roi_tool.py --camera-id cam-2 --save-coords
+
+# Legacy mode (video file)
+python roi_tool.py --video video/hanam.mp4 --save-coords

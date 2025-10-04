@@ -283,3 +283,16 @@ cv2.error: OpenCV(4.x.x) ...
 - Giải phóng frame cache định kỳ
 - Sử dụng generator thay vì list cho large datasets
 - Monitor memory usage với profiling tools
+
+
+
+
+ĐƯỜNG DẪN MẶC ĐỊNH
+Queue Database:
+File: queues.db (trong thư mục gốc project)
+Topic: roi_config
+Key: camera_id (ví dụ: cam-1, cam-2)
+File Config:
+File: logic/slot_pairing_config.json
+Section: roi_coordinates[]
+Format: JSON với array các object ROI
