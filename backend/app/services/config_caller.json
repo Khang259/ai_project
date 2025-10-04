@@ -1,0 +1,24 @@
+{
+    "DCC-AE2" : {
+        "Supply" : {
+            "modelProcessCode": "supply_DCC_AE2"
+        },
+        "Return" : {
+            "modelProcessCode": "return_DCC_AE2"
+        },
+        "SupplyAndReturn" : {
+            "modelProcessCode": "supply_and_return_DCC_AE2"
+        }
+    },
+    "DCC-MS2" : {
+        "Supply" : {
+            "modelProcessCode": "supply_DCC_MS2"
+        },
+        "Return" : {
+            "modelProcessCode": "return_DCC_MS2"
+        },
+        "SupplyAndReturn" : {
+            "modelProcessCode": "supply_and_return_DCC_MS2"
+        }
+    }
+}

@@ -1,9 +1,11 @@
 from app.core.database import get_collection
-from app.schemas.node import NodeCreate, NodeOut, NodeUpdate
+from app.schemas.node import NodeCreate, NodeOut, NodeUpdate, ProcessCaller
 from shared.logging import get_logger
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
+import json
+
 
 logger = get_logger("camera_ai_app")
 
@@ -159,3 +161,30 @@ async def get_available_areas() -> List[str]:
     area_list = await cursor.to_list(length=None)
     
     return [area["area_name"] for area in area_list]
+
+
+def get_process_code(node_type: str, area: str) -> str:
+    """Lấy process code từ config_caller.json"""
+    with open("app/services/config_caller.json", "r") as f:
+        config_caller = json.load(f)
+    return config_caller[area][node_type]["modelProcessCode"]
+
+def process_caller(node: ProcessCaller, priority: int) -> str:
+    """Gọi process caller"""
+    process_code = get_process_code(node.node_type, node.area)
+    order_id = datetime.now().timestamp()
+
+    if node.node_type == "Supply" or node.node_type == "Return":
+        payload = {
+            "modelProcessCode": f"{process_code}", 
+            "priority": priority, 
+            "fromSystem": "Thadosoft", 
+            "orderId": order_id,  # Gán orderId bằng timestamp
+            "taskOrderDetail": [ 
+                {    
+                    "taskPath": f"{node.start},{node.end}", 
+                } 
+            ] 
+        }
+
+    return payload

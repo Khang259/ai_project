@@ -6,7 +6,6 @@ from app.services.node_service import (
     update_node,
     delete_node,
     get_nodes_by_area,
-    get_available_areas
 )
 from shared.logging import get_logger
 from typing import List
