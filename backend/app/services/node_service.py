@@ -44,6 +44,8 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         "area": node_in.area,
         "start": node_in.start,
         "end": node_in.end,
+        "next_start": node_in.next_start,
+        "next_end": node_in.next_end,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -183,6 +185,21 @@ def process_caller(node: ProcessCaller, priority: int) -> str:
             "taskOrderDetail": [ 
                 {    
                     "taskPath": f"{node.start},{node.end}", 
+                } 
+            ] 
+        }
+    else:
+        payload = {
+            "modelProcessCode": f"{process_code}", 
+            "priority": priority, 
+            "fromSystem": "Thadosoft", 
+            "orderId": order_id,  # Gán orderId bằng timestamp
+            "taskOrderDetail": [ 
+                {    
+                    "taskPath": f"{node.start},{node.end}", 
+                }, 
+                {    
+                    "taskPath": f"{node.next_start},{node.next_end}", 
                 } 
             ] 
         }
