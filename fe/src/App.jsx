@@ -9,10 +9,12 @@ import Settings from './pages/Settings';
 import LoginPage from './pages/Login';
 import MobileGridDisplay from './pages/MobileGridDisplay';
 import PrivateRoute from './components/PrivateRoute';
+import { AreaProvider } from './contexts/AreaContext';
 
 function App() {
   return (
-    <Routes>
+    <AreaProvider>
+      <Routes>
       {/* Public routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<LoginPage />} />
@@ -88,7 +90,8 @@ function App() {
           </PrivateRoute>
         }
       />
-    </Routes>
+      </Routes>
+    </AreaProvider>
   );
 }
 

@@ -8,24 +8,9 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import onlineCameraIcon from '@/assets/online_camera.png';
 import offlineCameraIcon from '@/assets/offline_camera.png';
 import cameraConfig from '@/components/config/camera';
-import agvIconImg from '@/assets/agv_icon_1-removebg.png';
-// Fallback icon import
-import agvIconFallback from '@/assets/agv_icon.png';
-
-// Debug: Log icon URLs
-console.log('AGV Icon URL:', agvIconImg);
-console.log('AGV Fallback Icon URL:', agvIconFallback);
-
-// Helper function to get correct asset URL for Vite
-const getAssetUrl = (assetPath) => {
-  if (assetPath && assetPath.startsWith('/src/')) {
-    // For Vite dev server, use relative path from public
-    return assetPath.replace('/src/', '/');
-  }
-  return assetPath;
-};
-
-// Create SVG icon as base64 to avoid file loading issues
+// Import NodeComponent
+import NodeComponent from './Node';
+// Biểu tường AGV
 const createSVGIcon = (size = 28, color = '#4285F4') => {
   const svg = `
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
@@ -45,30 +30,18 @@ const createSVGIcon = (size = 28, color = '#4285F4') => {
 
 // Try multiple icon URLs for better compatibility
 const getIconUrl = () => {
-  // Try different approaches in order of preference
+  // Try different approaches in order of preference@
   const urls = [
-    '/assets/agv-icon-simple.svg', // Simple SVG first
-    agvIconImg, // Imported from assets
-    agvIconFallback, // Fallback import
-    '/src/assets/agv_icon_1.png', // Try regular PNG
-    '/assets/agv_icon_1.png', // Public folder regular PNG
-    '/src/assets/agv_icon_1-removebg.png', // Direct path
-    '/assets/agv_icon_1-removebg.png', // Public folder
-    '/src/assets/agv_icon.png', // Fallback direct path
-    '/assets/agv_icon.png', // Public folder fallback
     createSVGIcon(28, '#4285F4'), // SVG fallback
   ];
   
   for (const url of urls) {
     if (url) {
-      console.log('Trying icon URL:', url);
       return url;
     }
   }
   return createSVGIcon(); // Return SVG as final fallback
 };
-
-
 
 // Fix for default markers in Leaflet
 L.Icon.Default.mergeOptions({
@@ -135,15 +108,15 @@ const LeafletMap = ({
   showCameras,
   showPaths,
   showChargeStations,
-  nodeRadius = 50,
-  nodeStrokeWidth = 10,
-  nodeFontSize = 300,
   onMapReady,
-  onCameraClick
+  onCameraClick,
+  onNodeClick
 }) => {
   const [cameraStatus, setCameraStatus] = useState({});
+  const [nodeStatus, setNodeStatus] = useState({});
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const [mapInstanceState, setMapInstanceState] = useState(null); // ensure children re-render when map is ready
   const robotMarkerRef = useRef(null);
   const previousPositionRef = useRef(null);
   const layersRef = useRef({
@@ -172,6 +145,7 @@ const LeafletMap = ({
     });
 
     mapInstanceRef.current = map;  
+    setMapInstanceState(map);
 
     if (onMapReady) {
       // Store map data reference for reset functionality
@@ -270,8 +244,6 @@ const LeafletMap = ({
 
   // Tách riêng useEffect cho camera layer
   useEffect(() => {
-
-
     if (!mapInstanceRef.current || !mapData || !showCameras) {
       if (layersRef.current.cameras) {
         mapInstanceRef.current.removeLayer(layersRef.current.cameras);
@@ -288,10 +260,13 @@ const LeafletMap = ({
     const camerasLayer = L.layerGroup();
 
     if (mapData.nodeArr) {
+      let cameraCount = 0;
+      let skippedCount = 0;
       
-      mapData.nodeArr.forEach((node) => {
+      mapData.nodeArr.forEach((node, index) => {
         // Skip nodes without required properties
         if (!node || typeof node.x === 'undefined' || typeof node.y === 'undefined') {
+          skippedCount++;
           return;
         }
 
@@ -314,6 +289,7 @@ const LeafletMap = ({
             popupAnchor: [0, -16], // Vị trí popup so với icon
             className: 'camera-marker-icon'
           });
+          console.log(`[Map] Camera ${node.name} - Icon created: ${isOnline ? 'online' : 'offline'}`);
           
           const marker = L.marker([node.y, node.x], { icon: cameraIcon });
           
@@ -342,13 +318,19 @@ const LeafletMap = ({
             offset: [0, -20],
             className: 'camera-tooltip'
           });
+          console.log(`[Map] Camera ${node.name} - Tooltip bound`);
           
           if (onCameraClick) {
             marker.on('click', () => {
+              console.log(`[Map] Camera ${node.name} clicked - calling onCameraClick with ID: ${cameraId}`);
               onCameraClick(node.name.replace('Camera', ''));
             });
+            console.log(`[Map] Camera ${node.name} - Click event bound`);
           }
           camerasLayer.addLayer(marker);
+          cameraCount++;
+        } else {
+          skippedCount++;
         }
       });
     }
@@ -357,88 +339,129 @@ const LeafletMap = ({
     layersRef.current.cameras = camerasLayer;
   }, [mapData, showCameras, onCameraClick, cameraStatus]);
 
-  // Sửa useEffect "Draw nodes" để loại bỏ camera logic
-  useEffect(() => {
-
-    if (!mapInstanceRef.current || !mapData || !showNodes) {
-      if (layersRef.current.nodes) {
-        mapInstanceRef.current.removeLayer(layersRef.current.nodes);
-        layersRef.current.nodes = null;
+  // Handle node click events
+  const handleNodeClick = (nodeInfo) => {
+    console.log('Node clicked in Map:', nodeInfo);
+    
+    // Update node status (example: toggle lock status)
+    setNodeStatus(prev => ({
+      ...prev,
+      [nodeInfo.id]: {
+        ...prev[nodeInfo.id],
+        lock: !prev[nodeInfo.id]?.lock
       }
-      return;
+    }));
+
+    // Call parent callback if provided
+    if (onNodeClick) {
+      onNodeClick(nodeInfo);
     }
+  };
 
-    // Remove existing layers
-    if (layersRef.current.nodes) {
-      mapInstanceRef.current.removeLayer(layersRef.current.nodes);
-    }
+  // Draw regular nodes (non-camera, non-supply/return points)
+  // useEffect(() => {
+  //   if (!mapInstanceRef.current || !mapData || !showNodes) {
+  //     if (layersRef.current.nodes) {
+  //       mapInstanceRef.current.removeLayer(layersRef.current.nodes);
+  //       layersRef.current.nodes = null;
+  //     }
+  //     return;
+  //   }
 
-    const nodesLayer = L.layerGroup();
+  //   // Remove existing layers
+  //   if (layersRef.current.nodes) {
+  //     mapInstanceRef.current.removeLayer(layersRef.current.nodes);
+  //   }
 
-    if (mapData.nodeArr) {
-      mapData.nodeArr.forEach((node, index) => {
-        // Skip nodes without required properties
-        if (!node || typeof node.x === 'undefined' || typeof node.y === 'undefined') {
-          return;
-        }
+  //   const nodesLayer = L.layerGroup();
 
+  //   if (mapData.nodeArr) {
+  //     console.log('[Map] Processing regular nodes from nodeArr:', mapData.nodeArr.length);
+  //     let regularNodeCount = 0;
+      
+  //     mapData.nodeArr.forEach((node, index) => {
+  //       console.log(`[Map] Processing regular node ${index}:`, {
+  //         name: node.name,
+  //         key: node.key,
+  //         x: node.x,
+  //         y: node.y
+  //       });
 
+  //       // Skip nodes without required properties
+  //       if (!node || typeof node.x === 'undefined' || typeof node.y === 'undefined') {
+  //         return;
+  //       }
 
-        // Bỏ qua camera nodes - chúng đã được xử lý trong useEffect riêng
-        if (typeof node.name === 'string' && /^Camera\d+$/i.test(node.name.trim())) {
-          return;
-        }
+  //       // Skip camera nodes - they are handled in camera useEffect
+  //       if (typeof node.name === 'string' && /^Camera\d+$/i.test(node.name.trim())) {
+  //         return;
+  //       }
 
-        // Chỉ xử lý regular nodes
-        const isSpecial = node.type === 'special' || (node.key && node.key.includes('special'));
+  //       // Skip supply/return points - they are handled by NodeComponent
+  //       if (typeof node.name === 'string' && (/^DiemC\d+$/i.test(node.name.trim()) || /^DiemT\d+$/i.test(node.name.trim()))) {
+  //         return;
+  //       }
+
+  //       // Only process regular nodes
+  //       const isSpecial = node.type === 'special' || (node.key && node.key.includes('special'));
         
-        // Create scenario event markers
-        const nodeShadow = L.circle([node.y, node.x], {
-          radius: 12,
-          fillColor: '#000000',
-          color: 'rgb(236, 230, 134)',
-          weight: 0,
-          opacity: 0,
-          fillOpacity: 0.3,
-          className: 'event-shadow'
-        });
+  //       // Create scenario event markers
+  //       const nodeShadow = L.circle([node.y, node.x], {
+  //         radius: 12,
+  //         fillColor: '#000000',
+  //         color: 'rgb(236, 230, 134)',
+  //         weight: 0,
+  //         opacity: 0,
+  //         fillOpacity: 0.3,
+  //         className: 'event-shadow'
+  //       });
 
-        const circle = L.circle([node.y, node.x], {
-          radius: 10,
-          fillColor: '#ffffff',
-          color: 'rgb(218, 213, 144)',
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 1,
-          className: 'event-marker'
-        });
+  //       const circle = L.circle([node.y, node.x], {
+  //         radius: 10,
+  //         fillColor: '#ffffff',
+  //         color: 'rgb(218, 213, 144)',
+  //         weight: 2,
+  //         opacity: 1,
+  //         fillOpacity: 1,
+  //         className: 'event-marker'
+  //       });
 
-        // Add scenario event label - luôn hiển thị
-        const label = L.divIcon({
-          className: 'event-label',
-          html: `<div style="
-            color: #ffffff; 
-            font-size: 11px; 
-            font-weight: 500; 
-            white-space: nowrap; 
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            transform: translate(15px, -50%);
-            letter-spacing: 0.5px;
-          ">${node.key || 'EVENT'}</div>`,
-          iconSize: [120, 20],
-          iconAnchor: [0, 10]
-        });
-        const marker = L.marker([node.y, node.x], { icon: label });
+  //       // Add scenario event label - luôn hiển thị
+  //       const label = L.divIcon({
+  //         className: 'event-label',
+  //         html: `<div style="
+  //           color: #ffffff; 
+  //           font-size: 11px; 
+  //           font-weight: 500; 
+  //           white-space: nowrap; 
+  //           text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  //           transform: translate(15px, -50%);
+  //           letter-spacing: 0.5px;
+  //         ">${node.key || 'EVENT'}</div>`,
+  //         iconSize: [120, 20],
+  //         iconAnchor: [0, 10]
+  //       });
+  //       const marker = L.marker([node.y, node.x], { icon: label });
         
-        nodesLayer.addLayer(nodeShadow);
-        nodesLayer.addLayer(circle);
-        nodesLayer.addLayer(marker); // Luôn hiển thị label
-      });
-    }
+  //       nodesLayer.addLayer(nodeShadow);
+  //       nodesLayer.addLayer(circle);
+  //       nodesLayer.addLayer(marker); // Luôn hiển thị label
+        
+  //       regularNodeCount++;
+  //       console.log(`[Map] Added regular node: ${node.key || 'Unknown'} at [${node.y}, ${node.x}]`);
+  //     });
+      
+  //     console.log(`[Map] Regular nodes processing complete:`, {
+  //       total: mapData.nodeArr.length,
+  //       processed: regularNodeCount,
+  //     });
+  //   }
 
-    nodesLayer.addTo(mapInstanceRef.current);
-    layersRef.current.nodes = nodesLayer;
-  }, [mapData, showNodes, nodeRadius, nodeStrokeWidth, nodeFontSize, onCameraClick, cameraStatus]);
+  //   console.log('[Map] Adding regular nodes layer to map');
+  //   nodesLayer.addTo(mapInstanceRef.current);
+  //   layersRef.current.nodes = nodesLayer;
+  //   console.log('[Map] Regular nodes layer added successfully');
+  // }, [mapData, showNodes, nodeRadius, nodeStrokeWidth, nodeFontSize]);
 
   // Draw charge stations
   useEffect(() => {
@@ -502,7 +525,6 @@ const LeafletMap = ({
     
     if (safeRobotList.length === 0) {
       // If no robots, don't remove the layer - keep existing robots
-      console.log('[MAP] No robots to display, keeping existing layer');
       return;
     }
 
@@ -512,22 +534,7 @@ const LeafletMap = ({
     }
     const robotsLayer = L.layerGroup();
 
-    try {
-      console.log('[MAP] render robots count:', safeRobotList.length);
-    } catch {}
-
     safeRobotList.forEach((bot, idx) => {
-      // Debug: Log bot data
-      console.log(`[MAP] Bot ${idx}:`, {
-        name: bot.device_name || bot.deviceName || 'Unknown',
-        devicePosition: bot.devicePosition,
-        devicePositionParsed: bot.devicePositionParsed,
-        position: bot.position,
-        x: bot.x,
-        y: bot.y,
-        allKeys: Object.keys(bot)
-      });
-      
       // Extract position - prioritize parsed position from node mapping
       const pos = bot.devicePositionParsed || bot.devicePosition || bot.position || null;
       // Expect pos like { x, y } or [y, x]
@@ -536,81 +543,47 @@ const LeafletMap = ({
         x = pos.x; y = pos.y;
         // Validate position values
         if (isNaN(x) || isNaN(y) || x === null || y === null) {
-          console.log(`[MAP] Skipping bot ${idx} - invalid position values: x=${x}, y=${y}`);
           return;
         }
-        console.log(`[MAP] Using pos object: x=${x}, y=${y}`);
       } else if (Array.isArray(pos) && pos.length >= 2) {
         y = pos[0]; x = pos[1];
         if (isNaN(x) || isNaN(y)) {
-          console.log(`[MAP] Skipping bot ${idx} - invalid array position: x=${x}, y=${y}`);
           return;
         }
-        console.log(`[MAP] Using pos array: x=${x}, y=${y}`);
       } else if (bot.x !== undefined && bot.y !== undefined) {
         x = bot.x; y = bot.y;
         if (isNaN(x) || isNaN(y)) {
-          console.log(`[MAP] Skipping bot ${idx} - invalid direct position: x=${x}, y=${y}`);
           return;
         }
-        console.log(`[MAP] Using direct x,y: x=${x}, y=${y}`);
       } else {
-        console.log(`[MAP] Skipping bot ${idx} - no valid position found`);
         return; // skip if no position
       }
-
-      const angleRad = typeof bot.angle === 'number' ? bot.angle : 0;
-
       // Force use simple SVG icon for all robots (temporary fix)
       const iconUrl = '/assets/agv-icon-simple.svg';
-      console.log('Using icon URL for robot:', iconUrl);
-      
-      // Test icon loading
-      const testImg = new Image();
-      testImg.onload = () => console.log(`✅ Icon loaded successfully for ${bot.device_name || 'Unknown'}:`, iconUrl);
-      testImg.onerror = () => console.log(`❌ Icon failed to load for ${bot.device_name || 'Unknown'}:`, iconUrl);
-      testImg.src = iconUrl;
       
       const icon = L.icon({
         iconUrl: iconUrl,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
         className: 'amr-circular-icon',
-        // Add additional options for better PNG handling
         crossOrigin: 'anonymous'
       });
-
-      console.log(`[MAP] Creating marker for ${bot.device_name || 'Unknown'} at [${y}, ${x}]`);
-      if (bot.devicePositionOriginal) {
-        console.log(`[MAP] Original devicePosition: "${bot.devicePositionOriginal}" → Parsed: [${x}, ${y}]`);
-      }
       
       const marker = L.marker([y, x], { icon, zIndexOffset: 900 });
       marker.bindTooltip(
         `<div style="font-size:12px;">
-          <div><b>${bot.device_name || bot.deviceName || bot.device_code || bot.deviceCode || 'AGV'}</b></div>
+          <div><b>Device name: ${bot.device_name || bot.deviceName || bot.device_code || bot.deviceCode || 'AGV'}</b></div>
           <div>Battery: ${bot.battery ?? 'N/A'}</div>
           <div>Speed: ${bot.speed ?? 'N/A'}</div>
-          <div>Position: x=${x}, y=${y}</div>
-          ${bot.devicePositionOriginal ? `<div style="font-size:10px; color:#666;">Node: ${bot.devicePositionOriginal}</div>` : ''}
         </div>`,
         { direction: 'top' }
       );
       robotsLayer.addLayer(marker);
-      
-      console.log(`[MAP] ✅ Marker added for ${bot.device_name || 'Unknown'}`);
     });
 
     robotsLayer.addTo(mapInstanceRef.current);
     layersRef.current.robotsMulti = robotsLayer;
-    
-    // Debug: Check map bounds and robot positions
-    if (mapInstanceRef.current) {
-      const bounds = mapInstanceRef.current.getBounds();
-      console.log('[MAP] Map bounds:', bounds);
-      console.log('[MAP] Map center:', mapInstanceRef.current.getCenter());
-      console.log('[MAP] Map zoom:', mapInstanceRef.current.getZoom());
-    }
+
 
     return () => {
       if (layersRef.current.robotsMulti) {
@@ -639,7 +612,6 @@ const LeafletMap = ({
 
     // Create robot icon from image
     const singleRobotIconUrl = getIconUrl();
-    console.log('Using icon URL for single robot:', singleRobotIconUrl);
     
     const robotIcon = L.icon({
       iconUrl: singleRobotIconUrl,
@@ -746,6 +718,22 @@ const LeafletMap = ({
           .camera-tooltip {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           }
+
+          /* Node styling */
+          .supply-point-icon, .return-point-icon, .regular-node-icon {
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+          }
+          
+          .supply-point-icon:hover, .return-point-icon:hover, .regular-node-icon:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8));
+          }
+          
+          .node-tooltip {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
         `}
       </style>
       <div 
@@ -760,6 +748,19 @@ const LeafletMap = ({
           boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
         }} 
       />
+      {/* NodeComponent for handling supply/return points */}
+      {(() => {
+        const ready = !!mapInstanceState;
+        return (
+          <NodeComponent 
+            mapInstance={mapInstanceState}
+            mapData={mapData}
+            nodeStatus={nodeStatus}
+            onNodeClick={handleNodeClick}
+            showNodes={showNodes}
+          />
+        );
+      })()}
     </>
   );
 };

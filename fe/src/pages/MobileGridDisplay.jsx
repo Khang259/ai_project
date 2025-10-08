@@ -8,6 +8,7 @@ import { useGridConfig } from '@/hooks/GridManagement/useGridConfig';
 import { useTaskData } from '@/hooks/GridManagement/useTaskData';
 import { useTaskManagement } from '@/hooks/GridManagement/useTaskManagement';
 import { useAuth } from '@/hooks/GridManagement/useAuth';
+import { useArea } from '@/contexts/AreaContext';
 
 // Import components
 import GridArea from '@/components/GridManagement/GridArea';
@@ -23,6 +24,7 @@ const SERVER_ICS_URL = import.meta.env.VITE_ICS_API_URL;
 const MobileGridDisplay = () => {
   // Authentication hook
   const { currentUser, isAdmin, isUserAE3, isUserAE4, isUserMainOvh, logout } = useAuth();
+  const { currAreaName, currAreaId } = useArea();
   
   // Bỏ useSettings: sử dụng serverIPs cục bộ từ biến môi trường
   const serverIPs = [SERVER_URL, SERVER_ICS_URL].filter(Boolean);
@@ -218,6 +220,11 @@ const MobileGridDisplay = () => {
               <Card className="w-100">
                 <Card.Header className="bg-light">
                   <h5 className="mb-0">CHỌN KHU VỰC VÀ TASK PATH</h5>
+                  <div className="mt-2">
+                    <span className="badge bg-info text-dark">
+                      Khu vực hiện tại: {currAreaName} (ID: {currAreaId})
+                    </span>
+                  </div>
                 </Card.Header>
                 <Card.Body>
                   <ServerInfo

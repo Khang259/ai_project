@@ -7,9 +7,11 @@ import UsersTable from "@/components/Users/UsersTable";
 import AddUserModal from "@/components/Users/AddUserModal";
 import { useUsers } from "@/hooks/Users/useUsers";
 import Username from "@/components/Users/username";
+import { useArea } from "@/contexts/AreaContext";
 
 export default function UserDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { currAreaName, currAreaId } = useArea();
   
   const {
     users,

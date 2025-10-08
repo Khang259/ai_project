@@ -14,8 +14,7 @@ const AMRWarehouseMap = () => {
   const [securityConfig, setSecurityConfig] = useState(null);
   const [selectedAvoidanceMode, setSelectedAvoidanceMode] = useState(1);
   
-  // Chỉ giữ lại các state cần thiết
-  const [showNodes, setShowNodes] = useState(false);
+  const [showNodes, setShowNodes] = useState(true);
   const [showCameras, setShowCameras] = useState(true);
   const [showPaths, setShowPaths] = useState(true);
   const [showChargeStations, setShowChargeStations] = useState(true);
@@ -25,14 +24,12 @@ const AMRWarehouseMap = () => {
   const [nodeStrokeWidth] = useState(20);
   const [nodeFontSize] = useState(500);
   const [selectedCamera, setSelectedCamera] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
 
   // Custom hooks
   const { loading: zipLoading, error: zipError, zipFileName, handleZipImport } = useZipImport();
   const { 
-    mapInstance,
     handleMapReady,
-    handleReset,
-    setOffset
   } = useLeafletMapControls();
   
   // WebSocket hook cho AGV data
@@ -60,15 +57,8 @@ const AMRWarehouseMap = () => {
     });
 
     if (node && typeof node.x !== 'undefined' && typeof node.y !== 'undefined') {
-      console.log(`[PARSE] Found node for devicePosition "${devicePositionStr}":`, {
-        nodeId: node.key,
-        x: node.x,
-        y: node.y
-      });
       return { x: node.x, y: node.y };
     }
-
-    console.log(`[PARSE] No node found for devicePosition "${devicePositionStr}" (nodeId: ${nodeId})`);
     return null;
   };
 
@@ -88,21 +78,6 @@ const AMRWarehouseMap = () => {
     }
   }, []);
 
-  // Cập nhật vị trí robot từ dữ liệu AGV realtime
-  // useEffect(() => {
-  //   if (agvData && agvData.data && agvData.data.length > 0) {
-  //     const agv = agvData.data[0]; // Lấy AGV đầu tiên
-  //     if (agv.devicePostionRec && agv.devicePostionRec.length >= 2) {
-  //       const newPosition = {
-  //         x: agv.devicePostionRec[0],
-  //         y: agv.devicePostionRec[1],
-  //         angle: agv.oritation ? (agv.oritation * Math.PI / 180) : 0 // Chuyển độ sang radian
-  //       };
-  //       setRobotPosition(newPosition);
-  //     }
-  //   }
-  // }, [agvData]);
-
   // File input refs
   const zipFileInputRef = useRef(null);
 
@@ -111,6 +86,11 @@ const AMRWarehouseMap = () => {
     if (file) {
       handleZipImport(file, setMapData, setSecurityConfig, setSelectedAvoidanceMode);
     }
+  };
+
+  const handleNodeClick = (nodeInfo) => {
+    console.log('Node clicked in AMRWarehouseMap:', nodeInfo);
+    setSelectedNode(nodeInfo);
   };
 
   // Dropdown menu items - chỉ giữ Import
@@ -125,24 +105,10 @@ const AMRWarehouseMap = () => {
 
   return (
     <div className="dashboard-page" style={{background: 'white', minHeight: '100vh' }}>
-      {/* Header Section - Horizontal Layout */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-        {/* Title */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',flexWrap: 'wrap' }}>
         <Title level={2} style={{ color: 'black', fontWeight: 700, fontSize: 32, padding: 10 }}>
           Bản đồ quan sát AMR
         </Title>
-        {/* Status Connection to AGV Server */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Tag 
-            color={isConnected ? 'green' : 'red'} 
-            icon={isConnected ? <WifiOutlined /> : <DisconnectOutlined />}
-            style={{ fontSize: 14, padding: '4px 12px' }}
-          >
-            {isConnected ? 'Kết nối đến RCS' : 'Mất kết nối đến RCS'}
-          </Tag>
-        </div> 
-
-        {/* Nhóm nút điều khiển - Chỉ giữ Import */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12, minWidth: 180 }}>
           <div style={{ display: 'flex', gap: 16, marginRight: 10}}>
             <Tooltip title="Import Map Files">
@@ -241,7 +207,7 @@ const AMRWarehouseMap = () => {
       </div>
 
       {/* Map Container */}
-      <Card variant="borderless" style={{ borderRadius: 16, color: '#fff' }} styles={{ body: { padding: 0 } }}>
+      <Card variant="borderless" style={{ borderRadius: 16, color: '#fff' }} >
         <div style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
             {agvData && agvData.data && agvData.data.length > 0 && (
@@ -305,67 +271,7 @@ const AMRWarehouseMap = () => {
             }).filter(Boolean);
             
             const filteredList = processedList;
-            
-            // Always add test robot for debugging - but position it differently
-            const testRobot = {
-              device_name: 'TEST_AGV_001',
-              devicePosition: { x: 1000, y: 1000 },
-              devicePositionParsed: { x: 1000, y: 1000 },
-              battery: '85%',
-              speed: '2.5 m/s',
-              angle: 0
-            };
-            
-            // Combine real robots with test robot
-            const finalRobotList = [...filteredList, testRobot];
-            
-            try {
-              console.log('[AMR MAP] robots total:', rawList.length, 'visible (has position):', filteredList.length);
-              console.log('[AMR MAP] final robot list (with test):', finalRobotList.length);
-              console.log('[AMR MAP] agvData type:', typeof agvData, agvData ? 'exists' : 'null');
-              console.log('[AMR MAP] WebSocket connected:', isConnected);
-              
-              // Debug panel in console
-              window.debugAGV = {
-                rawList,
-                filteredList,
-                finalRobotList,
-                agvData,
-                isConnected,
-                timestamp: new Date().toISOString()
-              };
-              
-              // Log detailed robot position info
-              if (filteredList.length > 0) {
-                console.log('[AMR MAP] First 3 real robots with positions:');
-                filteredList.slice(0, 3).forEach((robot, idx) => {
-                  console.log(`[AMR MAP] Robot ${idx}:`, {
-                    name: robot.device_name || robot.deviceName,
-                    devicePositionOriginal: robot.devicePositionOriginal,
-                    devicePositionParsed: robot.devicePositionParsed,
-                    x: robot.devicePositionParsed?.x || robot.devicePosition?.x,
-                    y: robot.devicePositionParsed?.y || robot.devicePosition?.y
-                  });
-                });
-              }
-              
-              // Log invalid robots for debugging
-              const invalidRobots = rawList.filter(item => {
-                if (!item) return false;
-                if (item.devicePosition && typeof item.devicePosition === 'object') {
-                  const pos = item.devicePosition;
-                  return !(pos.x !== undefined && pos.y !== undefined && 
-                          pos.x !== null && pos.y !== null &&
-                          !isNaN(pos.x) && !isNaN(pos.y));
-                }
-                return true;
-              });
-              
-              if (invalidRobots.length > 0) {
-                console.log('[AMR MAP] Invalid robots (no valid position):', invalidRobots.length);
-                console.log('[AMR MAP] Sample invalid robot:', invalidRobots[0]);
-              }
-            } catch {}
+            const finalRobotList = [...filteredList];
             return (
               <LeafletMap
             mapData={mapData}
@@ -382,11 +288,109 @@ const AMRWarehouseMap = () => {
             nodeFontSize={nodeFontSize}
             onMapReady={handleMapReady}
             onCameraClick={setSelectedCamera}
+            onNodeClick={handleNodeClick}
             />
             );
           })()}
           {selectedCamera && (
             <CameraViewer camId={selectedCamera} onClose={() => setSelectedCamera(null)} />
+          )}
+          
+          {/* Node Details Modal */}
+          {selectedNode && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000
+            }}>
+              <div style={{
+                backgroundColor: 'white',
+                padding: '24px',
+                borderRadius: '12px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                maxWidth: '400px',
+                width: '90%',
+                maxHeight: '80vh',
+                overflow: 'auto'
+              }}>
+                <h3 style={{ margin: '0 0 16px 0', color: '#333' }}>
+                  Chi tiết điểm: {selectedNode.name}
+                </h3>
+                
+                <div style={{ marginBottom: '12px' }}>
+                  <strong>Loại điểm:</strong> 
+                  <span style={{ 
+                    marginLeft: '8px',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    backgroundColor: selectedNode.type === 'supply' ? '#e6f7ff' : '#fff2e6',
+                    color: selectedNode.type === 'supply' ? '#1890ff' : '#fa8c16'
+                  }}>
+                    {selectedNode.type === 'supply' ? 'Điểm cấp' : selectedNode.type === 'return' ? 'Điểm trả' : 'Điểm thường'}
+                  </span>
+                </div>
+                
+                <div style={{ marginBottom: '12px' }}>
+                  <strong>Trạng thái:</strong>
+                  <span style={{ 
+                    marginLeft: '8px',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    backgroundColor: selectedNode.isLocked ? '#fff1f0' : '#f6ffed',
+                    color: selectedNode.isLocked ? '#ff4d4f' : '#52c41a'
+                  }}>
+                    {selectedNode.isLocked ? '🔒 Bị khóa' : '🔓 Mở'}
+                  </span>
+                </div>
+                
+                <div style={{ marginBottom: '12px' }}>
+                  <strong>Vị trí:</strong> X: {selectedNode.position.x}, Y: {selectedNode.position.y}
+                </div>
+                
+                <div style={{ marginBottom: '16px' }}>
+                  <strong>ID:</strong> {selectedNode.id}
+                </div>
+                
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setSelectedNode(null)}
+                    style={{
+                      padding: '8px 16px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '6px',
+                      backgroundColor: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Toggle lock status
+                      console.log('Toggle lock for node:', selectedNode.id);
+                      setSelectedNode(null);
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '6px',
+                      backgroundColor: selectedNode.isLocked ? '#52c41a' : '#ff4d4f',
+                      color: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {selectedNode.isLocked ? 'Mở khóa' : 'Khóa điểm'}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </Card>

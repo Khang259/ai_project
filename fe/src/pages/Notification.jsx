@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useArea } from "@/contexts/AreaContext";
 
 const alerts = [
   {
@@ -85,6 +86,8 @@ const alerts = [
 ];
 
 export default function AlertTable() {
+  const { currAreaName, currAreaId } = useArea();
+  
   return (
     <div className="p-6 ml-6 mr-6 border border-gray-200 rounded-xl shadow-md">
       <div>

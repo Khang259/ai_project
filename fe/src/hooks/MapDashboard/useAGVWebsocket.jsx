@@ -33,23 +33,6 @@ const useAGVWebSocket = (url = WS_URL) => {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-
-          // Debug WebSocket data structure
-          if (Array.isArray(data)) {
-            if (data[0]) {
-              try {
-                console.log('[WS RECEIVE] Array length:', data.length);
-                console.log('[WS RECEIVE] First robot data:', data[0]);
-                console.log('[WS RECEIVE] First robot devicePosition:', data[0].devicePosition);
-                console.table(data.slice(0, 3)); // Show first 3 robots
-              } catch {}
-            }
-          } else if (data && typeof data === 'object') {
-            // Fallback: nếu là object, in keys của object
-            console.log('[WS RECEIVE] Object keys:', Object.keys(data));
-            console.log('[WS RECEIVE] Object data:', data);
-          }
-
           // Store valid data and update current data
           if (data && (Array.isArray(data) || typeof data === 'object')) {
             setLastValidData(data);

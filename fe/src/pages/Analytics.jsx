@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, BarChart3, Activity, Clock, CheckCircle, XCircle, Download } from "lucide-react";
+import { BarChart3, Activity, Clock, CheckCircle, XCircle, Download } from "lucide-react";
+import { useArea } from "@/contexts/AreaContext";
 import {
   LineChart,
   Line,
-  AreaChart,
-  Area,
   BarChart,
   Bar,
   PieChart as RechartsPieChart,
@@ -21,7 +20,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import WeatherCard from "@/components/AGVCard";
 import AGVCard from "@/components/AGVCard";
 
 
@@ -88,6 +86,7 @@ const kpiData = [
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("30d")
+  const { currAreaName, currAreaId } = useArea()
 
   return (
       <div className="space-y-8">
@@ -95,7 +94,6 @@ export default function AnalyticsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-semibold text-gray-900 mt-4 ml-4">Trang thống kê</h1>
-            <p className="text-gray-600 mt-1 ml-7">Monitor performance and gain insights into your workflows</p>
           </div>
           {/* Filter */}
           <div className="flex items-center gap-3">

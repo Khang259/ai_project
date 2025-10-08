@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus } from "lucide-react"
 import TaskTable from "@/components/TaskManagement/Table"
+import { useArea } from "@/contexts/AreaContext"
 
 const mockTasks = [
   {
@@ -78,6 +79,7 @@ const mockTasks = [
 
 export default function TasksPage() {
   const [tasks] = useState(mockTasks)
+  const { currAreaName, currAreaId } = useArea()
 
   const handleTasksChange = (newTasks) => {
     // Xử lý thay đổi tasks nếu cần
@@ -89,7 +91,9 @@ export default function TasksPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl font-semibold">Trang quản lý nhiệm vụ</CardTitle>
-          {/* <CardDescription>Đây là danh sách các công việc của bạn trong tháng này.</CardDescription> */}
+          <CardDescription>
+            Quản lý nhiệm vụ cho khu vực: <span className="font-semibold text-primary">{currAreaName}</span> (ID: {currAreaId})
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <TaskTable tasks={tasks} onTasksChange={handleTasksChange} />

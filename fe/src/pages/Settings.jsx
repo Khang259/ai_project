@@ -3,9 +3,11 @@ import SidebarNavigation from '../components/Settings/SidebarNavigation';
 import ButtonSettings from '../components/Settings/ButtonSettings';
 import CameraSettings from '../components/Settings/CameraSettings';
 import { Settings2 } from 'lucide-react';
+import { useArea } from '../contexts/AreaContext';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('button');
+  const { currAreaName, currAreaId } = useArea();
 
   const renderActiveTab = () => {
     switch (activeTab) {
