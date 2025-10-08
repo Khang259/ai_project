@@ -9,8 +9,8 @@ from typing import Dict, List, Tuple, Any, Optional, Set
 import numpy as np
 import cv2
 from queue_store import SQLiteQueue
-from roi_visualizer import ROIVisualizer, VideoDisplayManager
-
+# from roi_visualizer import ROIVisualizer, VideoDisplayManager
+from optimized_roi_visualizer import ROIVisualizer, VideoDisplayManager
 
 class ROIProcessor:
     def __init__(self, db_path: str = "queues.db", show_video: bool = True):

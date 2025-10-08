@@ -12,7 +12,7 @@ def ai_display_worker(result_dict):
     print("AI Display worker: Bắt đầu")
     
     # Kích thước mỗi window
-    window_width = 1080
+    window_width = 1280
     window_height = 720
     
     # Stats tracking

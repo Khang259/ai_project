@@ -12,7 +12,7 @@ def display_worker(shared_dict):
     print("Display worker: Bắt đầu")
     
     # Kích thước mỗi window
-    window_width = 1080
+    window_width = 1280
     window_height = 720
     try:
         while True:

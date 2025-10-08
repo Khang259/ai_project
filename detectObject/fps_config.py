@@ -5,7 +5,7 @@ Cấu hình FPS cho hệ thống detectObject
 # Cấu hình FPS mặc định
 DEFAULT_FPS_CONFIG = {
     # FPS cho camera capture và AI inference
-    "target_fps": 1.0,  # FPS mục tiêu (có thể thay đổi: 0.5, 1.0, 2.0, 5.0, 10.0)
+    "target_fps": 0.5,  # FPS mục tiêu (có thể thay đổi: 0.5, 1.0, 2.0, 5.0, 10.0)
     
     # Các preset FPS phổ biến
     "presets": {
