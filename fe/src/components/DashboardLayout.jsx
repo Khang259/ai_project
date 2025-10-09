@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                 <DropdownMenuSeparator />
                 {areaData.map((area) => (
                   <DropdownMenuItem
-                    key={area.key}
+                    key={area.areaId}
                     onClick={() => handleAreaSelect(area.areaName)}
                     className={currAreaName === area.areaName ? "bg-accent" : ""}
                   >

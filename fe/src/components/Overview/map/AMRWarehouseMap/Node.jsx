@@ -2,9 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Tạo SVG icon cho điểm cấp (màu xanh)
 const createSupplyPointIcon = (isLocked = false) => {
-  const color = isLocked ? '#ff6b6b' : '#52c41a'; // Đỏ nếu bị khóa, xanh nếu không
   const lockIcon = isLocked ? '🔒' : '📦';
   
   const svg = `
@@ -14,7 +12,6 @@ const createSupplyPointIcon = (isLocked = false) => {
           <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
         </filter>
       </defs>
-      <circle cx="16" cy="16" r="14" fill="${color}" filter="url(#shadow)" stroke="white" stroke-width="2"/>
       <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${lockIcon}</text>
     </svg>
   `;
@@ -23,7 +20,6 @@ const createSupplyPointIcon = (isLocked = false) => {
 
 // Tạo SVG icon cho điểm trả (màu đỏ)
 const createReturnPointIcon = (isLocked = false) => {
-  const color = isLocked ? '#ff6b6b' : '#ff4d4f'; // Đỏ đậm nếu bị khóa, đỏ nhạt nếu không
   const lockIcon = isLocked ? '🔒' : '↩️';
   
   const svg = `
@@ -33,7 +29,6 @@ const createReturnPointIcon = (isLocked = false) => {
           <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
         </filter>
       </defs>
-      <circle cx="16" cy="16" r="14" fill="${color}" filter="url(#shadow)" stroke="white" stroke-width="2"/>
       <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${lockIcon}</text>
     </svg>
   `;
@@ -118,7 +113,6 @@ const NodeComponent = ({
 
         // Create marker
         const marker = L.marker([node.y, node.x], { icon: nodeIcon });
-        console.log(`[NodeComponent] Created marker for ${node.name || 'Unknown'} at [${node.y}, ${node.x}]`);
 
         // Create tooltip content
         const tooltipContent = `

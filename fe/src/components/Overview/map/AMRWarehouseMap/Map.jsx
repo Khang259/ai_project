@@ -43,6 +43,17 @@ const getIconUrl = () => {
   return createSVGIcon(); // Return SVG as final fallback
 };
 
+// Tính kích thước icon camera theo zoom hiện tại của map (CRS.Simple)
+const getCameraIconSizeByZoom = (map) => {
+  if (!map) return [32, 32];
+  const zoom = map.getZoom();
+  // Với CRS.Simple: zoom 0 ~ 1x, -1 ~ 0.5x, 1 ~ 2x
+  const baseSize = 24; // kích thước cơ sở tại zoom 0
+  const scale = Math.pow(2, zoom);
+  const size = Math.max(16, Math.min(64, Math.round(baseSize * scale)));
+  return [size, size];
+};
+
 // Fix for default markers in Leaflet
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -281,15 +292,15 @@ const LeafletMap = ({
           // Get camera info from config
           let ipAddress = `192.168.1.${100 + cameraId}`; // IP mặc định có file riêng để sửa sau
           
-          // Tạo camera icon sử dụng hình ảnh
+          // Tạo camera icon sử dụng hình ảnh với kích thước theo zoom
+          const currentSize = getCameraIconSizeByZoom(mapInstanceRef.current);
           const cameraIcon = L.icon({
             iconUrl: isOnline ? onlineCameraIcon : offlineCameraIcon,
-            iconSize: [32, 32], // Kích thước icon
-            iconAnchor: [16, 16], // Điểm neo của icon
-            popupAnchor: [0, -16], // Vị trí popup so với icon
+            iconSize: currentSize ,
+            iconAnchor: [Math.round(currentSize[0] / 2), Math.round(currentSize[1] / 2)],
+            popupAnchor: [0, -Math.round(currentSize[1] / 2)],
             className: 'camera-marker-icon'
           });
-          console.log(`[Map] Camera ${node.name} - Icon created: ${isOnline ? 'online' : 'offline'}`);
           
           const marker = L.marker([node.y, node.x], { icon: cameraIcon });
           
@@ -318,16 +329,33 @@ const LeafletMap = ({
             offset: [0, -20],
             className: 'camera-tooltip'
           });
-          console.log(`[Map] Camera ${node.name} - Tooltip bound`);
           
           if (onCameraClick) {
             marker.on('click', () => {
-              console.log(`[Map] Camera ${node.name} clicked - calling onCameraClick with ID: ${cameraId}`);
               onCameraClick(node.name.replace('Camera', ''));
             });
-            console.log(`[Map] Camera ${node.name} - Click event bound`);
           }
           camerasLayer.addLayer(marker);
+
+          // Cập nhật kích thước icon khi zoom thay đổi
+          if (mapInstanceRef.current) {
+            const onZoom = () => {
+              const newSize = getCameraIconSizeByZoom(mapInstanceRef.current);
+              const newIcon = L.icon({
+                iconUrl: isOnline ? onlineCameraIcon : offlineCameraIcon,
+                iconSize: newSize,
+                iconAnchor: [Math.round(newSize[0] / 2), Math.round(newSize[1] / 2)],
+                popupAnchor: [0, -Math.round(newSize[1] / 2)],
+                className: 'camera-marker-icon'
+              });
+              marker.setIcon(newIcon);
+            };
+            mapInstanceRef.current.on('zoomend', onZoom);
+            // Lưu cleanup trên marker để gỡ listener khi remove layer
+            marker.on('remove', () => {
+              mapInstanceRef.current && mapInstanceRef.current.off('zoomend', onZoom);
+            });
+          }
           cameraCount++;
         } else {
           skippedCount++;
@@ -357,112 +385,6 @@ const LeafletMap = ({
       onNodeClick(nodeInfo);
     }
   };
-
-  // Draw regular nodes (non-camera, non-supply/return points)
-  // useEffect(() => {
-  //   if (!mapInstanceRef.current || !mapData || !showNodes) {
-  //     if (layersRef.current.nodes) {
-  //       mapInstanceRef.current.removeLayer(layersRef.current.nodes);
-  //       layersRef.current.nodes = null;
-  //     }
-  //     return;
-  //   }
-
-  //   // Remove existing layers
-  //   if (layersRef.current.nodes) {
-  //     mapInstanceRef.current.removeLayer(layersRef.current.nodes);
-  //   }
-
-  //   const nodesLayer = L.layerGroup();
-
-  //   if (mapData.nodeArr) {
-  //     console.log('[Map] Processing regular nodes from nodeArr:', mapData.nodeArr.length);
-  //     let regularNodeCount = 0;
-      
-  //     mapData.nodeArr.forEach((node, index) => {
-  //       console.log(`[Map] Processing regular node ${index}:`, {
-  //         name: node.name,
-  //         key: node.key,
-  //         x: node.x,
-  //         y: node.y
-  //       });
-
-  //       // Skip nodes without required properties
-  //       if (!node || typeof node.x === 'undefined' || typeof node.y === 'undefined') {
-  //         return;
-  //       }
-
-  //       // Skip camera nodes - they are handled in camera useEffect
-  //       if (typeof node.name === 'string' && /^Camera\d+$/i.test(node.name.trim())) {
-  //         return;
-  //       }
-
-  //       // Skip supply/return points - they are handled by NodeComponent
-  //       if (typeof node.name === 'string' && (/^DiemC\d+$/i.test(node.name.trim()) || /^DiemT\d+$/i.test(node.name.trim()))) {
-  //         return;
-  //       }
-
-  //       // Only process regular nodes
-  //       const isSpecial = node.type === 'special' || (node.key && node.key.includes('special'));
-        
-  //       // Create scenario event markers
-  //       const nodeShadow = L.circle([node.y, node.x], {
-  //         radius: 12,
-  //         fillColor: '#000000',
-  //         color: 'rgb(236, 230, 134)',
-  //         weight: 0,
-  //         opacity: 0,
-  //         fillOpacity: 0.3,
-  //         className: 'event-shadow'
-  //       });
-
-  //       const circle = L.circle([node.y, node.x], {
-  //         radius: 10,
-  //         fillColor: '#ffffff',
-  //         color: 'rgb(218, 213, 144)',
-  //         weight: 2,
-  //         opacity: 1,
-  //         fillOpacity: 1,
-  //         className: 'event-marker'
-  //       });
-
-  //       // Add scenario event label - luôn hiển thị
-  //       const label = L.divIcon({
-  //         className: 'event-label',
-  //         html: `<div style="
-  //           color: #ffffff; 
-  //           font-size: 11px; 
-  //           font-weight: 500; 
-  //           white-space: nowrap; 
-  //           text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-  //           transform: translate(15px, -50%);
-  //           letter-spacing: 0.5px;
-  //         ">${node.key || 'EVENT'}</div>`,
-  //         iconSize: [120, 20],
-  //         iconAnchor: [0, 10]
-  //       });
-  //       const marker = L.marker([node.y, node.x], { icon: label });
-        
-  //       nodesLayer.addLayer(nodeShadow);
-  //       nodesLayer.addLayer(circle);
-  //       nodesLayer.addLayer(marker); // Luôn hiển thị label
-        
-  //       regularNodeCount++;
-  //       console.log(`[Map] Added regular node: ${node.key || 'Unknown'} at [${node.y}, ${node.x}]`);
-  //     });
-      
-  //     console.log(`[Map] Regular nodes processing complete:`, {
-  //       total: mapData.nodeArr.length,
-  //       processed: regularNodeCount,
-  //     });
-  //   }
-
-  //   console.log('[Map] Adding regular nodes layer to map');
-  //   nodesLayer.addTo(mapInstanceRef.current);
-  //   layersRef.current.nodes = nodesLayer;
-  //   console.log('[Map] Regular nodes layer added successfully');
-  // }, [mapData, showNodes, nodeRadius, nodeStrokeWidth, nodeFontSize]);
-
   // Draw charge stations
   useEffect(() => {
     if (!mapInstanceRef.current || !mapData || !showChargeStations) {
@@ -704,11 +626,6 @@ const LeafletMap = ({
             background: transparent !important;
             image-rendering: auto;
           }
-
-          .camera-marker-icon {
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
-            transition: all 0.3s ease-in-out;
-          }
           
           .camera-marker-icon:hover {
             transform: scale(1.1);
@@ -719,13 +636,6 @@ const LeafletMap = ({
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           }
 
-          /* Node styling */
-          .supply-point-icon, .return-point-icon, .regular-node-icon {
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
-            transition: all 0.3s ease-in-out;
-            cursor: pointer;
-          }
-          
           .supply-point-icon:hover, .return-point-icon:hover, .regular-node-icon:hover {
             transform: scale(1.1);
             filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8));

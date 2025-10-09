@@ -9,16 +9,16 @@ const useLeafletMapControls = () => {
     if (map) {
       // Cấu hình zoom bằng chuột
       map.options.minZoom = -10;
-      map.options.maxZoom = 4;
-      map.options.zoomSnap = 0.25;
+      map.options.maxZoom = 5;
+      map.options.zoomSnap = 0.1;
       map.options.zoomDelta = 0.25;
-      map.options.wheelPxPerZoomLevel = 60;
+      map.options.wheelPxPerZoomLevel = 120;
       map.options.bounceAtZoomLimits = false;
       map.options.worldCopyJump = false;
       map.options.maxBoundsViscosity = 1.0;
 
       // Thiết lập giá trị ban đầu cho map
-      const initialZoom = -6;
+      const initialZoom = 0;
       const initialBounds = [
         [6912, 1280], // [south, west]
         [70912, 89600], // [north, east]
