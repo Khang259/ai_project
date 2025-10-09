@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Depends, Query, Body
 from app.schemas.area import AreaCreate, AreaOut, AreaUpdate
 from app.services.area_service import (
     create_area,
@@ -9,7 +9,8 @@ from app.services.area_service import (
     get_areas_by_creator,
     check_area_has_nodes,
     get_area_node_count,
-    get_available_owners
+    save_map,
+    get_map_by_area_id,
 )
 from app.core.permissions import get_current_user
 from shared.logging import get_logger
@@ -58,7 +59,7 @@ async def get_all_areas(
 async def get_area_by_id(
     area_id: str,
 ):
-    """Lấy area theo ID (yêu cầu quyền areas:read)"""
+    """Lấy area theo MongoDB ID (yêu cầu quyền areas:read)"""
     try:
         area = await get_area(area_id)
         if not area:
@@ -214,4 +215,51 @@ async def check_area_has_nodes_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
+        )
+
+@router.post("/{area_id}/map")
+async def save_map_endpoint(
+    area_id: int,
+    data: dict = Body(..., description="Map data to save"),
+):
+    """Lưu map vào database - tự động xóa map cũ nếu đã tồn tại"""
+    try:
+        result = await save_map(data, area_id)
+        return {
+            "success": True,
+            "message": f"Map {result['action']} successfully",
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"Error saving map for area_id {area_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save map: {str(e)}"
+        )
+
+@router.get("/{area_id}/map")
+async def get_map_endpoint(
+    area_id: int,
+):
+    """Lấy map theo area_id"""
+    try:
+        map_data = await get_map_by_area_id(area_id)
+        
+        if not map_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Map not found for area_id {area_id}"
+            )
+        
+        return {
+            "success": True,
+            "data": map_data
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting map for area_id {area_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get map: {str(e)}"
         )

@@ -21,7 +21,7 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         raise ValueError("Area does not exist")
     
     # Kiểm tra xem node_name đã tồn tại chưa
-    existing = await nodes.find_one({"node_name": node_in.node_name, "area": node_in.area})
+    existing = await nodes.find_one({"node_name": node_in.node_name, "area": node_in.area, "node_type": node_in.node_type})
     if existing:
         logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists")
         raise ValueError("Node name already exists")
@@ -32,6 +32,7 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         "column": node_in.column,
         "area": node_in.area
     })
+
     if existing_position:
         logger.warning(f"Node creation failed: position ({node_in.row}, {node_in.column}) already occupied in area '{node_in.area}'")
         raise ValueError("Position already occupied in this area")
@@ -146,23 +147,14 @@ async def get_nodes(node_type: str, area: str) -> List[NodeOut]:
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
-async def get_nodes_by_area(area: str) -> List[NodeOut]:
+async def get_nodes_by_area_and_type(area: str, node_type: str) -> List[NodeOut]:
     """Lấy danh sách nodes theo area"""
     nodes = get_collection("nodes")
     
-    cursor = nodes.find({"area": area})
+    cursor = nodes.find({"area": area, "node_type": node_type})
     node_list = await cursor.to_list(length=None)
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
-
-async def get_available_areas() -> List[str]:
-    """Lấy danh sách các area có sẵn"""
-    areas = get_collection("areas")
-    
-    cursor = areas.find({}, {"area_name": 1})
-    area_list = await cursor.to_list(length=None)
-    
-    return [area["area_name"] for area in area_list]
 
 
 def get_process_code(node_type: str, area: str) -> str:
@@ -205,3 +197,7 @@ def process_caller(node: ProcessCaller, priority: int) -> str:
         }
 
     return payload
+
+def cancel_task(order_id: str) -> bool:
+    """Hủy task"""
+    return True

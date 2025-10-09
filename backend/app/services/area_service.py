@@ -11,13 +11,20 @@ async def create_area(area_in: AreaCreate, created_by: str) -> AreaOut:
     """Tạo area mới"""
     areas = get_collection("areas")
     
+    # Kiểm tra xem area_id đã tồn tại chưa
+    existing_id = await areas.find_one({"area_id": area_in.area_id})
+    if existing_id:
+        logger.warning(f"Area creation failed: area_id '{area_in.area_id}' already exists")
+        raise ValueError("Area ID already exists")
+    
     # Kiểm tra xem area_name đã tồn tại chưa
-    existing = await areas.find_one({"area_name": area_in.area_name})
-    if existing:
+    existing_name = await areas.find_one({"area_name": area_in.area_name})
+    if existing_name:
         logger.warning(f"Area creation failed: area_name '{area_in.area_name}' already exists")
         raise ValueError("Area name already exists")
     
     area_data = {
+        "area_id": area_in.area_id,
         "area_name": area_in.area_name,
         "created_by": created_by,
         "created_at": datetime.utcnow(),
@@ -25,14 +32,14 @@ async def create_area(area_in: AreaCreate, created_by: str) -> AreaOut:
     }
     
     result = await areas.insert_one(area_data)
-    logger.info(f"Area created successfully: {area_in.area_name}")
+    logger.info(f"Area created successfully: {area_in.area_id} - {area_in.area_name}")
     
     # Lấy area vừa tạo để trả về
     created_area = await areas.find_one({"_id": result.inserted_id})
     return AreaOut(**created_area, id=str(created_area["_id"]))
 
 async def get_area(area_id: str) -> Optional[AreaOut]:
-    """Lấy area theo ID"""
+    """Lấy area theo MongoDB ID"""
     areas = get_collection("areas")
     
     if not ObjectId.is_valid(area_id):
@@ -74,6 +81,16 @@ async def update_area(area_id: str, area_update: AreaUpdate) -> Optional[AreaOut
     for field, value in area_update.dict(exclude_unset=True).items():
         if value is not None:
             update_data[field] = value
+    
+    # Kiểm tra area_id mới có trùng không (nếu có thay đổi)
+    if "area_id" in update_data:
+        existing_id = await areas.find_one({
+            "area_id": update_data["area_id"],
+            "_id": {"$ne": ObjectId(area_id)}
+        })
+        if existing_id:
+            logger.warning(f"Area update failed: area_id '{update_data['area_id']}' already exists")
+            raise ValueError("Area ID already exists")
     
     # Kiểm tra area_name mới có trùng không (nếu có thay đổi)
     if "area_name" in update_data:
@@ -180,3 +197,50 @@ async def get_available_owners() -> List[str]:
     user_list = await cursor.to_list(length=None)
     
     return [user["username"] for user in user_list]
+
+async def save_map(map: dict, area_id: int):
+    """Lưu map vào database - xóa map cũ nếu có và thêm map mới"""
+    maps = get_collection("maps")
+    
+    # Kiểm tra xem đã có map của area_id này chưa
+    existing_map = await maps.find_one({"area_id": area_id})
+    
+    if existing_map:
+        # Xóa map cũ
+        delete_result = await maps.delete_one({"area_id": area_id})
+        logger.info(f"Deleted existing map for area_id {area_id} (deleted count: {delete_result.deleted_count})")
+    
+    # Thêm map mới
+    payload = {
+        "area_id": area_id,
+        "data": map,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    result = await maps.insert_one(payload)
+    logger.info(f"Saved new map for area_id {area_id} (map_id: {result.inserted_id})")
+    
+    return {
+        "map_id": str(result.inserted_id),
+        "area_id": area_id,
+        "action": "replaced" if existing_map else "created"
+    }
+
+async def get_map_by_area_id(area_id: int) -> Optional[dict]:
+    """Lấy map theo area_id"""
+    maps = get_collection("maps")
+    
+    map_data = await maps.find_one({"area_id": area_id})
+    
+    if not map_data:
+        logger.warning(f"Map not found for area_id: {area_id}")
+        return None
+    
+    return {
+        "map_id": str(map_data["_id"]),
+        "area_id": map_data["area_id"],
+        "data": map_data["data"],
+        "created_at": map_data.get("created_at"),
+        "updated_at": map_data.get("updated_at")
+    }

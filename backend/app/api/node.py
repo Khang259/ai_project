@@ -5,7 +5,7 @@ from app.services.node_service import (
     get_nodes,
     update_node,
     delete_node,
-    get_nodes_by_area,
+    get_nodes_by_area_and_type,
 )
 from shared.logging import get_logger
 from typing import List
@@ -34,7 +34,7 @@ async def create_new_node(
         )
 
 @router.get("/", response_model=List[NodeOut])
-async def get_all_nodes(
+async def get_nodes_by_area(
     node_type: str,
     area: str,
 ):
@@ -98,13 +98,14 @@ async def delete_node_by_id(
             detail="Internal server error"
         )
 
-@router.get("/area/{area}", response_model=List[NodeOut])
-async def get_nodes_by_area_endpoint(
+@router.get("/area/{area}/{node_type}", response_model=List[NodeOut])
+async def get_nodes_by_area_and_type(
     area: str,
+    node_type: str,
 ):
     """Lấy danh sách nodes theo area"""
     try:
-        return await get_nodes_by_area(area)
+        return await get_nodes_by_area_and_type(area, node_type)
     except Exception as e:
         logger.error(f"Error getting nodes by area {area}: {str(e)}")
         raise HTTPException(
