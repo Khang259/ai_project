@@ -221,11 +221,7 @@ async def save_map(map: dict, area_id: int):
     result = await maps.insert_one(payload)
     logger.info(f"Saved new map for area_id {area_id} (map_id: {result.inserted_id})")
     
-    return {
-        "map_id": str(result.inserted_id),
-        "area_id": area_id,
-        "action": "replaced" if existing_map else "created"
-    }
+    return map
 
 async def get_map_by_area_id(area_id: int) -> Optional[dict]:
     """Lấy map theo area_id"""
@@ -237,10 +233,4 @@ async def get_map_by_area_id(area_id: int) -> Optional[dict]:
         logger.warning(f"Map not found for area_id: {area_id}")
         return None
     
-    return {
-        "map_id": str(map_data["_id"]),
-        "area_id": map_data["area_id"],
-        "data": map_data["data"],
-        "created_at": map_data.get("created_at"),
-        "updated_at": map_data.get("updated_at")
-    }
+    return map_data["data"]

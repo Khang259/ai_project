@@ -224,11 +224,11 @@ async def save_map_endpoint(
 ):
     """Lưu map vào database - tự động xóa map cũ nếu đã tồn tại"""
     try:
-        result = await save_map(data, area_id)
+        map_data = await save_map(data, area_id)
         return {
             "success": True,
-            "message": f"Map {result['action']} successfully",
-            "data": result
+            "message": f"Map saved successfully",
+            "data": map_data
         }
     except Exception as e:
         logger.error(f"Error saving map for area_id {area_id}: {str(e)}")
