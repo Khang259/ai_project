@@ -434,6 +434,13 @@ class VideoDisplayManager:
         cap: Optional[cv2.VideoCapture] = None
         last_reconnect_ts = 0.0
         reconnect_interval = 5.0  # giây
+        
+        # Tạo window với kích thước tùy chỉnh
+        window_width = self.config.get('window_width', 480)
+        window_height = self.config.get('window_height', 270)
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(window_name, window_width, window_height)
+        print(f"[WINDOW] {camera_id}: {window_width}x{window_height}")
 
         while self.running:
             try:

@@ -201,6 +201,50 @@ class ROIProcessor:
                     print(f"[UNLOCK] Start slot {start_slot_number} trên {start_camera_id} không bị block")
             else:
                 print(f"[UNLOCK] Camera {start_camera_id} không có slot nào bị block")
+    
+    def _unlock_start_by_qr(self, start_qr: int, reason: str = "manual") -> None:
+        """
+        Unlock start slot theo QR code
+        
+        Args:
+            start_qr: QR code của ô start
+            reason: Lý do unlock (để log)
+        """
+        # Load lại mapping để đảm bảo mới nhất
+        self._load_qr_mapping()
+        
+        # Lấy thông tin camera_id và slot_number từ QR code
+        cam_slot = self.qr_to_slot.get(start_qr)
+        if not cam_slot:
+            print(f"[UNLOCK_FAILED] Không tìm thấy slot cho start_qr={start_qr}")
+            return
+        
+        camera_id, slot_number = cam_slot
+        
+        # Unlock start slot
+        with self.cache_lock:
+            if camera_id in self.blocked_slots:
+                if slot_number in self.blocked_slots[camera_id]:
+                    del self.blocked_slots[camera_id][slot_number]
+                    print(f"[UNLOCK_BY_QR] Đã unlock start slot {slot_number} trên {camera_id} "
+                          f"(QR: {start_qr}, reason: {reason})")
+                    
+                    # Xóa end slot khỏi monitoring để tránh unlock lại
+                    # Tìm end slot tương ứng với start slot này
+                    start_slot_tuple = (camera_id, slot_number)
+                    end_slot_to_remove = None
+                    for end_slot, start_slot in self.end_to_start_mapping.items():
+                        if start_slot == start_slot_tuple:
+                            end_slot_to_remove = end_slot
+                            break
+                    
+                    if end_slot_to_remove and end_slot_to_remove in self.end_slot_states:
+                        del self.end_slot_states[end_slot_to_remove]
+                        print(f"[UNLOCK_BY_QR] Đã xóa end slot {end_slot_to_remove} khỏi monitoring")
+                else:
+                    print(f"[UNLOCK_BY_QR] Start slot {slot_number} trên {camera_id} không bị block")
+            else:
+                print(f"[UNLOCK_BY_QR] Camera {camera_id} không có slot nào bị block")
         
     def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
         """
@@ -403,6 +447,61 @@ class ROIProcessor:
                 time.sleep(0.2)
             except Exception as e:
                 print(f"Lỗi khi subscribe stable_pairs: {e}")
+                time.sleep(1.0)
+    
+    def _subscribe_unlock_start_slot(self) -> None:
+        """Subscribe topic unlock_start_slot để nhận lệnh unlock ROI sau khi POST thất bại."""
+        print("Bắt đầu subscribe unlock_start_slot để nhận lệnh unlock ROI...")
+        
+        # track latest global id for the topic
+        last_global_id: int = 0
+        try:
+            with self.queue._connect() as conn:
+                cur = conn.execute(
+                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                    ("unlock_start_slot",),
+                )
+                row = cur.fetchone()
+                if row:
+                    last_global_id = row[0]
+        except Exception as e:
+            print(f"Lỗi khi khởi tạo unlock_start_slot cursor: {e}")
+
+        while self.running:
+            try:
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 200
+                        """,
+                        ("unlock_start_slot", last_global_id),
+                    )
+                    rows = cur.fetchall()
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_global_id = msg_id
+                    
+                    # unlock_start_slot payload: { pair_id, start_slot: str(start_qr), reason, timestamp }
+                    start_qr_str = payload.get("start_slot")
+                    reason = payload.get("reason", "unknown")
+                    
+                    if start_qr_str:
+                        try:
+                            start_qr = int(start_qr_str)
+                        except Exception:
+                            print(f"[UNLOCK_FAILED] Invalid start_qr: {start_qr_str}")
+                            continue
+                        
+                        # Unlock start slot theo QR code
+                        self._unlock_start_by_qr(start_qr, reason=reason)
+                        
+                time.sleep(0.2)
+            except Exception as e:
+                print(f"Lỗi khi subscribe unlock_start_slot: {e}")
                 time.sleep(1.0)
     
     def update_roi_cache(self, camera_id: str, roi_data: Dict[str, Any]) -> None:
@@ -675,14 +774,16 @@ class ROIProcessor:
         """
         self.running = True
         
-        # Tạo threads cho ROI config, raw detection, stable_pairs và video display
+        # Tạo threads cho ROI config, raw detection, stable_pairs, unlock_start_slot và video display
         roi_thread = threading.Thread(target=self.subscribe_roi_config, daemon=True)
         detection_thread = threading.Thread(target=self.subscribe_raw_detection, daemon=True)
         stable_pairs_thread = threading.Thread(target=self._subscribe_stable_pairs, daemon=True)
+        unlock_thread = threading.Thread(target=self._subscribe_unlock_start_slot, daemon=True)
         
         roi_thread.start()
         detection_thread.start()
         stable_pairs_thread.start()
+        unlock_thread.start()
         
         # Thread cho video display
         if self.show_video:

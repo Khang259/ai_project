@@ -529,4 +529,3 @@ class VideoDisplayManager:
         
         cv2.destroyAllWindows()
         print("[DISPLAY] Stopped")
-

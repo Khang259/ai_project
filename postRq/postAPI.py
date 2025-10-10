@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import json
+import threading
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -104,6 +105,35 @@ def build_payload(pair_id: str, start_slot: str, end_slot: str, order_id: int) -
     }
 
 
+def send_unlock_after_delay(queue: SQLiteQueue, pair_id: str, start_slot: str, delay_seconds: int = 60) -> None:
+    """
+    Gửi unlock message vào queue sau delay_seconds giây
+    
+    Args:
+        queue: SQLiteQueue instance
+        pair_id: ID của pair
+        start_slot: QR code của ô start (dạng string)
+        delay_seconds: Thời gian delay (mặc định 60s = 1 phút)
+    """
+    def _delayed_unlock():
+        time.sleep(delay_seconds)
+        try:
+            unlock_payload = {
+                "pair_id": pair_id,
+                "start_slot": start_slot,
+                "reason": "post_failed_after_retries",
+                "timestamp": datetime.now().isoformat()
+            }
+            queue.publish("unlock_start_slot", start_slot, unlock_payload)
+            print(f"[UNLOCK_SCHEDULED] Đã gửi unlock message cho start_slot={start_slot} sau {delay_seconds}s")
+        except Exception as e:
+            print(f"[ERR] Lỗi khi gửi unlock message: {e}")
+    
+    # Tạo thread để delay và gửi unlock
+    thread = threading.Thread(target=_delayed_unlock, daemon=True)
+    thread.start()
+
+
 def send_post(payload: Dict[str, Any]) -> bool:
     headers = {"Content-Type": "application/json"}
     try:
@@ -117,7 +147,8 @@ def send_post(payload: Dict[str, Any]) -> bool:
         if status_ok:
             # If API has code=1000 convention, consider it success; else accept 2xx
             code = body.get("code") if isinstance(body, dict) else None
-            if code is None or code == 1000:
+            # if code is None or code == 1000:
+            if code is None or code == 2009:
                 print(f"[OK] POST success | orderId={payload['orderId']} | taskPath={payload['taskOrderDetail'][0]['taskPath']} | resp={body}")
                 return True
             else:
@@ -172,6 +203,9 @@ def main() -> int:
                     time.sleep(2)
                 if not ok:
                     print(f"[FAIL] Could not POST after retries | pair_id={pair_id}")
+                    # Gửi unlock message sau 1 phút
+                    print(f"[UNLOCK_SCHEDULE] Sẽ unlock start_slot={start_slot} sau 60 giây do POST thất bại")
+                    send_unlock_after_delay(queue, pair_id, start_slot, delay_seconds=60)
 
             time.sleep(0.5)
     except KeyboardInterrupt:
