@@ -8,6 +8,7 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 import LoginPage from './pages/Login';
 import MobileGridDisplay from './pages/MobileGridDisplay';
+import Area from './pages/Area';
 import PrivateRoute from './components/PrivateRoute';
 import { AreaProvider } from './contexts/AreaContext';
 
@@ -76,6 +77,16 @@ function App() {
           <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <Users />
+            </DashboardLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/area"
+        element={
+          <PrivateRoute requiredRole="admin">
+            <DashboardLayout>
+              <Area />
             </DashboardLayout>
           </PrivateRoute>
         }

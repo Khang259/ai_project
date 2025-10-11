@@ -46,11 +46,6 @@ const NodeComponent = ({
 
   useEffect(() => {
     if (!mapInstance || !mapData || !showNodes) {
-      console.log('[NodeComponent] Early return due to missing deps', {
-        hasMap: !!mapInstance,
-        hasMapData: !!mapData,
-        showNodes
-      });
       // Remove existing layer if exists
       if (nodesLayerRef.current) {
         mapInstance.removeLayer(nodesLayerRef.current);
@@ -181,7 +176,6 @@ const NodeComponent = ({
           try {
             nodesLayer.addTo(mapInstance);
             nodesLayerRef.current = nodesLayer;
-            console.log('[NodeComponent] Nodes layer added (whenReady)');
           } catch (err) {
             console.error('[NodeComponent] Failed to add nodes layer (whenReady):', err);
           }

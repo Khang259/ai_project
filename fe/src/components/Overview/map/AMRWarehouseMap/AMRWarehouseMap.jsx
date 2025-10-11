@@ -11,11 +11,21 @@ import MapFilters from '@/components/Overview/map/AMRWarehouseMap/MapFilters';
 import MapImport from '@/components/Overview/map/AMRWarehouseMap/MapImport';
 import NodeDetailsModal from '@/components/Overview/map/AMRWarehouseMap/NodeDetailsModal';
 import SwitchButton from '@/components/Overview/map/AMRWarehouseMap/SwitchButton';
+import { useArea } from '@/contexts/AreaContext';
+import { getMapFromBackend } from '@/services/mapService';
 const { Title } = Typography;
 
 const AMRWarehouseMap = () => {
+  // Area context
+  const { currAreaId, currAreaName } = useArea();
+  
+  // Map data states
   const [mapData, setMapData] = useState(null);
   const [securityConfig, setSecurityConfig] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState(null);
+  
+  // UI states
   const [selectedAvoidanceMode, setSelectedAvoidanceMode] = useState(1);
   const [showNodes, setShowNodes] = useState(true);
   const [showCameras, setShowCameras] = useState(true);
@@ -29,7 +39,7 @@ const AMRWarehouseMap = () => {
   const [cameraFilter, setCameraFilter] = useState('');
   const [amrFilter, setAmrFilter] = useState('');
 
-  const { loading: zipLoading, error: zipError, zipFileName, handleZipImport } = useZipImport();
+  const { loading: zipLoading, error: zipError, zipFileName, handleZipImport, saveToBackendLoading, saveToBackendError } = useZipImport();
   const { handleMapReady } = useLeafletMapControls();
   const { isConnected, agvData, error: wsError } = useAGVWebSocket();
 
@@ -53,15 +63,58 @@ const AMRWarehouseMap = () => {
     return null;
   };
 
-  // Load data from localStorage (unchanged)
+  // Load map data from backend based on current area_id
   useEffect(() => {
-    const mapDataStr = localStorage.getItem('mapData');
-    const securityDataStr = localStorage.getItem('securityData');
-    if (mapDataStr) {
+    const loadMapFromBackend = async () => {
+      if (!currAreaId) {
+        console.log('[AMRWarehouseMap] No currAreaId, skipping map load');
+        return;
+      }
+      
+      setMapLoading(true);
+      setMapError(null);
+      
       try {
-        setMapData(JSON.parse(mapDataStr));
-      } catch {}
-    }
+        console.log(`[AMRWarehouseMap] Loading map for area_id: ${currAreaId}`);
+        const result = await getMapFromBackend(currAreaId);
+        
+        if (result.success && result.data) {
+          setMapData(result.data);
+          
+          // Also save to localStorage as backup
+          localStorage.setItem('mapData', JSON.stringify(result.data));
+          localStorage.setItem('currentAreaId', currAreaId.toString());
+        } else {
+          throw new Error('No map data received from backend');
+        }
+      } catch (error) {
+        console.error(`[AMRWarehouseMap] ❌ Error loading map for area_id ${currAreaId}:`, error);
+        setMapError(error.message);
+        
+        // Fallback to localStorage if API fails
+        // const mapDataStr = localStorage.getItem('mapData');
+        // const storedAreaId = localStorage.getItem('currentAreaId');
+        
+        // if (mapDataStr && storedAreaId === currAreaId.toString()) {
+        //   try {
+        //     console.log(`[AMRWarehouseMap] ⚠️ Using localStorage fallback for area_id: ${currAreaId}`);
+        //     setMapData(JSON.parse(mapDataStr));
+        //     setMapError(null); // Clear error if fallback works
+        //   } catch (parseError) {
+        //     console.error('[AMRWarehouseMap] ❌ Failed to parse localStorage mapData:', parseError);
+        //   }
+        // }
+      } finally {
+        setMapLoading(false);
+      }
+    };
+
+    loadMapFromBackend();
+  }, [currAreaId]); // Dependency on currAreaId
+
+  // Load security config from localStorage (unchanged)
+  useEffect(() => {
+    const securityDataStr = localStorage.getItem('securityData');
     if (securityDataStr) {
       try {
         setSecurityConfig(JSON.parse(securityDataStr));
@@ -82,7 +135,7 @@ const AMRWarehouseMap = () => {
   return (
     <div className="dashboard-page" style={{ background: 'white', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 8 }}>
+        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 24 }}>
           Bản đồ quan sát AMR
         </Title>
         <MapFilters
@@ -100,6 +153,8 @@ const AMRWarehouseMap = () => {
           setMapData={setMapData}
           setSecurityConfig={setSecurityConfig}
           setSelectedAvoidanceMode={setSelectedAvoidanceMode}
+          saveToBackendLoading={saveToBackendLoading}
+          saveToBackendError={saveToBackendError}
         />
       </div>
       {/* <MapLegend /> */}
@@ -124,7 +179,56 @@ const AMRWarehouseMap = () => {
           </div>
         </div>
         <div className="map-area-box">
-          {(() => {
+          {/* Map Loading State */}
+          {mapLoading && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '600px',
+              background: 'rgba(255, 255, 255, 0.9)',
+              borderRadius: '8px',
+              border: '2px dashed #d9d9d9'
+            }}>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+              <div style={{ color: '#1890ff', fontSize: '16px', fontWeight: '500' }}>
+                Đang tải bản đồ cho khu vực: {currAreaName || 'Unknown'}
+              </div>
+              <div style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+                Area ID: {currAreaId}
+              </div>
+            </div>
+          )}
+
+          {/* Map Error State */}
+          {mapError && !mapLoading && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '600px',
+              background: 'rgba(255, 245, 245, 0.9)',
+              borderRadius: '8px',
+              border: '2px dashed #ff4d4f',
+              padding: '20px'
+            }}>
+              <div style={{ color: '#ff4d4f', fontSize: '24px', marginBottom: '16px' }}>⚠️</div>
+              <div style={{ color: '#ff4d4f', fontSize: '16px', fontWeight: '500', textAlign: 'center' }}>
+                Không thể tải bản đồ cho khu vực: {currAreaName || 'Unknown'}
+              </div>
+              <div style={{ color: '#666', fontSize: '14px', marginTop: '8px', textAlign: 'center' }}>
+                Area ID: {currAreaId}
+              </div>
+              <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '12px', textAlign: 'center', maxWidth: '400px' }}>
+                Lỗi: {mapError}
+              </div>
+            </div>
+          )}
+
+          {/* Map Content */}
+          {!mapLoading && !mapError && (() => {
             const rawList = Array.isArray(agvData) ? agvData : (agvData?.data || []);
             const processedList = rawList
               .map((item) => {

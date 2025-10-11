@@ -1,10 +1,15 @@
 import { useState, useCallback } from 'react';
 import JSZip from 'jszip';
+import { saveMapToBackend } from '@/services/mapService';
+import { useArea } from '@/contexts/AreaContext';
 
 const useZipImport = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [zipFileName, setZipFileName] = useState('');
+  const [saveToBackendLoading, setSaveToBackendLoading] = useState(false);
+  const [saveToBackendError, setSaveToBackendError] = useState(null);
+  const { currAreaId } = useArea();
 
   // Helper function to convert array format to object format (same as useFileImport)
   const convertMapData = (jsonData) => {
@@ -57,7 +62,31 @@ const useZipImport = () => {
     };
   };
 
-  const handleZipImport = useCallback((file, setMapData, setSecurityConfig, setSelectedAvoidanceMode) => {
+  // Function để tự động lưu map lên backend
+  const saveMapToBackendAsync = useCallback(async (mapData, areaId = currAreaId) => {
+    setSaveToBackendLoading(true);
+    setSaveToBackendError(null);
+    
+    try {
+      console.log(`[useZipImport] Đang lưu map lên backend cho area_id: ${areaId}`);
+      const result = await saveMapToBackend(areaId, mapData);
+      
+      if (result.success) {
+        console.log(`[useZipImport] ✅ Map đã được lưu thành công lên backend`);
+        return true;
+      } else {
+        throw new Error(result.message || 'Không thể lưu map lên backend');
+      }
+    } catch (error) {
+      console.error(`[useZipImport] ❌ Lỗi khi lưu map lên backend:`, error);
+      setSaveToBackendError(error.message);
+      return false;
+    } finally {
+      setSaveToBackendLoading(false);
+    }
+  }, [currAreaId]);
+
+  const handleZipImport = useCallback((file, setMapData, setSecurityConfig, setSelectedAvoidanceMode, areaId = currAreaId) => {
     if (!file) return;
     setLoading(true);
     setError(null);
@@ -90,6 +119,15 @@ const useZipImport = () => {
             localStorage.setItem('mapData', JSON.stringify(convertedData));
             localStorage.setItem('mapFileName', file.name);
             console.log('✅ Đã import map data từ ZIP file');
+            
+            // Tự động lưu lên backend
+            saveMapToBackendAsync(convertedData, areaId).then((success) => {
+              if (success) {
+                console.log('✅ Map đã được lưu thành công lên backend');
+              } else {
+                console.warn('⚠️ Map đã được import nhưng không thể lưu lên backend');
+              }
+            });
           } else if (jsonData.AvoidSceneSet) {
             // Đây là security data
             setSecurityConfig(jsonData);
@@ -116,13 +154,15 @@ const useZipImport = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [currAreaId, saveMapToBackendAsync]);
 
   return {
     loading,
     error,
     zipFileName,
-    handleZipImport
+    handleZipImport,
+    saveToBackendLoading,
+    saveToBackendError
   };
 };
 

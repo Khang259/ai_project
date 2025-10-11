@@ -130,7 +130,8 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
                 <SelectContent>
                   {/* <SelectItem value="viewer">Viewer</SelectItem> */}
                   <SelectItem value="admin">Admin</SelectItem>
-                  {/* <SelectItem value="manager">Manager</SelectItem> */}
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="manager">Superuser</SelectItem>
                   <SelectItem value="user">User</SelectItem>
                 </SelectContent>
               </Select>
