@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from app.schemas.node import NodeCreate, NodeOut, NodeUpdate
+from app.schemas.node import NodeCreate, NodeOut, NodeUpdate, NodeBatchUpdate, NodeBatchUpdateResponse
 from app.services.node_service import (
     create_node,
     get_nodes,
     update_node,
+    update_multiple_nodes,
     delete_node,
-    get_nodes_by_area_and_type,
+    get_nodes_by_owner_and_type,
 )
 from shared.logging import get_logger
 from typing import List
@@ -34,15 +35,32 @@ async def create_new_node(
         )
 
 @router.get("/", response_model=List[NodeOut])
-async def get_nodes_by_area(
+async def get_nodes_by_owner(
     node_type: str,
-    area: str,
+    owner: str,
 ):
-    """Lấy danh sách tất cả nodes (yêu cầu quyền nodes:read)"""
+    """Lấy danh sách nodes theo owner"""
     try:
-        return await get_nodes(node_type, area)
+        return await get_nodes(node_type, owner)
     except Exception as e:
         logger.error(f"Error getting nodes: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+@router.put("/batch", response_model=NodeBatchUpdateResponse)
+async def batch_update_nodes(
+    batch_update: NodeBatchUpdate,
+):
+    """Cập nhật hoặc tạo nhiều nodes với dữ liệu khác nhau (upsert)"""
+    try:
+        # Convert NodeBatchUpdateItem objects to dicts
+        nodes_data = [node.dict() for node in batch_update.nodes]
+        result = await update_multiple_nodes(nodes_data)
+        return NodeBatchUpdateResponse(**result)
+    except Exception as e:
+        logger.error(f"Unexpected error during batch update: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
@@ -53,7 +71,7 @@ async def update_node_by_id(
     node_id: str,
     node_update: NodeUpdate,
 ):
-    """Cập nhật node theo ID (yêu cầu quyền nodes:write)"""
+    """Cập nhật một node theo ID"""
     try:
         node = await update_node(node_id, node_update)
         if not node:
@@ -98,16 +116,16 @@ async def delete_node_by_id(
             detail="Internal server error"
         )
 
-@router.get("/area/{area}/{node_type}", response_model=List[NodeOut])
-async def get_nodes_by_area_and_type(
-    area: str,
+@router.get("/owner/{owner}/{node_type}", response_model=List[NodeOut])
+async def get_nodes_by_owner_and_type(
+    owner: str,
     node_type: str,
 ):
-    """Lấy danh sách nodes theo area"""
+    """Lấy danh sách nodes theo owner và type"""
     try:
-        return await get_nodes_by_area_and_type(area, node_type)
+        return await get_nodes_by_owner_and_type(owner, node_type)
     except Exception as e:
-        logger.error(f"Error getting nodes by area {area}: {str(e)}")
+        logger.error(f"Error getting nodes by owner {owner}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

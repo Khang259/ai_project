@@ -14,25 +14,25 @@ logger = get_logger("camera_ai_app")
 async def create_node(node_in: NodeCreate) -> NodeOut:
     """Tạo node mới"""
     nodes = get_collection("nodes")
-    areas = get_collection("areas")
+    users = get_collection("users")
     
-    # Kiểm tra area có tồn tại không
-    area_exists = await areas.find_one({"area_name": node_in.area})
-    if not area_exists:
-        logger.warning(f"Node creation failed: area '{node_in.area}' does not exist")
-        raise ValueError("Area does not exist")
+    # Kiểm tra owner có tồn tại không
+    user_exists = await users.find_one({"username": node_in.owner, "is_active": True})
+    if not user_exists:
+        logger.warning(f"Node creation failed: owner '{node_in.owner}' does not exist or is inactive")
+        raise ValueError("Owner does not exist or is inactive")
     
-    # Kiểm tra xem node_name đã tồn tại chưa
-    existing = await nodes.find_one({"node_name": node_in.node_name, "area": node_in.area, "node_type": node_in.node_type})
+    # Kiểm tra xem node_name đã tồn tại chưa (trong cùng owner)
+    existing = await nodes.find_one({"node_name": node_in.node_name, "owner": node_in.owner, "node_type": node_in.node_type})
     if existing:
-        logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists")
-        raise ValueError("Node name already exists")
+        logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists for owner '{node_in.owner}'")
+        raise ValueError("Node name already exists for this owner")
     
     
     node_data = {
         "node_name": node_in.node_name,
         "node_type": node_in.node_type,
-        "area": node_in.area,
+        "owner": node_in.owner,
         "start": node_in.start,
         "end": node_in.end,
         "next_start": node_in.next_start,
@@ -42,7 +42,7 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
     }
     
     result = await nodes.insert_one(node_data)
-    logger.info(f"Node created successfully: {node_in.node_name} in area {node_in.area}")
+    logger.info(f"Node created successfully: {node_in.node_name} for owner {node_in.owner}")
     
     # Lấy node vừa tạo để trả về
     created_node = await nodes.find_one({"_id": result.inserted_id})
@@ -72,12 +72,12 @@ async def update_node(node_id: str, node_update: NodeUpdate) -> Optional[NodeOut
     if "node_name" in update_data:
         existing_name = await nodes.find_one({
             "node_name": update_data["node_name"],
-            "area": update_data.get("area", existing_node["area"]),
+            "owner": update_data.get("owner", existing_node["owner"]),
             "_id": {"$ne": ObjectId(node_id)}
         })
         if existing_name:
-            logger.warning(f"Node update failed: node_name '{update_data['node_name']}' already exists")
-            raise ValueError("Node name already exists")
+            logger.warning(f"Node update failed: node_name '{update_data['node_name']}' already exists for owner")
+            raise ValueError("Node name already exists for this owner")
     
     update_data["updated_at"] = datetime.utcnow()
     
@@ -96,6 +96,74 @@ async def update_node(node_id: str, node_update: NodeUpdate) -> Optional[NodeOut
     updated_node = await nodes.find_one({"_id": ObjectId(node_id)})
     return NodeOut(**updated_node, id=str(updated_node["_id"]))
 
+async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
+    """Cập nhật hoặc tạo mới nhiều nodes với dữ liệu khác nhau (upsert)"""
+    nodes = get_collection("nodes")
+    users = get_collection("users")
+    
+    total = len(nodes_data)
+    updated = 0
+    created = 0
+    errors = []
+    
+    for idx, node_data in enumerate(nodes_data):
+        try:
+            # Validate owner exists
+            owner = node_data.get("owner")
+            user_exists = await users.find_one({"username": owner, "is_active": True})
+            if not user_exists:
+                errors.append({
+                    "index": idx,
+                    "node_name": node_data.get("node_name"),
+                    "error": f"Owner '{owner}' does not exist or is inactive"
+                })
+                continue
+            
+            # Find existing node by node_name, owner, and node_type
+            existing = await nodes.find_one({
+                "node_name": node_data["node_name"],
+                "owner": node_data["owner"],
+                "node_type": node_data["node_type"]
+            })
+            
+            if existing:
+                # Update existing node
+                update_data = {
+                    "start": node_data["start"],
+                    "end": node_data["end"],
+                    "next_start": node_data.get("next_start"),
+                    "next_end": node_data.get("next_end"),
+                    "updated_at": datetime.utcnow()
+                }
+                
+                await nodes.update_one(
+                    {"_id": existing["_id"]},
+                    {"$set": update_data}
+                )
+                updated += 1
+                logger.info(f"Updated node: {node_data['node_name']}")
+            else:
+                logger.info(f"Node not found: {node_data['node_name']}")
+                
+        except Exception as e:
+            errors.append({
+                "index": idx,
+                "node_name": node_data.get("node_name"),
+                "error": str(e)
+            })
+            logger.error(f"Error processing node {node_data.get('node_name')}: {e}")
+    
+    message = f"Processed {total} nodes: {updated} updated"
+    if errors:
+        message += f", {len(errors)} errors"
+    
+    return {
+        "total": total,
+        "updated": updated,
+        "created": created,
+        "message": message
+    }
+
 async def delete_node(node_id: str) -> bool:
     """Xóa node"""
     nodes = get_collection("nodes")
@@ -113,20 +181,20 @@ async def delete_node(node_id: str) -> bool:
     logger.info(f"Node deleted successfully: {node_id}")
     return True
 
-async def get_nodes(node_type: str, area: str) -> List[NodeOut]:
-    """Lấy danh sách nodes theo area"""
+async def get_nodes(node_type: str, owner: str) -> List[NodeOut]:
+    """Lấy danh sách nodes theo owner"""
     nodes = get_collection("nodes")
     
-    cursor = nodes.find({"node_type": node_type, "area": area})
+    cursor = nodes.find({"node_type": node_type, "owner": owner})
     node_list = await cursor.to_list(length=None)
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
-async def get_nodes_by_area_and_type(area: str, node_type: str) -> List[NodeOut]:
-    """Lấy danh sách nodes theo area"""
+async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOut]:
+    """Lấy danh sách nodes theo owner và type"""
     nodes = get_collection("nodes")
     
-    cursor = nodes.find({"area": area, "node_type": node_type})
+    cursor = nodes.find({"owner": owner, "node_type": node_type})
     node_list = await cursor.to_list(length=None)
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
@@ -137,14 +205,15 @@ def load_config_caller():
     with open("app/services/config_caller.json") as f:
         return json.load(f)
 
-def get_process_code(node_type: str, area: str) -> str:
-    """Lấy process code từ config_caller.json"""
+def get_process_code(node_type: str, owner: str) -> str:
+    """Lấy process code từ config_caller.json - sử dụng owner thay vì area"""
     config_caller = load_config_caller()
-    return config_caller[area][node_type]["modelProcessCode"]
+    # Tạm thời sử dụng owner như area_id, có thể cần điều chỉnh logic
+    return config_caller[owner][node_type]["modelProcessCode"]
 
 def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
-    process_code = get_process_code(node.node_type, node.area)
+    process_code = get_process_code(node.node_type, node.owner)
     order_id = str(uuid.uuid4())
 
     if node.node_type == "Supply" or node.node_type == "Return":

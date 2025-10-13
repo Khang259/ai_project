@@ -7,8 +7,8 @@ from app.services.area_service import (
     update_area,
     delete_area,
     get_areas_by_creator,
-    check_area_has_nodes,
-    get_area_node_count,
+    check_area_has_cameras,
+    get_area_camera_count,
     save_map,
     get_map_by_area_id,
 )
@@ -121,8 +121,8 @@ async def delete_area_by_id(
                 detail="Area not found"
             )
         
-        # Lấy số lượng nodes sẽ bị xóa
-        node_count = await get_area_node_count(area.area_name)
+        # Lấy số lượng cameras sẽ bị xóa
+        camera_count = await get_area_camera_count(area.area_id)
         
         success = await delete_area(area_id)
         if not success:
@@ -132,9 +132,9 @@ async def delete_area_by_id(
             )
         
         return {
-            "message": f"Area '{area.area_name}' and {node_count} nodes deleted successfully",
+            "message": f"Area '{area.area_name}' deleted successfully",
             "area_name": area.area_name,
-            "deleted_nodes_count": node_count
+            "deleted_cameras_count": camera_count
         }
     except HTTPException:
         raise
@@ -159,11 +159,11 @@ async def get_areas_by_creator_endpoint(
             detail="Internal server error"
         )
 
-@router.get("/{area_id}/nodes/count")
-async def get_area_node_count_endpoint(
+@router.get("/{area_id}/cameras/count")
+async def get_area_camera_count_endpoint(
     area_id: str,
 ):
-    """Lấy số lượng nodes trong area"""
+    """Lấy số lượng cameras trong area"""
     try:
         # Lấy thông tin area trước
         area = await get_area(area_id)
@@ -173,26 +173,26 @@ async def get_area_node_count_endpoint(
                 detail="Area not found"
             )
         
-        node_count = await get_area_node_count(area.area_name)
+        camera_count = await get_area_camera_count(area.area_id)
         return {
             "area_id": area_id,
             "area_name": area.area_name,
-            "node_count": node_count
+            "camera_count": camera_count
         }
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting node count for area {area_id}: {str(e)}")
+        logger.error(f"Error getting camera count for area {area_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
-@router.get("/{area_id}/nodes/check")
-async def check_area_has_nodes_endpoint(
+@router.get("/{area_id}/cameras/check")
+async def check_area_has_cameras_endpoint(
     area_id: str,
 ):
-    """Kiểm tra xem area có nodes không"""
+    """Kiểm tra xem area có cameras không"""
     try:
         # Lấy thông tin area trước
         area = await get_area(area_id)
@@ -202,16 +202,16 @@ async def check_area_has_nodes_endpoint(
                 detail="Area not found"
             )
         
-        has_nodes = await check_area_has_nodes(area.area_name)
+        has_cameras = await check_area_has_cameras(area.area_id)
         return {
             "area_id": area_id,
             "area_name": area.area_name,
-            "has_nodes": has_nodes
+            "has_cameras": has_cameras
         }
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error checking nodes for area {area_id}: {str(e)}")
+        logger.error(f"Error checking cameras for area {area_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

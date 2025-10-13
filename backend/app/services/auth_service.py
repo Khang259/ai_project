@@ -11,17 +11,33 @@ logger = get_logger("camera_ai_app")
 
 async def register_user(user_in: UserCreate):
     users = get_collection("users")
+    roles_collection = get_collection("roles")
+    
     existing = await users.find_one({"username": user_in.username})
     if existing:
         logger.warning(f"Signup failed: username '{user_in.username}' already exists")
         raise ValueError("User already exists")
 
+    # Convert role IDs to ObjectIds (user_in.roles contains role IDs as strings)
+    role_object_ids = []
+    if user_in.roles:
+        for role_id in user_in.roles:
+            if ObjectId.is_valid(role_id):
+                role_object_ids.append(ObjectId(role_id))
+            else:
+                logger.warning(f"Invalid role ID: {role_id}")
+    else:
+        # Get default "viewer" role
+        default_role = await roles_collection.find_one({"name": "viewer", "is_active": True})
+        if default_role:
+            role_object_ids = [default_role["_id"]]
+        
     user_data = {
         "username": user_in.username,
         "hashed_password": user_in.password,
         "is_active": True,
         "is_superuser": False,
-        "roles": user_in.roles or ["viewer"],  # Default role
+        "roles": role_object_ids,  # Store as ObjectIds
         "permissions": [],
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
@@ -50,10 +66,12 @@ async def authenticate_user(username: str, password: str):
 
 def create_user_token(user):
     logger.debug(f"Creating token for user '{user['username']}'")
+    # Convert role ObjectIds to strings for token
+    role_ids = [str(role_id) for role_id in user.get("roles", [])]
     return create_access_token(data={
         "sub": user["username"],
         "user_id": str(user["_id"]),
-        "roles": user.get("roles", []),
+        "roles": role_ids,
         "permissions": user.get("permissions", [])
     })
 
@@ -67,12 +85,15 @@ async def get_current_user_info(user_id: str) -> Optional[UserOut]:
     # Get user permissions
     permissions = await get_user_permissions(user_id)
     
+    # Convert role ObjectIds to strings
+    role_ids = [str(role_id) for role_id in user.get("roles", [])]
+    
     return UserOut(
         id=str(user["_id"]),
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
-        roles=user.get("roles", []),
+        roles=role_ids,
         permissions=permissions,
         created_at=user.get("created_at", datetime.utcnow()),
         last_login=user.get("last_login")
