@@ -42,8 +42,9 @@ class NodeUpdate(BaseModel):
     next_end: Optional[int] = None
 
 class NodeBatchUpdateItem(BaseModel):
-    """Một item trong batch update - bao gồm toàn bộ thông tin node"""
-    node_name: str = Field(..., description="Tên node (unique key)")
+    """Một item trong batch update - bao gồm ID và thông tin node"""
+    id: str = Field(..., description="Node ID (MongoDB ObjectId)")
+    node_name: str = Field(..., description="Tên node")
     node_type: str
     owner: str
     start: int

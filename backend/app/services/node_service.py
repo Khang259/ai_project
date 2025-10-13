@@ -97,7 +97,7 @@ async def update_node(node_id: str, node_update: NodeUpdate) -> Optional[NodeOut
     return NodeOut(**updated_node, id=str(updated_node["_id"]))
 
 async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
-    """Cập nhật hoặc tạo mới nhiều nodes với dữ liệu khác nhau (upsert)"""
+    """Cập nhật nhiều nodes theo ID"""
     nodes = get_collection("nodes")
     users = get_collection("users")
     
@@ -108,27 +108,37 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
     
     for idx, node_data in enumerate(nodes_data):
         try:
+            node_id = node_data.get("id")
+            
+            # Validate node_id
+            if not node_id or not ObjectId.is_valid(node_id):
+                errors.append({
+                    "index": idx,
+                    "node_id": node_id,
+                    "error": "Invalid or missing node ID"
+                })
+                continue
+            
             # Validate owner exists
             owner = node_data.get("owner")
             user_exists = await users.find_one({"username": owner, "is_active": True})
             if not user_exists:
                 errors.append({
                     "index": idx,
-                    "node_name": node_data.get("node_name"),
+                    "node_id": node_id,
                     "error": f"Owner '{owner}' does not exist or is inactive"
                 })
                 continue
             
-            # Find existing node by node_name, owner, and node_type
-            existing = await nodes.find_one({
-                "node_name": node_data["node_name"],
-                "owner": node_data["owner"],
-                "node_type": node_data["node_type"]
-            })
+            # Find existing node by ID
+            existing = await nodes.find_one({"_id": ObjectId(node_id)})
             
             if existing:
-                # Update existing node
+                # Update existing node (bao gồm cả node_name)
                 update_data = {
+                    "node_name": node_data["node_name"],
+                    "node_type": node_data["node_type"],
+                    "owner": node_data["owner"],
                     "start": node_data["start"],
                     "end": node_data["end"],
                     "next_start": node_data.get("next_start"),
@@ -137,21 +147,26 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
                 }
                 
                 await nodes.update_one(
-                    {"_id": existing["_id"]},
+                    {"_id": ObjectId(node_id)},
                     {"$set": update_data}
                 )
                 updated += 1
-                logger.info(f"Updated node: {node_data['node_name']}")
+                logger.info(f"Updated node ID {node_id}: {node_data['node_name']}")
             else:
-                logger.info(f"Node not found: {node_data['node_name']}")
+                errors.append({
+                    "index": idx,
+                    "node_id": node_id,
+                    "error": "Node not found"
+                })
+                logger.warning(f"Node not found: {node_id}")
                 
         except Exception as e:
             errors.append({
                 "index": idx,
-                "node_name": node_data.get("node_name"),
+                "node_id": node_data.get("id"),
                 "error": str(e)
             })
-            logger.error(f"Error processing node {node_data.get('node_name')}: {e}")
+            logger.error(f"Error processing node {node_data.get('id')}: {e}")
     
     message = f"Processed {total} nodes: {updated} updated"
     if errors:
@@ -161,6 +176,7 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
         "total": total,
         "updated": updated,
         "created": created,
+        "errors": errors,
         "message": message
     }
 
