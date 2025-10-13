@@ -80,7 +80,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 20.0, cooldown_seconds: float = 10.0) -> None:
+                 stable_seconds: float = 5.0, cooldown_seconds: float = 10.0) -> None:
         # Thiết lập logger
         self.logger = setup_stable_pair_logger()
         self.logger.info(f"Khởi tạo StablePairProcessor - DB: {db_path}, Config: {config_path}, Stable: {stable_seconds}s, Cooldown: {cooldown_seconds}s")

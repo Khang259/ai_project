@@ -21,3 +21,63 @@
 2025-10-13 14:56:09 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
 2025-10-13 14:56:11 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-2', 'cam-3', 'cam-4', 'cam-5', 'cam-6']
 2025-10-13 15:08:56 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 16:23:27 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 16:23:27 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 16:23:27 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 16:23:27 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 16:23:27 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: []
+2025-10-13 16:44:15 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 16:45:48 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 16:45:48 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 16:45:48 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 16:45:48 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 16:45:48 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: []
+2025-10-13 16:49:48 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 16:50:14 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 16:50:14 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 16:50:14 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 16:50:14 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 16:50:14 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 16:55:10 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 16:57:39 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 16:57:39 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 16:57:39 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 16:57:39 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 16:57:39 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 16:58:04 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 16:58:53 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 16:58:53 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 16:58:53 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 16:58:53 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 16:58:53 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 17:01:30 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 17:04:47 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 17:04:47 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 17:04:47 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 17:04:47 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 17:04:47 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 17:06:32 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 17:06:39 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 17:06:39 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 17:06:39 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 17:06:39 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 17:06:39 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 17:11:08 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 17:14:05 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 17:14:05 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 17:14:05 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 17:14:05 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 17:14:05 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 17:19:14 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 17:19:58 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 17:19:58 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 17:19:58 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 17:19:58 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 17:19:58 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 17:22:31 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...
+2025-10-13 17:23:53 - stable_pair_processor - INFO - [_load_pairing_config:165] - Loaded config - QR mappings: 23 (starts: 11, starts_2: 1, ends: 11)
+2025-10-13 17:23:53 - stable_pair_processor - INFO - [_load_pairing_config:166] - Loaded config - Pairs: 2, Dual pairs: 1
+2025-10-13 17:23:53 - stable_pair_processor - INFO - [_load_pairing_config:170] - Dual pair: 10001777 -> 10002417 + 12 -> 444
+2025-10-13 17:23:53 - stable_pair_processor - INFO - [run:549] - Started dual unblock trigger subscription thread
+2025-10-13 17:23:53 - stable_pair_processor - INFO - [run:560] - StablePairProcessor started. Watching cameras: ['cam-1', 'cam-6']
+2025-10-13 17:27:27 - stable_pair_processor - INFO - [run:617] - Stopping StablePairProcessor...

@@ -1160,6 +1160,8 @@ def parse_args():
                        help="Đường dẫn đến database SQLite")
     parser.add_argument("--no-video", action="store_true", 
                        help="Tắt hiển thị video")
+    parser.add_argument("--no-cleanup", action="store_true",
+                       help="Tắt tự động cleanup hàng ngày")
     
     return parser.parse_args()
 

@@ -1,0 +1,46 @@
+{
+  "cleanup_schedule": {
+    "enabled": true,
+    "daily_time": "23:30",
+    "description": "Chạy cleanup hàng ngày vào 23:30"
+  },
+  "cleanup_targets": {
+    "log_dirs": [
+      "logs",
+      "detectObject/logs"
+    ],
+    "db_files": [
+      "logic/queues.db",
+      "queues.db"
+    ],
+    "cache_dirs": [
+      "__pycache__",
+      "*/__pycache__",
+      "**/__pycache__"
+    ],
+    "temp_patterns": [
+      "*.tmp",
+      "*.temp", 
+      "*.log.*",
+      "*.pyc",
+      "*.pyo"
+    ],
+    "preserve_files": [
+      "logs/daily_cleanup.log",
+      "logs/README_logging.md",
+      "requirements.txt",
+      "README.md"
+    ]
+  },
+  "retention_policy": {
+    "log_retention_days": 0,
+    "db_retention_days": 0,
+    "description": "Số ngày giữ lại file (0 = xoá tất cả)"
+  },
+  "notifications": {
+    "log_cleanup_results": true,
+    "show_file_sizes": true,
+    "show_summary": true
+  }
+}
+
