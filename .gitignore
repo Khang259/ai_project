@@ -9,6 +9,8 @@
 *.m4v
 *.3gp
 
+*.log
+
 # Video folders
 video/
 videos/

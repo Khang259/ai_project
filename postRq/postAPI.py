@@ -3,8 +3,10 @@ import sys
 import time
 import json
 import threading
+import logging
 from datetime import datetime
 from typing import Dict, Any, List, Optional
+from logging.handlers import RotatingFileHandler
 
 import requests
 
@@ -17,6 +19,46 @@ API_URL = "http://192.168.1.169:7000/ics/taskOrder/addTask"
 DB_PATH = "../queues.db"  # relative to this script folder
 ORDER_ID_FILE = os.path.join(os.path.dirname(__file__), "order_id.txt")
 TOPIC = "stable_pairs"
+
+
+def setup_post_api_logger(log_dir: str = "../logs") -> logging.Logger:
+    """Thiết lập logger cho Post API"""
+    # Tạo thư mục logs nếu chưa có
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # Tạo logger
+    logger = logging.getLogger('post_api')
+    logger.setLevel(logging.INFO)
+    
+    # Tránh duplicate handlers
+    if logger.handlers:
+        return logger
+    
+    # Tạo formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - [%(funcName)s:%(lineno)d] - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # File handler với rotating
+    file_handler = RotatingFileHandler(
+        os.path.join(log_dir, 'post_api.log'),
+        maxBytes=10*1024*1024,  # 10MB
+        backupCount=5
+    )
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+    
+    # Thêm handlers vào logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
 
 
 def ensure_dirs() -> None:
@@ -134,8 +176,13 @@ def send_unlock_after_delay(queue: SQLiteQueue, pair_id: str, start_slot: str, d
     thread.start()
 
 
-def send_post(payload: Dict[str, Any]) -> bool:
+def send_post(payload: Dict[str, Any], logger: logging.Logger = None) -> bool:
+    if logger is None:
+        logger = logging.getLogger('post_api')
+        
     headers = {"Content-Type": "application/json"}
+    logger.info(f"Gửi POST request - orderId: {payload.get('orderId')}, taskPath: {payload.get('taskOrderDetail', [{}])[0].get('taskPath')}")
+    
     try:
         resp = requests.post(API_URL, headers=headers, data=json.dumps(payload), timeout=10)
         status_ok = (200 <= resp.status_code < 300)
@@ -149,22 +196,36 @@ def send_post(payload: Dict[str, Any]) -> bool:
             code = body.get("code") if isinstance(body, dict) else None
             # if code is None or code == 1000:
             if code is None or code == 2009:
-                print(f"[OK] POST success | orderId={payload['orderId']} | taskPath={payload['taskOrderDetail'][0]['taskPath']} | resp={body}")
+                success_msg = f"[OK] POST success | orderId={payload['orderId']} | taskPath={payload['taskOrderDetail'][0]['taskPath']} | resp={body}"
+                logger.info(success_msg)
+                print(success_msg)
                 return True
             else:
-                print(f"[WARN] POST 2xx but code={code} | resp={body}")
+                warn_msg = f"[WARN] POST 2xx but code={code} | resp={body}"
+                logger.warning(warn_msg)
+                print(warn_msg)
                 return False
         else:
-            print(f"[ERR] HTTP {resp.status_code} | orderId={payload['orderId']} | resp={body}")
+            error_msg = f"[ERR] HTTP {resp.status_code} | orderId={payload['orderId']} | resp={body}"
+            logger.error(error_msg)
+            print(error_msg)
             return False
     except Exception as e:
-        print(f"[ERR] POST exception: {e}")
+        error_msg = f"[ERR] POST exception: {e}"
+        logger.error(error_msg)
+        print(error_msg)
         return False
 
 
 def main() -> int:
+    # Thiết lập logger
+    logger = setup_post_api_logger()
+    
+    logger.info("PostAPI Runner - consuming stable_pairs and POSTing to API")
+    logger.info(f"DB: {DB_PATH} | API: {API_URL}")
     print("PostAPI Runner - consuming stable_pairs and POSTing to API")
     print(f"DB: {DB_PATH} | API: {API_URL}")
+    
     queue = SQLiteQueue(DB_PATH)
 
     # Track latest global id for the topic to preserve global order
@@ -172,9 +233,13 @@ def main() -> int:
     latest_row = get_latest_topic_row(queue, TOPIC)
     if latest_row:
         last_global_id = latest_row["id"]
-        print(f"Starting from latest existing id={last_global_id} (no backlog)")
+        start_msg = f"Starting from latest existing id={last_global_id} (no backlog)"
+        logger.info(start_msg)
+        print(start_msg)
     else:
-        print("No existing rows. Waiting for new stable_pairs...")
+        wait_msg = "No existing rows. Waiting for new stable_pairs..."
+        logger.info(wait_msg)
+        print(wait_msg)
 
     try:
         while True:
@@ -196,21 +261,37 @@ def main() -> int:
 
                 # Simple retry 3 times
                 ok = False
+                logger.info(f"Bắt đầu xử lý pair_id={pair_id}, orderId={order_id}")
+                
                 for attempt in range(3):
-                    if send_post(body):
+                    logger.info(f"Lần thử {attempt + 1}/3 cho orderId={order_id}")
+                    if send_post(body, logger):
                         ok = True
                         break
                     time.sleep(2)
+                    
                 if not ok:
-                    print(f"[FAIL] Could not POST after retries | pair_id={pair_id}")
+                    fail_msg = f"[FAIL] Could not POST after retries | pair_id={pair_id}"
+                    logger.error(fail_msg)
+                    print(fail_msg)
+                    
                     # Gửi unlock message sau 1 phút
-                    print(f"[UNLOCK_SCHEDULE] Sẽ unlock start_slot={start_slot} sau 60 giây do POST thất bại")
+                    unlock_msg = f"[UNLOCK_SCHEDULE] Sẽ unlock start_slot={start_slot} sau 60 giây do POST thất bại"
+                    logger.warning(unlock_msg)
+                    print(unlock_msg)
                     send_unlock_after_delay(queue, pair_id, start_slot, delay_seconds=60)
 
             time.sleep(0.5)
     except KeyboardInterrupt:
-        print("\nStopped by user.")
+        stop_msg = "\nStopped by user."
+        logger.info(stop_msg)
+        print(stop_msg)
         return 0
+    except Exception as e:
+        error_msg = f"Unexpected error in main loop: {e}"
+        logger.error(error_msg)
+        print(error_msg)
+        return 1
 
 
 if __name__ == "__main__":

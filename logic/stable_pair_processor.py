@@ -1,16 +1,58 @@
 import json
 import time
+import logging
+import os
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Tuple, Optional, Set
+from logging.handlers import RotatingFileHandler
 
 import sys
-import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
 def utc_now_iso() -> str:
     return datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def setup_stable_pair_logger(log_dir: str = "../logs") -> logging.Logger:
+    """Thiết lập logger cho Stable Pair Processor"""
+    # Tạo thư mục logs nếu chưa có
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # Tạo logger
+    logger = logging.getLogger('stable_pair_processor')
+    logger.setLevel(logging.INFO)
+    
+    # Tránh duplicate handlers
+    if logger.handlers:
+        return logger
+    
+    # Tạo formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - [%(funcName)s:%(lineno)d] - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # File handler với rotating
+    file_handler = RotatingFileHandler(
+        os.path.join(log_dir, 'stable_pair_processor.log'),
+        maxBytes=10*1024*1024,  # 10MB
+        backupCount=5
+    )
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+    
+    # Thêm handlers vào logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
 
 
 def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
@@ -38,7 +80,11 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 5.0, cooldown_seconds: float = 10.0) -> None:
+                 stable_seconds: float = 20.0, cooldown_seconds: float = 10.0) -> None:
+        # Thiết lập logger
+        self.logger = setup_stable_pair_logger()
+        self.logger.info(f"Khởi tạo StablePairProcessor - DB: {db_path}, Config: {config_path}, Stable: {stable_seconds}s, Cooldown: {cooldown_seconds}s")
+        
         self.queue = SQLiteQueue(db_path)
         self.config_path = config_path
         self.stable_seconds = stable_seconds
@@ -63,21 +109,35 @@ class StablePairProcessor:
         self.dual_pairs: List[Dict[str, int]] = []        # [{start_qr, end_qrs, start_qr_2, end_qrs_2}]
         self.dual_published_at: Dict[str, float] = {}     # dual_id -> last_published_epoch
         self.dual_published_by_minute: Dict[str, Dict[str, bool]] = {}  # dual_id -> {minute_key: True}
+        
+        # Dual blocking system
+        self.dual_blocked_pairs: Dict[str, Dict[str, int]] = {}  # dual_id -> {start_qr, end_qrs}
+        self.dual_end_states: Dict[Tuple[str, int], Dict[str, Any]] = {}  # (camera_id, slot) -> {state, since}
 
         self._load_pairing_config()
 
     def _load_pairing_config(self) -> None:
-        with open(self.config_path, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
+        self.logger.info(f"Bắt đầu load pairing config từ {self.config_path}")
+        
+        try:
+            with open(self.config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except Exception as e:
+            self.logger.error(f"Lỗi khi đọc config file: {e}")
+            raise
 
         # Build qr->(camera, slot) from starts, starts_2 and ends
         self.qr_to_slot.clear()
+        starts_count = ends_count = starts_2_count = 0
         for item in cfg.get("starts", []):
             self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+            starts_count += 1
         for item in cfg.get("starts_2", []):
             self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+            starts_2_count += 1
         for item in cfg.get("ends", []):
             self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+            ends_count += 1
 
         # Normalize pairs: ensure list for end_qrs
         self.pairs.clear()
@@ -100,6 +160,14 @@ class StablePairProcessor:
                 "end_qrs_2": int(dual["end_qrs_2"])
             }
             self.dual_pairs.append(dual_config)
+        
+        # Log thông tin config đã load
+        self.logger.info(f"Loaded config - QR mappings: {len(self.qr_to_slot)} (starts: {starts_count}, starts_2: {starts_2_count}, ends: {ends_count})")
+        self.logger.info(f"Loaded config - Pairs: {len(self.pairs)}, Dual pairs: {len(self.dual_pairs)}")
+        
+        if self.dual_pairs:
+            for dual in self.dual_pairs:
+                self.logger.info(f"Dual pair: {dual['start_qr']} -> {dual['end_qrs']} + {dual['start_qr_2']} -> {dual['end_qrs_2']}")
 
     # No ROI polygons dependency anymore
 
@@ -220,6 +288,9 @@ class StablePairProcessor:
         
         # Use dual_id as key for convenience
         self.queue.publish("stable_dual", dual_id, payload)
+        
+        # Block start_qr sau khi publish dual
+        self._publish_dual_block(dual_config, dual_id)
 
     def _is_dual_already_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> bool:
         """Check if this dual pair was already published in the same minute"""
@@ -238,6 +309,157 @@ class StablePairProcessor:
             self.dual_published_by_minute[dual_id] = {}
         
         self.dual_published_by_minute[dual_id][minute_key] = True
+    
+    def _publish_dual_block(self, dual_config: Dict[str, int], dual_id: str) -> None:
+        """Publish message để block start_qr sau khi dual pair được phát hiện"""
+        start_qr = dual_config["start_qr"]
+        end_qrs = dual_config["end_qrs"]
+        
+        # Lưu thông tin dual đã block
+        self.dual_blocked_pairs[dual_id] = {
+            "start_qr": start_qr,
+            "end_qrs": end_qrs
+        }
+        
+        # Publish block message cho roi_processor
+        block_payload = {
+            "dual_id": dual_id,
+            "start_qr": start_qr,
+            "end_qrs": end_qrs,
+            "action": "block",
+            "timestamp": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+        }
+        
+        self.queue.publish("dual_block", dual_id, block_payload)
+        
+        # Bắt đầu monitor end_qrs state
+        end_cam_slot = self.qr_to_slot.get(end_qrs)
+        if end_cam_slot:
+            end_cam, end_slot = end_cam_slot
+            self.dual_end_states[(end_cam, end_slot)] = {
+                "state": "empty",  # Bắt đầu với empty
+                "since": time.time(),
+                "dual_id": dual_id,
+                "stable_time": 20.0  # Cần stable 20s
+            }
+        
+        log_msg = f"[DUAL_BLOCK] Đã block start_qr={start_qr} cho dual {dual_id}, monitoring end_qrs={end_qrs}"
+        self.logger.info(log_msg)
+        print(log_msg)
+    
+    def _monitor_dual_end_states(self) -> None:
+        """Monitor trạng thái của các end_qrs trong dual pairs để unblock khi cần"""
+        current_time = time.time()
+        
+        # Duyệt qua tất cả dual end states đang monitor
+        for (end_cam, end_slot), state_info in list(self.dual_end_states.items()):
+            dual_id = state_info["dual_id"]
+            
+            # Kiểm tra trạng thái hiện tại của slot này
+            current_state_ok, current_since = self._is_slot_stable(end_cam, end_slot, expect_status="shelf")
+            
+            if current_state_ok and current_since is not None:
+                # End slot đang stable shelf
+                prev_state = state_info["state"]
+                if prev_state == "empty":
+                    # Chuyển từ empty -> shelf: bắt đầu đếm thời gian
+                    state_info["state"] = "shelf"
+                    state_info["since"] = current_since
+                    log_msg = f"[DUAL_MONITOR] End slot {end_cam}:{end_slot} (dual {dual_id}): empty -> shelf"
+                    self.logger.info(log_msg)
+                    print(log_msg)
+                elif prev_state == "shelf":
+                    # Đã ở trạng thái shelf: kiểm tra thời gian stable
+                    stable_duration = current_time - state_info["since"]
+                    if stable_duration >= state_info["stable_time"]:
+                        # Đủ thời gian stable: unblock start_qr
+                        self._unblock_dual_start(dual_id)
+                        # Xóa khỏi monitoring
+                        del self.dual_end_states[(end_cam, end_slot)]
+            else:
+                # End slot không phải shelf stable
+                if state_info["state"] == "shelf":
+                    # Chuyển từ shelf -> empty: reset
+                    state_info["state"] = "empty"
+                    state_info["since"] = current_time
+                    print(f"[DUAL_MONITOR] End slot {end_cam}:{end_slot} (dual {dual_id}): shelf -> empty (reset)")
+    
+    def _unblock_dual_start(self, dual_id: str) -> None:
+        """Unblock start_qr khi end_qrs đã stable shelf"""
+        if dual_id not in self.dual_blocked_pairs:
+            return
+        
+        blocked_info = self.dual_blocked_pairs[dual_id]
+        start_qr = blocked_info["start_qr"]
+        end_qrs = blocked_info["end_qrs"]
+        
+        # Publish unblock message
+        unblock_payload = {
+            "dual_id": dual_id,
+            "start_qr": start_qr,
+            "end_qrs": end_qrs,
+            "action": "unblock",
+            "reason": "end_qrs_stable_shelf",
+            "timestamp": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+        }
+        
+        self.queue.publish("dual_unblock", dual_id, unblock_payload)
+        
+        # Xóa khỏi danh sách blocked
+        del self.dual_blocked_pairs[dual_id]
+        
+        log_msg = f"[DUAL_UNBLOCK] Đã unblock start_qr={start_qr} cho dual {dual_id} (end_qrs={end_qrs} stable shelf)"
+        self.logger.info(log_msg)
+        print(log_msg)
+    
+    def _subscribe_dual_unblock_trigger(self) -> None:
+        """Subscribe dual_unblock_trigger topic từ roi_processor"""
+        self.logger.info("Bắt đầu subscribe dual_unblock_trigger...")
+        
+        last_trigger_id = 0
+        try:
+            with self.queue._connect() as conn:
+                cur = conn.execute(
+                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                    ("dual_unblock_trigger",),
+                )
+                row = cur.fetchone()
+                if row:
+                    last_trigger_id = row[0]
+        except Exception as e:
+            self.logger.error(f"Lỗi khi khởi tạo dual_unblock_trigger cursor: {e}")
+
+        while True:
+            try:
+                # Đọc dual_unblock_trigger messages
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("dual_unblock_trigger", last_trigger_id),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_trigger_id = msg_id
+                    
+                    # Xử lý trigger
+                    dual_id = payload.get("dual_id", "")
+                    if dual_id:
+                        self.logger.info(f"Nhận dual_unblock_trigger cho {dual_id}")
+                        self._unblock_dual_start(dual_id)
+                
+                time.sleep(0.2)
+                
+            except Exception as e:
+                self.logger.error(f"Lỗi khi subscribe dual_unblock_trigger: {e}")
+                time.sleep(1.0)
 
     def _maybe_publish_pair(self, start_qr: int, end_qr: int, stable_since_epoch: float) -> None:
         pair_id = f"{start_qr} -> {end_qr}"
@@ -320,6 +542,12 @@ class StablePairProcessor:
                     self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=False)
 
     def run(self) -> None:
+        # Start dual unblock trigger subscription thread
+        import threading
+        dual_trigger_thread = threading.Thread(target=self._subscribe_dual_unblock_trigger, daemon=True)
+        dual_trigger_thread.start()
+        self.logger.info("Started dual unblock trigger subscription thread")
+        
         # Prepare roi_detection trackers
         roi_det_cameras = self._iter_roi_detections()
         last_roi_det_id: Dict[str, int] = {}
@@ -328,7 +556,9 @@ class StablePairProcessor:
             if row:
                 last_roi_det_id[cam] = row["id"]
 
-        print(f"StablePairProcessor started. Watching cameras: {roi_det_cameras}")
+        start_msg = f"StablePairProcessor started. Watching cameras: {roi_det_cameras}"
+        self.logger.info(start_msg)
+        print(start_msg)
 
         while True:
             try:
@@ -376,14 +606,21 @@ class StablePairProcessor:
 
                 # Evaluate dual pairs
                 self._evaluate_dual_pairs()
+                
+                # Note: Dual end state monitoring is now handled by roi_processor
+                # via dual_unblock_trigger subscription thread
 
                 time.sleep(0.2)
 
             except KeyboardInterrupt:
-                print("Stopping StablePairProcessor...")
+                stop_msg = "Stopping StablePairProcessor..."
+                self.logger.info(stop_msg)
+                print(stop_msg)
                 break
             except Exception as e:
-                print(f"Error in StablePairProcessor loop: {e}")
+                error_msg = f"Error in StablePairProcessor loop: {e}"
+                self.logger.error(error_msg)
+                print(error_msg)
                 time.sleep(1.0)
 
 

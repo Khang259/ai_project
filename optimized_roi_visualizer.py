@@ -23,6 +23,7 @@ class ROIVisualizer:
         
         # Pre-computed colors và styles
         self.COLOR_ROI = (0, 255, 0)
+        self.COLOR_ROI_BLOCKED = (0, 0, 255)  # Red cho ROI bị blocked
         self.COLOR_SHELF_IN_ROI = (0, 0, 255)
         self.COLOR_EMPTY = (128, 0, 0)
         self.COLOR_OUTSIDE_ROI = (128, 128, 128)
@@ -39,13 +40,17 @@ class ROIVisualizer:
         return hash(json.dumps(roi_slots, sort_keys=True))
     
     def draw_roi_on_frame(self, frame: np.ndarray, camera_id: str, 
-                         roi_slots: List[Dict[str, Any]]) -> np.ndarray:
-        """Vẽ ROI với caching"""
+                         roi_slots: List[Dict[str, Any]], 
+                         blocked_rois: Optional[Dict[int, Any]] = None) -> np.ndarray:
+        """Vẽ ROI với caching và hiện thị trạng thái blocked"""
         if not roi_slots:
             return frame
         
+        blocked_rois = blocked_rois or {}
         roi_hash = self._compute_roi_hash(roi_slots)
-        cache_key = f"{camera_id}_{roi_hash}"
+        # Include blocked state in cache key
+        blocked_hash = hash(str(sorted(blocked_rois.keys())))
+        cache_key = f"{camera_id}_{roi_hash}_{blocked_hash}"
         
         # Check cache
         if cache_key in self._roi_overlay_cache:
@@ -55,21 +60,38 @@ class ROIVisualizer:
         # Create overlay
         overlay = np.zeros_like(frame)
         for i, slot in enumerate(roi_slots):
+            slot_number = i + 1
             points = slot["points"]
             if len(points) >= 3:
                 pts = np.array(points, dtype=np.int32)
-                cv2.polylines(overlay, [pts], True, self.COLOR_ROI, 2)
+                
+                # Chọn màu dựa trên trạng thái blocked
+                color = self.COLOR_ROI_BLOCKED if slot_number in blocked_rois else self.COLOR_ROI
+                thickness = 3 if slot_number in blocked_rois else 2
+                
+                cv2.polylines(overlay, [pts], True, color, thickness)
                 for point in points:
-                    cv2.circle(overlay, tuple(point), 4, self.COLOR_ROI, -1)
+                    cv2.circle(overlay, tuple(point), 4, color, -1)
+                
+                # Thêm label "BLOCKED" nếu bị block
+                if slot_number in blocked_rois:
+                    # Tính toạ độ trung tâm của ROI
+                    center_x = int(sum(p[0] for p in points) / len(points))
+                    center_y = int(sum(p[1] for p in points) / len(points))
+                    cv2.putText(overlay, "BLOCKED", (center_x - 30, center_y), 
+                               self.FONT, self.FONT_SCALE, color, self.FONT_THICKNESS)
         
         self._roi_overlay_cache[cache_key] = overlay
         return cv2.addWeighted(frame, 1, overlay, 0.3, 0)
     
     def draw_detections_on_frame(self, frame: np.ndarray, detections: List[Dict[str, Any]], 
-                                camera_id: str, roi_slots: List[Dict[str, Any]]) -> np.ndarray:
-        """Vẽ detections batch"""
+                                camera_id: str, roi_slots: List[Dict[str, Any]],
+                                blocked_rois: Optional[Dict[int, Any]] = None) -> np.ndarray:
+        """Vẽ detections batch với hiện thị trạng thái blocked"""
         if not detections:
             return frame
+        
+        blocked_rois = blocked_rois or {}
         
         for detection in detections:
             bbox = detection["bbox"]
@@ -77,13 +99,22 @@ class ROIVisualizer:
             x2, y2 = int(bbox["x2"]), int(bbox["y2"])
             class_name = detection["class_name"]
             confidence = detection.get("confidence", 1.0)
+            slot_number = detection.get("slot_number", 0)
             
             if class_name == "empty":
-                color = self.COLOR_EMPTY
-                label = "EMPTY [ROI]"
+                if slot_number in blocked_rois:
+                    color = self.COLOR_ROI_BLOCKED
+                    label = "EMPTY [BLOCKED]"
+                else:
+                    color = self.COLOR_EMPTY
+                    label = "EMPTY [ROI]"
             else:
-                color = self.COLOR_SHELF_IN_ROI
-                label = f"{class_name}: {confidence:.2f}"
+                if slot_number in blocked_rois:
+                    color = self.COLOR_ROI_BLOCKED
+                    label = f"{class_name}: {confidence:.2f} [BLOCKED]"
+                else:
+                    color = self.COLOR_SHELF_IN_ROI
+                    label = f"{class_name}: {confidence:.2f}"
             
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
             cv2.putText(frame, label, (x1, y1 - 5), 
@@ -200,8 +231,11 @@ class CameraDisplayThread(threading.Thread):
             time.sleep(wait_time)
             return True
     
-    def _process_frame(self, frame: np.ndarray, roi_slots: List, detections: List) -> np.ndarray:
+    def _process_frame(self, frame: np.ndarray, roi_slots: List, detections: List, 
+                      blocked_rois: Optional[Dict[int, Any]] = None) -> np.ndarray:
         """Xử lý frame: resize + scale coordinates + draw"""
+        blocked_rois = blocked_rois or {}
+        
         # Resize để giảm tải (giống camera_thread.py resize 640x360)
         h, w = frame.shape[:2]
         max_dim = self.config.get('max_display_resolution', 1280)
@@ -219,11 +253,11 @@ class CameraDisplayThread(threading.Thread):
         if scale != 1.0 and detections:
             detections = self._scale_detection_coordinates(detections, scale)
         
-        # Draw ROI và detections
+        # Draw ROI và detections với blocked state
         if roi_slots:
-            frame = self.visualizer.draw_roi_on_frame(frame, self.camera_id, roi_slots)
+            frame = self.visualizer.draw_roi_on_frame(frame, self.camera_id, roi_slots, blocked_rois)
         if detections:
-            frame = self.visualizer.draw_detections_on_frame(frame, detections, self.camera_id, roi_slots)
+            frame = self.visualizer.draw_detections_on_frame(frame, detections, self.camera_id, roi_slots, blocked_rois)
         
         return frame
     
@@ -310,9 +344,10 @@ class CameraDisplayThread(threading.Thread):
                 roi_slots = self.local_dict.get(f'{self.camera_id}_roi', [])
                 roi_detections_data = self.local_dict.get(f'{self.camera_id}_detections', {})
                 detections = roi_detections_data.get('roi_detections', [])
+                blocked_rois = self.local_dict.get(f'{self.camera_id}_blocked', {})
                 
-                # Process frame
-                processed_frame = self._process_frame(frame, roi_slots, detections)
+                # Process frame với blocked state
+                processed_frame = self._process_frame(frame, roi_slots, detections, blocked_rois)
                 
                 # Display
                 cv2.imshow(self.window_name, processed_frame)
@@ -382,6 +417,13 @@ class VideoDisplayManager:
         self._latest_roi_det_ref: Optional[Dict[str, Dict[str, Any]]] = None
         self._end_slot_states_ref: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None
         
+        # Dual blocking system
+        self.blocked_rois: Dict[str, Dict[int, Any]] = {}  # camera_id -> {slot_number -> block_info}
+        self.qr_to_slot: Dict[int, Tuple[str, int]] = {}  # qr_code -> (camera_id, slot_number)
+        
+        # Load QR mapping
+        self._load_qr_mapping()
+        
         # DB/queue
         self.db_path: str = "queues.db"
         self.queue: Optional[SQLiteQueue] = None
@@ -413,6 +455,184 @@ class VideoDisplayManager:
         
         return default_config
     
+    def _load_qr_mapping(self):
+        """Load QR to slot mapping từ pairing config"""
+        try:
+            pairing_config_path = os.path.join("logic", "slot_pairing_config.json")
+            if not os.path.exists(pairing_config_path):
+                return
+            
+            with open(pairing_config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            
+            # Load tất cả starts, starts_2, ends
+            for item in cfg.get("starts", []):
+                try:
+                    qr_code = int(item["qr_code"])
+                    camera_id = str(item["camera_id"])
+                    slot_number = int(item["slot_number"])
+                    self.qr_to_slot[qr_code] = (camera_id, slot_number)
+                except Exception:
+                    continue
+            
+            for item in cfg.get("starts_2", []):
+                try:
+                    qr_code = int(item["qr_code"])
+                    camera_id = str(item["camera_id"])
+                    slot_number = int(item["slot_number"])
+                    self.qr_to_slot[qr_code] = (camera_id, slot_number)
+                except Exception:
+                    continue
+            
+            for item in cfg.get("ends", []):
+                try:
+                    qr_code = int(item["qr_code"])
+                    camera_id = str(item["camera_id"])
+                    slot_number = int(item["slot_number"])
+                    self.qr_to_slot[qr_code] = (camera_id, slot_number)
+                except Exception:
+                    continue
+            
+            print(f"[VISUAL-QR] Đã load {len(self.qr_to_slot)} QR mappings")
+            
+        except Exception as e:
+            print(f"[VISUAL-QR] Lỗi khi load QR mapping: {e}")
+    
+    def _subscribe_dual_blocking(self):
+        """Subscribe dual_block và dual_unblock topics"""
+        if not self.queue:
+            return
+        
+        print("[VISUAL-DUAL] Bắt đầu subscribe dual blocking...")
+        
+        # Track last processed IDs
+        last_block_id = 0
+        last_unblock_id = 0
+        
+        # Get latest IDs
+        try:
+            with self.queue._connect() as conn:
+                # dual_block
+                cur = conn.execute(
+                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                    ("dual_block",),
+                )
+                row = cur.fetchone()
+                if row:
+                    last_block_id = row[0]
+                
+                # dual_unblock
+                cur = conn.execute(
+                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                    ("dual_unblock",),
+                )
+                row = cur.fetchone()
+                if row:
+                    last_unblock_id = row[0]
+        except Exception as e:
+            print(f"[VISUAL-DUAL] Lỗi khi khởi tạo cursors: {e}")
+        
+        while self.running:
+            try:
+                # Process dual_block messages
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("dual_block", last_block_id),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_block_id = msg_id
+                    
+                    # Process block message
+                    self._handle_dual_block(payload)
+                
+                # Process dual_unblock messages
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("dual_unblock", last_unblock_id),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_unblock_id = msg_id
+                    
+                    # Process unblock message
+                    self._handle_dual_unblock(payload)
+                
+                time.sleep(0.2)
+                
+            except Exception as e:
+                print(f"[VISUAL-DUAL] Lỗi khi subscribe: {e}")
+                time.sleep(1.0)
+    
+    def _handle_dual_block(self, payload: Dict[str, Any]):
+        """Xử lý dual block message"""
+        try:
+            start_qr = int(payload.get("start_qr", 0))
+            dual_id = payload.get("dual_id", "")
+            
+            # Tìm camera và slot tương ứng với start_qr
+            cam_slot = self.qr_to_slot.get(start_qr)
+            if not cam_slot:
+                print(f"[VISUAL-DUAL] Không tìm thấy slot cho start_qr={start_qr}")
+                return
+            
+            camera_id, slot_number = cam_slot
+            
+            # Block ROI
+            if camera_id not in self.blocked_rois:
+                self.blocked_rois[camera_id] = {}
+            
+            self.blocked_rois[camera_id][slot_number] = {
+                "dual_id": dual_id,
+                "start_qr": start_qr,
+                "blocked_at": time.time()
+            }
+            
+            print(f"[VISUAL-DUAL] Đã block ROI {camera_id}:slot_{slot_number} cho dual {dual_id}")
+            
+        except Exception as e:
+            print(f"[VISUAL-DUAL] Lỗi khi xử lý block: {e}")
+    
+    def _handle_dual_unblock(self, payload: Dict[str, Any]):
+        """Xử lý dual unblock message"""
+        try:
+            start_qr = int(payload.get("start_qr", 0))
+            dual_id = payload.get("dual_id", "")
+            
+            # Tìm camera và slot tương ứng với start_qr
+            cam_slot = self.qr_to_slot.get(start_qr)
+            if not cam_slot:
+                return
+            
+            camera_id, slot_number = cam_slot
+            
+            # Unblock ROI
+            if camera_id in self.blocked_rois:
+                if slot_number in self.blocked_rois[camera_id]:
+                    del self.blocked_rois[camera_id][slot_number]
+                    print(f"[VISUAL-DUAL] Đã unblock ROI {camera_id}:slot_{slot_number} cho dual {dual_id}")
+            
+        except Exception as e:
+            print(f"[VISUAL-DUAL] Lỗi khi xử lý unblock: {e}")
+    
     def _load_cam_config(self, cam_config_path: str):
         """Load camera RTSP URLs"""
         try:
@@ -441,6 +661,10 @@ class VideoDisplayManager:
             if self._latest_roi_det_ref:
                 for camera_id, roi_det_data in self._latest_roi_det_ref.items():
                     self.local_dict[f'{camera_id}_detections'] = roi_det_data
+            
+            # Update blocked ROIs cache
+            for camera_id, blocked_slots in self.blocked_rois.items():
+                self.local_dict[f'{camera_id}_blocked'] = blocked_slots
         
         except Exception as e:
             print(f"[UPDATE] Lỗi update local_dict: {e}")
@@ -483,6 +707,12 @@ class VideoDisplayManager:
             self.display_threads[camera_id] = thread
             thread.start()
             print(f"[DISPLAY] Khởi động thread {camera_id} (FPS: {target_fps})")
+        
+        # Khởi động dual blocking subscription thread
+        if self.queue:
+            dual_thread = threading.Thread(target=self._subscribe_dual_blocking, daemon=True)
+            dual_thread.start()
+            print("[DISPLAY] Khởi động dual blocking subscription")
         
         # Vòng lặp update local_dict (giống camera_process.py update loop)
         try:

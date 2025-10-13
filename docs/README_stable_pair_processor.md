@@ -46,8 +46,8 @@ T=30s:  Start slot: shelf (stable 20s) ✓
 
 T=35s:  Robot nhận lệnh di chuyển kệ
 
-T=60s:  Robot đặt kệ vào end slot
-        End slot: empty → shelf
+T=60s:  → shel Robot đặt kệ vào end slot
+        End slot: emptyf
         Start slot: vẫn shelf (đợi robot lấy)
 
 T=80s:  Robot lấy kệ khỏi start slot
@@ -66,37 +66,37 @@ T=80s:  Robot lấy kệ khỏi start slot
 │  │  - Subscribe topic: roi_detection                      │ │
 │  │  - For each camera: track latest processed ID          │ │
 │  └─────────────────┬──────────────────────────────────────┘ │
-│                    │                                         │
-│                    ▼                                         │
+│                    │                                        │
+│                    ▼                                        │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │         Compute Slot Status                            │ │
 │  │  - Extract slot_number from detections                 │ │
 │  │  - Determine status: shelf or empty                    │ │
 │  │  - Build status_by_slot: {slot_number: status}         │ │
 │  └─────────────────┬──────────────────────────────────────┘ │
-│                    │                                         │
-│                    ▼                                         │
+│                    │                                        │
+│                    ▼                                        │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │         Update Slot State                              │ │
 │  │  slot_state: {                                         │ │
-│  │    "cam-1:1": {status: "shelf", since: 1234567890.0}  │ │
-│  │    "cam-1:2": {status: "empty", since: 1234567895.0}  │ │
+│  │    "cam-1:1": {status: "shelf", since: 1234567890.0}   │ │
+│  │    "cam-1:2": {status: "empty", since: 1234567895.0}   │ │
 │  │  }                                                     │ │
 │  │  - Update if status changed                            │ │
 │  │  - Keep 'since' if status unchanged                    │ │
 │  └─────────────────┬──────────────────────────────────────┘ │
-│                    │                                         │
-│                    ▼                                         │
+│                    │                                        │
+│                    ▼                                        │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │         Evaluate Pairs                                 │ │
-│  │  For each (start_qr, end_qrs) in pairs:               │ │
-│  │    ├─> Check start slot stable (shelf, 20s)           │ │
-│  │    └─> For each end_qr:                               │ │
-│  │        └─> Check end slot stable (empty, 20s)         │ │
+│  │  For each (start_qr, end_qrs) in pairs:                │ │
+│  │    ├─> Check start slot stable (shelf, 20s)            │ │
+│  │    └─> For each end_qr:                                │ │
+│  │        └─> Check end slot stable (empty, 20s)          │ │
 │  │            └─> If both stable → Maybe publish          │ │
 │  └─────────────────┬──────────────────────────────────────┘ │
-│                    │                                         │
-│                    ▼                                         │
+│                    │                                        │
+│                    ▼                                        │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │         Publish with Deduplication                     │ │
 │  │  1. Check minute-based deduplication                   │ │
@@ -1100,3 +1100,33 @@ stable_pair_processor → stable_pairs queue → postAPI.py
 - `queue_store.py`: Queue operations
 - `roi_tool.py`: ROI configuration
 
+
+
+=================================================================================
+Thêm 1 logic sau cho post lệnh:
+Đọc file @slot_pairing_config. Với các cặp dual.
+1.	Nếu trạng thái của cặp (start_qr và end_qrs). 
+    1.1 Nếu start_qr ==1 và end_qrs ==0 và ổn định >20s thì sẽ xét tiếp trạng thái của start_qr_2. 
+    1.1.1 Nếu start_qr_2 ==1 thì sẽ lưu cặp stable_dual vào queue nội dung (bao gồm 4 điểm QR code):
+{
+    "dual_id": "111-> 222-> 333-> 444",
+    "start_slot": "111", 
+    "end_slot": "222",
+    "start_slot_2": "333", 
+    "end_slot": "444",
+    "stable_since": "2025-01-15T10:30:45Z"
+}
+   1.1.2 Else start_qr_2 ==0 thì sẽ lưu cặp stable_dual vào queue nội dung (bao gồm 2 điểm QR code):
+
+    "dual_id": "111-> 222",
+    "start_slot": "111", 
+    "end_slot": "222",
+    "stable_since": "2025-01-15T10:30:45Z"
+
+VỀ CƠ CHẾ LOGIC LỆNH ĐÔI
+1.	Cấu hình slot_...json:
+     thêm điểm start_2
+     thêm trường “dual”
+ 
+2. File stable_.py
+Truy vấn “slot_number” “camera_id” để xác định “start_qr_2” trong “dual” để xác nhận trạng thái 
