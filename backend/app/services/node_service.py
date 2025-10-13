@@ -5,6 +5,8 @@ from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
 import json
+from functools import lru_cache
+import uuid
 
 
 logger = get_logger("camera_ai_app")
@@ -26,22 +28,10 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists")
         raise ValueError("Node name already exists")
     
-    # Kiểm tra xem vị trí (row, column) đã được sử dụng chưa trong cùng area
-    existing_position = await nodes.find_one({
-        "row": node_in.row,
-        "column": node_in.column,
-        "area": node_in.area
-    })
-
-    if existing_position:
-        logger.warning(f"Node creation failed: position ({node_in.row}, {node_in.column}) already occupied in area '{node_in.area}'")
-        raise ValueError("Position already occupied in this area")
     
     node_data = {
         "node_name": node_in.node_name,
         "node_type": node_in.node_type,
-        "row": node_in.row,
-        "column": node_in.column,
         "area": node_in.area,
         "start": node_in.start,
         "end": node_in.end,
@@ -88,21 +78,6 @@ async def update_node(node_id: str, node_update: NodeUpdate) -> Optional[NodeOut
         if existing_name:
             logger.warning(f"Node update failed: node_name '{update_data['node_name']}' already exists")
             raise ValueError("Node name already exists")
-    
-    # Kiểm tra vị trí mới có trùng không (nếu có thay đổi)
-    if "row" in update_data or "column" in update_data:
-        new_row = update_data.get("row", existing_node["row"])
-        new_column = update_data.get("column", existing_node["column"])
-        
-        existing_position = await nodes.find_one({
-            "row": new_row,
-            "column": new_column,
-            "area": update_data.get("area", existing_node["area"]),
-            "_id": {"$ne": ObjectId(node_id)}
-        })
-        if existing_position:
-            logger.warning(f"Node update failed: position ({new_row}, {new_column}) already occupied")
-            raise ValueError("Position already occupied")
     
     update_data["updated_at"] = datetime.utcnow()
     
@@ -157,16 +132,20 @@ async def get_nodes_by_area_and_type(area: str, node_type: str) -> List[NodeOut]
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
 
+@lru_cache
+def load_config_caller():
+    with open("app/services/config_caller.json") as f:
+        return json.load(f)
+
 def get_process_code(node_type: str, area: str) -> str:
     """Lấy process code từ config_caller.json"""
-    with open("app/services/config_caller.json", "r") as f:
-        config_caller = json.load(f)
+    config_caller = load_config_caller()
     return config_caller[area][node_type]["modelProcessCode"]
 
 def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
     process_code = get_process_code(node.node_type, node.area)
-    order_id = datetime.now().timestamp()
+    order_id = str(uuid.uuid4())
 
     if node.node_type == "Supply" or node.node_type == "Return":
         payload = {
@@ -197,7 +176,3 @@ def process_caller(node: ProcessCaller, priority: int) -> str:
         }
 
     return payload
-
-def cancel_task(order_id: str) -> bool:
-    """Hủy task"""
-    return True

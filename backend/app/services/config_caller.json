@@ -12,7 +12,7 @@
     },
     "DCC-MS2" : {
         "Supply" : {
-            "modelProcessCode": "supply_DCC_MS2"
+            "modelProcessCode": "capxe2"
         },
         "Return" : {
             "modelProcessCode": "return_DCC_MS2"

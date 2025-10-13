@@ -7,6 +7,7 @@ logger = get_logger("camera_ai_app")
 async def save_agv_data(payload: list):
     agv_collection = get_collection("agv_data")
     saved_count = 0
+    agv_data = []
     
     try:
         for record in payload:
@@ -22,10 +23,11 @@ async def save_agv_data(payload: list):
                     "payLoad": record.get("payLoad"),
                     "created_at": datetime.now()
                 }
-
-                result = await agv_collection.insert_one(agv_data)
+                agv_data.append(agv_data)
                 saved_count += 1
         logger.info(f"Successfully saved {saved_count} AGV records")
+        if len(agv_data) > 0:
+            await agv_collection.insert_many(agv_data)
         return {"status": "success", "saved_count": saved_count}
 
     except Exception as e:
