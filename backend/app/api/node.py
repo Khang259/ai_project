@@ -36,12 +36,11 @@ async def create_new_node(
 
 @router.get("/", response_model=List[NodeOut])
 async def get_nodes_by_owner(
-    node_type: str,
     owner: str,
 ):
     """Lấy danh sách nodes theo owner"""
     try:
-        return await get_nodes(node_type, owner)
+        return await get_nodes(owner)
     except Exception as e:
         logger.error(f"Error getting nodes: {str(e)}")
         raise HTTPException(

@@ -197,11 +197,11 @@ async def delete_node(node_id: str) -> bool:
     logger.info(f"Node deleted successfully: {node_id}")
     return True
 
-async def get_nodes(node_type: str, owner: str) -> List[NodeOut]:
+async def get_nodes(owner: str) -> List[NodeOut]:
     """Lấy danh sách nodes theo owner"""
     nodes = get_collection("nodes")
     
-    cursor = nodes.find({"node_type": node_type, "owner": owner})
+    cursor = nodes.find({"owner": owner})
     node_list = await cursor.to_list(length=None)
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
