@@ -38,7 +38,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 20.0, cooldown_seconds: float = 10.0) -> None:
+                 stable_seconds: float = 5.0, cooldown_seconds: float = 10.0) -> None:
         self.queue = SQLiteQueue(db_path)
         self.config_path = config_path
         self.stable_seconds = stable_seconds
@@ -58,6 +58,11 @@ class StablePairProcessor:
         # Pairing config
         self.qr_to_slot: Dict[int, Tuple[str, int]] = {}  # qr_code -> (camera_id, slot_number)
         self.pairs: List[Tuple[int, List[int]]] = []      # (start_qr, [end_qrs])
+        
+        # Dual pairing config
+        self.dual_pairs: List[Dict[str, int]] = []        # [{start_qr, end_qrs, start_qr_2, end_qrs_2}]
+        self.dual_published_at: Dict[str, float] = {}     # dual_id -> last_published_epoch
+        self.dual_published_by_minute: Dict[str, Dict[str, bool]] = {}  # dual_id -> {minute_key: True}
 
         self._load_pairing_config()
 
@@ -65,9 +70,11 @@ class StablePairProcessor:
         with open(self.config_path, "r", encoding="utf-8") as f:
             cfg = json.load(f)
 
-        # Build qr->(camera, slot) from starts and ends
+        # Build qr->(camera, slot) from starts, starts_2 and ends
         self.qr_to_slot.clear()
         for item in cfg.get("starts", []):
+            self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+        for item in cfg.get("starts_2", []):
             self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
         for item in cfg.get("ends", []):
             self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
@@ -82,6 +89,17 @@ class StablePairProcessor:
             else:
                 end_qrs = [int(end_qrs_raw)]
             self.pairs.append((start_qr, end_qrs))
+        
+        # Load dual pairs configuration
+        self.dual_pairs.clear()
+        for dual in cfg.get("dual", []):
+            dual_config = {
+                "start_qr": int(dual["start_qr"]),
+                "end_qrs": int(dual["end_qrs"]),
+                "start_qr_2": int(dual["start_qr_2"]),
+                "end_qrs_2": int(dual["end_qrs_2"])
+            }
+            self.dual_pairs.append(dual_config)
 
     # No ROI polygons dependency anymore
 
@@ -157,6 +175,70 @@ class StablePairProcessor:
         
         self.published_by_minute[pair_id][minute_key] = True
 
+    def _maybe_publish_dual(self, dual_config: Dict[str, int], stable_since_epoch: float, is_four_points: bool) -> None:
+        """Publish dual pair based on configuration and stability"""
+        start_qr = dual_config["start_qr"]
+        end_qrs = dual_config["end_qrs"]
+        start_qr_2 = dual_config["start_qr_2"]
+        end_qrs_2 = dual_config["end_qrs_2"]
+        
+        if is_four_points:
+            dual_id = f"{start_qr}-> {end_qrs}-> {start_qr_2}-> {end_qrs_2}"
+        else:
+            dual_id = f"{start_qr}-> {end_qrs}"
+        
+        # Check if already published in the same minute
+        if self._is_dual_already_published_this_minute(dual_id, stable_since_epoch):
+            return
+        
+        # Check cooldown period
+        last_pub = self.dual_published_at.get(dual_id, 0.0)
+        now = time.time()
+        if now - last_pub < self.cooldown_seconds:
+            return
+        
+        # Mark as published for this minute and update cooldown
+        self._mark_dual_published_this_minute(dual_id, stable_since_epoch)
+        self.dual_published_at[dual_id] = now
+
+        if is_four_points:
+            payload = {
+                "dual_id": dual_id,
+                "start_slot": str(start_qr),
+                "end_slot": str(end_qrs),
+                "start_slot_2": str(start_qr_2),
+                "end_slot_2": str(end_qrs_2),
+                "stable_since": datetime.utcfromtimestamp(stable_since_epoch).replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z"),
+            }
+        else:
+            payload = {
+                "dual_id": dual_id,
+                "start_slot": str(start_qr),
+                "end_slot": str(end_qrs),
+                "stable_since": datetime.utcfromtimestamp(stable_since_epoch).replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z"),
+            }
+        
+        # Use dual_id as key for convenience
+        self.queue.publish("stable_dual", dual_id, payload)
+
+    def _is_dual_already_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> bool:
+        """Check if this dual pair was already published in the same minute"""
+        minute_key = self._get_minute_key(stable_since_epoch)
+        
+        if dual_id not in self.dual_published_by_minute:
+            self.dual_published_by_minute[dual_id] = {}
+        
+        return minute_key in self.dual_published_by_minute[dual_id]
+    
+    def _mark_dual_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> None:
+        """Mark this dual pair as published for this minute"""
+        minute_key = self._get_minute_key(stable_since_epoch)
+        
+        if dual_id not in self.dual_published_by_minute:
+            self.dual_published_by_minute[dual_id] = {}
+        
+        self.dual_published_by_minute[dual_id][minute_key] = True
+
     def _maybe_publish_pair(self, start_qr: int, end_qr: int, stable_since_epoch: float) -> None:
         pair_id = f"{start_qr} -> {end_qr}"
         
@@ -182,6 +264,60 @@ class StablePairProcessor:
         }
         # Use pair_id as key for convenience
         self.queue.publish("stable_pairs", pair_id, payload)
+    
+    def _evaluate_dual_pairs(self) -> None:
+        """Evaluate dual pairs according to the specified logic"""
+        for dual_config in self.dual_pairs:
+            start_qr = dual_config["start_qr"]
+            end_qrs = dual_config["end_qrs"]
+            start_qr_2 = dual_config["start_qr_2"]
+            end_qrs_2 = dual_config["end_qrs_2"]
+            
+            # Check if QR codes are mapped to slots
+            start_cam_slot = self.qr_to_slot.get(start_qr)
+            end_cam_slot = self.qr_to_slot.get(end_qrs)
+            start_cam_slot_2 = self.qr_to_slot.get(start_qr_2)
+            end_cam_slot_2 = self.qr_to_slot.get(end_qrs_2)
+            
+            if not start_cam_slot or not end_cam_slot:
+                continue
+                
+            start_cam, start_slot = start_cam_slot
+            end_cam, end_slot = end_cam_slot
+            
+            # Check first pair: start_qr == shelf (1) && end_qrs == empty (0)
+            start_ok, start_since = self._is_slot_stable(start_cam, start_slot, expect_status="shelf")
+            if not start_ok or start_since is None:
+                continue
+                
+            end_ok, end_since = self._is_slot_stable(end_cam, end_slot, expect_status="empty")
+            if not end_ok or end_since is None:
+                continue
+            
+            # First pair is stable, now check second pair
+            if not start_cam_slot_2 or not end_cam_slot_2:
+                # If second pair not configured, publish 2-point dual
+                stable_since_epoch = max(start_since, end_since)
+                self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=False)
+                continue
+            
+            start_cam_2, start_slot_2 = start_cam_slot_2
+            end_cam_2, end_slot_2 = end_cam_slot_2
+            
+            # Check start_qr_2 status
+            start_2_ok, start_2_since = self._is_slot_stable(start_cam_2, start_slot_2, expect_status="shelf")
+            
+            if start_2_ok and start_2_since is not None:
+                # start_qr_2 == 1 (shelf), publish 4-point dual
+                # Chỉ cần start_qr_2 == shelf là đủ, không cần kiểm tra end_qrs_2
+                stable_since_epoch = max(start_since, end_since, start_2_since)
+                self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=True)
+            else:
+                # start_qr_2 == 0 (empty), publish 2-point dual
+                start_2_empty_ok, start_2_empty_since = self._is_slot_stable(start_cam_2, start_slot_2, expect_status="empty")
+                if start_2_empty_ok and start_2_empty_since is not None:
+                    stable_since_epoch = max(start_since, end_since, start_2_empty_since)
+                    self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=False)
 
     def run(self) -> None:
         # Prepare roi_detection trackers
@@ -237,6 +373,9 @@ class StablePairProcessor:
 
                         stable_since_epoch = max(start_since, end_since)
                         self._maybe_publish_pair(start_qr, end_qr, stable_since_epoch)
+
+                # Evaluate dual pairs
+                self._evaluate_dual_pairs()
 
                 time.sleep(0.2)
 
