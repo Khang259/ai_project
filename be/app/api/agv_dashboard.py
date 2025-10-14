@@ -4,9 +4,11 @@ from app.services.agv_dashboard_service import (
     get_data_by_time, 
     get_agv_position,
     get_all_robots_payload_data,
-    get_all_robots_work_status
+    get_all_robots_work_status,
+    reverse_dashboard_data
 )
 from app.api.agv_websocket import manager
+from datetime import datetime
 import json
 
 router = APIRouter()
@@ -98,7 +100,6 @@ async def get_work_status(
 @router.get("/all-robots-payload-statistics")
 async def get_all_robots_payload_statistics(
     time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
-    state: str = Query(..., description="AGV state: 'InTask', 'Idle', etc."),
     device_code: str = Query(None, description="Filter by specific device code (optional)")
 ):
     """
@@ -119,7 +120,6 @@ async def get_all_robots_payload_statistics(
     try:
         result = await get_all_robots_payload_data(
             time_filter=time_filter,
-            state=state,
             device_code=device_code
         )
         
@@ -165,6 +165,35 @@ async def get_all_robots_work_status_endpoint(
         
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/reverse-dashboard")
+async def reverse_dashboard_endpoint():
+    """
+    Calculate and save daily statistics for all AGVs to database
+    
+    This endpoint processes AGV data for TODAY (00:00:00 to 23:59:59) and calculates both 
+    payload statistics (loaded/unloaded) and work status (InTask/Idle) for each robot,
+    then saves the results to the agv_daily_statistics collection.
+    
+    Returns:
+        dict: Processing results including total records inserted
+    
+    Example:
+        POST /api/agv-dashboard/reverse-dashboard
+    """
+    try:
+        # Call service function
+        result = await reverse_dashboard_data()
+        
+        if result["status"] == "error":
+            raise HTTPException(status_code=500, detail=result["message"])
+        
+        return result
+        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
