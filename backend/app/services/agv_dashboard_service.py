@@ -50,6 +50,9 @@ def get_agv_position(payload: list):
 
     return agv_info
 
+async def reverse_dashboard_data():
+    
+    return None
 
 def get_time_filter_simple(time_filter: str):
     """
@@ -313,5 +316,306 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
         }
 
 
+async def get_all_robots_payload_data(
+    time_filter: str,
+    state: str,
+    device_code: str = None
+):
+    """
+    Lấy dữ liệu payload (có tải/không tải) của TẤT CẢ robot, có thể lọc theo device_code hoặc device_name
+    
+    Args:
+        time_filter: "d", "w", "m"
+        state: trạng thái cụ thể ("InTask", "Idle", etc.)
+        device_code: mã thiết bị để lọc (tùy chọn)
+        device_name: tên thiết bị để lọc (tùy chọn)
+    
+    Returns:
+        dict: dữ liệu payload của từng robot riêng biệt
+    """
+    try:
+        start, end = get_time_filter_simple(time_filter)
+        agv_collection = get_collection("agv_data")
+
+        # Base query
+        base_query = {
+            "created_at": {"$gte": start, "$lt": end}
+        }
+
+        # Lọc theo device_code hoặc device_name nếu có
+        if device_code:
+            base_query["device_code"] = device_code
+
+        # Xác định format date theo time_filter
+        date_format = {
+            "d": "%Y-%m-%d",      # Theo ngày
+            "w": "%Y-W%U",        # Theo tuần
+            "m": "%Y-%m"          # Theo tháng
+        }[time_filter]
+        
+        # Pipeline để lấy dữ liệu của từng robot riêng biệt
+        pipeline = [
+            {"$match": base_query},
+            {
+                "$group": {
+                    "_id": {
+                        "device_code": "$device_code",
+                        "device_name": "$device_name",
+                        "date": {
+                            "$dateToString": {
+                                "format": date_format,
+                                "date": "$created_at"
+                            }
+                        },
+                        "state": "$state",
+                        "payLoad": "$payLoad"
+                    },
+                    "count": {"$sum": 1}
+                }
+            },
+            {"$match": {"_id.state": state}},
+            {"$sort": {"_id.device_code": 1, "_id.date": 1}}
+        ]
+        
+        cursor = agv_collection.aggregate(pipeline)
+        result = await cursor.to_list(length=None)
+        
+        # Tổ chức dữ liệu theo từng robot
+        robots_data = {}
+        
+        for item in result:
+            device_code_key = item["_id"]["device_code"]
+            device_name_key = item["_id"]["device_name"]
+            date_key = item["_id"]["date"]
+            payload = item["_id"]["payLoad"]
+            count = item["count"]
+            
+            # Chỉ xử lý nếu payload là "0.0" hoặc "1.0"
+            if payload in ["0.0", "1.0"]:
+                # Khởi tạo robot nếu chưa có
+                if device_code_key not in robots_data:
+                    robots_data[device_code_key] = {
+                        "device_code": device_code_key,
+                        "device_name": device_name_key,
+                        "time_series": {},
+                        "summary": {
+                            "total_payLoad_0_0_count": 0,
+                            "total_payLoad_1_0_count": 0,
+                            "total_records": 0,
+                            "total_payLoad_0_0_percentage": 0,
+                            "total_payLoad_1_0_percentage": 0
+                        }
+                    }
+                
+                # Khởi tạo date nếu chưa có
+                if date_key not in robots_data[device_code_key]["time_series"]:
+                    robots_data[device_code_key]["time_series"][date_key] = {
+                        "payLoad_0_0_count": 0,
+                        "payLoad_1_0_count": 0,
+                        "total_records": 0
+                    }
+                
+                # Cập nhật số lượng
+                if payload == "0.0":
+                    robots_data[device_code_key]["time_series"][date_key]["payLoad_0_0_count"] = count
+                    robots_data[device_code_key]["summary"]["total_payLoad_0_0_count"] += count
+                elif payload == "1.0":
+                    robots_data[device_code_key]["time_series"][date_key]["payLoad_1_0_count"] = count
+                    robots_data[device_code_key]["summary"]["total_payLoad_1_0_count"] += count
+                
+                robots_data[device_code_key]["time_series"][date_key]["total_records"] += count
+                robots_data[device_code_key]["summary"]["total_records"] += count
+        
+        # Tính phần trăm cho từng robot
+        for device_code_key in robots_data:
+            robot = robots_data[device_code_key]
+            
+            # Tính phần trăm cho từng ngày/tuần/tháng
+            for date_key in robot["time_series"]:
+                total_daily = robot["time_series"][date_key]["total_records"]
+                if total_daily > 0:
+                    robot["time_series"][date_key]["payLoad_0_0_percentage"] = round(
+                        (robot["time_series"][date_key]["payLoad_0_0_count"] / total_daily) * 100, 2
+                    )
+                    robot["time_series"][date_key]["payLoad_1_0_percentage"] = round(
+                        (robot["time_series"][date_key]["payLoad_1_0_count"] / total_daily) * 100, 2
+                    )
+                else:
+                    robot["time_series"][date_key]["payLoad_0_0_percentage"] = 0
+                    robot["time_series"][date_key]["payLoad_1_0_percentage"] = 0
+            
+            # Tính phần trăm tổng thể cho robot
+            total_records = robot["summary"]["total_records"]
+            if total_records > 0:
+                robot["summary"]["total_payLoad_0_0_percentage"] = round(
+                    (robot["summary"]["total_payLoad_0_0_count"] / total_records) * 100, 2
+                )
+                robot["summary"]["total_payLoad_1_0_percentage"] = round(
+                    (robot["summary"]["total_payLoad_1_0_count"] / total_records) * 100, 2
+                )
+        
+        return {
+            "status": "success",
+            "state": state,
+            "time_range": f"{start} to {end}",
+            "time_unit": time_filter,
+            "total_robots": len(robots_data),
+            "robots": list(robots_data.values())
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting all robots payload data: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+async def get_all_robots_work_status(
+    time_filter: str,
+    device_code: str = None
+):
+    """
+    Lấy dữ liệu trạng thái làm việc (InTask/Idle) của TẤT CẢ robot, có thể lọc theo device_code hoặc device_name
+    
+    Args:
+        time_filter: "d", "w", "m"
+        device_code: mã thiết bị để lọc (tùy chọn)
+        device_name: tên thiết bị để lọc (tùy chọn)
+    
+    Returns:
+        dict: dữ liệu trạng thái làm việc của từng robot riêng biệt
+    """
+    try:
+        start, end = get_time_filter_simple(time_filter)
+        agv_collection = get_collection("agv_data")
+
+        # Base query
+        base_query = {
+            "created_at": {"$gte": start, "$lt": end}
+        }
+
+        # Lọc theo device_code hoặc device_name nếu có
+        if device_code:
+            base_query["device_code"] = device_code
+
+        # Xác định format date theo time_filter
+        date_format = {
+            "d": "%Y-%m-%d",      # Theo ngày
+            "w": "%Y-W%U",        # Theo tuần
+            "m": "%Y-%m"          # Theo tháng
+        }[time_filter]
+        
+        # Pipeline để lấy dữ liệu của từng robot riêng biệt
+        pipeline = [
+            {"$match": base_query},
+            {
+                "$group": {
+                    "_id": {
+                        "device_code": "$device_code",
+                        "device_name": "$device_name",
+                        "date": {
+                            "$dateToString": {
+                                "format": date_format,
+                                "date": "$created_at"
+                            }
+                        },
+                        "state": "$state"
+                    },
+                    "count": {"$sum": 1}
+                }
+            },
+            {"$sort": {"_id.device_code": 1, "_id.date": 1}}
+        ]
+        
+        cursor = agv_collection.aggregate(pipeline)
+        result = await cursor.to_list(length=None)
+        
+        # Tổ chức dữ liệu theo từng robot
+        robots_data = {}
+        
+        for item in result:
+            device_code_key = item["_id"]["device_code"]
+            device_name_key = item["_id"]["device_name"]
+            date_key = item["_id"]["date"]
+            state_value = item["_id"]["state"]
+            count = item["count"]
+            
+            # Khởi tạo robot nếu chưa có
+            if device_code_key not in robots_data:
+                robots_data[device_code_key] = {
+                    "device_code": device_code_key,
+                    "device_name": device_name_key,
+                    "time_series": {},
+                    "summary": {
+                        "total_InTask_count": 0,
+                        "total_Idle_count": 0,
+                        "total_records": 0,
+                        "total_InTask_percentage": 0,
+                        "total_Idle_percentage": 0
+                    }
+                }
+            
+            # Khởi tạo date nếu chưa có
+            if date_key not in robots_data[device_code_key]["time_series"]:
+                robots_data[device_code_key]["time_series"][date_key] = {
+                    "InTask_count": 0,
+                    "Idle_count": 0,
+                    "total_records": 0
+                }
+            
+            # Cập nhật số lượng
+            if state_value == "InTask":
+                robots_data[device_code_key]["time_series"][date_key]["InTask_count"] = count
+                robots_data[device_code_key]["summary"]["total_InTask_count"] += count
+            elif state_value == "Idle":
+                robots_data[device_code_key]["time_series"][date_key]["Idle_count"] = count
+                robots_data[device_code_key]["summary"]["total_Idle_count"] += count
+            
+            robots_data[device_code_key]["time_series"][date_key]["total_records"] += count
+            robots_data[device_code_key]["summary"]["total_records"] += count
+        
+        # Tính phần trăm cho từng robot
+        for device_code_key in robots_data:
+            robot = robots_data[device_code_key]
+            
+            # Tính phần trăm cho từng ngày/tuần/tháng
+            for date_key in robot["time_series"]:
+                total_daily = robot["time_series"][date_key]["total_records"]
+                if total_daily > 0:
+                    robot["time_series"][date_key]["InTask_percentage"] = round(
+                        (robot["time_series"][date_key]["InTask_count"] / total_daily) * 100, 2
+                    )
+                    robot["time_series"][date_key]["Idle_percentage"] = round(
+                        (robot["time_series"][date_key]["Idle_count"] / total_daily) * 100, 2
+                    )
+                else:
+                    robot["time_series"][date_key]["InTask_percentage"] = 0
+                    robot["time_series"][date_key]["Idle_percentage"] = 0
+            
+            # Tính phần trăm tổng thể cho robot
+            total_records = robot["summary"]["total_records"]
+            if total_records > 0:
+                robot["summary"]["total_InTask_percentage"] = round(
+                    (robot["summary"]["total_InTask_count"] / total_records) * 100, 2
+                )
+                robot["summary"]["total_Idle_percentage"] = round(
+                    (robot["summary"]["total_Idle_count"] / total_records) * 100, 2
+                )
+        
+        return {
+            "status": "success",
+            "time_range": f"{start} to {end}",
+            "time_unit": time_filter,
+            "total_robots": len(robots_data),
+            "robots": list(robots_data.values())
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting all robots work status: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 
