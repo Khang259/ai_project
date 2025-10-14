@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,31 +6,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 
-export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
+export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, userData }) {
   const [formData, setFormData] = useState({
     username: "",
-    password: "",
     roles: ["user"], // Default role theo backend
     permissions: []
   });
 
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    if (isOpen && userData) {
+      setFormData({
+        username: userData.username || "",
+        roles: Array.isArray(userData.roles) && userData.roles.length > 0 ? [userData.roles[0]] : ["user"],
+        permissions: userData.permissions || []
+      });
+    }
+  }, [isOpen, userData]);
+
   const validateForm = () => {
     const newErrors = {};
-    
     if (!formData.username.trim()) {
       newErrors.username = "Tên người dùng là bắt buộc";
     } else if (formData.username.length < 3) {
       newErrors.username = "Tên người dùng phải có ít nhất 3 ký tự";
     }
-    
-    if (!formData.password.trim()) {
-      newErrors.password = "Mật khẩu là bắt buộc";
-    } else if (formData.password.length < 3) {
-      newErrors.password = "Mật khẩu phải có ít nhất 3 ký tự";
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -38,7 +39,10 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      onSubmit({
+        username: formData.username,
+        roles: formData.roles
+      });
     }
   };
 
@@ -60,7 +64,6 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
   const handleClose = () => {
     setFormData({
       username: "",
-      password: "",
       roles: ["user"]
     });
     setErrors({});
@@ -74,9 +77,9 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
       <Card className="w-full max-w-md mx-4 bg-gray-300" style={{ borderRadius: "30px" }}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle>Thêm người dùng mới</CardTitle>
+            <CardTitle>Cập nhật người dùng</CardTitle>
             <CardDescription>
-              Tạo tài khoản người dùng mới trong hệ thống
+              Cập nhật người dùng trong hệ thống
             </CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={handleClose}>
@@ -102,21 +105,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
               )}
             </div>
 
-            <div >
-              <Label htmlFor="password">Mật khẩu *</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Nhập mật khẩu"
-                style={{ backgroundColor: "#fff" }} // Đổi màu nền placeholder
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                className={errors.password ? "border-red-500" : ""}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password}</p>
-              )}
-            </div>
+            {/* Password không cập nhật tại đây, tách riêng endpoint đổi mật khẩu */}
 
             <div className="space-y-2">
               <Label htmlFor="roles">Vai trò *</Label>
@@ -128,11 +117,11 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
                   <SelectValue placeholder="Chọn role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* <SelectItem value="viewer">Viewer</SelectItem> */}
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="operator">Superuser</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="superuser">Superuser</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,7 +132,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
               Hủy
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Đang tạo..." : "Tạo người dùng"}
+              {loading ? "Đang cập nhật..." : "Cập nhật người dùng"}
             </Button>
           </CardFooter>
         </form>

@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { BarChart3, Activity, Clock, CheckCircle, XCircle, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download } from "lucide-react";
 import { useArea } from "@/contexts/AreaContext";
+import { getStatistics, getPayloadStatistics, filterWorkStatusData, convertWorkStatusToChartData, filterPayloadStatisticsData, convertPayloadStatisticsToChartData } from "@/services/statistics";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart as RechartsPieChart,
@@ -22,16 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
-const performanceData = [
-  { name: "AGV_01", executions: 4000, success: 3800, failed: 200, avgDuration: 45 },
-  { name: "AGV_02", executions: 3000, success: 2850, failed: 150, avgDuration: 42 },
-  { name: "AGV_03", executions: 5000, success: 4900, failed: 100, avgDuration: 38 },
-  { name: "AGV_04", executions: 2780, success: 2650, failed: 130, avgDuration: 41 },
-  { name: "AGV_05", executions: 1890, success: 1820, failed: 70, avgDuration: 39 },
-  { name: "AGV_06", executions: 2390, success: 2300, failed: 90, avgDuration: 37 },
-  { name: "AGV_07", executions: 3490, success: 3400, failed: 90, avgDuration: 35 },
-]
-
 const workflowDistribution = [
   { name: "Product Sync", value: 35, color: "#8b5cf6" },
   { name: "Data Processing", value: 25, color: "#3b82f6" },
@@ -42,7 +31,67 @@ const workflowDistribution = [
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("30d")
+  const [workStatusData, setWorkStatusData] = useState(null)
+  const [payloadData, setPayloadData] = useState(null)
+  const [workStatusChartData, setWorkStatusChartData] = useState([])
+  const [payloadChartData, setPayloadChartData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const { currAreaName, currAreaId } = useArea()
+
+  // Hàm để lấy dữ liệu từ backend
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Chuyển đổi timeRange từ frontend sang backend format
+      const timeFilterMap = {
+        "7d": "d",
+        "30d": "d", 
+        "90d": "w",
+        "1y": "m"
+      }
+      const backendTimeFilter = timeFilterMap[timeRange] || "d"
+      // Lấy dữ liệu work status
+      const workStatusResponse = await getStatistics(backendTimeFilter)
+      setWorkStatusData(workStatusResponse)
+      
+      // Lấy dữ liệu payload statistics
+      const payloadResponse = await getPayloadStatistics(backendTimeFilter, "InTask")
+      setPayloadData(payloadResponse)
+      
+      // Chuyển đổi sang format cho charts
+      const workStatusChartData = convertWorkStatusToChartData(workStatusResponse)
+      const payloadChartData = convertPayloadStatisticsToChartData(payloadResponse)
+      console.log("[Analytics] Chart data work status:", workStatusChartData)
+      console.log("[Analytics] Chart data payload:", payloadChartData)
+      setWorkStatusChartData(workStatusChartData)
+      setPayloadChartData(payloadChartData)
+      
+    } catch (err) {
+      console.error("[Analytics] Lỗi khi lấy dữ liệu:", err)
+      setError(err.message || "Có lỗi xảy ra khi tải dữ liệu")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // useEffect để tự động refresh dữ liệu mỗi 5 giây
+  useEffect(() => {
+    // Lấy dữ liệu lần đầu
+    fetchData()
+    
+    // Thiết lập interval để refresh mỗi 5 giây
+    const interval = setInterval(() => {
+      fetchData()
+    }, 60000)
+    
+    // Cleanup interval khi component unmount
+    return () => {
+      clearInterval(interval)
+    }
+  }, [timeRange]) // Re-run khi timeRange thay đổi
 
   return (
       <div className="space-y-8">
@@ -82,15 +131,19 @@ export default function AnalyticsPage() {
               {/* Execution Trends */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian tải và không tải</CardTitle>
+                  <CardTitle>Thời gian làm và nghỉ</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceData}>
+                      <BarChart data={workStatusChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
-                        <YAxis stroke="#6b7280" fontSize={12} />
+                        <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
+                        <YAxis 
+                        stroke="#6b7280" 
+                        fontSize={12} 
+                        domain={[0, 100]}
+                        />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "white",
@@ -99,7 +152,7 @@ export default function AnalyticsPage() {
                             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                           }}
                         />
-                        <Bar dataKey="success" fill="#10b981" name="Success" />
+                        <Bar dataKey="InTask_percentage" fill="#10b981" name="InTask %" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -109,15 +162,15 @@ export default function AnalyticsPage() {
               {/* Success vs Failed */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian làm và nghỉ</CardTitle>
+                  <CardTitle>Thời gian tải và không tải</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceData}>
+                      <BarChart data={payloadChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
-                        <YAxis stroke="#6b7280" fontSize={12} />
+                        <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
+                        <YAxis stroke="#6b7280" fontSize={12} domain={[0, 100]} />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "white",
@@ -126,8 +179,7 @@ export default function AnalyticsPage() {
                             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                           }}
                         />
-                        <Bar dataKey="success" fill="#10b981" name="Success" />
-
+                        <Bar dataKey="payLoad_1_0_percentage" fill="#ef4444" name="Payload %" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

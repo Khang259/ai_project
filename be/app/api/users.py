@@ -22,13 +22,17 @@ async def get_users(
     
     result = []
     for user in users:
+        role_ids = [str(role_id) for role_id in user.get("roles", [])]
         result.append(UserOut(
             id=str(user["_id"]),
             username=user["username"],
             is_active=user.get("is_active", True),
             is_superuser=user.get("is_superuser", False),
-            roles=user.get("roles", []),
+            roles=role_ids,
             permissions=user.get("permissions", []),
+            supply=user.get("supply"),
+            returns=user.get("returns"),
+            both=user.get("both"),
             created_at=user.get("created_at"),
             last_login=user.get("last_login")
         ))
@@ -47,13 +51,19 @@ async def get_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Convert role ObjectIds to strings
+    role_ids = [str(role_id) for role_id in user.get("roles", [])]
+    
     return UserOut(
         id=str(user["_id"]),
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
-        roles=user.get("roles", []),
+        roles=role_ids,
         permissions=user.get("permissions", []),
+        supply=user.get("supply"),
+        returns=user.get("returns"),
+        both=user.get("both"),
         created_at=user.get("created_at"),
         last_login=user.get("last_login")
     )
@@ -66,6 +76,7 @@ async def update_user(
 ):
     """Update user (requires users:write permission)"""
     users_collection = get_collection("users")
+    roles_collection = get_collection("roles")
     
     # Check if user exists
     existing_user = await users_collection.find_one({"_id": ObjectId(user_id)})
@@ -79,7 +90,26 @@ async def update_user(
     if user_update.is_active is not None:
         update_data["is_active"] = user_update.is_active
     if user_update.roles is not None:
-        update_data["roles"] = user_update.roles
+        # Convert role IDs or role names to ObjectIds
+        role_object_ids = []
+        for role_identifier in user_update.roles:
+            if ObjectId.is_valid(role_identifier):
+                # It's a valid ObjectId, use it directly
+                role_object_ids.append(ObjectId(role_identifier))
+            else:
+                # It's a role name, look up the role
+                role = await roles_collection.find_one({"name": role_identifier, "is_active": True})
+                if role:
+                    role_object_ids.append(role["_id"])
+                else:
+                    logger.warning(f"Role '{role_identifier}' not found or inactive")
+        update_data["roles"] = role_object_ids
+    if user_update.supply is not None:
+        update_data["supply"] = user_update.supply
+    if user_update.returns is not None:
+        update_data["returns"] = user_update.returns
+    if user_update.both is not None:
+        update_data["both"] = user_update.both
     
     update_data["updated_at"] = datetime.utcnow()
     
@@ -94,13 +124,19 @@ async def update_user(
     
     # Return updated user
     updated_user = await users_collection.find_one({"_id": ObjectId(user_id)})
+    # Convert role ObjectIds to strings
+    role_ids = [str(role_id) for role_id in updated_user.get("roles", [])]
+    
     return UserOut(
         id=str(updated_user["_id"]),
         username=updated_user["username"],
         is_active=updated_user.get("is_active", True),
         is_superuser=updated_user.get("is_superuser", False),
-        roles=updated_user.get("roles", []),
+        roles=role_ids,
         permissions=updated_user.get("permissions", []),
+        supply=updated_user.get("supply"),
+        returns=updated_user.get("returns"),
+        both=updated_user.get("both"),
         created_at=updated_user.get("created_at"),
         last_login=updated_user.get("last_login")
     )

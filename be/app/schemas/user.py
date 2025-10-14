@@ -6,10 +6,11 @@ class UserBase(BaseModel):
     username: str
 
 class UserCreate(UserBase):
-    username: str # thêm field username /khang
     password: str
-    roles: Optional[List[str]] = []  #Thêm field để đảm bảo khi add user sẽ có thêm cả roles ở đâu
-    #permissions: Optional[List[str]] = []  # Bỏ field permissions
+    roles: Optional[List[str]] = []
+    supply: Optional[str] = None
+    returns: Optional[str] = None
+    both: Optional[str] = None  
 
 class UserLogin(BaseModel):
     username: str
@@ -21,6 +22,9 @@ class UserOut(UserBase):
     is_superuser: bool
     permissions: List[str] = []  # Thêm field permissions
     roles: List[str] = []
+    supply: Optional[str] = None
+    returns: Optional[str] = None
+    both: Optional[str] = None
     created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
 
@@ -28,6 +32,9 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     is_active: Optional[bool] = None
     roles: Optional[List[str]] = None
+    supply: Optional[str] = None
+    returns: Optional[str] = None
+    both: Optional[str] = None
 
 class RoleCreate(BaseModel):
     name: str

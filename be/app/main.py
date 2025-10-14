@@ -12,9 +12,8 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions, agv_dashboard, agv_websocket, roles, area
+from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera
 from app.core.database import connect_to_mongo, close_mongo_connection
-from app.services.role_service import initialize_default_permissions, initialize_default_roles
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -52,8 +51,12 @@ app.include_router(users.router, prefix="/users", tags=["User Management"])
 app.include_router(permissions.router, prefix="/permissions", tags=["Permission Management"])
 app.include_router(roles.router, prefix="/roles", tags=["Role Management"])
 app.include_router(area.router, prefix="/areas", tags=["Area Management"])
+app.include_router(node.router, prefix="/nodes", tags=["Node Management"])
+app.include_router(camera.router, prefix="/cameras", tags=["Camera Management"])
 app.include_router(agv_dashboard.router, tags=["AGV Dashboard"])
 app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
+app.include_router(caller.router, prefix="/caller", tags=["Caller"])
+app.include_router(notification.router, prefix="/notification", tags=["Notification"])
 
 @app.get("/")
 async def root():

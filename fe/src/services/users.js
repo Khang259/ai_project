@@ -42,3 +42,18 @@ export const addUser = async (userData) => {
     throw new Error(data?.detail || data?.message || error.message || "Lỗi khi thêm user");
   }
 };
+
+
+export const updateUser = async (id, userData) => {
+  try {
+    const response = await api.put(`/users/${id}`, userData);
+    console.log("response", response.data);
+    return response.data;
+  } catch (error) {
+    const status = error.response?.status;
+    const method = error.config?.method?.toUpperCase();
+    const url = error.config?.url;
+    const data = error.response?.data;
+    console.error("[services/users.updateUser] Request failed", { method, url, status, data, payload: userData });
+  }
+}

@@ -23,7 +23,7 @@ async def save_agv_data(payload: list):
                     "created_at": datetime.now()
                 }
 
-                result = await agv_collection.insert_one(agv_data)
+                result = await agv_collection.insert_many(agv_data)
                 saved_count += 1
         logger.info(f"Successfully saved {saved_count} AGV records")
         return {"status": "success", "saved_count": saved_count}
@@ -130,6 +130,8 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
                                     "date": "$created_at"
                                 }
                             },
+                            "device_code": "$device_code",
+                            "device_name": "$device_name",
                             "state": "$state",
                             "payLoad": "$payLoad"
                         },
@@ -145,11 +147,14 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
             
             # Tổ chức dữ liệu theo ngày/tuần/tháng
             time_series_data = {}
+            device_summary = {}
             total_0_0 = 0
             total_1_0 = 0
             
             for item in result:
                 date_key = item["_id"]["date"]
+                device_code = item["_id"]["device_code"]
+                device_name = item["_id"]["device_name"]
                 state_value = item["_id"]["state"]
                 payload = item["_id"]["payLoad"]
                 count = item["count"]
@@ -160,19 +165,50 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
                         time_series_data[date_key] = {
                             "payLoad_0_0_count": 0,
                             "payLoad_1_0_count": 0,
+                            "total_records": 0,
+                            "devices": {}
+                        }
+                    
+                    # Tổ chức theo device_code trong ngày
+                    if device_code not in time_series_data[date_key]["devices"]:
+                        time_series_data[date_key]["devices"][device_code] = {
+                            "device_code": device_code,
+                            "device_name": device_name,
+                            "payLoad_0_0_count": 0,
+                            "payLoad_1_0_count": 0,
                             "total_records": 0
                         }
                     
                     if payload == "0.0":
-                        time_series_data[date_key]["payLoad_0_0_count"] = count
+                        time_series_data[date_key]["devices"][device_code]["payLoad_0_0_count"] = count
+                        time_series_data[date_key]["payLoad_0_0_count"] += count
                         total_0_0 += count
                     elif payload == "1.0":
-                        time_series_data[date_key]["payLoad_1_0_count"] = count
+                        time_series_data[date_key]["devices"][device_code]["payLoad_1_0_count"] = count
+                        time_series_data[date_key]["payLoad_1_0_count"] += count
                         total_1_0 += count
                     
+                    time_series_data[date_key]["devices"][device_code]["total_records"] += count
                     time_series_data[date_key]["total_records"] += count
+                    
+                    # Tổng hợp theo device_code
+                    if device_code not in device_summary:
+                        device_summary[device_code] = {
+                            "device_code": device_code,
+                            "device_name": device_name,
+                            "payLoad_0_0_count": 0,
+                            "payLoad_1_0_count": 0,
+                            "total_records": 0
+                        }
+                    
+                    if payload == "0.0":
+                        device_summary[device_code]["payLoad_0_0_count"] += count
+                    elif payload == "1.0":
+                        device_summary[device_code]["payLoad_1_0_count"] += count
+                    
+                    device_summary[device_code]["total_records"] += count
             
-            # Tính phần trăm cho từng ngày/tuần/tháng
+            # Tính phần trăm cho từng ngày/tuần/tháng và từng device
             for date_key in time_series_data:
                 total_daily = time_series_data[date_key]["total_records"]
                 if total_daily > 0:
@@ -185,6 +221,34 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
                 else:
                     time_series_data[date_key]["payLoad_0_0_percentage"] = 0
                     time_series_data[date_key]["payLoad_1_0_percentage"] = 0
+                
+                # Tính phần trăm cho từng device trong ngày
+                for device_code, device_data in time_series_data[date_key]["devices"].items():
+                    device_total = device_data["total_records"]
+                    if device_total > 0:
+                        device_data["payLoad_0_0_percentage"] = round(
+                            (device_data["payLoad_0_0_count"] / device_total) * 100, 2
+                        )
+                        device_data["payLoad_1_0_percentage"] = round(
+                            (device_data["payLoad_1_0_count"] / device_total) * 100, 2
+                        )
+                    else:
+                        device_data["payLoad_0_0_percentage"] = 0
+                        device_data["payLoad_1_0_percentage"] = 0
+            
+            # Tính phần trăm tổng thể cho từng device
+            for device_code, device_data in device_summary.items():
+                device_total = device_data["total_records"]
+                if device_total > 0:
+                    device_data["payLoad_0_0_percentage"] = round(
+                        (device_data["payLoad_0_0_count"] / device_total) * 100, 2
+                    )
+                    device_data["payLoad_1_0_percentage"] = round(
+                        (device_data["payLoad_1_0_count"] / device_total) * 100, 2
+                    )
+                else:
+                    device_data["payLoad_0_0_percentage"] = 0
+                    device_data["payLoad_1_0_percentage"] = 0
             
             # Tính phần trăm tổng thể
             total_records = total_0_0 + total_1_0
@@ -193,12 +257,13 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
             
             return {
                 "status": "success",
-                "filter_type": "with_state",
+                "filter_type": "with_state_by_device",
                 "state": state,
                 "time_range": f"{start} to {end}",
                 "time_unit": time_filter,
                 "data": {
                     "time_series": time_series_data,
+                    "device_summary": device_summary,
                     "summary": {
                         "total_payLoad_0_0_count": total_0_0,
                         "total_payLoad_1_0_count": total_1_0,
@@ -218,7 +283,7 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
                 "m": "%Y-%m"          # Theo tháng
             }[time_filter]
             
-            # Pipeline để đếm số bản ghi theo state InTask và Idle theo từng đơn vị thời gian
+            # Pipeline để đếm số bản ghi theo state InTask và Idle theo từng đơn vị thời gian và device_code
             pipeline = [
                 {"$match": base_query},
                 {
@@ -230,44 +295,82 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
                                     "date": "$created_at"
                                 }
                             },
+                            "device_code": "$device_code",
+                            "device_name": "$device_name",
                             "state": "$state"
                         },
                         "count": {"$sum": 1}
                     }
                 },
-                {"$sort": {"_id.date": 1}}
+                {"$sort": {"_id.date": 1, "_id.device_code": 1}}
             ]
             
             cursor = agv_collection.aggregate(pipeline)
             result = await cursor.to_list(length=None)
             
-            # Tổ chức dữ liệu theo ngày/tuần/tháng
+            # Tổ chức dữ liệu theo ngày/tuần/tháng và device_code
             time_series_data = {}
+            device_summary = {}
             total_intask = 0
             total_idle = 0
             
             for item in result:
                 date_key = item["_id"]["date"]
+                device_code = item["_id"]["device_code"]
+                device_name = item["_id"]["device_name"]
                 state_value = item["_id"]["state"]
                 count = item["count"]
                 
+                # Tổ chức theo ngày
                 if date_key not in time_series_data:
                     time_series_data[date_key] = {
+                        "InTask_count": 0,
+                        "Idle_count": 0,
+                        "total_records": 0,
+                        "devices": {}
+                    }
+                
+                # Tổ chức theo device_code trong ngày
+                if device_code not in time_series_data[date_key]["devices"]:
+                    time_series_data[date_key]["devices"][device_code] = {
+                        "device_code": device_code,
+                        "device_name": device_name,
+                        "InTask_count": 0,
+                        "Idle_count": 0,
+                        "total_records": 0
+                    }
+                
+                # Cập nhật số liệu cho device cụ thể trong ngày
+                if state_value == "InTask":
+                    time_series_data[date_key]["devices"][device_code]["InTask_count"] = count
+                    time_series_data[date_key]["InTask_count"] += count
+                    total_intask += count
+                elif state_value == "Idle":
+                    time_series_data[date_key]["devices"][device_code]["Idle_count"] = count
+                    time_series_data[date_key]["Idle_count"] += count
+                    total_idle += count
+                
+                time_series_data[date_key]["devices"][device_code]["total_records"] += count
+                time_series_data[date_key]["total_records"] += count
+                
+                # Tổng hợp theo device_code
+                if device_code not in device_summary:
+                    device_summary[device_code] = {
+                        "device_code": device_code,
+                        "device_name": device_name,
                         "InTask_count": 0,
                         "Idle_count": 0,
                         "total_records": 0
                     }
                 
                 if state_value == "InTask":
-                    time_series_data[date_key]["InTask_count"] = count
-                    total_intask += count
+                    device_summary[device_code]["InTask_count"] += count
                 elif state_value == "Idle":
-                    time_series_data[date_key]["Idle_count"] = count
-                    total_idle += count
+                    device_summary[device_code]["Idle_count"] += count
                 
-                time_series_data[date_key]["total_records"] += count
+                device_summary[device_code]["total_records"] += count
             
-            # Tính phần trăm cho từng ngày/tuần/tháng
+            # Tính phần trăm cho từng ngày/tuần/tháng và từng device
             for date_key in time_series_data:
                 total_daily = time_series_data[date_key]["total_records"]
                 if total_daily > 0:
@@ -280,6 +383,34 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
                 else:
                     time_series_data[date_key]["InTask_percentage"] = 0
                     time_series_data[date_key]["Idle_percentage"] = 0
+                
+                # Tính phần trăm cho từng device trong ngày
+                for device_code, device_data in time_series_data[date_key]["devices"].items():
+                    device_total = device_data["total_records"]
+                    if device_total > 0:
+                        device_data["InTask_percentage"] = round(
+                            (device_data["InTask_count"] / device_total) * 100, 2
+                        )
+                        device_data["Idle_percentage"] = round(
+                            (device_data["Idle_count"] / device_total) * 100, 2
+                        )
+                    else:
+                        device_data["InTask_percentage"] = 0
+                        device_data["Idle_percentage"] = 0
+            
+            # Tính phần trăm tổng thể cho từng device
+            for device_code, device_data in device_summary.items():
+                device_total = device_data["total_records"]
+                if device_total > 0:
+                    device_data["InTask_percentage"] = round(
+                        (device_data["InTask_count"] / device_total) * 100, 2
+                    )
+                    device_data["Idle_percentage"] = round(
+                        (device_data["Idle_count"] / device_total) * 100, 2
+                    )
+                else:
+                    device_data["InTask_percentage"] = 0
+                    device_data["Idle_percentage"] = 0
             
             # Tính phần trăm tổng thể
             total_records = total_intask + total_idle
@@ -288,11 +419,12 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
             
             return {
                 "status": "success",
-                "filter_type": "without_state",
+                "filter_type": "without_state_by_device",
                 "time_range": f"{start} to {end}",
                 "time_unit": time_filter,
                 "data": {
                     "time_series": time_series_data,
+                    "device_summary": device_summary,
                     "summary": {
                         "total_InTask_count": total_intask,
                         "total_Idle_count": total_idle,
@@ -309,6 +441,3 @@ async def get_data_by_time(time_filter: str, device_code: str = None, state: str
             "status": "error",
             "message": str(e)
         }
-
-
-

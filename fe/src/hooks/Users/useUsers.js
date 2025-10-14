@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getUsers, deleteUser, addUser } from "@/services/users";
+import { getUsers, deleteUser, addUser, updateUser } from "@/services/users";
 
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
@@ -61,6 +61,20 @@ export const useUsers = () => {
     }
   }, []);
 
+  const handleUpdateUser = useCallback(async (id, userData) => {
+    try {
+      await updateUser(id, userData);
+      // Refresh danh sách sau khi cập nhật
+      const updated = await getUsers();
+      setUsers(Array.isArray(updated) ? updated : []);
+    } catch (err) {
+      setError(err?.message || "Cập nhật người dùng thất bại");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     users,
     setUsers,
@@ -71,6 +85,7 @@ export const useUsers = () => {
     filteredUsers,
     handleDelete,
     handleAddUser,
+    handleUpdateUser,
     loading,
     error,
   };
