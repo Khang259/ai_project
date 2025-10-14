@@ -4,10 +4,9 @@ import { X, CheckCircle, FileText, StickyNote } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { mockComponentDetails } from "@/lib/mock-data"
 
-export function ComponentDetailsModal({ amrId, componentType, onClose }) {
-  const details = mockComponentDetails.find((d) => d.amrId === amrId && d.partName === componentType)
+export function ComponentDetailsModal({ amrId, componentType, onClose, componentDetails }) {
+  const details = componentDetails
 
   if (!details) return null
 

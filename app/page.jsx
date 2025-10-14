@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ComponentsTable } from "@/components/components-table"
+import { ComponentsTable } from "@/components/amrParts-table"
 import { VehicleDetailsModal } from "@/components/vehicle-details-modal"
 import { ComponentDetailsModal } from "@/components/component-details-modal"
 
@@ -16,14 +16,23 @@ export default function Home() {
       </header>
 
       <div className="flex-1 overflow-hidden">
-        <ComponentsTable onComponentClick={(componentType) => setSelectedComponent(componentType)} />
+        <ComponentsTable onComponentClick={(maLinhKien, componentType) => {
+          console.log('Home: onComponentClick called with:', { maLinhKien, componentType })
+          setSelectedComponent({ maLinhKien, componentType })
+        }} />
       </div>
 
       {selectedComponent && (
         <VehicleDetailsModal
-          componentType={selectedComponent}
+          maLinhKien={selectedComponent.maLinhKien}
+          componentType={selectedComponent.componentType}
           onClose={() => setSelectedComponent(null)}
-          onVehicleComponentClick={(amrId) => setSelectedVehicleComponent({ amrId, componentType: selectedComponent })}
+          onVehicleComponentClick={(amrId) => 
+            setSelectedVehicleComponent({ 
+              amrId, 
+              componentType: selectedComponent.componentType 
+            })
+          }
         />
       )}
 

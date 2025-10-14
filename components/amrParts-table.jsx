@@ -1,0 +1,126 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+
+export function ComponentsTable({ onComponentClick }) {
+  const [components, setComponents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Fetch data từ API
+  useEffect(() => {
+    const fetchComponents = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/parts-summary')
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        
+        // Map dữ liệu từ API response vào format của component
+        const mappedData = data.map((item) => ({
+          type: item["Loại linh kiện"] || "",
+          code: item["Mã linh kiện"] || "",
+          total: item["Tổng số"] || 0,
+          dueSoon: item["Số lượng sắp đến hạn"] || 0,
+          replaced: 0, // Không có trong API, set default
+          note: "" // Không có trong API, set default
+        }))
+        
+        setComponents(mappedData)
+      } catch (err) {
+        console.error('Error fetching components:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchComponents()
+  }, [])
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border h-full flex flex-col">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+        </div>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-card border-border h-full flex flex-col">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-destructive">Lỗi khi tải dữ liệu: {error}</p>
+        </div>
+      </Card>
+    )
+  }
+  return (
+    <Card className="bg-card border-border h-full flex flex-col">
+      <div className="overflow-auto flex-1">
+        <table className="w-full">
+          <thead className="sticky top-0 bg-card z-10">
+            <tr className="border-b border-border">
+              <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">LOẠI LINH KIỆN</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">MÃ LINH KIỆN</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">TỔNG SỐ</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">SỐ LƯỢNG SẮP ĐẾN HẠN</th>
+            </tr>
+          </thead>
+          <tbody>
+            {components.map((component, index) => (
+              <tr
+                key={index}
+                onClick={() => {
+                  console.log('ComponentsTable: Row clicked with:', { 
+                    code: component.code, 
+                    type: component.type 
+                  })
+                  onComponentClick(component.code, component.type)
+                }}
+                className="border-b border-border hover:bg-muted/50 cursor-pointer transition-colors"
+              >
+                <td className="px-4 py-2.5">
+                  <div className="flex items-center gap-2">
+                    {/* <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0" /> */}
+                    <span className="font-medium text-foreground text-sm">{component.type}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-2.5">
+                <code className="font-medium tracking-wide text-sm px-2 py-0.5 ">{component.code}</code>
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  <span className="text-foreground font-medium text-sm">{component.total}</span>
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  {component.dueSoon > 0 ? (
+                    <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20 text-xs">
+                      {component.dueSoon}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">0</span>
+                  )}
+                </td>
+                {/* <td className="px-4 py-2.5 text-center">
+                  <span className="text-muted-foreground text-sm">{component.replaced}</span>
+                </td>
+                <td className="px-4 py-2.5">
+                  <span className="text-sm text-muted-foreground">{component.note}</span>
+                </td> */}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )
+}
+
