@@ -1,144 +1,194 @@
 import React, { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
-import { Plus, Minus, Grid3x3, Settings2, User, Upload } from 'lucide-react';
+import { Plus, Grid3x3, User, Upload } from 'lucide-react';
 import GridPreview from './GridPreview';
 import CellNameEditor from './CellNameEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { useUsers } from '../../hooks/Users/useUsers';
+import mockData from '../../data/mockSetting_cell.json';
 
 const ButtonSettings = () => {
-  const [mode, setMode] = useState("cap");
-
-  //Lấy tổng số ô theo collection trong useGridConfig
-  const [modeConfigs, setModeConfigs] = useState({
-    cap: { totalCells: 8 },
-    tra: { totalCells: 6 },
-    "cap-tra": { totalCells: 12 },
+  const data = mockData; // Sau này sẽ thay bằng cái API
+  const [nodeTypes, setNodeType] = useState({'Cap': 0, 'Tra': 0, 'Cap&Tra': 0});
+  const {users, usersLoading, usersError } = useUsers();
+  const [selectedUser, setSelectedUser] = useState({ username: "admin", role: "Administrator" });
+  const [selectedNodeType, setSelectedNodeType] = useState('Cap');
+  const [allNodes, setAllNodes] = useState(data.node || []);
+  const [modifiedNodes, setModifiedNodes] = useState({}); // Lưu trữ các node đã được sửa
+  const [newNodeData, setNewNodeData] = useState({
+    node_name: "",
+    start: 0,
+    end: 0,
+    next_start: 0,
+    next_end: 0
   });
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const MaximumColumnsInPreview = 4;
-  const columns =  MaximumColumnsInPreview;
-  const totalCells = modeConfigs[mode].totalCells;
+  const columns = MaximumColumnsInPreview;
+  const totalCells = allNodes.length;
   const rows = Math.ceil(totalCells / columns);
 
-  const [cellConfigs, setCellConfigs] = useState([]);
-  const [currentUser, setCurrentUser] = useState({ username: "admin", role: "Administrator" });
-  
-  // Sử dụng hook useUsers để lấy dữ liệu từ API
-  const { users, loading, error } = useUsers();
-
+  // Tính toán và cập nhật nodeTypes từ data
   useEffect(() => {
-    const newCells = [];
-    for (let i = 1; i <= totalCells; i++) {
-      const existingCell = cellConfigs.find((c) => c.id === `cell-${i}`);
-      newCells.push({
-        id: `cell-${i}`,
-        name: existingCell?.name || `Cell ${i}`,
+    const nodeTypeCounts = {};
+    data.node.forEach(node => {
+      const nodeType = node.node_type;
+      nodeTypeCounts[nodeType] = (nodeTypeCounts[nodeType] || 0) + 1;
+    });
+    setNodeType(nodeTypeCounts);
+    console.log('Node types counts:', nodeTypeCounts);
+  }, [data.node]);
+
+  // Cập nhật allNodes khi selectedNodeType hoặc selectedUser thay đổi
+  useEffect(() => {
+    if (selectedNodeType) {
+      const filteredNodes = data.node.filter(node => node.node_type === selectedNodeType);
+      
+      // Merge với các node đã được sửa
+      const mergedNodes = filteredNodes.map(node => {
+        const modifiedNode = modifiedNodes[node.id];
+        return modifiedNode ? { ...node, ...modifiedNode } : node;
       });
+      
+      console.log('Filtered nodes by node_type:', filteredNodes);
+      console.log('Modified nodes:', modifiedNodes);
+      console.log('Merged nodes:', mergedNodes);
+      setAllNodes(mergedNodes);
     }
-    setCellConfigs(newCells);
-  }, [totalCells]);
+  }, [selectedNodeType, modifiedNodes])
 
-  // Load saved configurations on component mount
+  // Cập nhật selectedUser khi users được load từ API ( Khi chưa có dữ liệu gì ?)
   useEffect(() => {
-    const loadConfigurations = () => {
-      // Load grid config (cấu trúc mới)
-      const savedGridConfig = localStorage.getItem("gridConfig");
-      if (savedGridConfig) {
-        try {
-          const gridData = JSON.parse(savedGridConfig);
-          
-          // Load current mode
-          if (gridData.currentMode) setMode(gridData.currentMode);
-          
-          // Load all mode configs
-          if (gridData.allModeConfigs) {
-            const loadedModeConfigs = {};
-            Object.keys(gridData.allModeConfigs).forEach(modeKey => {
-              loadedModeConfigs[modeKey] = {
-                totalCells: gridData.allModeConfigs[modeKey].totalCells
-              };
-            });
-            setModeConfigs(loadedModeConfigs);
-          }
-          
-          // Load current user
-          if (gridData.currentUser) setCurrentUser(gridData.currentUser);
-        } catch (error) {
-          console.warn("Lỗi khi parse gridConfig:", error);
-        }
-      }
-
-      // Load cell configs by mode (cấu trúc mới)
-      const savedCellConfigsByMode = localStorage.getItem("cellConfigsByMode");
-      if (savedCellConfigsByMode) {
-        try {
-          const cellDataByMode = JSON.parse(savedCellConfigsByMode);
-          // Load cells cho mode hiện tại
-          const currentModeCells = cellDataByMode[mode];
-          if (currentModeCells && Array.isArray(currentModeCells)) {
-            setCellConfigs(currentModeCells);
-          }
-        } catch (error) {
-          console.warn("Lỗi khi parse cellConfigsByMode:", error);
-        }
-      }
-
-      // Fallback: Load cell config cũ (để tương thích ngược)
-      const savedCellConfig = localStorage.getItem("cellConfig");
-      if (savedCellConfig && cellConfigs.length === 0) {
-        try {
-          const cellData = JSON.parse(savedCellConfig);
-          if (cellData.cells && Array.isArray(cellData.cells)) {
-            setCellConfigs(cellData.cells);
-          }
-        } catch (error) {
-          console.warn("Lỗi khi parse cellConfig:", error);
-        }
-      }
-    };
-
-    loadConfigurations();
-  }, [mode]); // Thêm mode vào dependency để load lại khi mode thay đổi
-
-  // Cập nhật currentUser khi users được load từ API
-  useEffect(() => {
-    if (users && users.length > 0 && !currentUser.id) {
+    if (users && users.length > 0 && !selectedUser.id) {
       // Tìm admin user hoặc user đầu tiên làm default
       const adminUser = users.find(user => user.is_superuser) || users[0];
       if (adminUser) {
-        setCurrentUser({
+        setSelectedUser({
           id: adminUser.id,
           username: adminUser.username,
           role: adminUser.is_superuser ? "Administrator" : "User",
         });
       }
     }
-  }, [users, currentUser.id]);
+  }, [users, selectedUser]);
+  // Cập nhật lại selectedNodeType khi nodeTypes thay đổi
+  useEffect(() => {
+    if (Object.keys(nodeTypes).length > 0 && !selectedNodeType) {
+      setSelectedNodeType(Object.keys(nodeTypes)[0]);
+    }
+  }, [nodeTypes, selectedNodeType])
+
 
   // Cập nhật tên ô
-  const updateCellName = (id, name) => {
-    setCellConfigs(cellConfigs.map((cell) => (cell.id === id ? { ...cell, name } : cell)));
+  const updateCell = (id, field, value) => {
+    console.log('updateCell called:', { id, field, value });
+    setModifiedNodes(prevModified => {
+      const updated = {
+        ...prevModified,
+        [id]: {
+          ...prevModified[id],
+          [field]: value,
+          updated_at: new Date().toISOString()
+        }
+      };
+      console.log('Updated modifiedNodes:', updated);
+      return updated;
+    });
   };
-
   // Xóa ô
   const deleteCell = (cellId) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa ô ${cellId}?`)) {
-      setCellConfigs(cellConfigs.filter((cell) => cell.id !== cellId));
+    const nodeToDelete = allNodes.find(node => node.id === cellId);
+    if (!nodeToDelete) return;
+    
+    if (confirm(`Bạn có chắc chắn muốn xóa ô ${nodeToDelete.node_name}?`)) {
+      setAllNodes(prevNodes => prevNodes.filter(node => node.id !== cellId));
       // Cập nhật totalCells nếu cần
-      const newTotalCells = cellConfigs.length - 1;
+      const newTotalCells = allNodes.length - 1;
       if (newTotalCells > 0) {
-        setModeConfigs({
-          ...modeConfigs,
-          [mode]: { totalCells: newTotalCells },
-        });
+        // Có thể cập nhật modeConfigs ở đây nếu cần
+        console.log(`Còn lại ${newTotalCells} ô sau khi xóa`);
       }
     }
   };
-  // Import Excel
+
+  // Hiển thị form thêm node
+  const showAddNodeForm = () => {
+    setShowAddForm(true);
+    setNewNodeData({
+      node_name: "",
+      start: "",
+      end: "",
+      next_start: "",
+      next_end: ""
+    });
+  };
+
+  // Xác nhận thêm node mới
+  const handleConfirmAddNode = () => {
+    if (!newNodeData.node_name || !newNodeData.start || !newNodeData.end) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Tên Node, Start, End)");
+      return;
+    }
+
+    // Tạo node mới với thông tin từ form
+    const newNode = {
+      id: `new_node_${Date.now()}`,
+      node_name: newNodeData.node_name,
+      node_type: selectedNodeType,
+      area: "KD",
+      start: newNodeData.start,
+      end: newNodeData.end,
+      next_start: newNodeData.next_start || 0,
+      next_end: newNodeData.next_end || 0,
+      user_id: selectedUser.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    setAllNodes(prevNodes => [...prevNodes, newNode]);
+    
+    // Đóng form và reset dữ liệu
+    setShowAddForm(false);
+    setNewNodeData({
+      node_name: "",
+      start: 0,
+      end: 0,
+      next_start: 0,
+      next_end: 0
+    });
+
+    alert(`Đã thêm node "${newNode.node_name}" thành công!`);
+  };
+
+  // Tăng số ô (giữ nguyên để tương thích với code cũ)
+  const increaseCells = () => {
+    showAddNodeForm();
+  };
+  
+  // Chọn người dùng khi đã có dữ liệu cái này tùy vào người bấm
+  const handleUserSelect = (userId) => {
+    const user = users.find(user => user.id === userId);
+    if (user) {
+      setSelectedUser({
+        id: user.id,
+        username: user.username,
+        role: user.is_superuser ? "Administrator" : "User",
+      });
+    }
+  };
+
+  // Chọn nodeType khi đã có dữ liệu cái này tùy vào người bấm
+  const handleNodeTypeChange = (newNodeType) => {
+    setSelectedNodeType(newNodeType);
+  };
+
+
+ // Import Excel bằng SheetJS (xlsx)
   const handleExcelImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -146,111 +196,107 @@ const ButtonSettings = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = e.target.result;
-        // Giả sử file Excel có format: Cell ID, Cell Name
-        const lines = data.split('\n');
-        const importedCells = [];
-        
-        lines.forEach((line, index) => {
-          if (index === 0) return; // Skip header
-          const [cellId, cellName] = line.split(',');
-          if (cellId && cellName) {
-            importedCells.push({
-              id: cellId.trim(),
-              name: cellName.trim()
-            });
-          }
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          alert('File không có sheet nào.');
+          return;
+        }
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+        if (!rows || rows.length === 0) {
+          alert('Không có dữ liệu để import.');
+          return;
+        }
+
+        // Chuẩn hóa key header về lowercase, trim
+        const normalisedRows = rows.map((row) => {
+          const obj = {};
+          Object.keys(row).forEach((key) => {
+            const normKey = String(key).trim().toLowerCase();
+            obj[normKey] = row[key];
+          });
+          return obj;
         });
 
-        if (importedCells.length > 0) {
-          setCellConfigs(importedCells);
-          setModeConfigs({
-            ...modeConfigs,
-            [mode]: { totalCells: importedCells.length },
-          });
-          alert(`Đã import thành công ${importedCells.length} ô từ file Excel!`);
+        const requiredHeaders = ['node_name', 'node_type', 'start', 'end', 'next_start', 'next_end'];
+        const firstRowKeys = Object.keys(normalisedRows[0] || {});
+        const isValid = requiredHeaders.every((h) => firstRowKeys.includes(h));
+        if (!isValid) {
+          alert('Header không hợp lệ. Cần các cột: node_name, node_type, start, end, next_start, next_end');
+          return;
         }
+
+        // Tạo danh sách node từ file và hợp nhất vào allNodes
+        const nowIso = new Date().toISOString();
+        const importedNodes = normalisedRows.map((r, idx) => {
+          const nodeName = String(r.node_name ?? '').trim();
+          const nodeType = String(r.node_type ?? '').trim();
+          const existing = allNodes.find((n) => n.node_name === nodeName && n.node_type === nodeType);
+          return {
+            id: existing ? existing.id : `new_node_${Date.now()}_${idx}`,
+            node_name: nodeName,
+            node_type: nodeType,
+            area: existing?.area ?? '',
+            start: Number(r.start) || '',
+            end: Number(r.end) || '',
+            next_start: Number(r.next_start) || '',
+            next_end: Number(r.next_end) || '',
+            user_id: selectedUser?.id,
+            created_at: existing?.created_at ?? nowIso,
+            updated_at: nowIso,
+          };
+        });
+
+        const mergedMap = new Map();
+        // Ưu tiên dữ liệu mới: put imported first, then fill others not overridden
+        importedNodes.forEach((n) => {
+          const key = `${n.node_name}__${n.node_type}`;
+          mergedMap.set(key, n);
+        });
+        allNodes.forEach((n) => {
+          const key = `${n.node_name}__${n.node_type}`;
+          if (!mergedMap.has(key)) mergedMap.set(key, n);
+        });
+        const mergedNodes = Array.from(mergedMap.values());
+
+        setAllNodes(mergedNodes);
+
+        // Log payload PUT giống khi ấn lưu cấu hình
+        const outputFormat = {
+          user: selectedUser,
+          node: mergedNodes.map((node) => ({
+            id: node.id,
+            node_name: node.node_name,
+            node_type: node.node_type,
+            area: node.area,
+            name: node.name || '',
+            start: node.start || '',
+            end: node.end || '',
+            next_start: node.next_start || '',
+            next_end: node.next_end || '',
+            created_at: node.created_at,
+            updated_at: node.updated_at || new Date().toISOString(),
+          })),
+        };
+
+        console.log('=== IMPORT EXCEL OUTPUT (PUT PAYLOAD) ===');
+        console.log('Output Format:', JSON.stringify(outputFormat, null, 2));
+        alert(`Đã import ${importedNodes.length} dòng. Kiểm tra Console để xem JSON payload!`);
+
+        // Cho phép nhập lại cùng file nếu cần
+        event.target.value = '';
       } catch (error) {
+        console.error(error);
         alert('Lỗi khi đọc file Excel: ' + error.message);
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   };
 
-  // Tăng số ô
-  const increaseCells = () => {
-    setModeConfigs({
-      ...modeConfigs,
-      [mode]: { totalCells: modeConfigs[mode].totalCells + 1 },
-    });
-  };
-
-  // Giảm số ô
-  const decreaseCells = () => {
-    if (modeConfigs[mode].totalCells > 1) {
-      setModeConfigs({
-        ...modeConfigs,
-        [mode]: { totalCells: modeConfigs[mode].totalCells - 1 },
-      });
-    }
-  };
-
-  // Chọn người dùng
-  const handleUserSelect = (userId) => {
-    const selectedUser = users.find(user => user.id === userId);
-    if (selectedUser) {
-      setCurrentUser({
-        id: selectedUser.id,
-        username: selectedUser.username,
-        role: selectedUser.is_superuser ? "Administrator" : "User",
-        totalCells: selectedUser.totalCells || 8
-      });
-      // Cập nhật totalCells cho user được chọn
-      setModeConfigs({
-        ...modeConfigs,
-        [mode]: { totalCells: selectedUser.totalCells || 8 },
-      });
-    }
-  };
-
-  // Tự động lưu cấu hình khi chuyển đổi mode
-  const handleModeChange = (newMode) => {
-    // Lưu cells hiện tại cho mode cũ
-    const currentModeCells = cellConfigs.slice(0, modeConfigs[mode].totalCells);
-    
-    // Cập nhật mode
-    setMode(newMode);
-    
-    // Load cells cho mode mới từ localStorage
-    const savedCellConfigsByMode = localStorage.getItem("cellConfigsByMode");
-    if (savedCellConfigsByMode) {
-      try {
-        const cellDataByMode = JSON.parse(savedCellConfigsByMode);
-        const newModeCells = cellDataByMode[newMode];
-        if (newModeCells && Array.isArray(newModeCells)) {
-          setCellConfigs(newModeCells);
-        }
-      } catch (error) {
-        console.warn("Lỗi khi load cells cho mode mới:", error);
-      }
-    }
-  };
-
-  // Cập nhật số ô cho người dùng để lại để kiểm tra sau
-  const updateUserCells = (userId, newTotalCells) => {
-    // Cập nhật currentUser nếu đang chọn user này
-    if (currentUser?.id === userId) {
-      setCurrentUser(prev => ({
-        ...prev,
-        totalCells: newTotalCells
-      }));
-      setModeConfigs({
-        ...modeConfigs,
-        [mode]: { totalCells: newTotalCells },
-      });
-    }
-  };
-
+  // === 5. Giao diện (UI) ===
   return (
     <div className="space-y-6">
       {/* Grid Configuration */}
@@ -263,26 +309,25 @@ const ButtonSettings = () => {
                 Cấu Hình Nút
               </CardTitle>
             </div>
-
             {/* Dropdown Menu for quick select user */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  {currentUser?.username || 'User'}
+                  {selectedUser?.username || 'User'}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                   Chọn User
                 </div>
-                {loading ? (
+                {usersLoading ? (
                   <div className="px-2 py-1.5 text-sm text-muted-foreground">
                     Đang tải danh sách người dùng...
                   </div>
-                ) : error ? (
+                ) : usersError ? (
                   <div className="px-2 py-1.5 text-sm text-red-500">
-                    Lỗi: {error}
+                    Lỗi: {usersError}
                   </div>
                 ) : (
                   <div
@@ -317,17 +362,19 @@ const ButtonSettings = () => {
 
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="mode" className="text-sm font-medium">
+            <Label htmlFor="nodeType" className="text-sm font-medium">
               Chế độ chu trình
             </Label>
-            <Select value={mode} onValueChange={handleModeChange}>
-              <SelectTrigger id="mode" className="text-lg">
+            <Select value={selectedNodeType} onValueChange={handleNodeTypeChange}>
+              <SelectTrigger id="nodeType" className="text-lg">
                 <SelectValue placeholder="Chọn chế độ" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cap">Cấp</SelectItem>
-                <SelectItem value="tra">Trả</SelectItem>
-                <SelectItem value="cap-tra">Cấp & Trả</SelectItem>
+                {Object.keys(nodeTypes).map((nodeType) => (
+                  <SelectItem key={nodeType} value={nodeType}>
+                    {nodeType}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -335,33 +382,127 @@ const ButtonSettings = () => {
           <div className="space-y-2">
             <Label className="text-sm font-medium">Tổng Số Ô</Label>
             <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={decreaseCells}
-                disabled={modeConfigs[mode].totalCells <= 1}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
               <div className="flex-1 text-center">
-                <div className="text-3xl font-bold font-mono text-primary">{totalCells}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {rows} hàng x {columns} cột
-                </p>
+                <div className="text-3xl font-bold font-mono text-primary">{nodeTypes[selectedNodeType]}</div>
               </div>
               <Button variant="outline" size="icon" onClick={increaseCells}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
           </div>
-
+          {/* Form thêm node mới */}
+          {showAddForm && (
+            <div className="pt-4 border-t">
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-lg text-blue-800">Thêm Node Mới</CardTitle>
+                  <CardDescription className="text-blue-600">
+                    Nhập thông tin cho node mới thuộc loại "{selectedNodeType}"
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="node_name" className="text-sm font-medium">
+                        Tên Node *
+                      </Label>
+                      <input
+                        id="node_name"
+                        type="text"
+                        value={newNodeData.node_name}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, node_name: e.target.value }))}
+                        placeholder="Nhập tên node..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="start" className="text-sm font-medium">
+                        Start *
+                      </Label>
+                      <input
+                        id="start"
+                        type="number"
+                        value={newNodeData.start}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, start: parseInt(e.target.value) || 0 }))}
+                        placeholder="Nhập giá trị start..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="end" className="text-sm font-medium">
+                        End *
+                      </Label>
+                      <input
+                        id="end"
+                        type="number"
+                        value={newNodeData.end}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, end: parseInt(e.target.value) || 0 }))}
+                        placeholder="Nhập giá trị end..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="next_start" className="text-sm font-medium">
+                        Next Start (Tùy chọn)
+                      </Label>
+                      <input
+                        id="next_start"
+                        type="number"
+                        value={newNodeData.next_start}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_start: parseInt(e.target.value) || 0 }))}
+                        placeholder="Nhập giá trị next_start..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="next_end" className="text-sm font-medium">
+                        Next End (Tùy chọn)
+                      </Label>
+                      <input
+                        id="next_end"
+                        type="number"
+                        value={newNodeData.next_end}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_end: parseInt(e.target.value) || 0 }))}
+                        placeholder="Nhập giá trị next_end..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setNewNodeData({
+                          node_name: "",
+                          start: 0,
+                          end: 0,
+                          next_start: 0,
+                          next_end: 0
+                        });
+                      }}
+                    >
+                      Hủy
+                    </Button>
+                    <Button 
+                      onClick={handleConfirmAddNode}
+                      disabled={!newNodeData.node_name || !newNodeData.start || !newNodeData.end}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Xác Nhận
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
           <div className="pt-4 border-t">
-            <GridPreview rows={rows} columns={columns} cells={cellConfigs} onDeleteCell={deleteCell} />
+            <GridPreview rows={rows} columns={columns} cells={allNodes} onDeleteCell={deleteCell} />
           </div>
         </CardContent>
       </Card>
-
-      {/* Cell Name Configuration */}
+{/*   Cell Name Configuration */}
       <Card className="border-2">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -369,14 +510,13 @@ const ButtonSettings = () => {
               <CardTitle>Tùy Chỉnh Ô</CardTitle>
               <CardDescription>Đặt tên cho từng ô trong lưới hiển thị</CardDescription>
             </div>
-            {/* Nút Import Excel */}
             <div className="flex flex-col items-end gap-2">
               <input
                 id="excel-import"
                 type="file"
                 accept=".csv,.xlsx,.xls"
-                onChange={handleExcelImport}
                 className="hidden"
+                onChange={handleExcelImport}
               />
               <Button
                 variant="outline"
@@ -387,13 +527,13 @@ const ButtonSettings = () => {
                 Import Excel
               </Button>
               <div className="text-xs text-muted-foreground text-right">
-                Format: Cell ID, Cell Name
+                Format: Cell Name, Start, End, Next Start, Next End
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <CellNameEditor cells={cellConfigs} onUpdateCell={updateCellName} />
+          <CellNameEditor cells={allNodes} onUpdateCell={updateCell} />
         </CardContent>
       </Card>
 
@@ -401,44 +541,51 @@ const ButtonSettings = () => {
       <div className="flex justify-end">
         <Button 
           onClick={() => {
-            // Tạo cấu hình cho tất cả 3 mode
-            const allModeConfigs = {
-              cap: { 
-                totalCells: modeConfigs.cap.totalCells,
+            // Tạo cấu hình cho tất cả các node types
+            const allModeConfigs = {};
+            Object.keys(nodeTypes).forEach(nodeType => {
+              allModeConfigs[nodeType.toLowerCase()] = {
+                totalCells: nodeTypes[nodeType],
                 columns: MaximumColumnsInPreview,
-                rows: Math.ceil(modeConfigs.cap.totalCells / MaximumColumnsInPreview)
-              },
-              tra: { 
-                totalCells: modeConfigs.tra.totalCells,
-                columns: MaximumColumnsInPreview,
-                rows: Math.ceil(modeConfigs.tra.totalCells / MaximumColumnsInPreview)
-              },
-              "cap-tra": { 
-                totalCells: modeConfigs["cap-tra"].totalCells,
-                columns: MaximumColumnsInPreview,
-                rows: Math.ceil(modeConfigs["cap-tra"].totalCells / MaximumColumnsInPreview)
-              }
-            };
+                rows: Math.ceil(nodeTypes[nodeType] / MaximumColumnsInPreview)
+              };
+            });
 
             const gridConfig = {
-              currentMode: mode,
+              currentMode: selectedNodeType,
               allModeConfigs,
-              currentUser: currentUser,
+              currentUser: selectedUser,
               lastUpdated: new Date().toISOString(),
             };
 
             // Lưu cấu hình cell cho từng mode
-            const cellConfigsByMode = {
-              cap: cellConfigs.filter((_, index) => index < modeConfigs.cap.totalCells),
-              tra: cellConfigs.filter((_, index) => index < modeConfigs.tra.totalCells),
-              "cap-tra": cellConfigs.filter((_, index) => index < modeConfigs["cap-tra"].totalCells)
+            const cellConfigsByMode = {};
+            Object.keys(nodeTypes).forEach(nodeType => {
+              cellConfigsByMode[nodeType.toLowerCase()] = allNodes.filter(node => node.node_type === nodeType);
+            });
+
+            // Tạo format output theo yêu cầu
+            const outputFormat = {
+              user: selectedUser,
+              node: allNodes.map(node => ({
+                id: node.id,
+                node_name: node.node_name,
+                node_type: node.node_type,
+                area: node.area,
+                name: node.name || '',
+                start: node.start || '',
+                end: node.end || '',
+                next_start: node.next_start || '',
+                next_end: node.next_end || '',
+                created_at: node.created_at,
+                updated_at: node.updated_at || new Date().toISOString()
+              }))
             };
 
-            // lưu thông tin tại local
-            localStorage.setItem("gridConfig", JSON.stringify(gridConfig));
-            localStorage.setItem("cellConfigsByMode", JSON.stringify(cellConfigsByMode));
-            
-            alert(`Cấu hình nút đã được lưu cho ${currentUser?.username}!\n\nCấu hình các mode:\n- Cấp: ${modeConfigs.cap.totalCells} ô\n- Trả: ${modeConfigs.tra.totalCells} ô\n- Cấp & Trả: ${modeConfigs["cap-tra"].totalCells} ô`);
+            console.log('=== SAVE CONFIGURATION OUTPUT ===');
+            console.log('Output Format:', JSON.stringify(outputFormat, null, 2));
+          
+            alert(`Cấu hình đã được lưu!\n\nUser: ${selectedUser?.username}\nNode Type: ${selectedNodeType}\nTổng số node: ${allNodes.length}\n\nKiểm tra Console để xem format JSON chi tiết!`);
           }}
           size="lg" 
           className="min-w-[150px] bg-purple-600 hover:bg-purple-700 text-white"

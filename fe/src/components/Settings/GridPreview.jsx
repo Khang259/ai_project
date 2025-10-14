@@ -2,8 +2,6 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 
 // lấy hook từ collection task_path_{username}_{khu}
-const mockData = ["A", "B"];
-
 const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
   return (
     <div className="space-y-3">
@@ -32,14 +30,11 @@ const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
             )}
             
             <div className="text-center space-y-1">
-              <p className="text-xs font-mono text-muted-foreground">{cell.id}</p>
-              <p className="text-xs font-medium text-foreground truncate max-w-full">{cell.name}</p>
+              <p className="text-xs font-mono text-muted-foreground">{cell.node_name}</p>
               <div className="flex gap-1 justify-center mt-2">
-                {mockData.map((data, i) => (
-                  <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
-                    {data}
-                  </span>
-                ))}
+                <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
+                  {cell.start} - {cell.end}
+                </span>
               </div>
             </div>
           </div>
