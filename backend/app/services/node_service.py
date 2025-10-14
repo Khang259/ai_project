@@ -215,24 +215,23 @@ async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOu
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
-
-@lru_cache
-def load_config_caller():
-    with open("app/services/config_caller.json") as f:
-        return json.load(f)
-
-def get_process_code(node_type: str, owner: str) -> str:
+async def get_process_code(node_type: str, owner: str) -> str:
     """Lấy process code từ config_caller.json - sử dụng owner thay vì area"""
-    config_caller = load_config_caller()
+    owners = get_collection("users")
+    owner_exists = await owners.find_one({"username": owner, "is_active": True})
+    if not owner_exists:
+        logger.warning(f"Owner '{owner}' does not exist or is inactive")
+        raise ValueError("Owner does not exist or is inactive")
+    modelProcessCode = owner_exists.get(node_type)
     # Tạm thời sử dụng owner như area_id, có thể cần điều chỉnh logic
-    return config_caller[owner][node_type]["modelProcessCode"]
+    return modelProcessCode
 
-def process_caller(node: ProcessCaller, priority: int) -> str:
+async def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
-    process_code = get_process_code(node.node_type, node.owner)
+    process_code = await get_process_code(node.node_type, node.owner)
     order_id = str(uuid.uuid4())
 
-    if node.node_type == "Supply" or node.node_type == "Return":
+    if node.node_type == "supply" or node.node_type == "return":
         payload = {
             "modelProcessCode": f"{process_code}", 
             "priority": priority, 

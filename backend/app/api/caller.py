@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/process-caller")
 async def manual_caller(node: ProcessCaller, priority: Optional[int] = Query(None, description="Priority of the process caller")):
-    payload = process_caller(node, priority)
+    payload = await process_caller(node, priority)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post('http://192.168.1.169:7000/ics/taskOrder/addTask', json=payload)

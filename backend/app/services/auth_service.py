@@ -39,6 +39,9 @@ async def register_user(user_in: UserCreate):
         "is_superuser": False,
         "roles": role_object_ids,  # Store as ObjectIds
         "permissions": [],
+        "supply": user_in.supply,
+        "returns": user_in.returns,
+        "both": user_in.both,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
         "last_login": None
@@ -95,6 +98,9 @@ async def get_current_user_info(user_id: str) -> Optional[UserOut]:
         is_superuser=user.get("is_superuser", False),
         roles=role_ids,
         permissions=permissions,
+        supply=user.get("supply"),
+        returns=user.get("returns"),
+        both=user.get("both"),
         created_at=user.get("created_at", datetime.utcnow()),
         last_login=user.get("last_login")
     )
