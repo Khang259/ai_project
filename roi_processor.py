@@ -15,13 +15,13 @@ from queue_store import SQLiteQueue
 from optimized_roi_visualizer import ROIVisualizer, VideoDisplayManager
 
 
-def setup_roi_logger(log_dir: str = "logs") -> logging.Logger:
-    """Thiết lập logger cho ROI Processor"""
+def setup_block_unblock_logger(log_dir: str = "logs") -> logging.Logger:
+    """Thiết lập logger cho Block/Unblock operations"""
     # Tạo thư mục logs nếu chưa có
     os.makedirs(log_dir, exist_ok=True)
     
     # Tạo logger
-    logger = logging.getLogger('roi_processor')
+    logger = logging.getLogger('block_unblock')
     logger.setLevel(logging.INFO)
     
     # Tránh duplicate handlers
@@ -30,27 +30,21 @@ def setup_roi_logger(log_dir: str = "logs") -> logging.Logger:
     
     # Tạo formatter
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - [%(funcName)s:%(lineno)d] - %(message)s',
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
     # File handler với rotating
     file_handler = RotatingFileHandler(
-        os.path.join(log_dir, 'roi_processor.log'),
-        maxBytes=10*1024*1024,  # 10MB
-        backupCount=5
+        os.path.join(log_dir, 'block_unblock.log'),
+        maxBytes=5*1024*1024,  # 5MB
+        backupCount=3
     )
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
     
-    # Console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-    
     # Thêm handlers vào logger
     logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
     
     return logger
 
@@ -64,9 +58,10 @@ class ROIProcessor:
             db_path: Đường dẫn đến database SQLite
             show_video: Hiển thị video real-time
         """
-        # Thiết lập logger
-        self.logger = setup_roi_logger()
-        self.logger.info(f"Khởi tạo ROI Processor - DB: {db_path}, Show video: {show_video}")
+        print(f"Khởi tạo ROI Processor - DB: {db_path}, Show video: {show_video}")
+        
+        # Thiết lập logger cho block/unblock operations  
+        self.block_logger = setup_block_unblock_logger()
         
         self.queue = SQLiteQueue(db_path)
         # Cache ROI theo camera_id: {camera_id: [slots]}
@@ -115,10 +110,10 @@ class ROIProcessor:
     def _load_qr_mapping(self) -> None:
         try:
             if not os.path.exists(self.pairing_config_path):
-                self.logger.warning(f"File pairing config không tồn tại: {self.pairing_config_path}")
+                print(f"File pairing config không tồn tại: {self.pairing_config_path}")
                 return
                 
-            self.logger.info(f"Bắt đầu load QR mapping từ {self.pairing_config_path}")
+            print(f"Bắt đầu load QR mapping từ {self.pairing_config_path}")
             with open(self.pairing_config_path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
                 
@@ -134,7 +129,7 @@ class ROIProcessor:
                     mapping[qr_code] = (camera_id, slot_number)
                     starts_count += 1
                 except Exception as e:
-                    self.logger.error(f"Lỗi parse start item {item}: {e}")
+                    print(f"Lỗi parse start item {item}: {e}")
                     continue
                     
             for item in cfg.get("ends", []):
@@ -145,14 +140,14 @@ class ROIProcessor:
                     mapping[qr_code] = (camera_id, slot_number)
                     ends_count += 1
                 except Exception as e:
-                    self.logger.error(f"Lỗi parse end item {item}: {e}")
+                    print(f"Lỗi parse end item {item}: {e}")
                     continue
                     
             self.qr_to_slot = mapping
-            self.logger.info(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count}, ends: {ends_count})")
+            print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count}, ends: {ends_count})")
             
         except Exception as e:
-            self.logger.error(f"Lỗi khi load pairing config: {e}")
+            print(f"Lỗi khi load pairing config: {e}")
             print(f"Lỗi khi load pairing config: {e}")
     
     def _setup_end_to_start_mapping(self) -> None:
@@ -274,15 +269,15 @@ class ROIProcessor:
                 if start_slot_number in self.blocked_slots[start_camera_id]:
                     del self.blocked_slots[start_camera_id][start_slot_number]
                     unlock_msg = f"[UNLOCK] Đã unlock start slot {start_slot_number} trên {start_camera_id} (do end slot {end_slot_number} trên {end_camera_id} có shelf stable {self.shelf_stable_time}s)"
-                    self.logger.info(unlock_msg)
+                    self.block_logger.info(f"UNLOCK_SUCCESS: camera={start_camera_id}, slot={start_slot_number}, reason=end_slot_stable, end_camera={end_camera_id}, end_slot={end_slot_number}")
                     print(unlock_msg)
                 else:
                     warn_msg = f"[UNLOCK] Start slot {start_slot_number} trên {start_camera_id} không bị block"
-                    self.logger.warning(warn_msg)
+                    self.block_logger.warning(f"UNLOCK_FAILED: camera={start_camera_id}, slot={start_slot_number}, reason=not_blocked")
                     print(warn_msg)
             else:
                 warn_msg = f"[UNLOCK] Camera {start_camera_id} không có slot nào bị block"
-                self.logger.warning(warn_msg)
+                self.block_logger.warning(f"UNLOCK_FAILED: camera={start_camera_id}, reason=no_blocked_slots")
                 print(warn_msg)
     
     def _unlock_start_by_qr(self, start_qr: int, reason: str = "manual") -> None:
@@ -309,6 +304,7 @@ class ROIProcessor:
             if camera_id in self.blocked_slots:
                 if slot_number in self.blocked_slots[camera_id]:
                     del self.blocked_slots[camera_id][slot_number]
+                    self.block_logger.info(f"UNLOCK_BY_QR_SUCCESS: camera={camera_id}, slot={slot_number}, qr={start_qr}, reason={reason}")
                     print(f"[UNLOCK_BY_QR] Đã unlock start slot {slot_number} trên {camera_id} "
                           f"(QR: {start_qr}, reason: {reason})")
                     
@@ -325,8 +321,10 @@ class ROIProcessor:
                         del self.end_slot_states[end_slot_to_remove]
                         print(f"[UNLOCK_BY_QR] Đã xóa end slot {end_slot_to_remove} khỏi monitoring")
                 else:
+                    self.block_logger.warning(f"UNLOCK_BY_QR_FAILED: camera={camera_id}, slot={slot_number}, qr={start_qr}, reason=not_blocked")
                     print(f"[UNLOCK_BY_QR] Start slot {slot_number} trên {camera_id} không bị block")
             else:
+                self.block_logger.warning(f"UNLOCK_BY_QR_FAILED: camera={camera_id}, qr={start_qr}, reason=no_blocked_slots")
                 print(f"[UNLOCK_BY_QR] Camera {camera_id} không có slot nào bị block")
         
     def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
@@ -456,7 +454,6 @@ class ROIProcessor:
 
     def _subscribe_stable_pairs(self) -> None:
         """Subscribe topic stable_pairs để nhận start_qr và block ROI tương ứng, đồng thời theo dõi end_qr."""
-        self.logger.info("Bắt đầu subscribe stable_pairs để nhận lệnh block ROI và theo dõi end slot...")
         print("Bắt đầu subscribe stable_pairs để nhận lệnh block ROI và theo dõi end slot...")
         
         # Thiết lập end_to_start mapping
@@ -516,7 +513,7 @@ class ROIProcessor:
                                 self.blocked_slots[cam_id] = {}
                             self.blocked_slots[cam_id][slot_number] = expire_at
                             log_msg = f"[BLOCK] Đã block ROI slot {slot_number} trên {cam_id} (vô thời hạn) do start_qr={start_qr}"
-                            self.logger.info(log_msg)
+                            self.block_logger.info(f"BLOCK_SUCCESS: camera={cam_id}, slot={slot_number}, qr={start_qr}, type=stable_pair")
                             print(log_msg)
                     
                     # Xử lý end_qr (bắt đầu theo dõi)
@@ -533,7 +530,6 @@ class ROIProcessor:
                 time.sleep(0.2)
             except Exception as e:
                 error_msg = f"Lỗi khi subscribe stable_pairs: {e}"
-                self.logger.error(error_msg)
                 print(error_msg)
                 time.sleep(1.0)
     
@@ -594,7 +590,6 @@ class ROIProcessor:
     
     def _subscribe_dual_blocking(self) -> None:
         """Subscribe dual_block và dual_unblock topics để nhận lệnh block/unblock cho dual pairs."""
-        self.logger.info("Bắt đầu subscribe dual blocking topics...")
         print("Bắt đầu subscribe dual blocking topics...")
         
         # Track last processed IDs for both topics
@@ -623,7 +618,6 @@ class ROIProcessor:
                     last_unblock_id = row[0]
         except Exception as e:
             error_msg = f"Lỗi khi khởi tạo dual blocking cursors: {e}"
-            self.logger.error(error_msg)
             print(error_msg)
 
         while self.running:
@@ -673,7 +667,6 @@ class ROIProcessor:
                 time.sleep(0.2)
             except Exception as e:
                 error_msg = f"Lỗi khi subscribe dual blocking: {e}"
-                self.logger.error(error_msg)
                 print(error_msg)
                 time.sleep(1.0)
     
@@ -685,7 +678,7 @@ class ROIProcessor:
             end_qrs = int(payload.get("end_qrs", 0))
             
             if not dual_id or not start_qr or not end_qrs:
-                self.logger.warning(f"Invalid dual block payload: {payload}")
+                print(f"Invalid dual block payload: {payload}")
                 return
             
             # Load lại mapping để đảm bảo mới nhất
@@ -694,7 +687,7 @@ class ROIProcessor:
             # Tìm camera và slot tương ứng với start_qr
             start_cam_slot = self.qr_to_slot.get(start_qr)
             if not start_cam_slot:
-                self.logger.warning(f"Không tìm thấy slot cho start_qr={start_qr}")
+                print(f"Không tìm thấy slot cho start_qr={start_qr}")
                 return
             
             start_camera_id, start_slot_number = start_cam_slot
@@ -722,12 +715,11 @@ class ROIProcessor:
                 self._add_dual_end_slot_monitoring(dual_id, end_qrs)
             
             log_msg = f"[DUAL_BLOCK] Đã block ROI slot {start_slot_number} trên {start_camera_id} cho dual {dual_id} (start_qr={start_qr})"
-            self.logger.info(log_msg)
+            self.block_logger.info(f"DUAL_BLOCK_SUCCESS: dual_id={dual_id}, camera={start_camera_id}, slot={start_slot_number}, start_qr={start_qr}, end_qrs={end_qrs}")
             print(log_msg)
             
         except Exception as e:
             error_msg = f"Lỗi khi xử lý dual block: {e}"
-            self.logger.error(error_msg)
             print(error_msg)
     
     def _handle_dual_unblock(self, payload: Dict[str, Any]) -> None:
@@ -737,7 +729,7 @@ class ROIProcessor:
             start_qr = int(payload.get("start_qr", 0))
             
             if not dual_id or not start_qr:
-                self.logger.warning(f"Invalid dual unblock payload: {payload}")
+                print(f"Invalid dual unblock payload: {payload}")
                 return
             
             # Tìm và unblock start slot
@@ -763,21 +755,20 @@ class ROIProcessor:
                         break
                 
                 log_msg = f"[DUAL_UNBLOCK] Đã unblock ROI slot {start_slot_number} trên {start_camera_id} cho dual {dual_id}"
-                self.logger.info(log_msg)
+                self.block_logger.info(f"DUAL_UNBLOCK_SUCCESS: dual_id={dual_id}, camera={start_camera_id}, slot={start_slot_number}, start_qr={start_qr}")
                 print(log_msg)
             else:
-                self.logger.warning(f"Dual {dual_id} không được tìm thấy trong danh sách blocked")
+                print(f"Dual {dual_id} không được tìm thấy trong danh sách blocked")
         
         except Exception as e:
             error_msg = f"Lỗi khi xử lý dual unblock: {e}"
-            self.logger.error(error_msg)
             print(error_msg)
     
     def _add_dual_end_slot_monitoring(self, dual_id: str, end_qr: int) -> None:
         """Thêm end slot vào danh sách theo dõi cho dual pair"""
         end_slot = self.qr_to_slot.get(end_qr)
         if not end_slot:
-            self.logger.warning(f"Không tìm thấy end slot cho QR {end_qr}")
+            print(f"Không tìm thấy end slot cho QR {end_qr}")
             return
         
         camera_id, slot_number = end_slot
@@ -791,13 +782,13 @@ class ROIProcessor:
                 'dual_id': dual_id  # Mark đây là dual monitoring
             }
         
-        self.logger.info(f"[DUAL_END_MONITOR] Bắt đầu theo dõi dual end slot {slot_number} trên {camera_id} (QR: {end_qr}) cho dual {dual_id}")
+        print(f"[DUAL_END_MONITOR] Bắt đầu theo dõi dual end slot {slot_number} trên {camera_id} (QR: {end_qr}) cho dual {dual_id}")
     
     def _trigger_dual_unblock(self, dual_id: str, end_slot: Tuple[str, int]) -> None:
         """Gửi dual unblock message khi end slot stable shelf"""
         try:
             if dual_id not in self.dual_blocked_pairs:
-                self.logger.warning(f"Dual {dual_id} không có trong danh sách blocked pairs")
+                print(f"Dual {dual_id} không có trong danh sách blocked pairs")
                 return
             
             blocked_info = self.dual_blocked_pairs[dual_id]
@@ -819,12 +810,11 @@ class ROIProcessor:
             self.queue.publish("dual_unblock_trigger", dual_id, unblock_payload)
             
             log_msg = f"[DUAL_UNBLOCK_TRIGGER] Đã gửi unblock trigger cho dual {dual_id} (end_slot stable shelf)"
-            self.logger.info(log_msg)
+            self.block_logger.info(f"DUAL_UNBLOCK_TRIGGER: dual_id={dual_id}, end_camera={end_slot[0]}, end_slot={end_slot[1]}, start_qr={start_qr}, end_qrs={end_qrs}")
             print(log_msg)
             
         except Exception as e:
             error_msg = f"Lỗi khi gửi dual unblock trigger: {e}"
-            self.logger.error(error_msg)
             print(error_msg)
     
     def update_roi_cache(self, camera_id: str, roi_data: Dict[str, Any]) -> None:
@@ -1115,11 +1105,10 @@ class ROIProcessor:
             video_thread = threading.Thread(target=self.display_video, daemon=True)
             video_thread.start()
         
-        self.logger.info("ROI Processor đã bắt đầu chạy...")
         print("ROI Processor đã bắt đầu chạy...")
         
         if self.show_video:
-            self.logger.info("Video display đã được bật")
+            print("Video display đã được bật")
             print("Video display đã được bật - Nhấn 'q' trong cửa sổ video để thoát")
         print("Nhấn Ctrl+C để dừng")
         
@@ -1136,20 +1125,20 @@ class ROIProcessor:
             while self.running:
                 time.sleep(1)
         except KeyboardInterrupt:
-            self.logger.info("\nNhận KeyboardInterrupt - Đang dừng ROI Processor...")
+            print("\nNhận KeyboardInterrupt - Đang dừng ROI Processor...")
             print("\nĐang dừng ROI Processor...")
             self.running = False
         
         # Đóng video captures
-        self.logger.info(f"Đang đóng {len(self.video_captures)} video captures")
+        print(f"Đang đóng {len(self.video_captures)} video captures")
         for cap in self.video_captures.values():
             cap.release()
         
         # Dừng video display manager
-        self.logger.info("Dừng video display manager")
+        print("Dừng video display manager")
         self.video_display_manager.stop()
         
-        self.logger.info("ROI Processor đã dừng hoàn toàn")
+        print("ROI Processor đã dừng hoàn toàn")
         print("ROI Processor đã dừng")
 
 

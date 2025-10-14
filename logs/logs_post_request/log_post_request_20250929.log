@@ -1,4 +1,0 @@
-2025-09-29 13:40:26,733 - INFO - PostRequestManager started
-2025-09-29 13:40:26,784 - INFO - StablePairsListener started (topic=stable_pairs)
-2025-09-29 13:41:04,590 - INFO - Enqueue pair for POST: 3333,6789
-2025-09-29 13:41:04,591 - ERROR - Error processing POST request: [Errno 2] No such file or directory: 'src/post_request/count.txt'
