@@ -16,14 +16,15 @@ import DropdownMenu from '@/components/GridManagement/DropdownMenu';
 import ConfirmationModal from '@/components/GridManagement/ConfirmationModal';
 import KhuAreaSelector from '@/components/GridManagement/KhuAreaSelector';
 import ServerInfo from '@/components/GridManagement/ServerInfo';
-import LoginPrompt from '@/components/GridManagement/LoginPrompt';
+import useButtonSettings from '@/hooks/Setting/useButtonSettings';
+import NodeTypeCells from '@/components/GridManagement/NodeTypeCells';
 
 const SERVER_URL = import.meta.env.VITE_API_URL;
 const SERVER_ICS_URL = import.meta.env.VITE_ICS_API_URL;
 
 const MobileGridDisplay = () => {
-  // Authentication hook
-  const { currentUser, isAdmin, isUserAE3, isUserAE4, isUserMainOvh, logout } = useAuth();
+  // Authentication hook (chỉ dùng để lấy currentUser và logout, không xử lý phân quyền tại đây)
+  const { currentUser, logout } = useAuth();
   const { currAreaName, currAreaId } = useArea();
   
   // Bỏ useSettings: sử dụng serverIPs cục bộ từ biến môi trường
@@ -49,10 +50,37 @@ const MobileGridDisplay = () => {
     setCellStates
   );
 
+  // Lấy nodeTypes và danh sách nodes từ ButtonSettings để dùng làm danh sách khu (node types)
+  const { nodeTypes, allNodes, selectedNodeType, setSelectedNodeType } = useButtonSettings(currentUser, null);
+  console.log('[MobileGridDisplay] nodeTypes:', nodeTypes);
+  console.log('[MobileGridDisplay] selectedNodeType:', selectedNodeType);
   // Computed values
   const effectiveServerIP = serverIPs && Array.isArray(serverIPs) && serverIPs.length > 0 ? serverIPs[0] : SERVER_URL;
   const currentKhuConfig = gridConfig && selectedKhu ? gridConfig[selectedKhu + 'Config'] : null;
   const totalCells = currentKhuConfig ? currentKhuConfig.cells : 0;
+  // Đồng bộ selectedKhu với selectedNodeType trong hook ButtonSettings
+  React.useEffect(() => {
+    if (selectedKhu) {
+      setSelectedNodeType(selectedKhu);
+    }
+  }, [selectedKhu, setSelectedNodeType]);
+  // Chuyển allNodes -> cấu trúc taskData mà GridCell kỳ vọng
+  const unifiedTaskData = React.useMemo(() => {
+    if (!Array.isArray(allNodes)) return [];
+    return allNodes.map((n, idx) => ({
+      cell: `cell-${idx + 1}`,
+      value: {
+        taskOrderDetail: [
+          {
+            taskPath: n.node_name || `${n.start ?? ''}${n.start && n.end ? ' → ' : ''}${n.end ?? ''}`
+          }
+        ]
+      }
+    }));
+  }, [allNodes]);
+  const displayTotalCells = currentKhuConfig ? totalCells : (Array.isArray(allNodes) ? allNodes.length : 0);
+  console.log('[MobileGridDisplay] selectedKhu:', selectedKhu, 'allNodes.length:', Array.isArray(allNodes) ? allNodes.length : 'n/a', 'displayTotalCells:', displayTotalCells);
+  console.log('[MobileGridDisplay] unifiedTaskData sample:', unifiedTaskData?.[0]);
 
   // Helper functions
   const checkSetup = useCallback(() => {
@@ -119,8 +147,6 @@ const MobileGridDisplay = () => {
     handleSendDoubleTask,
     addHistoryRecord
   ]);
-
-  // Render functions
   const renderGridContent = useCallback(() => {
     if (selectedKhu === 'SupplyAndDemand') {
       return (
@@ -136,9 +162,6 @@ const MobileGridDisplay = () => {
           onSendDoubleTask={handleSendDoubleTaskWrapper}
           isSending={isSending}
           sendResult={sendResult}
-          isUserAE3={isUserAE3}
-          isUserAE4={isUserAE4}
-          isUserMainOvh={isUserMainOvh}
         />
       );
     }
@@ -147,18 +170,15 @@ const MobileGridDisplay = () => {
       <GridArea
         selectedKhu={selectedKhu}
         currentKhuConfig={currentKhuConfig}
-        totalCells={totalCells}
+        totalCells={displayTotalCells}
         supplyTaskData={supplyTaskData}
-        demandTaskData={demandTaskData}
+        demandTaskData={unifiedTaskData}
         cellStates={cellStates}
         onCellClick={handleCellClick}
-        isConfigLoading={isConfigLoading}
-        taskLoading={taskLoading}
-        configError={configError}
-        taskError={taskError}
-        isUserAE3={isUserAE3}
-        isUserAE4={isUserAE4}
-        isUserMainOvh={isUserMainOvh}
+        isConfigLoading={false}
+        taskLoading={false}
+        configError={null}
+        taskError={null}
       />
     );
   }, [
@@ -174,9 +194,6 @@ const MobileGridDisplay = () => {
     handleSendDoubleTaskWrapper,
     isSending,
     sendResult,
-    isUserAE3,
-    isUserAE4,
-    isUserMainOvh,
     currentKhuConfig,
     totalCells,
     cellStates,
@@ -187,29 +204,7 @@ const MobileGridDisplay = () => {
     taskError
   ]);
 
-  // Hiển thị LoginPrompt nếu user chưa đăng nhập
-  if (!currentUser) {
-    return (
-      <div className="mobile-grid-bootstrap">
-        <div className="d-flex flex-column min-vh-100 w-100">
-          <div className="container-fluid main-container flex-grow-1 py-3">
-            <div className="container">
-              <div className="w-100">
-                <Card className="w-100">
-                  <Card.Header className="bg-light">
-                    <h5 className="mb-0">CHỌN KHU VỰC VÀ TASK PATH</h5>
-                  </Card.Header>
-                  <Card.Body>
-                    <LoginPrompt />
-                  </Card.Body>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Bỏ gating theo đăng nhập: PrivateRoute đã xử lý bên ngoài
 
   return (
     <div className="mobile-grid-bootstrap">
@@ -230,7 +225,6 @@ const MobileGridDisplay = () => {
                   <ServerInfo
                     effectiveServerIP={effectiveServerIP}
                     currentUser={currentUser}
-                    isAdmin={isAdmin}
                     selectedKhu={selectedKhu}
                     currentKhuConfig={currentKhuConfig}
                     totalCells={totalCells}
@@ -240,11 +234,16 @@ const MobileGridDisplay = () => {
                   <KhuAreaSelector
                     selectedKhu={selectedKhu}
                     onKhuSelect={handleKhuSelect}
+                    nodeTypeKeys={Object.keys(nodeTypes || {})}
                   />
 
                   {selectedKhu && (
                     <div className="bg-light p-3 rounded">
-                      {renderGridContent()}
+                      {/* Hiển thị dạng nút theo nodeType (log khi ấn) */}
+                      <NodeTypeCells
+                        cells={allNodes}
+                        onCellPress={(cell) => console.log('[MobileGridDisplay] Pressed node:', cell)}
+                      />
                     </div>
                   )}
 

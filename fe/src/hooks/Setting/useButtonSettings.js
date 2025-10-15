@@ -5,16 +5,22 @@ import {
   createNode,
   updateNodeByBatch,
   deleteNodeById,
+  getNodesByOwnerAndType
 } from '@/services/nodes';
 
-// Hook này tập trung toàn bộ logic ButtonSettings, thay thế mockData
-export const useButtonSettings = (selectedUser, selectedNodeType) => {
+// Hook quản lý ButtonSettings: chỉ cần selectedUser. selectedNodeType là TUỲ CHỌN.
+// Nếu không truyền selectedNodeType, hook sẽ tự quản lý state loại node và trả ra setter.
+export const useButtonSettings = (selectedUser, externalSelectedNodeType) => {
   const [allFetchedNodes, setAllFetchedNodes] = useState([]);
   const [allNodes, setAllNodes] = useState([]); // nodes hiển thị theo loại đã chọn, đã merge sửa đổi
   const [nodeTypes, setNodeTypes] = useState({}); // đếm theo node_type
   const [modifiedNodes, setModifiedNodes] = useState({}); // map id -> updates
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [internalSelectedNodeType, setInternalSelectedNodeType] = useState('');
+
+  // Xác định selectedNodeType hiệu lực: ưu tiên prop ngoài nếu có, ngược lại dùng state nội bộ
+  const selectedNodeType = externalSelectedNodeType ?? internalSelectedNodeType;
 
   // Lấy nodes theo user
   const fetchNodes = useCallback(async () => {
@@ -45,6 +51,14 @@ export const useButtonSettings = (selectedUser, selectedNodeType) => {
     }, {});
     setNodeTypes(counts);
   }, [allFetchedNodes]);
+
+  // Khi nodeTypes có giá trị lần đầu và chưa có selectedNodeType, chọn loại đầu tiên
+  useEffect(() => {
+    const keys = Object.keys(nodeTypes || {});
+    if (!externalSelectedNodeType && keys.length > 0 && !internalSelectedNodeType) {
+      setInternalSelectedNodeType(keys[0]);
+    }
+  }, [nodeTypes, externalSelectedNodeType, internalSelectedNodeType]);
 
   // Cập nhật danh sách hiển thị khi đổi loại hoặc có sửa đổi cục bộ
   useEffect(() => {
@@ -150,7 +164,10 @@ export const useButtonSettings = (selectedUser, selectedNodeType) => {
     }
   }, [allNodes, selectedNodeType, selectedUser, fetchNodes]);
 
-  const totalCellsSelectedType = useMemo(() => nodeTypes[selectedNodeType] || allNodes.length || 0, [nodeTypes, selectedNodeType, allNodes.length]);
+  const totalCellsSelectedType = useMemo(
+    () => nodeTypes[selectedNodeType] || allNodes.length || 0,
+    [nodeTypes, selectedNodeType, allNodes.length]
+  );
 
   // Lưu batch trực tiếp với danh sách nodes truyền vào (ví dụ từ Excel)
   const saveBatchWithNodes = useCallback(async (nodes) => {
@@ -195,6 +212,8 @@ export const useButtonSettings = (selectedUser, selectedNodeType) => {
     saveBatch,
     saveBatchWithNodes,
     fetchNodes,
+    selectedNodeType,
+    setSelectedNodeType: setInternalSelectedNodeType,
   };
 };
 

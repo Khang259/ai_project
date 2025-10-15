@@ -7,7 +7,7 @@ import '../../styles/bootstrap-scoped.css';
  * @param {Object} props
  * @param {string} props.effectiveServerIP - IP server hiệu quả
  * @param {Object} props.currentUser - Thông tin user hiện tại
- * @param {Function} props.isAdmin - Hàm kiểm tra admin
+ * @param {Function} [props.isAdmin] - Hàm kiểm tra admin (tùy chọn)
  * @param {string} props.selectedKhu - Khu vực được chọn
  * @param {Object} props.currentKhuConfig - Cấu hình khu vực hiện tại
  * @param {number} props.totalCells - Tổng số ô
@@ -39,7 +39,9 @@ const ServerInfo = ({
       {currentUser && (
         <div className="mb-3">
           <strong>Đăng nhập với:</strong> {currentUser.username}
-          {isAdmin() && <span className="badge bg-danger ms-2">Admin</span>}
+          {typeof isAdmin === 'function' && isAdmin() && (
+            <span className="badge bg-danger ms-2">Admin</span>
+          )}
         </div>
       )}
     </div>
