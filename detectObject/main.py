@@ -125,12 +125,12 @@ class CameraOrchestrator:
 def main():
 
     camera_urls = [
-      ("cam-1","rtsp://192.168.1.168:8554/live/cam1"),
-      ("cam-2","rtsp://192.168.1.168:8554/live/cam2"),
-      ("cam-3","rtsp://192.168.1.168:8554/live/cam3"),
-      ("cam-4","rtsp://192.168.1.168:8554/live/cam4"),
-      ("cam-5","rtsp://192.168.1.168:8554/live/cam5"),
-      ("cam-6","rtsp://192.168.1.168:8554/live/cam6")
+      ("cam-1","rtsp://192.168.1.162:8554/live/cam1"),
+    #   ("cam-2","rtsp://192.168.1.168:8554/live/cam2"),
+    #   ("cam-3","rtsp://192.168.1.168:8554/live/cam3"),
+    #   ("cam-4","rtsp://192.168.1.168:8554/live/cam4"),
+    #   ("cam-5","rtsp://192.168.1.168:8554/live/cam5"),
+      ("cam-6","rtsp://192.168.1.162:8554/live/cam6")
     #   ("cam-7","rtsp://192.168.1.168:8554/live/cam7"),
     #   ("cam-8","rtsp://192.168.1.168:8554/live/cam8"),
     #   ("cam-9","rtsp://192.168.1.168:8554/live/cam9"),
