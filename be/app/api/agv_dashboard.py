@@ -23,7 +23,7 @@ async def receive_robot_data(request: Request):
     message = json.dumps(agv_info)
     await manager.broadcast(message)
 
-    return {"status": "success"}
+    return {"status": "success", "result": "success"}
 
 @router.get("/payload-statistics")
 async def get_payload_statistics(

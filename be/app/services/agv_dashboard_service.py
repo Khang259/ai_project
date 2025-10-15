@@ -638,13 +638,6 @@ async def get_all_robots_payload_data(
                             "device_code": device_code_key,
                             "device_name": device_name_key,
                             "time_series": {},
-                            "summary": {
-                                "total_payLoad_0_0_count": 0,
-                                "total_payLoad_1_0_count": 0,
-                                "total_records": 0,
-                                "total_payLoad_0_0_percentage": 0,
-                                "total_payLoad_1_0_percentage": 0
-                            }
                         }
                     
                     # Khởi tạo date nếu chưa có
@@ -658,13 +651,10 @@ async def get_all_robots_payload_data(
                     # Cập nhật số lượng
                     if payload == "0.0":
                         robots_data[device_code_key]["time_series"][date_key]["payLoad_0_0_count"] = count
-                        robots_data[device_code_key]["summary"]["total_payLoad_0_0_count"] += count
                     elif payload == "1.0":
                         robots_data[device_code_key]["time_series"][date_key]["payLoad_1_0_count"] = count
-                        robots_data[device_code_key]["summary"]["total_payLoad_1_0_count"] += count
                     
                     robots_data[device_code_key]["time_series"][date_key]["total_records"] += count
-                    robots_data[device_code_key]["summary"]["total_records"] += count
 
         # ===== LOGIC CHO FILTER THEO TUẦN/THÁNG ("w", "m") - Query từ daily_statistics =====
         else:
@@ -688,13 +678,6 @@ async def get_all_robots_payload_data(
                         "device_code": device_code_key,
                         "device_name": device_name_key,
                         "time_series": {},
-                        "summary": {
-                            "total_payLoad_0_0_count": 0,
-                            "total_payLoad_1_0_count": 0,
-                            "total_records": 0,
-                            "total_payLoad_0_0_percentage": 0,
-                            "total_payLoad_1_0_percentage": 0
-                        }
                     }
                 
                 # Thêm dữ liệu theo ngày vào time_series
@@ -705,11 +688,6 @@ async def get_all_robots_payload_data(
                     "payLoad_0_0_percentage": stat.get("InTask_payLoad_0_0_percentage", 0),
                     "payLoad_1_0_percentage": stat.get("InTask_payLoad_1_0_percentage", 0)
                 }
-                
-                # Cộng dồn vào summary
-                robots_data[device_code_key]["summary"]["total_payLoad_0_0_count"] += payload_0_0_count
-                robots_data[device_code_key]["summary"]["total_payLoad_1_0_count"] += payload_1_0_count
-                robots_data[device_code_key]["summary"]["total_records"] += total_payload_records
         
         # ===== TÍNH PHẦN TRĂM CHO SUMMARY (áp dụng cho cả 2 trường hợp) =====
         for device_code_key in robots_data:
@@ -729,16 +707,6 @@ async def get_all_robots_payload_data(
                     else:
                         robot["time_series"][date_key]["payLoad_0_0_percentage"] = 0
                         robot["time_series"][date_key]["payLoad_1_0_percentage"] = 0
-            
-            # Tính phần trăm tổng thể cho robot
-            total_records = robot["summary"]["total_records"]
-            if total_records > 0:
-                robot["summary"]["total_payLoad_0_0_percentage"] = round(
-                    (robot["summary"]["total_payLoad_0_0_count"] / total_records) * 100, 2
-                )
-                robot["summary"]["total_payLoad_1_0_percentage"] = round(
-                    (robot["summary"]["total_payLoad_1_0_count"] / total_records) * 100, 2
-                )
         
         return {
             "status": "success",
@@ -834,13 +802,6 @@ async def get_all_robots_work_status(
                         "device_code": device_code_key,
                         "device_name": device_name_key,
                         "time_series": {},
-                        "summary": {
-                            "total_InTask_count": 0,
-                            "total_Idle_count": 0,
-                            "total_records": 0,
-                            "total_InTask_percentage": 0,
-                            "total_Idle_percentage": 0
-                        }
                     }
                 
                 # Khởi tạo date nếu chưa có
@@ -854,13 +815,10 @@ async def get_all_robots_work_status(
                 # Cập nhật số lượng
                 if state_value == "InTask":
                     robots_data[device_code_key]["time_series"][date_key]["InTask_count"] = count
-                    robots_data[device_code_key]["summary"]["total_InTask_count"] += count
                 elif state_value == "Idle":
                     robots_data[device_code_key]["time_series"][date_key]["Idle_count"] = count
-                    robots_data[device_code_key]["summary"]["total_Idle_count"] += count
                 
                 robots_data[device_code_key]["time_series"][date_key]["total_records"] += count
-                robots_data[device_code_key]["summary"]["total_records"] += count
 
         # ===== LOGIC CHO FILTER THEO TUẦN/THÁNG ("w", "m") - Query từ daily_statistics =====
         else:
@@ -884,13 +842,6 @@ async def get_all_robots_work_status(
                         "device_code": device_code_key,
                         "device_name": device_name_key,
                         "time_series": {},
-                        "summary": {
-                            "total_InTask_count": 0,
-                            "total_Idle_count": 0,
-                            "total_records": 0,
-                            "total_InTask_percentage": 0,
-                            "total_Idle_percentage": 0
-                        }
                     }
                 
                 # Thêm dữ liệu theo ngày vào time_series
@@ -901,11 +852,6 @@ async def get_all_robots_work_status(
                     "InTask_percentage": stat.get("InTask_percentage", 0),
                     "Idle_percentage": stat.get("Idle_percentage", 0)
                 }
-                
-                # Cộng dồn vào summary
-                robots_data[device_code_key]["summary"]["total_InTask_count"] += intask_count
-                robots_data[device_code_key]["summary"]["total_Idle_count"] += idle_count
-                robots_data[device_code_key]["summary"]["total_records"] += total_work_records
         
         # ===== TÍNH PHẦN TRĂM CHO SUMMARY (áp dụng cho cả 2 trường hợp) =====
         for device_code_key in robots_data:
@@ -925,16 +871,6 @@ async def get_all_robots_work_status(
                     else:
                         robot["time_series"][date_key]["InTask_percentage"] = 0
                         robot["time_series"][date_key]["Idle_percentage"] = 0
-            
-            # Tính phần trăm tổng thể cho robot
-            total_records = robot["summary"]["total_records"]
-            if total_records > 0:
-                robot["summary"]["total_InTask_percentage"] = round(
-                    (robot["summary"]["total_InTask_count"] / total_records) * 100, 2
-                )
-                robot["summary"]["total_Idle_percentage"] = round(
-                    (robot["summary"]["total_Idle_count"] / total_records) * 100, 2
-                )
         
         return {
             "status": "success",
