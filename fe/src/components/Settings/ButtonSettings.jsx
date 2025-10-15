@@ -9,16 +9,28 @@ import CellNameEditor from './CellNameEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { useUsers } from '../../hooks/Users/useUsers';
-import mockData from '../../data/mockSetting_cell.json';
+import useButtonSettings from '../../hooks/Setting/useButtonSettings';
 
 const ButtonSettings = () => {
-  const data = mockData; // Sau này sẽ thay bằng cái API
-  const [nodeTypes, setNodeType] = useState({'Cap': 0, 'Tra': 0, 'Cap&Tra': 0});
   const {users, usersLoading, usersError } = useUsers();
-  const [selectedUser, setSelectedUser] = useState({ username: "admin", role: "Administrator" });
+  const [selectedUser, setSelectedUser] = useState({});
   const [selectedNodeType, setSelectedNodeType] = useState('Cap');
-  const [allNodes, setAllNodes] = useState(data.node || []);
-  const [modifiedNodes, setModifiedNodes] = useState({}); // Lưu trữ các node đã được sửa
+  const {
+    loading,
+    error,
+    nodeTypes,
+    allNodes,
+    setAllNodes,
+    totalCellsSelectedType,
+    updateCell,
+    deleteCell,
+    addNode,
+    importNodesLocal,
+    saveBatch,
+    saveBatchWithNodes,
+    fetchNodes,
+  } = useButtonSettings(selectedUser, selectedNodeType);
+
   const [newNodeData, setNewNodeData] = useState({
     node_name: "",
     start: 0,
@@ -32,35 +44,10 @@ const ButtonSettings = () => {
   const columns = MaximumColumnsInPreview;
   const totalCells = allNodes.length;
   const rows = Math.ceil(totalCells / columns);
-
-  // Tính toán và cập nhật nodeTypes từ data
+  // khi đổi user thì refetch
   useEffect(() => {
-    const nodeTypeCounts = {};
-    data.node.forEach(node => {
-      const nodeType = node.node_type;
-      nodeTypeCounts[nodeType] = (nodeTypeCounts[nodeType] || 0) + 1;
-    });
-    setNodeType(nodeTypeCounts);
-    console.log('Node types counts:', nodeTypeCounts);
-  }, [data.node]);
-
-  // Cập nhật allNodes khi selectedNodeType hoặc selectedUser thay đổi
-  useEffect(() => {
-    if (selectedNodeType) {
-      const filteredNodes = data.node.filter(node => node.node_type === selectedNodeType);
-      
-      // Merge với các node đã được sửa
-      const mergedNodes = filteredNodes.map(node => {
-        const modifiedNode = modifiedNodes[node.id];
-        return modifiedNode ? { ...node, ...modifiedNode } : node;
-      });
-      
-      console.log('Filtered nodes by node_type:', filteredNodes);
-      console.log('Modified nodes:', modifiedNodes);
-      console.log('Merged nodes:', mergedNodes);
-      setAllNodes(mergedNodes);
-    }
-  }, [selectedNodeType, modifiedNodes])
+    if (selectedUser?.id) fetchNodes();
+  }, [selectedUser, fetchNodes]);
 
   // Cập nhật selectedUser khi users được load từ API ( Khi chưa có dữ liệu gì ?)
   useEffect(() => {
@@ -84,35 +71,12 @@ const ButtonSettings = () => {
   }, [nodeTypes, selectedNodeType])
 
 
-  // Cập nhật tên ô
-  const updateCell = (id, field, value) => {
-    console.log('updateCell called:', { id, field, value });
-    setModifiedNodes(prevModified => {
-      const updated = {
-        ...prevModified,
-        [id]: {
-          ...prevModified[id],
-          [field]: value,
-          updated_at: new Date().toISOString()
-        }
-      };
-      console.log('Updated modifiedNodes:', updated);
-      return updated;
-    });
-  };
-  // Xóa ô
-  const deleteCell = (cellId) => {
+  // Xóa ô có confirm UI, sau đó gọi hook
+  const handleDeleteCell = async (cellId) => {
     const nodeToDelete = allNodes.find(node => node.id === cellId);
     if (!nodeToDelete) return;
-    
     if (confirm(`Bạn có chắc chắn muốn xóa ô ${nodeToDelete.node_name}?`)) {
-      setAllNodes(prevNodes => prevNodes.filter(node => node.id !== cellId));
-      // Cập nhật totalCells nếu cần
-      const newTotalCells = allNodes.length - 1;
-      if (newTotalCells > 0) {
-        // Có thể cập nhật modeConfigs ở đây nếu cần
-        console.log(`Còn lại ${newTotalCells} ô sau khi xóa`);
-      }
+      await deleteCell(cellId);
     }
   };
 
@@ -129,28 +93,27 @@ const ButtonSettings = () => {
   };
 
   // Xác nhận thêm node mới
-  const handleConfirmAddNode = () => {
+  const handleConfirmAddNode = async () => {
     if (!newNodeData.node_name || !newNodeData.start || !newNodeData.end) {
       alert("Vui lòng điền đầy đủ thông tin bắt buộc (Tên Node, Start, End)");
       return;
     }
 
-    // Tạo node mới với thông tin từ form
-    const newNode = {
-      id: `new_node_${Date.now()}`,
+    // Gọi API tạo node qua hook để có id từ server
+    const payload = {
       node_name: newNodeData.node_name,
       node_type: selectedNodeType,
-      area: "KD",
+      owner: selectedUser.username,
       start: newNodeData.start,
       end: newNodeData.end,
       next_start: newNodeData.next_start || 0,
       next_end: newNodeData.next_end || 0,
-      user_id: selectedUser.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
     };
-    
-    setAllNodes(prevNodes => [...prevNodes, newNode]);
+    const res = await addNode(payload);
+    if (!res?.success) {
+      alert(`Tạo node thất bại: ${res?.error || 'Unknown error'}`);
+      return;
+    }
     
     // Đóng form và reset dữ liệu
     setShowAddForm(false);
@@ -162,7 +125,7 @@ const ButtonSettings = () => {
       next_end: 0
     });
 
-    alert(`Đã thêm node "${newNode.node_name}" thành công!`);
+    alert(`Đã thêm node "${newNodeData.node_name}" thành công!`);
   };
 
   // Tăng số ô (giữ nguyên để tương thích với code cũ)
@@ -189,12 +152,12 @@ const ButtonSettings = () => {
 
 
  // Import Excel bằng SheetJS (xlsx)
-  const handleExcelImport = (event) => {
+  const handleExcelImport = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
@@ -205,7 +168,8 @@ const ButtonSettings = () => {
         }
         const worksheet = workbook.Sheets[firstSheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
+        console.log('=== ROWS ===');
+        console.log(rows);
         if (!rows || rows.length === 0) {
           alert('Không có dữ liệu để import.');
           return;
@@ -230,7 +194,6 @@ const ButtonSettings = () => {
         }
 
         // Tạo danh sách node từ file và hợp nhất vào allNodes
-        const nowIso = new Date().toISOString();
         const importedNodes = normalisedRows.map((r, idx) => {
           const nodeName = String(r.node_name ?? '').trim();
           const nodeType = String(r.node_type ?? '').trim();
@@ -239,14 +202,11 @@ const ButtonSettings = () => {
             id: existing ? existing.id : `new_node_${Date.now()}_${idx}`,
             node_name: nodeName,
             node_type: nodeType,
-            area: existing?.area ?? '',
+            owner: selectedUser.username,
             start: Number(r.start) || '',
             end: Number(r.end) || '',
             next_start: Number(r.next_start) || '',
             next_end: Number(r.next_end) || '',
-            user_id: selectedUser?.id,
-            created_at: existing?.created_at ?? nowIso,
-            updated_at: nowIso,
           };
         });
 
@@ -264,27 +224,13 @@ const ButtonSettings = () => {
 
         setAllNodes(mergedNodes);
 
-        // Log payload PUT giống khi ấn lưu cấu hình
-        const outputFormat = {
-          user: selectedUser,
-          node: mergedNodes.map((node) => ({
-            id: node.id,
-            node_name: node.node_name,
-            node_type: node.node_type,
-            area: node.area,
-            name: node.name || '',
-            start: node.start || '',
-            end: node.end || '',
-            next_start: node.next_start || '',
-            next_end: node.next_end || '',
-            created_at: node.created_at,
-            updated_at: node.updated_at || new Date().toISOString(),
-          })),
-        };
-
-        console.log('=== IMPORT EXCEL OUTPUT (PUT PAYLOAD) ===');
-        console.log('Output Format:', JSON.stringify(outputFormat, null, 2));
-        alert(`Đã import ${importedNodes.length} dòng. Kiểm tra Console để xem JSON payload!`);
+        // Gọi saveBatchWithNodes để gửi API ngay sau khi import
+        const result = await saveBatchWithNodes(mergedNodes);
+        if (result?.success) {
+          alert(`Đã import và lưu ${importedNodes.length} dòng thành công!`);
+        } else {
+          alert(`Import thành công nhưng lưu thất bại: ${result?.error || 'Unknown error'}`);
+        }
 
         // Cho phép nhập lại cùng file nếu cần
         event.target.value = '';
@@ -383,7 +329,7 @@ const ButtonSettings = () => {
             <Label className="text-sm font-medium">Tổng Số Ô</Label>
             <div className="flex items-center gap-3">
               <div className="flex-1 text-center">
-                <div className="text-3xl font-bold font-mono text-primary">{nodeTypes[selectedNodeType]}</div>
+                <div className="text-3xl font-bold font-mono text-primary">{totalCellsSelectedType}</div>
               </div>
               <Button variant="outline" size="icon" onClick={increaseCells}>
                 <Plus className="h-4 w-4" />
@@ -498,7 +444,7 @@ const ButtonSettings = () => {
           )}
           
           <div className="pt-4 border-t">
-            <GridPreview rows={rows} columns={columns} cells={allNodes} onDeleteCell={deleteCell} />
+            <GridPreview rows={rows} columns={columns} cells={allNodes} onDeleteCell={handleDeleteCell} />
           </div>
         </CardContent>
       </Card>
@@ -563,29 +509,9 @@ const ButtonSettings = () => {
             Object.keys(nodeTypes).forEach(nodeType => {
               cellConfigsByMode[nodeType.toLowerCase()] = allNodes.filter(node => node.node_type === nodeType);
             });
-
-            // Tạo format output theo yêu cầu
-            const outputFormat = {
-              user: selectedUser,
-              node: allNodes.map(node => ({
-                id: node.id,
-                node_name: node.node_name,
-                node_type: node.node_type,
-                area: node.area,
-                name: node.name || '',
-                start: node.start || '',
-                end: node.end || '',
-                next_start: node.next_start || '',
-                next_end: node.next_end || '',
-                created_at: node.created_at,
-                updated_at: node.updated_at || new Date().toISOString()
-              }))
-            };
-
-            console.log('=== SAVE CONFIGURATION OUTPUT ===');
-            console.log('Output Format:', JSON.stringify(outputFormat, null, 2));
+            saveBatch();
           
-            alert(`Cấu hình đã được lưu!\n\nUser: ${selectedUser?.username}\nNode Type: ${selectedNodeType}\nTổng số node: ${allNodes.length}\n\nKiểm tra Console để xem format JSON chi tiết!`);
+            alert(`Cấu hình đã được lưu!\n\nUser: ${selectedUser?.username}\nNode Type: ${selectedNodeType}\nTổng số node: ${allNodes.length}`);
           }}
           size="lg" 
           className="min-w-[150px] bg-purple-600 hover:bg-purple-700 text-white"
