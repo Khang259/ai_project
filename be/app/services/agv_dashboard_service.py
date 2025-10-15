@@ -15,7 +15,7 @@ async def save_agv_data(payload: list):
             state = record.get("state")
             if state == "InTask" or state == "Idle":
                 # Ghi dữ liệu chỉ khi trạng thái robot đang chạy hoặc đang không hoạt động
-                agv_data = {
+                agv_record = {
                     "device_code": record.get("deviceCode"),
                     "device_name": record.get("deviceName"),
                     "battery": record.get("battery"),
@@ -24,7 +24,7 @@ async def save_agv_data(payload: list):
                     "payLoad": record.get("payLoad"),
                     "created_at": datetime.now()
                 }
-                agv_data.append(agv_data)
+                agv_data.append(agv_record)
                 saved_count += 1
         logger.info(f"Successfully saved {saved_count} AGV records")
         if len(agv_data) > 0:

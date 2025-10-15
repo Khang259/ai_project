@@ -14,6 +14,7 @@ from shared import setup_logger
 from app.core.config import settings
 from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera
 from app.core.database import connect_to_mongo, close_mongo_connection
+from app.scheduler import start_scheduler, shutdown_scheduler
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -23,9 +24,17 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting CameraAI Backend...")
     await connect_to_mongo(settings.mongo_url, settings.mongo_db)
+    
+    # Khởi động scheduler
+    start_scheduler()
+    logger.info("AGV Scheduler started")
+    
     yield
+    
     # Shutdown
     logger.info("Shutting down CameraAI Backend...")
+    shutdown_scheduler()
+    logger.info("AGV Scheduler stopped")
     await close_mongo_connection()
 
 # Create FastAPI app

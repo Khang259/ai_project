@@ -16,6 +16,9 @@ python-multipart==0.0.9            # Hỗ trợ upload form/file (nếu login qu
 pydantic-settings==2.4.0
 loguru==0.7.2
 
+# --- Scheduler ---
+APScheduler==3.10.4
+
 # --- Development & Testing ---
 pytest==8.3.3
 pytest-asyncio==0.24.0

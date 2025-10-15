@@ -168,32 +168,3 @@ async def get_all_robots_work_status_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/reverse-dashboard")
-async def reverse_dashboard_endpoint():
-    """
-    Calculate and save daily statistics for all AGVs to database
-    
-    This endpoint processes AGV data for TODAY (00:00:00 to 23:59:59) and calculates both 
-    payload statistics (loaded/unloaded) and work status (InTask/Idle) for each robot,
-    then saves the results to the agv_daily_statistics collection.
-    
-    Returns:
-        dict: Processing results including total records inserted
-    
-    Example:
-        POST /api/agv-dashboard/reverse-dashboard
-    """
-    try:
-        # Call service function
-        result = await reverse_dashboard_data()
-        
-        if result["status"] == "error":
-            raise HTTPException(status_code=500, detail=result["message"])
-        
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
