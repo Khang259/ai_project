@@ -73,7 +73,7 @@ const CameraSettings = () => {
             Thêm và quản lý địa chỉ IP của các camera
             <br />
             <span className="text-xs text-muted-foreground">
-              📝 Định dạng yêu cầu: rtsp://ip:port/path (ví dụ: rtsp://192.168.1.100:554/stream)
+              Định dạng yêu cầu: rtsp://ip:port/path (ví dụ: rtsp://192.168.1.100:554/stream)
             </span>
           </CardDescription>
         </CardHeader>
@@ -101,7 +101,7 @@ const CameraSettings = () => {
                     />
                     {camera.address && !isValidRTSP && (
                       <p className="text-xs text-red-500">
-                        ⚠️ URL phải có định dạng RTSP (ví dụ: rtsp://192.168.1.100:554/stream)
+                         URL phải có định dạng RTSP (ví dụ: rtsp://192.168.1.100:554/stream)
                       </p>
                     )}
                   </div>

@@ -26,6 +26,9 @@ class User(BaseModel):
     is_superuser: bool = False
     roles: List[str] = Field(default_factory=list)
     permissions: List[str] = Field(default_factory=list)
+    supply: Optional[str] = None
+    returns: Optional[str] = None
+    both: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
@@ -57,6 +60,35 @@ class Permission(BaseModel):
     action: str = Field(..., min_length=2, max_length=50)    # e.g., "read", "write", "delete", "admin"
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+
+class Node(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    node_name: str = Field(..., min_length=1, max_length=100)
+    node_type: str = Field(..., min_length=1, max_length=50)
+    row: int = Field(..., ge=0)
+    column: int = Field(..., ge=0)
+    area: str = Field(..., min_length=1, max_length=100)
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+
+class Area(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    area_name: str = Field(..., min_length=1, max_length=100)
+    created_by: str = Field(..., min_length=1, max_length=100)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
         allow_population_by_field_name = True

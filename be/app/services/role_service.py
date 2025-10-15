@@ -190,13 +190,33 @@ async def delete_permission(permission_id: str, deleted_by: str) -> bool:
 async def initialize_default_roles():
     """Initialize default roles in database"""
     roles_collection = get_collection("roles")
+    permissions_collection = get_collection("permissions")
     
     for role_data in DEFAULT_ROLES:
         existing = await roles_collection.find_one({"name": role_data["name"]})
         if not existing:
+            # Convert permission names to ObjectIds
+            permission_names = role_data.get("permissions", [])
+            permission_object_ids = []
+            
+            for perm_name in permission_names:
+                if perm_name == "*":
+                    # Keep wildcard as is
+                    permission_object_ids.append("*")
+                else:
+                    perm = await permissions_collection.find_one({"name": perm_name, "is_active": True})
+                    if perm:
+                        permission_object_ids.append(perm["_id"])
+                    else:
+                        logger.warning(f"Permission '{perm_name}' not found for role '{role_data['name']}'")
+            
             role = {
-                **role_data,
+                "name": role_data["name"],
+                "description": role_data.get("description"),
+                "permissions": permission_object_ids,
+                "is_active": True,
                 "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
                 "created_by": "system"
             }
             await roles_collection.insert_one(role)
@@ -208,15 +228,33 @@ async def create_role(role_data: Dict, created_by: str) -> Dict:
     existing = await roles_collection.find_one({"name": role_data["name"]})
     if existing:
         raise ValueError(f"Role '{role_data['name']}' already exists")
+    
+    # Convert permission IDs (strings) to ObjectIds
+    permission_ids = role_data.get("permissions", [])
+    permission_object_ids = []
+    for perm_id in permission_ids:
+        if perm_id == "*":
+            # Keep wildcard as is
+            permission_object_ids.append("*")
+        elif ObjectId.is_valid(perm_id):
+            permission_object_ids.append(ObjectId(perm_id))
+        else:
+            logger.warning(f"Invalid permission ID: {perm_id}")
+    
     role = {
-        **role_data,
+        "name": role_data["name"],
+        "description": role_data.get("description"),
+        "permissions": permission_object_ids,
         "is_active": True,
         "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
         "created_by": created_by
-        }
+    }
     result = await roles_collection.insert_one(role)
     role["id"] = str(result.inserted_id)
     del role["_id"]
+    # Convert permissions back to strings for response
+    role["permissions"] = [str(p) if p != "*" else "*" for p in permission_object_ids]
     logger.info(f"Created new role: {role_data['name']} by {created_by}")
     return role
 
@@ -268,9 +306,9 @@ async def delete_role(role_id: str, deleted_by: str) -> bool:
             logger.error(f"Role '{role_id}' not found")
             return False
         
-        # Check if role is in use
+        # Check if role is in use (roles are stored as ObjectIds)
         users_collection = get_collection("users")
-        users_with_role = await users_collection.count_documents({"roles": existing_role["name"]})
+        users_with_role = await users_collection.count_documents({"roles": ObjectId(role_id)})
         if users_with_role > 0:
             raise ValueError(f"Cannot delete role '{existing_role['name']}' - {users_with_role} users still have this role")
         
@@ -305,6 +343,10 @@ async def get_role_by_id(role_id: str) -> Optional[Dict]:
             role["id"] = str(role["_id"])
             del role["_id"]
             
+            # Convert permission ObjectIds to strings
+            permissions = role.get("permissions", [])
+            role["permissions"] = [str(p) if p != "*" else "*" for p in permissions]
+            
             # Ensure required fields exist with default values
             if "updated_at" not in role:
                 role["updated_at"] = role.get("created_at", datetime.utcnow())
@@ -324,6 +366,10 @@ async def get_all_roles() -> List[Dict]:
         role["id"] = str(role["_id"])
         del role["_id"]
         
+        # Convert permission ObjectIds to strings
+        permissions = role.get("permissions", [])
+        role["permissions"] = [str(p) if p != "*" else "*" for p in permissions]
+        
         # Ensure required fields exist with default values
         if "updated_at" not in role:
             role["updated_at"] = role.get("created_at", datetime.utcnow())
@@ -337,19 +383,27 @@ async def get_role_by_name(role_name: str) -> Optional[Dict]:
     
     if role:
         role["_id"] = str(role["_id"])
+        # Convert permission ObjectIds to strings
+        permissions = role.get("permissions", [])
+        role["permissions"] = [str(p) if p != "*" else "*" for p in permissions]
     
     return role
 
-async def assign_role_to_user(user_id: str, role_name: str) -> bool:
-    """Assign role to user"""
+async def assign_role_to_user(user_id: str, role_id: str) -> bool:
+    """Assign role to user by role ID"""
     try:
         users_collection = get_collection("users")
         roles_collection = get_collection("roles")
         
+        # Validate role_id format
+        if not ObjectId.is_valid(role_id):
+            logger.error(f"Invalid role ID format: {role_id}")
+            return False
+        
         # Check if role exists
-        role = await roles_collection.find_one({"name": role_name, "is_active": True})
+        role = await roles_collection.find_one({"_id": ObjectId(role_id), "is_active": True})
         if not role:
-            logger.error(f"Role '{role_name}' not found")
+            logger.error(f"Role with ID '{role_id}' not found")
             return False
         
         # Check if user exists
@@ -358,31 +412,39 @@ async def assign_role_to_user(user_id: str, role_name: str) -> bool:
             logger.error(f"User '{user_id}' not found")
             return False
         
-        # Add role to user's roles if not already present
+        # Add role ObjectId to user's roles if not already present
         current_roles = user.get("roles", [])
         username = user.get("username", user_id)
-        if role_name not in current_roles:
+        role_object_id = ObjectId(role_id)
+        
+        if role_object_id not in current_roles:
             await users_collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {
-                    "$addToSet": {"roles": role_name},
+                    "$addToSet": {"roles": role_object_id},
                     "$set": {"updated_at": datetime.utcnow()}
                 }
             )
-            logger.info(f"Assigned role '{role_name}' to user '{username}'")
+            logger.info(f"Assigned role '{role['name']}' (ID: {role_id}) to user '{username}'")
             return True
         else:
-            logger.info(f"User '{username}' already has role '{role_name}'")
+            logger.info(f"User '{username}' already has role '{role['name']}'")
             return True
             
     except Exception as e:
-        logger.error(f"Error assigning role '{role_name}' to user '{user_id}': {e}")
+        logger.error(f"Error assigning role '{role_id}' to user '{user_id}': {e}")
         return False
 
-async def remove_role_from_user(user_id: str, role_name: str) -> bool:
-    """Remove role from user"""
+async def remove_role_from_user(user_id: str, role_id: str) -> bool:
+    """Remove role from user by role ID"""
     try:
         users_collection = get_collection("users")
+        roles_collection = get_collection("roles")
+        
+        # Validate role_id format
+        if not ObjectId.is_valid(role_id):
+            logger.error(f"Invalid role ID format: {role_id}")
+            return False
         
         # Check if user exists
         user = await users_collection.find_one({"_id": ObjectId(user_id)})
@@ -390,25 +452,31 @@ async def remove_role_from_user(user_id: str, role_name: str) -> bool:
             logger.error(f"User '{user_id}' not found")
             return False
         
-        # Remove role from user's roles
+        # Get role name for logging
+        role = await roles_collection.find_one({"_id": ObjectId(role_id)})
+        role_name = role["name"] if role else "Unknown"
+        
+        # Remove role ObjectId from user's roles
         current_roles = user.get("roles", [])
         username = user.get("username", user_id)
-        if role_name in current_roles:
+        role_object_id = ObjectId(role_id)
+        
+        if role_object_id in current_roles:
             await users_collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {
-                    "$pull": {"roles": role_name},
+                    "$pull": {"roles": role_object_id},
                     "$set": {"updated_at": datetime.utcnow()}
                 }
             )
-            logger.info(f"Removed role '{role_name}' from user '{username}'")
+            logger.info(f"Removed role '{role_name}' (ID: {role_id}) from user '{username}'")
             return True
         else:
             logger.info(f"User '{username}' does not have role '{role_name}'")
             return True
             
     except Exception as e:
-        logger.error(f"Error removing role '{role_name}' from user '{user_id}': {e}")
+        logger.error(f"Error removing role '{role_id}' from user '{user_id}': {e}")
         return False
 
 # ==================== USER PERMISSION FUNCTIONS ====================
@@ -428,19 +496,40 @@ async def get_user_permissions(user_id: str) -> List[str]:
         # Start with direct permissions
         permissions = set(user.get("permissions", []))
         
-        # Add permissions from roles
-        user_roles = user.get("roles", [])
-        for role_name in user_roles:
-            role = await roles_collection.find_one({"name": role_name, "is_active": True})
-            if role:
-                role_permissions = role.get("permissions", [])
-                permissions.update(role_permissions)
+        # Add permissions from roles (roles are stored as ObjectIds)
+        user_role_ids = user.get("roles", [])
+        permissions_collection = get_collection("permissions")
+        
+        for role_id in user_role_ids:
+            # Ensure role_id is ObjectId
+            if not isinstance(role_id, ObjectId):
+                role_id = ObjectId(role_id) if ObjectId.is_valid(str(role_id)) else None
+            if role_id:
+                role = await roles_collection.find_one({"_id": role_id, "is_active": True})
+                if role:
+                    # permissions stored as ObjectIds, need to get permission names
+                    role_permission_ids = role.get("permissions", [])
+                    for perm_id in role_permission_ids:
+                        # Check if it's wildcard permission FIRST
+                        if perm_id == "*":
+                            permissions.add("*")
+                            continue
+                        
+                        # Ensure perm_id is ObjectId
+                        if not isinstance(perm_id, ObjectId):
+                            perm_id = ObjectId(perm_id) if ObjectId.is_valid(str(perm_id)) else None
+                        if perm_id:
+                            perm = await permissions_collection.find_one({"_id": perm_id, "is_active": True})
+                            if perm:
+                                permissions.add(perm["name"])
         
         # If user has wildcard permission, return all permissions
         if "*" in permissions:
+            logger.info(f"User '{user_id}' has wildcard permission (*) - granting ALL permissions")
             all_permissions = await get_all_permissions()
             return [perm["name"] for perm in all_permissions]
         
+        logger.debug(f"User '{user_id}' permissions: {list(permissions)}")
         return list(permissions)
         
     except Exception as e:
@@ -531,29 +620,26 @@ async def assign_permission_to_role(role_id: str, permission_id: str) -> bool:
         logger.warning(f"Permission not found: {permission_id}")
         return False
     
-    # Kiểm tra permission đã có trong role chưa
+    # Kiểm tra permission đã có trong role chưa (permissions stored as ObjectIds)
     current_permissions = role.get("permissions", [])
+    permission_object_id = ObjectId(permission_id)
     permission_name = permission["name"]
     
-    if permission_name in current_permissions:
+    if permission_object_id in current_permissions:
         logger.warning(f"Permission '{permission_name}' already assigned to role '{role['name']}'")
         return False
     
-    # Thêm permission vào role
-    current_permissions.append(permission_name)
-    
+    # Thêm permission ObjectId vào role
     result = await roles_collection.update_one(
         {"_id": ObjectId(role_id)},
         {
-            "$set": {
-                "permissions": current_permissions,
-                "updated_at": datetime.utcnow()
-            }
+            "$addToSet": {"permissions": permission_object_id},
+            "$set": {"updated_at": datetime.utcnow()}
         }
     )
     
     if result.modified_count > 0:
-        logger.info(f"Permission '{permission_name}' assigned to role '{role['name']}' successfully")
+        logger.info(f"Permission '{permission_name}' (ID: {permission_id}) assigned to role '{role['name']}' successfully")
         return True
     else:
         logger.error(f"Failed to assign permission to role")
@@ -584,29 +670,26 @@ async def remove_permission_from_role(role_id: str, permission_id: str) -> bool:
         logger.warning(f"Permission not found: {permission_id}")
         return False
     
-    # Kiểm tra permission có trong role không
+    # Kiểm tra permission có trong role không (permissions stored as ObjectIds)
     current_permissions = role.get("permissions", [])
+    permission_object_id = ObjectId(permission_id)
     permission_name = permission["name"]
     
-    if permission_name not in current_permissions:
+    if permission_object_id not in current_permissions:
         logger.warning(f"Permission '{permission_name}' not found in role '{role['name']}'")
         return False
     
-    # Xóa permission khỏi role
-    current_permissions.remove(permission_name)
-    
+    # Xóa permission ObjectId khỏi role
     result = await roles_collection.update_one(
         {"_id": ObjectId(role_id)},
         {
-            "$set": {
-                "permissions": current_permissions,
-                "updated_at": datetime.utcnow()
-            }
+            "$pull": {"permissions": permission_object_id},
+            "$set": {"updated_at": datetime.utcnow()}
         }
     )
     
     if result.modified_count > 0:
-        logger.info(f"Permission '{permission_name}' removed from role '{role['name']}' successfully")
+        logger.info(f"Permission '{permission_name}' (ID: {permission_id}) removed from role '{role['name']}' successfully")
         return True
     else:
         logger.error(f"Failed to remove permission from role")

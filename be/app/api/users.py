@@ -22,6 +22,7 @@ async def get_users(
     
     result = []
     for user in users:
+        # Convert role ObjectIds to strings
         role_ids = [str(role_id) for role_id in user.get("roles", [])]
         result.append(UserOut(
             id=str(user["_id"]),

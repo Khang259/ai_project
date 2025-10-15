@@ -153,18 +153,14 @@ async def delete_area(area_id: str) -> bool:
     
     area_name = area["area_name"]
     
-    # Xóa tất cả nodes trong area này
-    nodes_result = await nodes.delete_many({"area": area_name})
-    logger.info(f"Deleted {nodes_result.deleted_count} nodes from area '{area_name}'")
-    
-    # Xóa area
+    # Xóa area (không còn xóa nodes vì nodes không còn map với area)
     area_result = await areas.delete_one({"_id": ObjectId(area_id)})
     
     if area_result.deleted_count == 0:
         logger.warning(f"Area not found for deletion: {area_id}")
         return False
     
-    logger.info(f"Area '{area_name}' and all its nodes deleted successfully")
+    logger.info(f"Area '{area_name}' deleted successfully")
     return True
 
 async def get_areas_by_creator(created_by: str) -> List[AreaOut]:
@@ -176,18 +172,18 @@ async def get_areas_by_creator(created_by: str) -> List[AreaOut]:
     
     return [AreaOut(**area, id=str(area["_id"])) for area in area_list]
 
-async def check_area_has_nodes(area_name: str) -> bool:
-    """Kiểm tra xem area có đang được sử dụng bởi nodes không"""
-    nodes = get_collection("nodes")
+async def check_area_has_cameras(area_id: int) -> bool:
+    """Kiểm tra xem area có đang được sử dụng bởi cameras không"""
+    cameras = get_collection("cameras")
     
-    node_count = await nodes.count_documents({"area": area_name})
-    return node_count > 0
+    camera_count = await cameras.count_documents({"area": area_id})
+    return camera_count > 0
 
-async def get_area_node_count(area_name: str) -> int:
-    """Lấy số lượng nodes trong area"""
-    nodes = get_collection("nodes")
+async def get_area_camera_count(area_id: int) -> int:
+    """Lấy số lượng cameras trong area"""
+    cameras = get_collection("cameras")
     
-    return await nodes.count_documents({"area": area_name})
+    return await cameras.count_documents({"area": area_id})
 
 async def get_available_owners() -> List[str]:
     """Lấy danh sách các user có thể làm owner (từ users collection)"""

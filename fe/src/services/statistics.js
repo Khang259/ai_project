@@ -2,7 +2,7 @@ import api from "./api";
 
 export const getStatistics = async (timeFilter = "d") => {
     try {
-        const response = await api.get(`/work-status?time_filter=${timeFilter}`);
+        const response = await api.get(`/all-robots-work-status?time_filter=${timeFilter}`);
         return response.data;
     } catch (error) {
         console.error("[statistics.getStatistics] Request failed", error);
@@ -78,31 +78,33 @@ export const filterWorkStatusData = (workStatusData) => {
 
 // Hàm để chuyển đổi workStatusData sang format cho charts
 export const convertWorkStatusToChartData = (workStatusData) => {
-    if (!workStatusData || !workStatusData.data || !workStatusData.data.device_summary) {
+    // Chỉ lấy phần robots từ API /all-robots-work-status
+    if (!workStatusData || !Array.isArray(workStatusData.robots)) {
         return []
     }
 
-    const chartData = []
-    Object.keys(workStatusData.data.device_summary).forEach(deviceCode => {
-        const deviceData = workStatusData.data.device_summary[deviceCode]
-        chartData.push({
-            deviceCode: deviceData.device_code,
-            deviceName: deviceData.device_name,
-            InTask_percentage: deviceData.InTask_percentage || 0,
-            Idle_percentage: deviceData.Idle_percentage || 0,
-            total_records: deviceData.total_records || 0
-        })
+    const chartData = workStatusData.robots.map(robot => {
+        const timeSeries = robot.time_series || {}
+        const dates = Object.keys(timeSeries)
+        // Chọn ngày mới nhất (nếu có nhiều key ngày)
+        const latestDate = dates.sort().slice(-1)[0]
+        const latest = latestDate ? timeSeries[latestDate] : {}
+
+        return {
+            deviceCode: robot.device_code,
+            deviceName: robot.device_name,
+            InTask_percentage: latest?.InTask_percentage ?? 0,
+            Idle_percentage: latest?.Idle_percentage ?? 0,
+            total_records: latest?.total_records ?? 0
+        }
     })
 
     return chartData
 }
 
-export const getPayloadStatistics = async (timeFilter = "d", state = "InTask", deviceCode = null) => {
+export const getPayloadStatistics = async (timeFilter = "d", state = "InTask") => {
     try {
-        let url = `/payload-statistics?time_filter=${timeFilter}&state=${state}`;
-        if (deviceCode) {
-            url += `&device_code=${deviceCode}`;
-        }
+        let url = `/all-robots-payload-statistics?time_filter=${timeFilter}&state=${state}`;
         const response = await api.get(url);
         return response.data;
     } catch (error) {
@@ -178,20 +180,24 @@ export const filterPayloadStatisticsData = (payloadStatisticsData) => {
 
 // Hàm để chuyển đổi payloadStatisticsData sang format cho charts
 export const convertPayloadStatisticsToChartData = (payloadStatisticsData) => {
-    if (!payloadStatisticsData || !payloadStatisticsData.data || !payloadStatisticsData.data.device_summary) {
+    // Chỉ lấy phần robots từ API /all-robots-payload-statistics
+    if (!payloadStatisticsData || !Array.isArray(payloadStatisticsData.robots)) {
         return []
     }
 
-    const chartData = []
-    Object.keys(payloadStatisticsData.data.device_summary).forEach(deviceCode => {
-        const deviceData = payloadStatisticsData.data.device_summary[deviceCode]
-        chartData.push({
-            deviceCode: deviceData.device_code,
-            deviceName: deviceData.device_name,
-            payLoad_0_0_percentage: deviceData.payLoad_0_0_percentage || 0,
-            payLoad_1_0_percentage: deviceData.payLoad_1_0_percentage || 0,
-            total_records: deviceData.total_records || 0
-        })
+    const chartData = payloadStatisticsData.robots.map(robot => {
+        const timeSeries = robot.time_series || {}
+        const dates = Object.keys(timeSeries)
+        const latestDate = dates.sort().slice(-1)[0]
+        const latest = latestDate ? timeSeries[latestDate] : {}
+
+        return {
+            deviceCode: robot.device_code,
+            deviceName: robot.device_name,
+            payLoad_0_0_percentage: latest?.payLoad_0_0_percentage ?? 0,
+            payLoad_1_0_percentage: latest?.payLoad_1_0_percentage ?? 0,
+            total_records: latest?.total_records ?? 0
+        }
     })
 
     return chartData

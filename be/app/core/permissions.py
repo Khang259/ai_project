@@ -55,6 +55,11 @@ async def get_current_active_user(current_user: dict = Depends(get_current_user)
 def require_permission(permission: str):
     """Decorator to require specific permission"""
     async def permission_checker(current_user: UserOut = Depends(get_current_active_user)):
+        # Superuser bypasses all permission checks
+        if current_user.is_superuser:
+            logger.debug(f"Superuser '{current_user.username}' bypasses permission check for '{permission}'")
+            return current_user
+        
         user_permissions = current_user.permissions
         
         # Check for wildcard permission (admin)

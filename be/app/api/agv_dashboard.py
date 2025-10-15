@@ -1,23 +1,29 @@
 from fastapi import APIRouter, Request, HTTPException, Query
-from app.services.agv_dashboard_service import save_agv_data, get_data_by_time, get_agv_position
+from app.services.agv_dashboard_service import (
+    save_agv_data, 
+    get_data_by_time, 
+    get_agv_position,
+    get_all_robots_payload_data,
+    get_all_robots_work_status,
+    reverse_dashboard_data
+)
 from app.api.agv_websocket import manager
-from shared.logging import get_logger
+from datetime import datetime
 import json
 
-logger = get_logger("camera_ai_app")
 router = APIRouter()
 
 @router.post("/robot-data")
 async def receive_robot_data(request: Request):
     payload = await request.json()
     # nhận dữ liệu từ robot
-    result = await save_agv_data(payload)
+    #result = await save_agv_data(payload)
     agv_info = get_agv_position(payload)
     # Broadcast đến WebSocket clients
     message = json.dumps(agv_info)
     await manager.broadcast(message)
-    print(f"Broadcast to WebSocket clients: {message}")
-    return result
+
+    return {"status": "success", "result": "success"}
 
 @router.get("/payload-statistics")
 async def get_payload_statistics(
@@ -79,6 +85,77 @@ async def get_work_status(
             time_filter=time_filter,
             device_code=device_code
             # No state parameter - this triggers the "without_state" logic
+        )
+        
+        if result["status"] == "error":
+            raise HTTPException(status_code=500, detail=result["message"])
+        
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.get("/all-robots-payload-statistics")
+async def get_all_robots_payload_statistics(
+    time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
+    device_code: str = Query(None, description="Filter by specific device code (optional)")
+):
+    """
+    Get payload statistics (loaded/unloaded) for ALL robots
+    
+    This endpoint returns payload data for all robots in the system, with optional filtering
+    by device_code or device_name. Data is broken down by time unit (day/week/month).
+    
+    Args:
+        time_filter: Time range filter ("d"=7 days, "w"=7 weeks, "m"=7 months)
+        state: AGV state to filter by ("InTask", "Idle", etc.)
+        device_code: Optional filter by specific device code
+        device_name: Optional filter by specific device name
+    
+    Returns:
+        dict: Payload statistics for each robot separately, with time series data
+    """
+    try:
+        result = await get_all_robots_payload_data(
+            time_filter=time_filter,
+            device_code=device_code
+        )
+        
+        if result["status"] == "error":
+            raise HTTPException(status_code=500, detail=result["message"])
+        
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.get("/all-robots-work-status")
+async def get_all_robots_work_status_endpoint(
+    time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
+    device_code: str = Query(None, description="Filter by specific device code (optional)")
+):
+    """
+    Get work status statistics (InTask/Idle) for ALL robots
+    
+    This endpoint returns work status data for all robots in the system, with optional filtering
+    by device_code or device_name. Data is broken down by time unit (day/week/month).
+    
+    Args:
+        time_filter: Time range filter ("d"=7 days, "w"=7 weeks, "m"=7 months)
+        device_code: Optional filter by specific device code
+        device_name: Optional filter by specific device name
+    
+    Returns:
+        dict: Work status statistics for each robot separately, with time series data
+    """
+    try:
+        result = await get_all_robots_work_status(
+            time_filter=time_filter,
+            device_code=device_code
         )
         
         if result["status"] == "error":
