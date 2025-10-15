@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ComponentsTable } from "@/components/amrParts-table"
-import { VehicleDetailsModal } from "@/components/vehicle-details-modal"
+import { VehicleDetailsModal } from "@/components/amrDetail"
 import { ComponentDetailsModal } from "@/components/component-details-modal"
 
 export default function Home() {

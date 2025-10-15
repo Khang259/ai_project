@@ -40,7 +40,8 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
         const mappedData = data["Danh sách"].map((item) => ({
           amrId: item.amr_id || "",
           lastReplacement: item["Ngày thay gần nhất"] || "",
-          daysRemaining: item["Số ngày còn lại"] || 0
+          daysRemaining: item["Số ngày còn lại"] || 0,
+          maintenanceDate: item.ngay_bao_tri || ""
         }))
         
         console.log('VehicleDetailsModal: Mapped data:', mappedData)
@@ -127,7 +128,8 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
             const mappedData = data["Danh sách"].map((item) => ({
               amrId: item.amr_id || "",
               lastReplacement: item["Ngày thay gần nhất"] || "",
-              daysRemaining: item["Số ngày còn lại"] || 0
+              daysRemaining: item["Số ngày còn lại"] || 0,
+              maintenanceDate: item.ngay_bao_tri || ""
             }))
             setVehicles(mappedData)
           }
@@ -210,7 +212,8 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
             <thead className="sticky top-0 bg-card border-b border-border z-10">
               <tr>
                 <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">TÊN AMR</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">NGÀY THAY GẦN NHẤT</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">NGÀY BẢO TRÌ GẦN NHẤT</th>
+                <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">NGÀY CẦN BẢO TRÌ</th>
                 <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">SỐ NGÀY CÒN LẠI</th>
                 <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">UPDATE NGÀY BẢO TRÌ</th>
               </tr>
@@ -239,6 +242,14 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
                     className="px-4 py-2.5 text-center cursor-pointer" 
                     onClick={() => onVehicleComponentClick && onVehicleComponentClick(vehicle.amrId)}
                   >
+                    <span className="text-sm text-muted-foreground">
+                      {vehicle.maintenanceDate || "Chưa có"}
+                    </span>
+                  </td>
+                  <td 
+                    className="px-4 py-2.5 text-center cursor-pointer" 
+                    onClick={() => onVehicleComponentClick && onVehicleComponentClick(vehicle.amrId)}
+                  >
                     <span className={`text-sm ${getStatusColor(vehicle.daysRemaining)}`}>
                       {vehicle.daysRemaining !== null && vehicle.daysRemaining !== undefined 
                         ? vehicle.daysRemaining 
@@ -246,6 +257,7 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
                       }
                     </span>
                   </td>
+                  
                   <td className="px-4 py-2.5 text-center">
                     <div className="flex items-center gap-2 justify-center">
                       <input
