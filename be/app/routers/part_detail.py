@@ -32,19 +32,19 @@ def get_amr_by_part(ma_linh_kien: str):
                 ngay_bao_tri = None
             elif not tuoi_tho_str or tuoi_tho_str in [None, "None", "", "null"]:
                 ngay_update = datetime.strptime(ngay_update_str, "%Y-%m-%d")
-                so_ngay_con_lai = None
+                so_ngay_con_lai = "Thay thế khi hỏng"  # Tuổi thọ == null
                 ngay_bao_tri = None
             else:
                 tuoi_tho_clean = str(tuoi_tho_str).strip()
                 if tuoi_tho_clean.lower() in ["none", "null", ""]:
                     ngay_update = datetime.strptime(ngay_update_str, "%Y-%m-%d")
-                    so_ngay_con_lai = None
+                    so_ngay_con_lai = "Thay thế khi hỏng"  # Tuổi thọ == null
                     ngay_bao_tri = None
                 else:
                     ngay_update = datetime.strptime(ngay_update_str, "%Y-%m-%d")
                     tuoi_tho_years = int(tuoi_tho_clean)
                     if tuoi_tho_years <= 0:
-                        so_ngay_con_lai = None
+                        so_ngay_con_lai = "Thay thế khi hỏng"  # Tuổi thọ <= 0
                         ngay_bao_tri = None
                     else:
                         # Tính số ngày còn lại
@@ -56,7 +56,7 @@ def get_amr_by_part(ma_linh_kien: str):
                         ngay_bao_tri = ngay_bao_tri_date.strftime("%Y-%m-%d")
         except Exception:
             ngay_update = None
-            so_ngay_con_lai = None
+            so_ngay_con_lai = "Thay thế khi hỏng"  # Fallback cho exception
             ngay_bao_tri = None
 
         result["Danh sách"].append({

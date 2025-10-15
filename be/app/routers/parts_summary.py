@@ -26,6 +26,7 @@ def get_parts_summary():
         # Tính số linh kiện sắp đến hạn (< 30 ngày) cho toàn bộ amr_id
         soon_expiring_docs = list(amrParts.find({"Mã linh kiện": ma_linh_kien}))
         count_expiring = 0
+        count_replace_when_broken = 0  # Đếm số lượng "Thay thế khi hỏng"
         for item in soon_expiring_docs:
             ngay_update_str = item.get("Ngày update")
             tuoi_tho_str = item.get("Tuổi thọ", "0")
@@ -36,12 +37,20 @@ def get_parts_summary():
                     continue
                 ngay_update = datetime.strptime(ngay_update_str, "%Y-%m-%d")
                 
-                # Validate và parse tuổi thọ
+                # Kiểm tra tuổi thọ - nếu null thì "Thay thế khi hỏng"
                 if not tuoi_tho_str or tuoi_tho_str in [None, "None", "", "null"]:
+                    # Tuổi thọ == null => "Thay thế khi hỏng"
+                    count_replace_when_broken += 1
+                    count_expiring += 1
                     continue
+                
                 tuoi_tho_clean = str(tuoi_tho_str).strip()
                 if tuoi_tho_clean.lower() in ["none", "null", ""]:
+                    # Tuổi thọ == null => "Thay thế khi hỏng"
+                    count_replace_when_broken += 1
+                    count_expiring += 1
                     continue
+                
                 tuoi_tho_years = int(tuoi_tho_clean)
                 
                 # Bỏ qua nếu tuổi thọ <= 0
@@ -63,7 +72,8 @@ def get_parts_summary():
             "Loại linh kiện": loai,
             "Mã linh kiện": ma_linh_kien,
             "Tổng số": tong_so,
-            "Số lượng sắp đến hạn": count_expiring
+            "Số lượng sắp đến hạn": count_expiring,
+            "Số lượng thay thế khi hỏng": count_replace_when_broken
         })
 
     return summary

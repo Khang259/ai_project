@@ -61,13 +61,17 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
     if (daysRemaining === null || daysRemaining === undefined) {
       return "text-muted-foreground"
     }
+    // Kiểm tra nếu là "Thay thế khi hỏng" - màu xanh nước biển
+    if (daysRemaining === 'Thay thế khi hỏng') {
+      return "text-cyan-700 font-medium" // "Thay thế khi hỏng" - màu xanh nước biển
+    }
     if (daysRemaining < 0) {
-      return "text-destructive font-medium" // Quá hạn
+      return "text-destructive font-medium" // Quá hạn - màu đỏ
     }
     if (daysRemaining < 30) {
-      return "text-warning font-medium" // Sắp đến hạn
+      return "text-warning font-medium" // Sắp đến hạn - màu vàng
     }
-    return "text-success font-medium" // Tốt
+    return "text-success font-medium" // Tốt - màu xanh lá
   }
 
   const handleDateChange = (amrId, date) => {
@@ -215,7 +219,7 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
                 <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">NGÀY BẢO TRÌ GẦN NHẤT</th>
                 <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">NGÀY CẦN BẢO TRÌ</th>
                 <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">SỐ NGÀY CÒN LẠI</th>
-                <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">UPDATE NGÀY BẢO TRÌ</th>
+                <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">UPDATE NGÀY CẦN BẢO TRÌ</th>
               </tr>
             </thead>
             <tbody>

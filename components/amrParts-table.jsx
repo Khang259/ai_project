@@ -28,6 +28,7 @@ export function ComponentsTable({ onComponentClick }) {
           code: item["Mã linh kiện"] || "",
           total: item["Tổng số"] || 0,
           dueSoon: item["Số lượng sắp đến hạn"] || 0,
+          replaceWhenBroken: item["Số lượng thay thế khi hỏng"] || 0,
           replaced: 0, // Không có trong API, set default
           note: "" // Không có trong API, set default
         }))
@@ -102,9 +103,17 @@ export function ComponentsTable({ onComponentClick }) {
                 </td>
                 <td className="px-4 py-2.5 text-center">
                   {component.dueSoon > 0 ? (
-                    <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20 text-xs">
-                      {component.dueSoon}
-                    </Badge>
+                    component.replaceWhenBroken > 0 ? (
+                      // Có linh kiện "Thay thế khi hỏng" - màu xanh nước biển
+                      <Badge variant="outline" className="bg-cyan-700/10 text-cyan-700 border-cyan-700/20 text-xs">
+                        {component.dueSoon}
+                      </Badge>
+                    ) : (
+                      // Chỉ có linh kiện sắp đến hạn thông thường - màu vàng
+                      <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20 text-xs">
+                        {component.dueSoon}
+                      </Badge>
+                    )
                   ) : (
                     <span className="text-muted-foreground text-sm">0</span>
                   )}
