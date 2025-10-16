@@ -30,8 +30,9 @@ export function ComponentsTable({ onComponentClick }) {
         const mappedData = data.map((item) => ({
           type: item["Loại linh kiện"] || "",
           code: item["Mã linh kiện"] || "",
+          lifespan: item["Tuổi thọ"] || "Không xác định",  // Thêm trường tuổi thọ
           total: item["Tổng số"] || 0,
-          dueSoon: item["Số lượng sắp đến hạn"] || 0,
+          dueSoon: item["Số lượng sắp đến hạn"] ?? 0,  // Giữ nguyên giá trị, có thể là số hoặc string
           replaceWhenBroken: item["Số lượng thay thế khi hỏng"] || 0,
           replaced: 0, // Không có trong API, set default
           note: "" // Không có trong API, set default
@@ -119,6 +120,7 @@ export function ComponentsTable({ onComponentClick }) {
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">MÃ LINH KIỆN</th>
               <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">TỔNG SỐ</th>
               <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">SỐ LƯỢNG SẮP ĐẾN HẠN</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">TUỔI THỌ</th>
             </tr>
           </thead>
           <tbody>
@@ -147,9 +149,14 @@ export function ComponentsTable({ onComponentClick }) {
                   <span className="text-foreground font-medium text-sm">{component.total}</span>
                 </td>
                 <td className="px-4 py-2.5 text-center">
-                  {component.dueSoon > 0 ? (
+                  {component.dueSoon === "Thay thế khi hỏng" ? (
+                    // Trường hợp "Thay thế khi hỏng" - màu tím
+                    <Badge variant="outline" className="bg-cyan-700/10 text-cyan-700 border-cyan-700/20 text-xs">
+                      Thay thế khi hỏng
+                    </Badge>
+                  ) : typeof component.dueSoon === 'number' && component.dueSoon > 0 ? (
                     component.replaceWhenBroken > 0 ? (
-                      // Có linh kiện "Thay thế khi hỏng" - màu xanh nước biển
+                      // Có linh kiện "Thay thế khi hỏng" và có sắp đến hạn theo thời gian - màu xanh nước biển
                       <Badge variant="outline" className="bg-cyan-700/10 text-cyan-700 border-cyan-700/20 text-xs">
                         {component.dueSoon}
                       </Badge>
@@ -162,6 +169,9 @@ export function ComponentsTable({ onComponentClick }) {
                   ) : (
                     <span className="text-muted-foreground text-sm">0</span>
                   )}
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  <span className="text-foreground font-medium text-sm">{component.lifespan}</span>
                 </td>
                 {/* <td className="px-4 py-2.5 text-center">
                   <span className="text-muted-foreground text-sm">{component.replaced}</span>

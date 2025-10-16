@@ -219,7 +219,7 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
                 <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">NGÀY BẢO TRÌ GẦN NHẤT</th>
                 <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">NGÀY CẦN BẢO TRÌ</th>
                 <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">SỐ NGÀY CÒN LẠI</th>
-                <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">UPDATE NGÀY CẦN BẢO TRÌ</th>
+                <th className="px-4 py-2 text-center text-sm font-semibold text-foreground">UPDATE NGÀY BẢO TRÌ</th>
               </tr>
             </thead>
             <tbody>
