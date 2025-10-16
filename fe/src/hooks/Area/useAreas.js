@@ -24,28 +24,6 @@ export const useAreas = () => {
     } catch (error) {
       console.error('[useAreas] ❌ Error fetching areas:', error);
       setError(error.message);
-      
-      // Fallback to mock data
-      const mockAreas = [
-        {
-          id: "mock1",
-          area_id: 1,
-          area_name: "Honda_HN",
-          created_by: "admin",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: "mock2", 
-          area_id: 2,
-          area_name: "MS2",
-          created_by: "admin",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      setAreas(mockAreas);
-      console.log('[useAreas] ⚠️ Using mock data as fallback');
     } finally {
       setLoading(false);
     }

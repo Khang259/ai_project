@@ -28,7 +28,7 @@ function PrivateRoute({ children, requiredRole = null }) {
       // Nếu không có quyền → redirect về trang phù hợp với role
       if (user.roles?.includes("user")) {
         return <Navigate to="/mobile-grid-display" replace />;
-      } else {
+      } else{
         return <Navigate to="/dashboard" replace />;
       }
     }

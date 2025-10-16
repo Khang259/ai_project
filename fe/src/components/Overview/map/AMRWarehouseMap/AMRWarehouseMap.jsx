@@ -6,9 +6,8 @@ import useZipImport from '@/hooks/MapDashboard/useZipImport';
 import useLeafletMapControls from '@/hooks/MapDashboard/useMapControl';
 import useAGVWebSocket from '@/hooks/MapDashboard/useAGVWebsocket';
 import CameraViewer from '@/components/Overview/map/camera/CameraViewer.jsx';
-// import MapLegend from '@/components/Overview/map/AMRWarehouseMap/MapLegend';
 import MapFilters from '@/components/Overview/map/AMRWarehouseMap/MapFilters';
-import MapImport from '@/components/Overview/map/AMRWarehouseMap/MapImport';
+// import MapImport from '@/components/Overview/map/AMRWarehouseMap/MapImport';
 import NodeDetailsModal from '@/components/Overview/map/AMRWarehouseMap/NodeDetailsModal';
 import SwitchButton from '@/components/Overview/map/AMRWarehouseMap/SwitchButton';
 import { useArea } from '@/contexts/AreaContext';
@@ -90,20 +89,6 @@ const AMRWarehouseMap = () => {
       } catch (error) {
         console.error(`[AMRWarehouseMap] ❌ Error loading map for area_id ${currAreaId}:`, error);
         setMapError(error.message);
-        
-        // Fallback to localStorage if API fails
-        // const mapDataStr = localStorage.getItem('mapData');
-        // const storedAreaId = localStorage.getItem('currentAreaId');
-        
-        // if (mapDataStr && storedAreaId === currAreaId.toString()) {
-        //   try {
-        //     console.log(`[AMRWarehouseMap] ⚠️ Using localStorage fallback for area_id: ${currAreaId}`);
-        //     setMapData(JSON.parse(mapDataStr));
-        //     setMapError(null); // Clear error if fallback works
-        //   } catch (parseError) {
-        //     console.error('[AMRWarehouseMap] ❌ Failed to parse localStorage mapData:', parseError);
-        //   }
-        // }
       } finally {
         setMapLoading(false);
       }
@@ -135,7 +120,7 @@ const AMRWarehouseMap = () => {
   return (
     <div className="dashboard-page" style={{ background: 'white', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 24 }}>
+        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 24, paddingRight: 24 }}>
           Bản đồ quan sát AMR
         </Title>
         <MapFilters
@@ -145,17 +130,6 @@ const AMRWarehouseMap = () => {
           setAmrFilter={setAmrFilter}
         />
         <SwitchButton />
-        <MapImport
-          zipLoading={zipLoading}
-          zipError={zipError}
-          zipFileName={zipFileName}
-          handleZipImport={handleZipImport}
-          setMapData={setMapData}
-          setSecurityConfig={setSecurityConfig}
-          setSelectedAvoidanceMode={setSelectedAvoidanceMode}
-          saveToBackendLoading={saveToBackendLoading}
-          saveToBackendError={saveToBackendError}
-        />
       </div>
       {/* <MapLegend /> */}
       <Card variant="borderless" style={{ borderRadius: 16, color: '#fff' }}>

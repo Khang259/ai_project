@@ -1,6 +1,6 @@
 // src/components/Overview/map/MapImport.jsx
 import React, { useRef } from 'react';
-import { Button, Dropdown, Tooltip } from 'antd';
+import { Button, Dropdown} from 'antd';
 import { FileAddOutlined, FileZipOutlined } from '@ant-design/icons';
 
 const MapImport = ({ zipLoading, zipError, zipFileName, handleZipImport, setMapData, setSecurityConfig, setSelectedAvoidanceMode, saveToBackendLoading, saveToBackendError }) => {
