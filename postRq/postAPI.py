@@ -128,10 +128,24 @@ def get_after_id_topic(queue: SQLiteQueue, topic: str, after_id: int, limit: int
 
 
 def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_id: str) -> Dict[str, Any]:
-    """Build payload cho regular stable_pairs"""
+    """
+    Build payload cho regular stable_pairs (2 QR codes)
+    
+    Format:
+    {
+        "modelProcessCode": "lenhDon",
+        "fromSystem": "ICS",
+        "orderId": "...",
+        "taskOrderDetail": [
+            {
+                "taskPath": "start_qr,end_qr"
+            }
+        ]
+    }
+    """
     task_path = f"{start_slot},{end_slot}"
     return {
-        "modelProcessCode": "checking_camera_work",
+        "modelProcessCode": "lenhDon",
         "fromSystem": "ICS",
         "orderId": order_id,
         "taskOrderDetail": [
@@ -143,7 +157,26 @@ def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_
 
 
 def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict[str, Any]:
-    """Build payload cho stable_dual (2-point hoặc 4-point)"""
+    """
+    Build payload cho stable_dual (2-point hoặc 4-point)
+    
+    - Dual 2P (2 QR codes):
+      {
+          "modelProcessCode": "lenhDon",
+          "taskOrderDetail": [
+              { "taskPath": "start_qr,end_qrs" }
+          ]
+      }
+    
+    - Dual 4P (4 QR codes):
+      {
+          "modelProcessCode": "lenhDooi",
+          "taskOrderDetail": [
+              { "taskPath": "start_qr,end_qrs" },
+              { "taskPath": "start_qr_2,end_qrs_2" }
+          ]
+      }
+    """
     # Lấy các QR codes từ dual payload
     start_slot = dual_payload.get("start_slot", "")
     end_slot = dual_payload.get("end_slot", "")
@@ -152,22 +185,40 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict
     
     # Xác định đây là dual-2p hay dual-4p
     if start_slot_2 and end_slot_2:
-        # 4-point dual: bao gồm cả 4 QR codes
-        task_path = f"{start_slot},{end_slot},{start_slot_2},{end_slot_2}"
+        # ========================================
+        # DUAL 4-POINT: 4 QR codes
+        # ========================================
+        # modelProcessCode = "lenhDooi"
+        # taskOrderDetail = 2 objects (mỗi object 2 QR codes)
+        return {
+            "modelProcessCode": "lenhDooi",
+            "fromSystem": "ICS",
+            "orderId": order_id,
+            "taskOrderDetail": [
+                {
+                    "taskPath": f"{start_slot},{end_slot}"  # Cặp 1: start_qr, end_qrs
+                },
+                {
+                    "taskPath": f"{start_slot_2},{end_slot_2}"  # Cặp 2: start_qr_2, end_qrs_2
+                }
+            ]
+        }
     else:
-        # 2-point dual: chỉ có 2 QR codes đầu tiên
-        task_path = f"{start_slot},{end_slot}"
-    
-    return {
-        "modelProcessCode": "checking_camera_work",
-        "fromSystem": "ICS",
-        "orderId": order_id,
-        "taskOrderDetail": [
-            {
-                "taskPath": task_path
-            }
-        ]
-    }
+        # ========================================
+        # DUAL 2-POINT: 2 QR codes
+        # ========================================
+        # modelProcessCode = "lenhDon"
+        # taskOrderDetail = 1 object (2 QR codes)
+        return {
+            "modelProcessCode": "lenhDon",
+            "fromSystem": "ICS",
+            "orderId": order_id,
+            "taskOrderDetail": [
+                {
+                    "taskPath": f"{start_slot},{end_slot}"
+                }
+            ]
+        }
 
 
 # Backward compatibility
@@ -210,7 +261,19 @@ def send_post(payload: Dict[str, Any], logger: logging.Logger) -> bool:
     
     # Log payload details
     order_id = payload.get('orderId', 'N/A')
-    task_path = payload.get('taskOrderDetail', [{}])[0].get('taskPath', 'N/A')
+    
+    # Xử lý taskPath cho cả 1 object (2 QR) và 2 objects (4 QR)
+    task_order_detail = payload.get('taskOrderDetail', [])
+    if len(task_order_detail) == 1:
+        # Regular Pair hoặc Dual 2P (2 QR codes)
+        task_path = task_order_detail[0].get('taskPath', 'N/A')
+    elif len(task_order_detail) == 2:
+        # Dual 4P (4 QR codes) - Hiển thị cả 2 taskPath
+        task_path_1 = task_order_detail[0].get('taskPath', 'N/A')
+        task_path_2 = task_order_detail[1].get('taskPath', 'N/A')
+        task_path = f"{task_path_1} | {task_path_2}"
+    else:
+        task_path = 'N/A'
     
     # Log request details
     logger.info(f"POST_REQUEST_START: orderId={order_id}, taskPath={task_path}, url={API_URL}")
@@ -366,7 +429,15 @@ def main() -> int:
                         order_id = get_next_order_id()
                         body = build_payload_from_dual(payload, order_id)
                         
-                        task_path = body["taskOrderDetail"][0]["taskPath"]
+                        # Lấy taskPath đúng cho cả 2P và 4P
+                        task_order_detail = body["taskOrderDetail"]
+                        if len(task_order_detail) == 1:
+                            # Dual 2P
+                            task_path = task_order_detail[0]["taskPath"]
+                        else:
+                            # Dual 4P - Hiển thị cả 2 taskPath
+                            task_path = f"{task_order_detail[0]['taskPath']} | {task_order_detail[1]['taskPath']}"
+                        
                         print(f"Bắt đầu xử lý {dual_type} dual: {dual_id}, orderId={order_id}, taskPath={task_path}")
                         
                         # Sử dụng dual_id làm pair_id cho unlock logic
