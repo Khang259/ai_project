@@ -108,7 +108,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 5.0, cooldown_seconds: float = 10.0) -> None:
+                 stable_seconds: float = 20.0, cooldown_seconds: float = 10.0) -> None:
         print(f"Khởi tạo StablePairProcessor - DB: {db_path}, Config: {config_path}, Stable: {stable_seconds}s, Cooldown: {cooldown_seconds}s")
         
         # Thiết lập loggers
@@ -548,7 +548,14 @@ class StablePairProcessor:
             self.pair_logger.info(f"STABLE_PAIR_PUBLISHED: pair_id={pair_id}, start_slot={start_qr}, end_slot={end_qr}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
     
     def _evaluate_dual_pairs(self) -> None:
-        """Evaluate dual pairs according to the specified logic"""
+        """
+        Evaluate dual pairs theo logic:
+        1. Luôn xét cặp (start_qr, end_qrs) trước
+        2. Nếu start_qr == shelf AND end_qrs == empty (cả 2 stable)
+           → Xét tiếp start_qr_2:
+             - Nếu start_qr_2 == shelf → Publish 4P
+             - Nếu start_qr_2 == empty → Publish 2P
+        """
         for dual_config in self.dual_pairs:
             start_qr = dual_config["start_qr"]
             end_qrs = dual_config["end_qrs"]
@@ -559,7 +566,6 @@ class StablePairProcessor:
             start_cam_slot = self.qr_to_slot.get(start_qr)
             end_cam_slot = self.qr_to_slot.get(end_qrs)
             start_cam_slot_2 = self.qr_to_slot.get(start_qr_2)
-            end_cam_slot_2 = self.qr_to_slot.get(end_qrs_2)
             
             if not start_cam_slot or not end_cam_slot:
                 continue
@@ -567,39 +573,49 @@ class StablePairProcessor:
             start_cam, start_slot = start_cam_slot
             end_cam, end_slot = end_cam_slot
             
-            # Check first pair: start_qr == shelf (1) && end_qrs == empty (0)
+            # BƯỚC 1: Luôn xét cặp (start_qr, end_qrs) trước
+            # Điều kiện: start_qr == shelf AND end_qrs == empty (cả 2 stable)
             start_ok, start_since = self._is_slot_stable(start_cam, start_slot, expect_status="shelf")
             if not start_ok or start_since is None:
-                continue
+                continue  # start_qr không phải shelf stable → Bỏ qua
                 
             end_ok, end_since = self._is_slot_stable(end_cam, end_slot, expect_status="empty")
             if not end_ok or end_since is None:
-                continue
+                continue  # end_qrs không phải empty stable → Bỏ qua
             
-            # First pair is stable, now check second pair
-            if not start_cam_slot_2 or not end_cam_slot_2:
-                # If second pair not configured, publish 2-point dual
+            # Cặp (start_qr, end_qrs) = (shelf, empty) ✅
+            print(f"[DUAL_LOGIC] Cặp chính OK: start_qr={start_qr} (shelf), end_qrs={end_qrs} (empty)")
+            
+            # BƯỚC 2: Xét start_qr_2
+            if not start_cam_slot_2:
+                # Không có start_qr_2 trong config → Publish 2P
+                print(f"[DUAL_LOGIC] Không có start_qr_2 → Publish 2P")
                 stable_since_epoch = max(start_since, end_since)
                 self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=False)
                 continue
             
             start_cam_2, start_slot_2 = start_cam_slot_2
-            end_cam_2, end_slot_2 = end_cam_slot_2
             
-            # Check start_qr_2 status
-            start_2_ok, start_2_since = self._is_slot_stable(start_cam_2, start_slot_2, expect_status="shelf")
+            # Kiểm tra start_qr_2 == shelf?
+            start_2_shelf_ok, start_2_shelf_since = self._is_slot_stable(start_cam_2, start_slot_2, expect_status="shelf")
             
-            if start_2_ok and start_2_since is not None:
-                # start_qr_2 == 1 (shelf), publish 4-point dual
-                # Chỉ cần start_qr_2 == shelf là đủ, không cần kiểm tra end_qrs_2
-                stable_since_epoch = max(start_since, end_since, start_2_since)
+            if start_2_shelf_ok and start_2_shelf_since is not None:
+                # start_qr_2 == shelf (stable) → PUBLISH 4P
+                print(f"[DUAL_LOGIC] start_qr_2={start_qr_2} == shelf → Publish 4P")
+                stable_since_epoch = max(start_since, end_since, start_2_shelf_since)
                 self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=True)
             else:
-                # start_qr_2 == 0 (empty), publish 2-point dual
+                # start_qr_2 != shelf → Kiểm tra xem có phải empty stable không
                 start_2_empty_ok, start_2_empty_since = self._is_slot_stable(start_cam_2, start_slot_2, expect_status="empty")
+                
                 if start_2_empty_ok and start_2_empty_since is not None:
+                    # start_qr_2 == empty (stable) → PUBLISH 2P
+                    print(f"[DUAL_LOGIC] start_qr_2={start_qr_2} == empty → Publish 2P")
                     stable_since_epoch = max(start_since, end_since, start_2_empty_since)
                     self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=False)
+                else:
+                    # start_qr_2 không phải shelf stable cũng không phải empty stable → Không publish
+                    print(f"[DUAL_LOGIC] start_qr_2={start_qr_2} không stable → Không publish")
 
     def run(self) -> None:
         # Start dual unblock trigger subscription thread
