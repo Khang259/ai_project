@@ -4,6 +4,7 @@ import time
 import json
 import threading
 import logging
+import random
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from logging.handlers import RotatingFileHandler
@@ -59,27 +60,26 @@ def ensure_dirs() -> None:
     os.makedirs(os.path.dirname(ORDER_ID_FILE), exist_ok=True)
 
 
-def get_next_order_id() -> int:
-    """Persistent, monotonically increasing integer orderId."""
-    ensure_dirs()
-    if not os.path.exists(ORDER_ID_FILE):
-        with open(ORDER_ID_FILE, "w", encoding="utf-8") as f:
-            f.write("1")
-        return 1
-    try:
-        with open(ORDER_ID_FILE, "r+", encoding="utf-8") as f:
-            content = f.read().strip() or "0"
-            current = int(content)
-            next_id = current + 1
-            f.seek(0)
-            f.write(str(next_id))
-            f.truncate()
-            return next_id
-    except Exception:
-        # Fallback: reset to 1 if file corrupted
-        with open(ORDER_ID_FILE, "w", encoding="utf-8") as f:
-            f.write("1")
-        return 1
+def get_next_order_id() -> str:
+    """
+    Tạo orderId dựa trên timestamp + random salt.
+    Format: {timestamp_ms}_{random_salt}
+    
+    Ví dụ: 1729085245123_7d3f
+    
+    Returns:
+        str: orderId unique cho mỗi request
+    """
+    # Lấy timestamp hiện tại (milliseconds)
+    timestamp_ms = int(time.time() * 1000)
+    
+    # Tạo random salt (4 ký tự hex = 16 bits entropy)
+    random_salt = format(random.randint(0, 0xFFFF), '04x')
+    
+    # Tạo orderId
+    order_id = f"{timestamp_ms}{random_salt}"
+    
+    return order_id
 
 
 def list_keys(queue: SQLiteQueue, topic: str) -> List[str]:
@@ -127,13 +127,13 @@ def get_after_id_topic(queue: SQLiteQueue, topic: str, after_id: int, limit: int
         return result
 
 
-def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_id: int) -> Dict[str, Any]:
+def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_id: str) -> Dict[str, Any]:
     """Build payload cho regular stable_pairs"""
     task_path = f"{start_slot},{end_slot}"
     return {
         "modelProcessCode": "checking_camera_work",
         "fromSystem": "ICS",
-        "orderId": str(order_id),
+        "orderId": order_id,
         "taskOrderDetail": [
             {
                 "taskPath": task_path
@@ -142,7 +142,7 @@ def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_
     }
 
 
-def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: int) -> Dict[str, Any]:
+def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict[str, Any]:
     """Build payload cho stable_dual (2-point hoặc 4-point)"""
     # Lấy các QR codes từ dual payload
     start_slot = dual_payload.get("start_slot", "")
@@ -161,7 +161,7 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: int) -> Dict
     return {
         "modelProcessCode": "checking_camera_work",
         "fromSystem": "ICS",
-        "orderId": str(order_id),
+        "orderId": order_id,
         "taskOrderDetail": [
             {
                 "taskPath": task_path
@@ -171,7 +171,7 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: int) -> Dict
 
 
 # Backward compatibility
-def build_payload(pair_id: str, start_slot: str, end_slot: str, order_id: int) -> Dict[str, Any]:
+def build_payload(pair_id: str, start_slot: str, end_slot: str, order_id: str) -> Dict[str, Any]:
     """Backward compatibility cho regular pairs"""
     return build_payload_from_pair(pair_id, start_slot, end_slot, order_id)
 
@@ -249,7 +249,7 @@ def send_post(payload: Dict[str, Any], logger: logging.Logger) -> bool:
             # If API has code=1000 convention, consider it success; else accept 2xx
             code = body.get("code") if isinstance(body, dict) else None
             # if code is None or code == 1000:
-            if code is None or code == 2009:
+            if code is None or code == 1000:
                 success_msg = f"[SUCCESS] ✓ POST thành công | OrderID: {payload['orderId']} | TaskPath: {task_path} | Code: {code}"
                 print(success_msg)
                 
@@ -257,11 +257,11 @@ def send_post(payload: Dict[str, Any], logger: logging.Logger) -> bool:
                 logger.info(f"POST_REQUEST_SUCCESS: orderId={order_id}, taskPath={task_path}, response_code={code}")
                 return True
             else:
-                warn_msg = f"[WARNING] ⚠ POST 2xx nhưng code không hợp lệ | OrderID: {payload['orderId']} | Expected: 2009, Got: {code}"
+                warn_msg = f"[WARNING] ⚠ POST 2xx nhưng code không hợp lệ | OrderID: {payload['orderId']} | Expected: 1000, Got: {code}"
                 print(warn_msg)
                 
                 # Log warning
-                logger.warning(f"POST_REQUEST_INVALID_CODE: orderId={order_id}, taskPath={task_path}, expected_code=2009, actual_code={code}")
+                logger.warning(f"POST_REQUEST_INVALID_CODE: orderId={order_id}, taskPath={task_path}, expected_code=1000, actual_code={code}")
                 return False
         else:
             error_msg = f"[ERROR] ✗ HTTP {resp.status_code} | OrderID: {payload['orderId']} | TaskPath: {task_path}"

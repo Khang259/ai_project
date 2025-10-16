@@ -500,7 +500,16 @@ class StablePairProcessor:
                 print(f"Lỗi khi subscribe dual_unblock_trigger: {e}")
                 time.sleep(1.0)
 
-    def _maybe_publish_pair(self, start_qr: int, end_qr: int, stable_since_epoch: float) -> None:
+    def _maybe_publish_pair(self, start_qr: int, end_qr: int, stable_since_epoch: float, all_empty_end_qrs: Optional[List[int]] = None) -> None:
+        """
+        Publish một cặp pair vào queue.
+        
+        Args:
+            start_qr: QR code của start slot
+            end_qr: QR code của end slot chính (sẽ được publish)
+            stable_since_epoch: Thời điểm stable
+            all_empty_end_qrs: Danh sách TẤT CẢ các end_qrs đang empty (optional)
+        """
         pair_id = f"{start_qr} -> {end_qr}"
         
         # Check if already published in the same minute
@@ -523,11 +532,20 @@ class StablePairProcessor:
             "end_slot": str(end_qr),
             "stable_since": datetime.utcfromtimestamp(stable_since_epoch).replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z"),
         }
+        
+        # Nếu có thông tin về tất cả end_qrs đang empty, thêm vào payload
+        if all_empty_end_qrs and len(all_empty_end_qrs) > 1:
+            payload["all_empty_end_slots"] = [str(qr) for qr in all_empty_end_qrs]
+            payload["is_all_empty"] = True
+        
         # Use pair_id as key for convenience
         self.queue.publish("stable_pairs", pair_id, payload)
         
         # Log successful publish
-        self.pair_logger.info(f"STABLE_PAIR_PUBLISHED: pair_id={pair_id}, start_slot={start_qr}, end_slot={end_qr}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
+        if all_empty_end_qrs and len(all_empty_end_qrs) > 1:
+            self.pair_logger.info(f"STABLE_PAIR_PUBLISHED: pair_id={pair_id}, start_slot={start_qr}, end_slot={end_qr}, all_empty_end_slots={all_empty_end_qrs}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
+        else:
+            self.pair_logger.info(f"STABLE_PAIR_PUBLISHED: pair_id={pair_id}, start_slot={start_qr}, end_slot={end_qr}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
     
     def _evaluate_dual_pairs(self) -> None:
         """Evaluate dual pairs according to the specified logic"""
@@ -623,7 +641,7 @@ class StablePairProcessor:
                         if status_by_slot:
                             self._update_slot_state(cam, status_by_slot)
 
-                # evaluate pairs
+                # evaluate pairs với logic mới
                 for start_qr, end_qrs in self.pairs:
                     start_cam_slot = self.qr_to_slot.get(start_qr)
                     if not start_cam_slot:
@@ -633,17 +651,37 @@ class StablePairProcessor:
                     if not start_ok or start_since is None:
                         continue
 
+                    # Thu thập tất cả các end_qrs đang empty và stable
+                    empty_end_qrs = []
                     for end_qr in end_qrs:
                         end_cam_slot = self.qr_to_slot.get(end_qr)
                         if not end_cam_slot:
                             continue
                         end_cam, end_slot = end_cam_slot
                         end_ok, end_since = self._is_slot_stable(end_cam, end_slot, expect_status="empty")
-                        if not end_ok or end_since is None:
-                            continue
-
+                        if end_ok and end_since is not None:
+                            empty_end_qrs.append((end_qr, end_since))
+                    
+                    # Logic mới: chỉ publish 1 cặp duy nhất
+                    if empty_end_qrs:
+                        # Case 1: TẤT CẢ end_qrs đều empty (len(empty_end_qrs) == len(end_qrs))
+                        # Case 2: CHỈ 1 hoặc MỘT SỐ end_qrs empty
+                        # Trong cả 2 case: chọn end_qr đầu tiên trong danh sách empty
+                        # (đây là end_qr có thứ tự ưu tiên cao nhất trong config)
+                        end_qr, end_since = empty_end_qrs[0]
                         stable_since_epoch = max(start_since, end_since)
-                        self._maybe_publish_pair(start_qr, end_qr, stable_since_epoch)
+                        
+                        # Tạo danh sách tất cả end_qrs đang empty (chỉ QR codes)
+                        all_empty_qrs = [qr for qr, _ in empty_end_qrs]
+                        
+                        # Log để debug
+                        if len(empty_end_qrs) == len(end_qrs):
+                            print(f"[PAIR_LOGIC] TẤT CẢ {len(end_qrs)} end_qrs đều empty cho start_qr={start_qr}, chọn end_qr={end_qr}, all_empty={all_empty_qrs}")
+                        else:
+                            print(f"[PAIR_LOGIC] {len(empty_end_qrs)}/{len(end_qrs)} end_qrs empty cho start_qr={start_qr}, chọn end_qr={end_qr}")
+                        
+                        # Publish với thông tin về tất cả end_qrs empty
+                        self._maybe_publish_pair(start_qr, end_qr, stable_since_epoch, all_empty_end_qrs=all_empty_qrs if len(all_empty_qrs) > 1 else None)
 
                 # Evaluate dual pairs
                 self._evaluate_dual_pairs()
