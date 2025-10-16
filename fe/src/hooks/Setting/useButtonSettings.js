@@ -24,7 +24,7 @@ export const useButtonSettings = (selectedUser, externalSelectedNodeType) => {
 
   // Lấy nodes theo user
   const fetchNodes = useCallback(async () => {
-    if (!selectedUser?.id) return;
+    if (!selectedUser?.username) return;
     setLoading(true);
     setError(null);
     try {
@@ -36,7 +36,7 @@ export const useButtonSettings = (selectedUser, externalSelectedNodeType) => {
     } finally {
       setLoading(false);
     }
-  }, [selectedUser?.id]);
+  }, [selectedUser?.username]);
 
   useEffect(() => {
     fetchNodes();

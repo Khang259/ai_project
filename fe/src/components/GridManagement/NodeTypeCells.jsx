@@ -28,9 +28,9 @@ const NodeTypeCells = ({ cells = [], onCellPress }) => {
 
   return (
     <div className="mobile-grid-bootstrap">
-      <div className="row">
+      <div className="row space-between justify-content-between ">
         {cells.map((cell, idx) => (
-          <div key={cell.id || idx} className="col-6 col-sm-4 col-md-3 mb-2">
+          <div key={cell.id || idx} className="col-6 col-sm-4 col-md-3 mb-2 border-4 hover:bg-amber-500">
             <button
               type="button"
               className="btn btn-outline-primary w-100 text-start"
@@ -51,5 +51,6 @@ const NodeTypeCells = ({ cells = [], onCellPress }) => {
 };
 
 export default NodeTypeCells;
+
 
 

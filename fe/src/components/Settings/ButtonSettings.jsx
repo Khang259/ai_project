@@ -15,17 +15,15 @@ const ButtonSettings = () => {
   const {users, usersLoading, usersError } = useUsers();
   const [selectedUser, setSelectedUser] = useState({});
   const [selectedNodeType, setSelectedNodeType] = useState('Cap');
+  const [showAddForm, setShowAddForm] = useState(false);
   const {
-    loading,
-    error,
-    nodeTypes,
-    allNodes,
+    nodeTypes,// Các loại chu trình
+    allNodes,// Giá trị các node hiển thị
     setAllNodes,
     totalCellsSelectedType,
     updateCell,
     deleteCell,
     addNode,
-    importNodesLocal,
     saveBatch,
     saveBatchWithNodes,
     fetchNodes,
@@ -38,8 +36,8 @@ const ButtonSettings = () => {
     next_start: 0,
     next_end: 0
   });
-  const [showAddForm, setShowAddForm] = useState(false);
-
+  console.log(nodeTypes);
+  console.log(allNodes);
   const MaximumColumnsInPreview = 4;
   const columns = MaximumColumnsInPreview;
   const totalCells = allNodes.length;
@@ -52,7 +50,6 @@ const ButtonSettings = () => {
   // Cập nhật selectedUser khi users được load từ API ( Khi chưa có dữ liệu gì ?)
   useEffect(() => {
     if (users && users.length > 0 && !selectedUser.id) {
-      // Tìm admin user hoặc user đầu tiên làm default
       const adminUser = users.find(user => user.is_superuser) || users[0];
       if (adminUser) {
         setSelectedUser({
@@ -62,14 +59,7 @@ const ButtonSettings = () => {
         });
       }
     }
-  }, [users, selectedUser]);
-  // Cập nhật lại selectedNodeType khi nodeTypes thay đổi
-  useEffect(() => {
-    if (Object.keys(nodeTypes).length > 0 && !selectedNodeType) {
-      setSelectedNodeType(Object.keys(nodeTypes)[0]);
-    }
-  }, [nodeTypes, selectedNodeType])
-
+  }, [users]);
 
   // Xóa ô có confirm UI, sau đó gọi hook
   const handleDeleteCell = async (cellId) => {
@@ -83,13 +73,6 @@ const ButtonSettings = () => {
   // Hiển thị form thêm node
   const showAddNodeForm = () => {
     setShowAddForm(true);
-    setNewNodeData({
-      node_name: "",
-      start: "",
-      end: "",
-      next_start: "",
-      next_end: ""
-    });
   };
 
   // Xác nhận thêm node mới
@@ -138,7 +121,7 @@ const ButtonSettings = () => {
     const user = users.find(user => user.id === userId);
     if (user) {
       setSelectedUser({
-        id: user.id,
+        id: userId,
         username: user.username,
         role: user.is_superuser ? "Administrator" : "User",
       });
