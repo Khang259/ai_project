@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ComponentsTable } from "@/components/amrParts-table"
 import { VehicleDetailsModal } from "@/components/amrDetail"
 import { ComponentDetailsModal } from "@/components/component-details-modal"
+import { Notice } from "@/components/notice"
 
 export default function Home() {
   const [selectedComponent, setSelectedComponent] = useState(null)
@@ -11,6 +12,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen h-screen bg-background p-3 flex flex-col">
+      {/* Thông báo nhắc nhở */}
+      <Notice />
+
       <header className="mb-3">
         <h1 className="text-2xl font-bold text-foreground mb-1">QUẢN LÝ BẢO TRÌ LINH KIỆN AMR</h1>
       </header>

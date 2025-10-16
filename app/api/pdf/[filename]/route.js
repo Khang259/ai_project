@@ -10,7 +10,7 @@ export async function GET(request, { params }) {
     console.log('Current working directory:', process.cwd())
     
     // Validate filename
-    const allowedFiles = ['taiLieuBaoTri.pdf', 'excel-bao-tri-amr.pdf']
+    const allowedFiles = ['taiLieuBaoTri.pdf', 'linhKien.pdf']
     
     if (!allowedFiles.includes(filename)) {
       console.error('Filename not allowed:', filename)
@@ -28,7 +28,7 @@ export async function GET(request, { params }) {
       // Map display names
       const displayNames = {
         'taiLieuBaoTri.pdf': 'taiLieuBaoTri.pdf',
-        'excel-bao-tri-amr.pdf': 'linhKien.pdf'
+        'linhKien.pdf': 'linhKien.pdf'
       }
       
       const displayName = displayNames[filename] || filename

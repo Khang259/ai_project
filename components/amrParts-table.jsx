@@ -102,7 +102,7 @@ export function ComponentsTable({ onComponentClick }) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => handleOpenPdf('excel-bao-tri-amr.pdf')}
+                onClick={() => handleOpenPdf('linhKien.pdf')}
                 className="text-xs"
               >
                 <Download className="w-3 h-3 mr-1" />
