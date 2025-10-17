@@ -22,6 +22,12 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         logger.warning(f"Camera creation failed: area '{camera_in.area}' does not exist")
         raise ValueError("Area does not exist")
     
+    # Kiểm tra xem camera_id đã tồn tại chưa
+    existing_id = await cameras.find_one({"camera_id": camera_in.camera_id})
+    if existing_id:
+        logger.warning(f"Camera creation failed: camera_id '{camera_in.camera_id}' already exists")
+        raise ValueError("Camera ID already exists")
+    
     # Kiểm tra xem camera_name đã tồn tại chưa
     existing_name = await cameras.find_one({"camera_name": camera_in.camera_name})
     if existing_name:
@@ -29,6 +35,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         raise ValueError("Camera name already exists")
     
     camera_data = {
+        "camera_id": camera_in.camera_id,
         "camera_name": camera_in.camera_name,
         "camera_path": camera_in.camera_path,
         "area": camera_in.area,
@@ -37,7 +44,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
     }
     
     result = await cameras.insert_one(camera_data)
-    logger.info(f"Camera created successfully: {camera_in.camera_name}")
+    logger.info(f"Camera created successfully: {camera_in.camera_name} with camera_id: {camera_in.camera_id}")
     
     # Lấy camera vừa tạo để trả về
     created_camera = await cameras.find_one({"_id": result.inserted_id})
@@ -54,6 +61,17 @@ async def get_camera(camera_id: str) -> Optional[CameraOut]:
     camera = await cameras.find_one({"_id": ObjectId(camera_id)})
     if not camera:
         logger.warning(f"Camera not found: {camera_id}")
+        return None
+    
+    return CameraOut(**camera, id=str(camera["_id"]))
+
+async def get_camera_by_camera_id(camera_id: int) -> Optional[CameraOut]:
+    """Lấy camera theo camera_id (không phải MongoDB ObjectId)"""
+    cameras = get_collection("cameras")
+    
+    camera = await cameras.find_one({"camera_id": camera_id})
+    if not camera:
+        logger.warning(f"Camera not found with camera_id: {camera_id}")
         return None
     
     return CameraOut(**camera, id=str(camera["_id"]))
@@ -101,6 +119,16 @@ async def update_camera(camera_id: str, camera_update: CameraUpdate) -> Optional
         if not await validate_area_exists(update_data["area"]):
             logger.warning(f"Camera update failed: area '{update_data['area']}' does not exist")
             raise ValueError("Area does not exist")
+    
+    # Kiểm tra camera_id mới có trùng không (nếu có thay đổi)
+    if "camera_id" in update_data:
+        existing_id = await cameras.find_one({
+            "camera_id": update_data["camera_id"],
+            "_id": {"$ne": ObjectId(camera_id)}
+        })
+        if existing_id:
+            logger.warning(f"Camera update failed: camera_id '{update_data['camera_id']}' already exists")
+            raise ValueError("Camera ID already exists")
     
     # Kiểm tra camera_name mới có trùng không (nếu có thay đổi)
     if "camera_name" in update_data:

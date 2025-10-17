@@ -3,6 +3,7 @@ from app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
 from app.services.camera_service import (
     create_camera,
     get_camera,
+    get_camera_by_camera_id,
     get_cameras,
     get_cameras_by_area,
     update_camera,
@@ -45,6 +46,28 @@ async def get_all_cameras(
         return await get_cameras(skip=skip, limit=limit)
     except Exception as e:
         logger.error(f"Error getting cameras: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+@router.get("/by-camera-id/{camera_id}", response_model=CameraOut)
+async def get_camera_by_custom_id(
+    camera_id: int,
+):
+    """Lấy camera theo camera_id (không phải MongoDB ID)"""
+    try:
+        camera = await get_camera_by_camera_id(camera_id)
+        if not camera:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Camera not found"
+            )
+        return camera
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting camera by camera_id {camera_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

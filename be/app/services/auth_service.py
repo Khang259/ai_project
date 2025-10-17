@@ -23,9 +23,16 @@ async def register_user(user_in: UserCreate):
     if user_in.roles:
         for role_id in user_in.roles:
             if ObjectId.is_valid(role_id):
-                role_object_ids.append(ObjectId(role_id))
+                # Verify role exists
+                role = await roles_collection.find_one({"_id": ObjectId(role_id), "is_active": True})
+                if role:
+                    role_object_ids.append(ObjectId(role_id))
+                else:
+                    logger.warning(f"Role with ID '{role_id}' not found or inactive")
+                    raise ValueError(f"Role with ID '{role_id}' not found or inactive")
             else:
-                logger.warning(f"Invalid role ID: {role_id}")
+                logger.warning(f"Invalid role ID format: {role_id}")
+                raise ValueError(f"Invalid role ID format: {role_id}")
     else:
         # Get default "viewer" role
         default_role = await roles_collection.find_one({"name": "viewer", "is_active": True})
@@ -81,6 +88,7 @@ def create_user_token(user):
 async def get_current_user_info(user_id: str) -> Optional[UserOut]:
     """Get current user information with permissions"""
     users = get_collection("users")
+    roles_collection = get_collection("roles")
     user = await users.find_one({"_id": ObjectId(user_id)})
     if not user:
         return None
@@ -88,15 +96,19 @@ async def get_current_user_info(user_id: str) -> Optional[UserOut]:
     # Get user permissions
     permissions = await get_user_permissions(user_id)
     
-    # Convert role ObjectIds to strings
-    role_ids = [str(role_id) for role_id in user.get("roles", [])]
+    # Convert role ObjectIds to role names
+    role_names = []
+    for role_id in user.get("roles", []):
+        role = await roles_collection.find_one({"_id": role_id})
+        if role:
+            role_names.append(role["name"])
     
     return UserOut(
         id=str(user["_id"]),
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
-        roles=role_ids,
+        roles=role_names,
         permissions=permissions,
         supply=user.get("supply"),
         returns=user.get("returns"),

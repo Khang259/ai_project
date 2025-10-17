@@ -18,18 +18,24 @@ async def get_users(
 ):
     """Get list of users (requires users:read permission)"""
     users_collection = get_collection("users")
+    roles_collection = get_collection("roles")
     users = await users_collection.find().skip(skip).limit(limit).to_list(length=None)
     
     result = []
     for user in users:
-        # Convert role ObjectIds to strings
-        role_ids = [str(role_id) for role_id in user.get("roles", [])]
+        # Convert role ObjectIds to role names
+        role_names = []
+        for role_id in user.get("roles", []):
+            role = await roles_collection.find_one({"_id": role_id})
+            if role:
+                role_names.append(role["name"])
+        
         result.append(UserOut(
             id=str(user["_id"]),
             username=user["username"],
             is_active=user.get("is_active", True),
             is_superuser=user.get("is_superuser", False),
-            roles=role_ids,
+            roles=role_names,
             permissions=user.get("permissions", []),
             supply=user.get("supply"),
             returns=user.get("returns"),
@@ -47,20 +53,25 @@ async def get_user(
 ):
     """Get specific user (requires users:read permission)"""
     users_collection = get_collection("users")
+    roles_collection = get_collection("roles")
     user = await users_collection.find_one({"_id": ObjectId(user_id)})
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Convert role ObjectIds to strings
-    role_ids = [str(role_id) for role_id in user.get("roles", [])]
+    # Convert role ObjectIds to role names
+    role_names = []
+    for role_id in user.get("roles", []):
+        role = await roles_collection.find_one({"_id": role_id})
+        if role:
+            role_names.append(role["name"])
     
     return UserOut(
         id=str(user["_id"]),
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
-        roles=role_ids,
+        roles=role_names,
         permissions=user.get("permissions", []),
         supply=user.get("supply"),
         returns=user.get("returns"),
@@ -91,19 +102,20 @@ async def update_user(
     if user_update.is_active is not None:
         update_data["is_active"] = user_update.is_active
     if user_update.roles is not None:
-        # Convert role IDs or role names to ObjectIds
+        # Convert role IDs to ObjectIds
         role_object_ids = []
-        for role_identifier in user_update.roles:
-            if ObjectId.is_valid(role_identifier):
-                # It's a valid ObjectId, use it directly
-                role_object_ids.append(ObjectId(role_identifier))
-            else:
-                # It's a role name, look up the role
-                role = await roles_collection.find_one({"name": role_identifier, "is_active": True})
+        for role_id in user_update.roles:
+            if ObjectId.is_valid(role_id):
+                # Verify role exists
+                role = await roles_collection.find_one({"_id": ObjectId(role_id), "is_active": True})
                 if role:
-                    role_object_ids.append(role["_id"])
+                    role_object_ids.append(ObjectId(role_id))
                 else:
-                    logger.warning(f"Role '{role_identifier}' not found or inactive")
+                    logger.warning(f"Role with ID '{role_id}' not found or inactive")
+                    raise HTTPException(status_code=400, detail=f"Role with ID '{role_id}' not found or inactive")
+            else:
+                logger.warning(f"Invalid role ID format: {role_id}")
+                raise HTTPException(status_code=400, detail=f"Invalid role ID format: {role_id}")
         update_data["roles"] = role_object_ids
     if user_update.supply is not None:
         update_data["supply"] = user_update.supply
@@ -125,15 +137,19 @@ async def update_user(
     
     # Return updated user
     updated_user = await users_collection.find_one({"_id": ObjectId(user_id)})
-    # Convert role ObjectIds to strings
-    role_ids = [str(role_id) for role_id in updated_user.get("roles", [])]
+    # Convert role ObjectIds to role names
+    role_names = []
+    for role_id in updated_user.get("roles", []):
+        role = await roles_collection.find_one({"_id": role_id})
+        if role:
+            role_names.append(role["name"])
     
     return UserOut(
         id=str(updated_user["_id"]),
         username=updated_user["username"],
         is_active=updated_user.get("is_active", True),
         is_superuser=updated_user.get("is_superuser", False),
-        roles=role_ids,
+        roles=role_names,
         permissions=updated_user.get("permissions", []),
         supply=updated_user.get("supply"),
         returns=updated_user.get("returns"),

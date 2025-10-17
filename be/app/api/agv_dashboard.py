@@ -5,7 +5,6 @@ from app.services.agv_dashboard_service import (
     get_agv_position,
     get_all_robots_payload_data,
     get_all_robots_work_status,
-    reverse_dashboard_data
 )
 from app.api.agv_websocket import manager
 from datetime import datetime
