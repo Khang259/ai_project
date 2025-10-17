@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera
+from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera, task_status
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.scheduler import start_scheduler, shutdown_scheduler
 
@@ -66,6 +66,7 @@ app.include_router(agv_dashboard.router, tags=["AGV Dashboard"])
 app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
 app.include_router(notification.router, prefix="/notification", tags=["Notification"])
+app.include_router(task_status.router, prefix="/task-status", tags=["Task Status"])
 
 @app.get("/")
 async def root():

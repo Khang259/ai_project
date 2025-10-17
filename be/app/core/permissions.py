@@ -41,13 +41,24 @@ async def get_current_active_user(current_user: dict = Depends(get_current_user)
     """Get current active user with full information"""
     permissions = await get_user_permissions(str(current_user["_id"]))
     
+    # Convert role ObjectIds to role names
+    roles_collection = get_collection("roles")
+    role_names = []
+    for role_id in current_user.get("roles", []):
+        role = await roles_collection.find_one({"_id": role_id})
+        if role:
+            role_names.append(role["name"])
+    
     return UserOut(
         id=str(current_user["_id"]),
         username=current_user["username"],
         is_active=current_user.get("is_active", True),
         is_superuser=current_user.get("is_superuser", False),
-        roles=current_user.get("roles", []),
+        roles=role_names,
         permissions=permissions,
+        supply=current_user.get("supply"),
+        returns=current_user.get("returns"),
+        both=current_user.get("both"),
         created_at=current_user.get("created_at"),
         last_login=current_user.get("last_login")
     )

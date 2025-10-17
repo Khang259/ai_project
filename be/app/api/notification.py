@@ -11,7 +11,8 @@ router = APIRouter()
 async def send_notification(request: Request):
     data = await request.json()
     try:
-        await filter_notification(data)
+        #await filter_notification(data)
+        print(data)
         
     except Exception as e:
         logger.error(f"Error sending notification: {e}")

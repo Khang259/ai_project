@@ -1,8 +1,6 @@
 # backend/app/services/notification_service.py - Phiên bản cải tiến
 
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
-from collections import defaultdict
+from datetime import datetime
 from app.core.database import get_collection
 from shared.logging import get_logger
 

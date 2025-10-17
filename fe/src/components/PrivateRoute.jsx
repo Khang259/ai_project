@@ -5,6 +5,7 @@ function PrivateRoute({ children, requiredRole = null }) {
   const { auth } = useAuth();
   const token = localStorage.getItem("token");
   const user = auth?.user || null;
+  console.log('🔍 User:', user);
 
   if (!token) {
     console.log('❌ No token, redirecting to login');
@@ -24,7 +25,7 @@ function PrivateRoute({ children, requiredRole = null }) {
   // Nếu có requiredRole, kiểm tra quyền
   if (requiredRole) {
     if (!user.roles || !user.roles.includes(requiredRole)) {
-      console.log('❌ User does not have required role, redirecting...');
+      console.log('❌ User does not have required role, redirecting...', {requiredRole});
       // Nếu không có quyền → redirect về trang phù hợp với role
       if (user.roles?.includes("user")) {
         return <Navigate to="/mobile-grid-display" replace />;

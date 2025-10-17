@@ -1,9 +1,12 @@
 from app.core.database import get_collection
 from app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
 from shared.logging import get_logger
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime
 from bson import ObjectId
+import cv2
+import numpy as np
+from io import BytesIO
 
 logger = get_logger("camera_ai_app")
 
@@ -22,6 +25,12 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         logger.warning(f"Camera creation failed: area '{camera_in.area}' does not exist")
         raise ValueError("Area does not exist")
     
+    # Kiểm tra xem camera_id đã tồn tại chưa
+    existing_id = await cameras.find_one({"camera_id": camera_in.camera_id})
+    if existing_id:
+        logger.warning(f"Camera creation failed: camera_id '{camera_in.camera_id}' already exists")
+        raise ValueError("Camera ID already exists")
+    
     # Kiểm tra xem camera_name đã tồn tại chưa
     existing_name = await cameras.find_one({"camera_name": camera_in.camera_name})
     if existing_name:
@@ -29,6 +38,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         raise ValueError("Camera name already exists")
     
     camera_data = {
+        "camera_id": camera_in.camera_id,
         "camera_name": camera_in.camera_name,
         "camera_path": camera_in.camera_path,
         "area": camera_in.area,
@@ -37,7 +47,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
     }
     
     result = await cameras.insert_one(camera_data)
-    logger.info(f"Camera created successfully: {camera_in.camera_name}")
+    logger.info(f"Camera created successfully: {camera_in.camera_name} with camera_id: {camera_in.camera_id}")
     
     # Lấy camera vừa tạo để trả về
     created_camera = await cameras.find_one({"_id": result.inserted_id})
@@ -54,6 +64,17 @@ async def get_camera(camera_id: str) -> Optional[CameraOut]:
     camera = await cameras.find_one({"_id": ObjectId(camera_id)})
     if not camera:
         logger.warning(f"Camera not found: {camera_id}")
+        return None
+    
+    return CameraOut(**camera, id=str(camera["_id"]))
+
+async def get_camera_by_camera_id(camera_id: int) -> Optional[CameraOut]:
+    """Lấy camera theo camera_id (không phải MongoDB ObjectId)"""
+    cameras = get_collection("cameras")
+    
+    camera = await cameras.find_one({"camera_id": camera_id})
+    if not camera:
+        logger.warning(f"Camera not found with camera_id: {camera_id}")
         return None
     
     return CameraOut(**camera, id=str(camera["_id"]))
@@ -101,6 +122,16 @@ async def update_camera(camera_id: str, camera_update: CameraUpdate) -> Optional
         if not await validate_area_exists(update_data["area"]):
             logger.warning(f"Camera update failed: area '{update_data['area']}' does not exist")
             raise ValueError("Area does not exist")
+    
+    # Kiểm tra camera_id mới có trùng không (nếu có thay đổi)
+    if "camera_id" in update_data:
+        existing_id = await cameras.find_one({
+            "camera_id": update_data["camera_id"],
+            "_id": {"$ne": ObjectId(camera_id)}
+        })
+        if existing_id:
+            logger.warning(f"Camera update failed: camera_id '{update_data['camera_id']}' already exists")
+            raise ValueError("Camera ID already exists")
     
     # Kiểm tra camera_name mới có trùng không (nếu có thay đổi)
     if "camera_name" in update_data:
@@ -160,3 +191,47 @@ async def get_camera_count_by_area(area_id: int) -> int:
     cameras = get_collection("cameras")
     
     return await cameras.count_documents({"area": area_id})
+
+def generate_frames_from_rtsp(rtsp_url: str):
+    """
+    Generator để stream frames từ RTSP camera
+    
+    Args:
+        rtsp_url: URL RTSP của camera
+        
+    Yields:
+        bytes: JPEG frame trong multipart format
+    """
+    cap = cv2.VideoCapture(rtsp_url)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    
+    if not cap.isOpened():
+        logger.error(f"Cannot open camera stream for streaming: {rtsp_url}")
+        return
+    
+    try:
+        while True:
+            ret, frame = cap.read()
+            
+            if not ret:
+                logger.warning(f"Cannot read frame, reconnecting...")
+                break
+            
+            # Encode frame to JPEG
+            success, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            
+            if not success:
+                continue
+            
+            # Convert to bytes
+            frame_bytes = buffer.tobytes()
+            
+            # Yield frame in multipart format
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                   
+    except Exception as e:
+        logger.error(f"Error in frame generator: {str(e)}")
+    finally:
+        cap.release()
+        logger.info(f"Camera stream closed: {rtsp_url}")
