@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import DashboardLayout from './components/DashboardLayout';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/DashBoard';
 import Analytics from './pages/Analytics';
 import TaskManagement from './pages/TaskManagement';
 import Notification from './pages/Notification';
