@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.core.database import get_collection
 from shared.logging import get_logger
 from typing import Optional
+from bson import ObjectId
 
 logger = get_logger("camera_ai_app")
 security = HTTPBearer()
@@ -34,11 +35,24 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     return user
 
 async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
-    """Require admin privileges"""
-    if not current_user.get("is_superuser", False):
-        logger.warning(f"Admin access denied: User '{current_user['username']}' is not admin")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-    return current_user
+    """Require admin privileges (superuser or admin role)"""
+    # Check if user is superuser
+    if current_user.get("is_superuser", False):
+        return current_user
+    
+    # Check if user has admin role
+    roles_collection = get_collection("roles")
+    user_role_ids = current_user.get("roles", [])
+    
+    for role_id in user_role_ids:
+        role = await roles_collection.find_one({"_id": role_id, "is_active": True})
+        if role and role.get("name") == "admin":
+            logger.info(f"User '{current_user['username']}' granted admin access via 'admin' role")
+            return current_user
+    
+    # No admin access
+    logger.warning(f"Admin access denied: User '{current_user['username']}' is not admin")
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Admin access required"
+    )

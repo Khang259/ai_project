@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status, Query, Body
+from fastapi.responses import Response, StreamingResponse
 from app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
 from app.services.camera_service import (
     create_camera,
@@ -9,12 +10,17 @@ from app.services.camera_service import (
     update_camera,
     delete_camera,
     get_camera_count_by_area,
+    generate_frames_from_rtsp,
 )
 from shared.logging import get_logger
 from typing import List
+from pydantic import BaseModel
 
 router = APIRouter()
 logger = get_logger("camera_ai_app")
+
+class RTSPTestRequest(BaseModel):
+    rtsp_url: str
 
 @router.post("/", response_model=CameraOut, status_code=status.HTTP_201_CREATED)
 async def create_new_camera(
@@ -188,5 +194,28 @@ async def get_camera_count_by_area_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
+        )
+
+@router.post("/stream")
+async def stream_camera_by_rtsp(request: RTSPTestRequest):
+    """
+    Stream video trực tiếp từ URL RTSP
+    
+    Body:
+        rtsp_url: URL RTSP của camera
+        
+    Returns:
+        Multipart MJPEG stream
+    """
+    try:
+        return StreamingResponse(
+            generate_frames_from_rtsp(request.rtsp_url),
+            media_type="multipart/x-mixed-replace; boundary=frame"
+        )
+    except Exception as e:
+        logger.error(f"Error streaming camera: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
         )
 

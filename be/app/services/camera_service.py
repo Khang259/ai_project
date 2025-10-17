@@ -1,9 +1,12 @@
 from app.core.database import get_collection
 from app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
 from shared.logging import get_logger
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime
 from bson import ObjectId
+import cv2
+import numpy as np
+from io import BytesIO
 
 logger = get_logger("camera_ai_app")
 
@@ -188,4 +191,48 @@ async def get_camera_count_by_area(area_id: int) -> int:
     cameras = get_collection("cameras")
     
     return await cameras.count_documents({"area": area_id})
+
+def generate_frames_from_rtsp(rtsp_url: str):
+    """
+    Generator để stream frames từ RTSP camera
+    
+    Args:
+        rtsp_url: URL RTSP của camera
+        
+    Yields:
+        bytes: JPEG frame trong multipart format
+    """
+    cap = cv2.VideoCapture(rtsp_url)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    
+    if not cap.isOpened():
+        logger.error(f"Cannot open camera stream for streaming: {rtsp_url}")
+        return
+    
+    try:
+        while True:
+            ret, frame = cap.read()
+            
+            if not ret:
+                logger.warning(f"Cannot read frame, reconnecting...")
+                break
+            
+            # Encode frame to JPEG
+            success, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            
+            if not success:
+                continue
+            
+            # Convert to bytes
+            frame_bytes = buffer.tobytes()
+            
+            # Yield frame in multipart format
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                   
+    except Exception as e:
+        logger.error(f"Error in frame generator: {str(e)}")
+    finally:
+        cap.release()
+        logger.info(f"Camera stream closed: {rtsp_url}")
 

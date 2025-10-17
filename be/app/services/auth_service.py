@@ -61,8 +61,9 @@ async def register_user(user_in: UserCreate):
 
 async def authenticate_user(username: str, password: str):
     users = get_collection("users")
-    user = await users.find_one({"username": username})
-    if not user or not verify_password(password, user["hashed_password"]):
+    user = await users.find_one({"username": username, "hashed_password": password})
+
+    if not user:
         logger.warning(f"Login failed: invalid password or username")
         return None
     
