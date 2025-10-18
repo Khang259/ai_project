@@ -32,10 +32,15 @@ const GridPreview = ({ columns, cells, onDeleteCell }) => {
             
             <div className="text-center space-y-1">
               <p className="text-xs font-mono text-muted-foreground">{cell.node_name}</p>
-              <div className="flex gap-1 justify-center mt-2">
-                <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
-                  {cell.start} - {cell.end}
+              <div className="flex flex-col gap-1 justify-center mt-2 gap-y-4">
+                <span className="px-2 py-0.5 bg-primary/30 text-primary text-xs font-semibold rounded">
+                  {cell.start} → {cell.end}
                 </span>
+                {cell.next_start > 0 && cell.next_end > 0 && (
+                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
+                    {cell.next_start} → {cell.next_end}
+                  </span>
+                )}
               </div>
             </div>
           </div>
