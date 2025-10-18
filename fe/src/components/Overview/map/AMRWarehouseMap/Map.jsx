@@ -7,7 +7,8 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 // Import camera images
 import onlineCameraIcon from '@/assets/online_camera.png';
 import offlineCameraIcon from '@/assets/offline_camera.png';
-import cameraConfig from '@/components/config/camera';
+import { getCamerasByArea } from '@/services/camera-settings';
+import { useArea } from "@/contexts/AreaContext";
 // Import NodeComponent
 import NodeComponent from './Node';
 // Biểu tường AGV
@@ -121,10 +122,13 @@ const LeafletMap = ({
   showChargeStations,
   onMapReady,
   onCameraClick,
-  onNodeClick
+  onNodeClick,
 }) => {
   const [cameraStatus, setCameraStatus] = useState({});
   const [nodeStatus, setNodeStatus] = useState({});
+  const { currAreaId } = useArea();
+  // ✅ Thêm state để lưu camera data từ database
+  const [camerasData, setCamerasData] = useState([]);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [mapInstanceState, setMapInstanceState] = useState(null); // ensure children re-render when map is ready
@@ -177,6 +181,28 @@ const LeafletMap = ({
       mapInstanceRef.current._mapData = mapData;
     }
   }, [mapData]);
+
+  // ✅ useEffect để fetch camera data từ database
+  useEffect(() => {
+    const fetchCamerasData = async () => {
+      if (!currAreaId) {
+        console.log('⚠️ No currentAreaId provided, skipping camera fetch');
+        setCamerasData([]);
+        return;
+      }
+
+      try {
+        const cameras = await getCamerasByArea(currAreaId);
+        console.log('📷 Fetched cameras data:', cameras);
+        setCamerasData(cameras || []);
+      } catch (error) {
+        console.error('❌ Error fetching cameras data:', error);
+        setCamerasData([]);
+      }
+    };
+
+    fetchCamerasData();
+  }, [currAreaId]); // Re-fetch khi area thay đổi
 
   // Draw paths
   useEffect(() => {
@@ -284,13 +310,16 @@ const LeafletMap = ({
         // Chỉ xử lý camera nodes
         if (typeof node.name === 'string' && /^Camera\d+$/i.test(node.name.trim())) {
           
-          // Extract camera ID from name
-          const cameraId = parseInt(node.name.replace(/Camera/i, ''));
-          const isOnline = cameraStatus[cameraId]?.online || false;
+          // Extract camera ID from name (Camera0, Camera1, Camera2...)
+          const cameraIndex = parseInt(node.name.replace(/Camera/i, ''));
+          const isOnline = cameraStatus[cameraIndex]?.online || false;
         
-          
-          // Get camera info from config
-          let ipAddress = `192.168.1.${100 + cameraId}`; // IP mặc định có file riêng để sửa sau
+          // ✅ Tìm camera data từ database theo index thay vì camera_id
+          const cameraFromDB = camerasData[cameraIndex]; // Sử dụng index thay vì find
+          console.log('📷 Camera data from database:', cameraFromDB);
+          console.log('📷 Camera index:', cameraIndex, 'Node name:', node.name);
+          const cameraPath = cameraFromDB?.camera_path || `rtsp://192.168.1.${100 + cameraIndex}/stream`; // Fallback
+          const cameraName = cameraFromDB?.camera_name || node.name;
           
           // Tạo camera icon sử dụng hình ảnh với kích thước theo zoom
           const currentSize = getCameraIconSizeByZoom(mapInstanceRef.current);
@@ -304,7 +333,7 @@ const LeafletMap = ({
           
           const marker = L.marker([node.y, node.x], { icon: cameraIcon });
           
-          // Add tooltip with IP address
+          // ✅ Cập nhật tooltip với camera_path thay vì IP
           marker.bindTooltip(`<div style="
             background: rgba(0, 0, 0, 0.9);
             color: white;
@@ -315,13 +344,16 @@ const LeafletMap = ({
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             border: 1px solid ${isOnline ? '#52c41a' : '#ff4d4f'};
           ">
-            <div style="margin-bottom: 4px; font-weight: 600;">${node.name}</div>
+            <div style="margin-bottom: 4px; font-weight: 600;">${cameraName}</div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="width: 8px; height: 8px; border-radius: 50%; background: ${isOnline ? '#52c41a' : '#ff4d4f'}; display: inline-block;"></span>
-              <span>${ipAddress}</span>
+              <span style="font-family: monospace; font-size: 11px;">${cameraPath}</span>
             </div>
             <div style="margin-top: 4px; font-size: 11px; opacity: 0.8;">
               Status: ${isOnline ? 'ONLINE' : 'OFFLINE'}
+            </div>
+            <div style="margin-top: 2px; font-size: 10px; opacity: 0.7;">
+              Index: ${cameraIndex} | Area: ${cameraFromDB?.area || 'N/A'}
             </div>
           </div>`, {
             permanent: false,
@@ -332,7 +364,13 @@ const LeafletMap = ({
           
           if (onCameraClick) {
             marker.on('click', () => {
-              onCameraClick(node.name.replace('Camera', ''));
+              // ✅ Truyền thêm camera data khi click
+              onCameraClick({
+                cameraIndex: cameraIndex,
+                cameraName: cameraName,
+                cameraPath: cameraPath,
+                cameraData: cameraFromDB
+              });
             });
           }
           camerasLayer.addLayer(marker);
@@ -365,7 +403,7 @@ const LeafletMap = ({
 
     camerasLayer.addTo(mapInstanceRef.current);
     layersRef.current.cameras = camerasLayer;
-  }, [mapData, showCameras, onCameraClick, cameraStatus]);
+  }, [mapData, showCameras, onCameraClick, cameraStatus, camerasData]); // ✅ Thêm camerasData vào dependency
 
   // Handle node click events
   const handleNodeClick = (nodeInfo) => {

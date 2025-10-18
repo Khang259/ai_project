@@ -5,16 +5,13 @@ function PrivateRoute({ children, requiredRole = null }) {
   const { auth } = useAuth();
   const token = localStorage.getItem("token");
   const user = auth?.user || null;
-  console.log('🔍 User:', user);
 
   if (!token) {
-    console.log('❌ No token, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   // Nếu chưa có thông tin user, đợi load xong
   if (!user) {
-    console.log('⏳ No user data, showing loading');
     return <div style={{ padding: '20px', background: 'yellow', color: 'black' }}>
       <h2>Đang tải thông tin user...</h2>
       <p>Token: {token ? 'Có' : 'Không'}</p>

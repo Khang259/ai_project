@@ -248,7 +248,7 @@ const AMRWarehouseMap = () => {
               />
             );
           })()}
-          {selectedCamera && <CameraViewer camId={selectedCamera} onClose={() => setSelectedCamera(null)} />}
+          {selectedCamera && <CameraViewer cameraData={selectedCamera} onClose={() => setSelectedCamera(null)} />}
           <NodeDetailsModal
             selectedNode={selectedNode}
             onClose={() => setSelectedNode(null)}

@@ -5,15 +5,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
+import { getRoles } from "@/services/roles";
 
 export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, userData }) {
   const [formData, setFormData] = useState({
     username: "",
-    roles: ["user"], // Default role theo backend
+    roles: [], // Sẽ được set từ API
     permissions: []
   });
 
   const [errors, setErrors] = useState({});
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && userData) {
@@ -24,6 +27,29 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
       });
     }
   }, [isOpen, userData]);
+
+  // Load roles khi modal mở
+  useEffect(() => {
+    const loadRoles = async () => {
+      if (isOpen) {
+        try {
+          setRolesLoading(true);
+          const rolesData = await getRoles();
+          setRoles(rolesData || []);
+        } catch (error) {
+          console.error("Error loading roles:", error);
+          setErrors(prev => ({
+            ...prev,
+            roles: "Không thể tải danh sách vai trò"
+          }));
+        } finally {
+          setRolesLoading(false);
+        }
+      }
+    };
+
+    loadRoles();
+  }, [isOpen]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -110,20 +136,24 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
             <div className="space-y-2">
               <Label htmlFor="roles">Vai trò *</Label>
               <Select
-                value={formData.roles[0] || "user"}
+                value={formData.roles[0] || ""}
                 onValueChange={(value) => handleInputChange("roles", [value])}
+                disabled={rolesLoading}
               >
                 <SelectTrigger style={{ backgroundColor: "#fff" }}>
-                  <SelectValue placeholder="Chọn role" />
+                  <SelectValue placeholder={rolesLoading ? "Đang tải ..." : "Chọn vai trò"} />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="superuser">Superuser</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id} >
+                      {role.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {errors.roles && (
+                <p className="text-sm text-red-500">{errors.roles}</p>
+              )}
             </div>
           </CardContent>
 

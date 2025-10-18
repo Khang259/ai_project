@@ -33,7 +33,8 @@ const CameraSettings = () => {
 
   const addNewCamera = () => {
     setCameras([...cameras, { 
-      id: `temp_${Date.now()}`, 
+      id: `temp_${Date.now()}`,
+      camera_id: Date.now(), 
       camera_name: '', 
       camera_path: '', 
       area: currAreaId,
@@ -92,6 +93,7 @@ const CameraSettings = () => {
           // Thêm camera mới
           if (camera.camera_name && camera.camera_path) {
             await addCamera({
+              camera_id: camera.camera_id,
               camera_name: camera.camera_name,
               camera_path: camera.camera_path,
               area: camera.area

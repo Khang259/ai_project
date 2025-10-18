@@ -28,7 +28,9 @@ export const useUsers = () => {
     const q = search.toLowerCase();
     return users.filter((u) => {
       const matchSearch = (u.username || "").toLowerCase().includes(q);
-      const matchRole = roleFilter === "" || (u.is_superuser ? "Admin" : "User" ) === roleFilter;
+      const matchRole = roleFilter === "" || 
+                     roleFilter === "all" || 
+                     (u.roles && u.roles.includes(roleFilter));
       return matchSearch && matchRole;
     });
   }, [users, search, roleFilter]);
