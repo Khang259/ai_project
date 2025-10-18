@@ -2,7 +2,8 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 
 // lấy hook từ collection task_path_{username}_{khu}
-const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
+const GridPreview = ({ columns, cells, onDeleteCell }) => {
+  const rows = Math.ceil(cells.length / columns);
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-medium text-foreground">Xem Trước Lưới</h3>

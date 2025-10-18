@@ -3,120 +3,93 @@ import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
-import { Plus, Grid3x3, User, Upload } from 'lucide-react';
+import { Plus, Grid3x3, User, Upload, Settings } from 'lucide-react';
 import GridPreview from './GridPreview';
 import CellNameEditor from './CellNameEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { useUsers } from '../../hooks/Users/useUsers';
-import useButtonSettings from '../../hooks/Setting/useButtonSettings';
+import useNodesBySelectedUser from '../../hooks/Setting/useNodesBySelectedUser';
+import useNodeSettingsLazy from '../../hooks/Setting/useNodeSettingsLazy';
 
 const ButtonSettings = () => {
-  const {users, usersLoading, usersError } = useUsers();
-  const [selectedUser, setSelectedUser] = useState({});
-  const [selectedNodeType, setSelectedNodeType] = useState('Cap');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const {
-    nodeTypes,// Các loại chu trình
-    allNodes,// Giá trị các node hiển thị
-    setAllNodes,
-    totalCellsSelectedType,
-    updateCell,
-    deleteCell,
-    addNode,
-    saveBatch,
-    saveBatchWithNodes,
-    fetchNodes,
-  } = useButtonSettings(selectedUser, selectedNodeType);
-
+  // ===========================================
+  // 1. KHAI BÁO STATE VÀ HOOKS
+  // ===========================================
+  const [columnsWantToShow, setColumnsWantToShow] = useState(5); // Cột muốn hiển thị trong Grid Preview có thể tùy chỉnh
+  
+  // Mapping cho các giá trị node_type
+  const nodeTypeMapping = {
+    'supply': 'Cấp',
+    'returns': 'Trả', 
+    'both': 'Cấp&Trả'
+  };
+  
+  // State cho form thêm node mới
   const [newNodeData, setNewNodeData] = useState({
     node_name: "",
+    nodeType: "",
     start: 0,
     end: 0,
     next_start: 0,
     next_end: 0
   });
-  console.log(nodeTypes);
-  console.log(allNodes);
-  const MaximumColumnsInPreview = 4;
-  const columns = MaximumColumnsInPreview;
-  const totalCells = allNodes.length;
-  const rows = Math.ceil(totalCells / columns);
-  // khi đổi user thì refetch
-  useEffect(() => {
-    if (selectedUser?.id) fetchNodes();
-  }, [selectedUser, fetchNodes]);
+  const {users, usersLoading, usersError } = useUsers();
+  const [selectedUser, setSelectedUser] = useState({});
+  const [selectedNodeType, setSelectedNodeType] = useState();
+  const [filteredNodes, setFilteredNodes] = useState([]);
+  const [showAddForm, setShowAddForm] = useState(false);
 
-  // Cập nhật selectedUser khi users được load từ API ( Khi chưa có dữ liệu gì ?)
-  useEffect(() => {
-    if (users && users.length > 0 && !selectedUser.id) {
-      const adminUser = users.find(user => user.is_superuser) || users[0];
-      if (adminUser) {
-        setSelectedUser({
-          id: adminUser.id,
-          username: adminUser.username,
-          role: adminUser.is_superuser ? "Administrator" : "User",
-        });
-      }
-    }
-  }, [users]);
+  const {
+    data,
+    fetchData,
+  } = useNodesBySelectedUser(selectedUser);
+  const {
+    addNode,
+    deleteNode,
+    updateBatch,
+  } = useNodeSettingsLazy(selectedUser);
 
-  // Xóa ô có confirm UI, sau đó gọi hook
-  const handleDeleteCell = async (cellId) => {
-    const nodeToDelete = allNodes.find(node => node.id === cellId);
-    if (!nodeToDelete) return;
-    if (confirm(`Bạn có chắc chắn muốn xóa ô ${nodeToDelete.node_name}?`)) {
-      await deleteCell(cellId);
-    }
-  };
-
-  // Hiển thị form thêm node
-  const showAddNodeForm = () => {
-    setShowAddForm(true);
-  };
-
-  // Xác nhận thêm node mới
-  const handleConfirmAddNode = async () => {
-    if (!newNodeData.node_name || !newNodeData.start || !newNodeData.end) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Tên Node, Start, End)");
-      return;
-    }
-
-    // Gọi API tạo node qua hook để có id từ server
-    const payload = {
-      node_name: newNodeData.node_name,
-      node_type: selectedNodeType,
-      owner: selectedUser.username,
-      start: newNodeData.start,
-      end: newNodeData.end,
-      next_start: newNodeData.next_start || 0,
-      next_end: newNodeData.next_end || 0,
-    };
-    const res = await addNode(payload);
-    if (!res?.success) {
-      alert(`Tạo node thất bại: ${res?.error || 'Unknown error'}`);
-      return;
-    }
-    
-    // Đóng form và reset dữ liệu
-    setShowAddForm(false);
-    setNewNodeData({
-      node_name: "",
-      start: 0,
-      end: 0,
-      next_start: 0,
-      next_end: 0
-    });
-
-    alert(`Đã thêm node "${newNodeData.node_name}" thành công!`);
-  };
-
-  // Tăng số ô (giữ nguyên để tương thích với code cũ)
-  const increaseCells = () => {
-    showAddNodeForm();
-  };
+  // ===========================================
+  // 2. EFFECTS VÀ COMPUTED VALUES
+  // ===========================================
   
-  // Chọn người dùng khi đã có dữ liệu cái này tùy vào người bấm
+  // Fetch data khi chọn user
+  useEffect(() => {
+    if (selectedUser?.id) fetchData();
+  }, [selectedUser, fetchData]);
+
+  // Định nghĩa các chế độ cố định
+  const fixedNodeTypes = ["Cấp", "Trả", "Cấp&Trả"];
+  
+  // Tính nodeTypes và tổng số theo loại từ data thô
+  const nodeTypes = React.useMemo(() => {
+    return (data || []).reduce((acc, n) => {
+      const t = n.node_type || 'unknown';
+      acc[t] = (acc[t] || 0) + 1;
+      return acc;
+    }, {});
+  }, [data]);
+
+  // Tính tổng số cells của nodeType được chọn
+  const totalCellsSelectedType = React.useMemo(() => {
+    return nodeTypes[selectedNodeType] || filteredNodes.length;
+  }, [nodeTypes, selectedNodeType, filteredNodes.length]);
+
+  // Lọc data theo selectedNodeType và cập nhật dữ liệu cho GridPreview
+  useEffect(() => {
+    if (!selectedNodeType) {
+      setFilteredNodes([]);
+      return;
+    }
+    const next = (data || []).filter(n => n.node_type === selectedNodeType);
+    setFilteredNodes(next);
+  }, [data, selectedNodeType,fetchData]);
+  // ===========================================
+  // 3. HANDLERS CHO CHỌN USER
+  // ===========================================
+  
+  // Chọn người dùng khi đã có dữ liệu
   const handleUserSelect = (userId) => {
     const user = users.find(user => user.id === userId);
     if (user) {
@@ -128,13 +101,92 @@ const ButtonSettings = () => {
     }
   };
 
-  // Chọn nodeType khi đã có dữ liệu cái này tùy vào người bấm
+  // ===========================================
+  // 4. HANDLERS CHO CHỌN NODETYPE
+  // ===========================================
+  
+  // Chọn nodeType khi đã có dữ liệu
   const handleNodeTypeChange = (newNodeType) => {
     setSelectedNodeType(newNodeType);
   };
 
+  // ===========================================
+  // 5. HANDLERS CHO TÁC VỤ ADD NODE
+  // ===========================================
+  
+  // Hiển thị form thêm node
+  const showAddNodeForm = () => {
+    setShowAddForm(true);
+  };
 
- // Import Excel bằng SheetJS (xlsx)
+  // Xác nhận thêm node mới
+  const handleConfirmAddNode = async () => {
+    if (!newNodeData.node_name || !newNodeData.start || !newNodeData.end) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Tên Node, Start, End)");
+      return;
+    }
+    
+    // Gọi API tạo node qua hook để có id từ server
+    const payload = {
+      node_name: newNodeData.node_name,
+      node_type: selectedNodeType || newNodeData.nodeType,
+      owner: selectedUser.username,
+      start: newNodeData.start,
+      end: newNodeData.end,
+      next_start: newNodeData.next_start || 0,
+      next_end: newNodeData.next_end || 0,
+    };
+    console.log("payload", payload);
+    const res = await addNode(payload);
+    if (!res.success) { 
+      console.error("Phản hồi lỗi:", res);
+      alert(`Tạo node thất bại (${res.status}): ${res.error || 'Lỗi không xác định'}`)
+    }
+    if (res.status === 201 || res.status === 200) {
+      const newNode = res.data; 
+      alert(`Thành công! Đã tạo node "${newNode.node_name}" (ID: ${newNode.id})`);
+    }
+    
+    await fetchData();
+    
+    // Đóng form và reset dữ liệu
+    setShowAddForm(false);
+    setNewNodeData({
+      node_name: "",
+      nodeType: "",
+      start: 0,
+      end: 0,
+      next_start: 0,
+      next_end: 0
+    });
+  };
+
+  // Tăng số ô (giữ nguyên để tương thích với code cũ)
+  const increaseCells = () => {
+    showAddNodeForm();
+  };
+
+  // ===========================================
+  // 6. HANDLERS CHO TÁC VỤ DELETE NODE
+  // ===========================================
+  
+  // Xóa ô có confirm UI, sau đó gọi hook
+  const handleDeleteCell = async (cellId) => {
+    const nodeToDelete = filteredNodes.find(node => node.id === cellId);
+    if (!nodeToDelete) return;
+    if (confirm(`Bạn có chắc chắn muốn xóa ô ${nodeToDelete.node_name}?`)) {
+      const res = await deleteNode(cellId);
+      if (res?.success) {
+        fetchData();
+      }
+    }
+  };
+
+  // ===========================================
+  // 7. HANDLERS CHO TÁC VỤ UPDATE NODE (IMPORT EXCEL)
+  // ===========================================
+  
+  // Import Excel bằng SheetJS (xlsx)
   const handleExcelImport = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -175,19 +227,18 @@ const ButtonSettings = () => {
           alert('Header không hợp lệ. Cần các cột: node_name, node_type, start, end, next_start, next_end');
           return;
         }
-
         // Tạo danh sách node từ file và hợp nhất vào allNodes
         const importedNodes = normalisedRows.map((r, idx) => {
           const nodeName = String(r.node_name ?? '').trim();
           const nodeType = String(r.node_type ?? '').trim();
-          const existing = allNodes.find((n) => n.node_name === nodeName && n.node_type === nodeType);
+          const existing = filteredNodes.find((n) => n.node_name === nodeName && n.node_type === nodeType);
           return {
-            id: existing ? existing.id : `new_node_${Date.now()}_${idx}`,
+            id: existing ? existing.id : String(idx) ,
             node_name: nodeName,
             node_type: nodeType,
             owner: selectedUser.username,
-            start: Number(r.start) || '',
-            end: Number(r.end) || '',
+            start: Number(r.start) ,
+            end: Number(r.end),
             next_start: Number(r.next_start) || '',
             next_end: Number(r.next_end) || '',
           };
@@ -199,23 +250,37 @@ const ButtonSettings = () => {
           const key = `${n.node_name}__${n.node_type}`;
           mergedMap.set(key, n);
         });
-        allNodes.forEach((n) => {
+        filteredNodes.forEach((n) => {
           const key = `${n.node_name}__${n.node_type}`;
           if (!mergedMap.has(key)) mergedMap.set(key, n);
         });
         const mergedNodes = Array.from(mergedMap.values());
 
-        setAllNodes(mergedNodes);
-
         // Gọi saveBatchWithNodes để gửi API ngay sau khi import
-        const result = await saveBatchWithNodes(mergedNodes);
+        // Chỉ gửi các trường cần thiết, loại bỏ created_at, updated_at và các trường khác
+        const cleanedNodes = mergedNodes.map(node => ({
+          id: node.id,
+          node_name: node.node_name,
+          node_type: node.node_type,
+          owner: node.owner,
+          start: node.start,
+          end: node.end,
+          next_start: node.next_start,
+          next_end: node.next_end
+        }));
+        const payload = {'nodes': cleanedNodes};
+        console.log("payload", payload);
+        const result = await updateBatch(payload);
+        console.log("result", result);
+        console.log("result.data", result.data);
         if (result?.success) {
+          setFilteredNodes(mergedNodes);
           alert(`Đã import và lưu ${importedNodes.length} dòng thành công!`);
+          await fetchData();
         } else {
           alert(`Import thành công nhưng lưu thất bại: ${result?.error || 'Unknown error'}`);
         }
 
-        // Cho phép nhập lại cùng file nếu cần
         event.target.value = '';
       } catch (error) {
         console.error(error);
@@ -225,7 +290,29 @@ const ButtonSettings = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  // === 5. Giao diện (UI) ===
+  const handleUpdateBatch = async (nodes) => {
+    // Chỉ gửi các trường cần thiết, loại bỏ created_at, updated_at và các trường khác
+    const cleanedNodes = nodes.map(node => ({
+      id: node.id,
+      node_name: node.node_name,
+      node_type: node.node_type,
+      owner: node.owner,
+      start: node.start,
+      end: node.end,
+      next_start: node.next_start,
+      next_end: node.next_end
+    }));
+    const payload = {'nodes': cleanedNodes};
+    const result = await updateBatch(payload);
+    if (result?.success) {
+      alert("Cập nhật thành công");
+      await fetchData();
+    }
+  };
+
+  // ===========================================
+  // 8. GIAO DIỆN NGƯỜI DÙNG (UI)
+  // ===========================================
   return (
     <div className="space-y-6">
       {/* Grid Configuration */}
@@ -238,8 +325,10 @@ const ButtonSettings = () => {
                 Cấu Hình Nút
               </CardTitle>
             </div>
-            {/* Dropdown Menu for quick select user */}
-            <DropdownMenu>
+            <div className="flex items-center gap-2">
+              {/* Dropdown Menu for quick select user */}
+              <div className="flex items-center gap-2">
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
@@ -286,8 +375,38 @@ const ButtonSettings = () => {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+            </div>
+            {/* Settings Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Cài đặt
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  Cài đặt hiển thị
+                </div>
+                <div className="px-2 py-1.5">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs">Số ô trên 1 hàng:</Label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={columnsWantToShow}
+                      onChange={(e) => setColumnsWantToShow(parseInt(e.target.value) || 5)}
+                      className="w-16 px-1 py-0.5 text-xs border rounded text-center"
+                    />
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            </div>
+            </div>
         </CardHeader>
+
 
         <CardContent className="space-y-6">
           <div className="space-y-2">
@@ -296,24 +415,27 @@ const ButtonSettings = () => {
             </Label>
             <Select value={selectedNodeType} onValueChange={handleNodeTypeChange}>
               <SelectTrigger id="nodeType" className="text-lg">
-                <SelectValue placeholder="Chọn chế độ" />
+                <SelectValue placeholder="Chọn chế độ">
+                  {selectedNodeType ? nodeTypeMapping[selectedNodeType] || selectedNodeType : "Chọn chế độ"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {Object.keys(nodeTypes).map((nodeType) => (
                   <SelectItem key={nodeType} value={nodeType}>
-                    {nodeType}
+                    {nodeTypeMapping[nodeType] }
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Tổng Số Ô</Label>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 text-center">
-                <div className="text-3xl font-bold font-mono text-primary">{totalCellsSelectedType}</div>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="flex gap-3 flex-col">
+              <Label className="text-sm font-medium">Tổng Số ô :</Label>
+              <div className="text-4xl font-bold font-mono text-primary">{totalCellsSelectedType}</div>
+            </div>
+            <div className="flex items-center gap-3 flex-col">
+              <Label className="text-sm font-medium">Tạo mới:</Label>
               <Button variant="outline" size="icon" onClick={increaseCells}>
                 <Plus className="h-4 w-4" />
               </Button>
@@ -326,12 +448,31 @@ const ButtonSettings = () => {
                 <CardHeader>
                   <CardTitle className="text-lg text-blue-800">Thêm Node Mới</CardTitle>
                   <CardDescription className="text-blue-600">
-                    Nhập thông tin cho node mới thuộc loại "{selectedNodeType}"
+                    Nhập thông tin cho node mới
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Chu trình - chỉ hiển thị khi chưa có selectedNodeType */}
+                  {!selectedNodeType && (
                     <div className="space-y-2">
+                      <Label htmlFor="nodeType" className="text-sm font-medium">
+                        Chu trình *
+                      </Label>
+                      <select
+                        id="nodeType"
+                        value={newNodeData.nodeType || ""}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, nodeType: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Chọn loại chu trình...</option>
+                        <option value="supply">Cấp</option>
+                        <option value="returns">Trả</option>
+                        <option value="both">Cấp&Trả</option>
+                      </select>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 grid-rows-3 gap-4">
+                    <div className="space-y-2 col-span-2">
                       <Label htmlFor="node_name" className="text-sm font-medium">
                         Tên Node *
                       </Label>
@@ -344,7 +485,7 @@ const ButtonSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2  row-start-2">
                       <Label htmlFor="start" className="text-sm font-medium">
                         Start *
                       </Label>
@@ -352,12 +493,12 @@ const ButtonSettings = () => {
                         id="start"
                         type="number"
                         value={newNodeData.start}
-                        onChange={(e) => setNewNodeData(prev => ({ ...prev, start: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, start: parseInt(e.target.value) || null }))}
                         placeholder="Nhập giá trị start..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 row-start-2">
                       <Label htmlFor="end" className="text-sm font-medium">
                         End *
                       </Label>
@@ -365,12 +506,12 @@ const ButtonSettings = () => {
                         id="end"
                         type="number"
                         value={newNodeData.end}
-                        onChange={(e) => setNewNodeData(prev => ({ ...prev, end: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, end: parseInt(e.target.value) || null }))}
                         placeholder="Nhập giá trị end..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 row-start-3">
                       <Label htmlFor="next_start" className="text-sm font-medium">
                         Next Start (Tùy chọn)
                       </Label>
@@ -378,12 +519,12 @@ const ButtonSettings = () => {
                         id="next_start"
                         type="number"
                         value={newNodeData.next_start}
-                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_start: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_start: parseInt(e.target.value) || null }))}
                         placeholder="Nhập giá trị next_start..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 row-start-3">
                       <Label htmlFor="next_end" className="text-sm font-medium">
                         Next End (Tùy chọn)
                       </Label>
@@ -391,7 +532,7 @@ const ButtonSettings = () => {
                         id="next_end"
                         type="number"
                         value={newNodeData.next_end}
-                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_end: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_end: parseInt(e.target.value) || null }))}
                         placeholder="Nhập giá trị next_end..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
@@ -404,6 +545,7 @@ const ButtonSettings = () => {
                         setShowAddForm(false);
                         setNewNodeData({
                           node_name: "",
+                          nodeType: "",
                           start: 0,
                           end: 0,
                           next_start: 0,
@@ -415,7 +557,7 @@ const ButtonSettings = () => {
                     </Button>
                     <Button 
                       onClick={handleConfirmAddNode}
-                      disabled={!newNodeData.node_name || !newNodeData.start || !newNodeData.end}
+                      disabled={!newNodeData.node_name || !newNodeData.start || !newNodeData.end || (!selectedNodeType && !newNodeData.nodeType)}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       Xác Nhận
@@ -427,7 +569,7 @@ const ButtonSettings = () => {
           )}
           
           <div className="pt-4 border-t">
-            <GridPreview rows={rows} columns={columns} cells={allNodes} onDeleteCell={handleDeleteCell} />
+            <GridPreview columns={columnsWantToShow} cells={filteredNodes} onDeleteCell={handleDeleteCell} />
           </div>
         </CardContent>
       </Card>
@@ -456,53 +598,18 @@ const ButtonSettings = () => {
                 Import Excel
               </Button>
               <div className="text-xs text-muted-foreground text-right">
-                Format: Cell Name, Start, End, Next Start, Next End
+                Format: node_name, node_type, owner, start, end, next_start, next_end
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <CellNameEditor cells={allNodes} onUpdateCell={updateCell} />
+          <CellNameEditor 
+            cells={filteredNodes} 
+            handleUpdateBatch={handleUpdateBatch} 
+          />
         </CardContent>
       </Card>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={() => {
-            // Tạo cấu hình cho tất cả các node types
-            const allModeConfigs = {};
-            Object.keys(nodeTypes).forEach(nodeType => {
-              allModeConfigs[nodeType.toLowerCase()] = {
-                totalCells: nodeTypes[nodeType],
-                columns: MaximumColumnsInPreview,
-                rows: Math.ceil(nodeTypes[nodeType] / MaximumColumnsInPreview)
-              };
-            });
-
-            const gridConfig = {
-              currentMode: selectedNodeType,
-              allModeConfigs,
-              currentUser: selectedUser,
-              lastUpdated: new Date().toISOString(),
-            };
-
-            // Lưu cấu hình cell cho từng mode
-            const cellConfigsByMode = {};
-            Object.keys(nodeTypes).forEach(nodeType => {
-              cellConfigsByMode[nodeType.toLowerCase()] = allNodes.filter(node => node.node_type === nodeType);
-            });
-            saveBatch();
-          
-            alert(`Cấu hình đã được lưu!\n\nUser: ${selectedUser?.username}\nNode Type: ${selectedNodeType}\nTổng số node: ${allNodes.length}`);
-          }}
-          size="lg" 
-          className="min-w-[150px] bg-purple-600 hover:bg-purple-700 text-white"
-        >
-          <Grid3x3 className="h-4 w-4 mr-2" />
-          Lưu Cấu Hình Nút
-        </Button>
-      </div>
     </div>
   );
 };

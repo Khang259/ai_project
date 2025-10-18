@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Input } from '../ui/input';
+import { Button } from '../ui/button';
 import { 
   Table, 
   TableHeader, 
@@ -9,14 +10,61 @@ import {
   TableCell 
 } from '../ui/table';
 
-const CellNameEditor = ({ cells, onUpdateCell }) => {
+const CellNameEditor = ({ cells, handleUpdateBatch }) => {
+  const [editedById, setEditedById] = useState({}); //Các thay đổi 
+
+  const handleChange = (id, field, value) => {
+    setEditedById((prev) => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] || {}),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleSave = () => {
+    const changedIds = Object.keys(editedById);
+    if (changedIds.length === 0) {
+      handleUpdateBatch({ nodes: [] });
+      return;
+    }
+
+    const changedNodes = cells
+      .filter((cell) => changedIds.includes(String(cell.id)))
+      .map((cell) => {
+        const mergedData = {
+          ...cell,
+          ...(editedById[cell.id] || {}),
+        }
+        const cleanNode = {
+          id: mergedData.id,
+          node_name: mergedData.node_name,
+          node_type: mergedData.node_type,
+          owner: mergedData.owner,
+          start: mergedData.start,
+          end: mergedData.end,
+          next_start: mergedData.next_start,
+          next_end: mergedData.next_end,
+        };
+
+        return cleanNode;
+      });
+
+    const payload = {
+      nodes: changedNodes
+    };
+    
+    handleUpdateBatch(payload);
+};
+
+
   return (
     <div className="w-full overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[120px] font-semibold">Node Name</TableHead>
-            <TableHead className="w-[150px] font-semibold">Tên mới</TableHead>
+            <TableHead className="w-[150px] font-semibold">Node Name</TableHead>
             <TableHead className="w-[120px] font-semibold">Start</TableHead>
             <TableHead className="w-[120px] font-semibold">End</TableHead>
             <TableHead className="w-[120px] font-semibold">Next Start</TableHead>
@@ -26,17 +74,11 @@ const CellNameEditor = ({ cells, onUpdateCell }) => {
         <TableBody>
           {cells.map((cell) => (
             <TableRow key={cell.id}>
-              <TableCell className="font-mono text-sm text-muted-foreground">
-                {cell.node_name}
-              </TableCell>
               <TableCell>
                 <Input
                   type="text"
-                  value={cell.name || ''}
-                  onChange={(e) => {
-                    console.log('Name input changed:', { cellId: cell.id, value: e.target.value });
-                    onUpdateCell(cell.id, 'name', e.target.value);
-                  }}
+                  value={(editedById[cell.id]?.node_name ?? cell.node_name) || ''}
+                  onChange={(e) => handleChange(cell.id, 'node_name', e.target.value)}
                   placeholder={`Tên cho ${cell.node_name}`}
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
@@ -44,8 +86,8 @@ const CellNameEditor = ({ cells, onUpdateCell }) => {
               <TableCell>
                 <Input
                   type="text"
-                  value={cell.start || ''}
-                  onChange={(e) => onUpdateCell(cell.id, 'start', e.target.value)}
+                  value={(editedById[cell.id]?.start ?? cell.start) || ''}
+                  onChange={(e) => handleChange(cell.id, 'start', e.target.value)}
                   placeholder={`Start cho ${cell.node_name}`}
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
@@ -53,8 +95,8 @@ const CellNameEditor = ({ cells, onUpdateCell }) => {
               <TableCell>
                 <Input
                   type="text"
-                  value={cell.end || ''}
-                  onChange={(e) => onUpdateCell(cell.id, 'end', e.target.value)}
+                  value={(editedById[cell.id]?.end ?? cell.end) || ''}
+                  onChange={(e) => handleChange(cell.id, 'end', e.target.value)}
                   placeholder={`End cho ${cell.node_name}`}
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
@@ -62,8 +104,8 @@ const CellNameEditor = ({ cells, onUpdateCell }) => {
               <TableCell>
                 <Input
                   type="text"
-                  value={cell.next_start || ''}
-                  onChange={(e) => onUpdateCell(cell.id, 'next_start', e.target.value)}
+                  value={(editedById[cell.id]?.next_start ?? cell.next_start) || ''}
+                  onChange={(e) => handleChange(cell.id, 'next_start', e.target.value)}
                   placeholder={`Next start cho ${cell.node_name}`}
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
@@ -71,8 +113,8 @@ const CellNameEditor = ({ cells, onUpdateCell }) => {
               <TableCell>
                 <Input
                   type="text"
-                  value={cell.next_end || ''}
-                  onChange={(e) => onUpdateCell(cell.id, 'next_end', e.target.value)}
+                  value={(editedById[cell.id]?.next_end ?? cell.next_end) || ''}
+                  onChange={(e) => handleChange(cell.id, 'next_end', e.target.value)}
                   placeholder={`Next end cho ${cell.node_name}`}
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
@@ -81,6 +123,11 @@ const CellNameEditor = ({ cells, onUpdateCell }) => {
           ))}
         </TableBody>
       </Table>
+      <div className="flex justify-end mt-4">
+        <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700 text-white">
+          Lưu Cấu Hình Nút
+        </Button>
+      </div>
     </div>
   );
 };
