@@ -2,7 +2,7 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 
 // lấy hook từ collection task_path_{username}_{khu}
-const GridPreview = ({ columns, cells, onDeleteCell }) => {
+const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
   const rows = Math.ceil(cells.length / columns);
   return (
     <div className="space-y-3">
@@ -11,13 +11,14 @@ const GridPreview = ({ columns, cells, onDeleteCell }) => {
         className="grid gap-2 p-4 bg-muted/30 rounded-lg border"
         style={{
           gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, auto)`,
         }}
       >
         {cells.slice(0, rows * columns).map((cell, index) => (
           <div
             key={cell.id}
-            className="aspect-video bg-card border-2 border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
+            className="bg-card border-2  border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
+            style={{ height: 130 }}
           >
             {/* Nút xóa hiện khi hover */}
             {onDeleteCell && (
@@ -36,7 +37,7 @@ const GridPreview = ({ columns, cells, onDeleteCell }) => {
                 <span className="px-2 py-0.5 bg-primary/30 text-primary text-xs font-semibold rounded">
                   {cell.start} → {cell.end}
                 </span>
-                {cell.next_start > 0 && cell.next_end > 0 && (
+                {selectedNodeType === 'both' && cell.next_start > 0 && cell.next_end > 0 && (
                   <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
                     {cell.next_start} → {cell.next_end}
                   </span>

@@ -511,32 +511,36 @@ const ButtonSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div className="space-y-2 row-start-3">
-                      <Label htmlFor="next_start" className="text-sm font-medium">
-                        Next Start (Tùy chọn)
-                      </Label>
-                      <input
-                        id="next_start"
-                        type="number"
-                        value={newNodeData.next_start}
-                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_start: parseInt(e.target.value) || null }))}
-                        placeholder="Nhập giá trị next_start..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="space-y-2 row-start-3">
-                      <Label htmlFor="next_end" className="text-sm font-medium">
-                        Next End (Tùy chọn)
-                      </Label>
-                      <input
-                        id="next_end"
-                        type="number"
-                        value={newNodeData.next_end}
-                        onChange={(e) => setNewNodeData(prev => ({ ...prev, next_end: parseInt(e.target.value) || null }))}
-                        placeholder="Nhập giá trị next_end..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+                    {(selectedNodeType === 'both' || (!selectedNodeType && newNodeData.nodeType === 'both')) && (
+                      <>
+                        <div className="space-y-2 row-start-3">
+                          <Label htmlFor="next_start" className="text-sm font-medium">
+                            Next Start (Tùy chọn)
+                          </Label>
+                          <input
+                            id="next_start"
+                            type="number"
+                            value={newNodeData.next_start}
+                            onChange={(e) => setNewNodeData(prev => ({ ...prev, next_start: parseInt(e.target.value) || null }))}
+                            placeholder="Nhập giá trị next_start..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="space-y-2 row-start-3">
+                          <Label htmlFor="next_end" className="text-sm font-medium">
+                            Next End (Tùy chọn)
+                          </Label>
+                          <input
+                            id="next_end"
+                            type="number"
+                            value={newNodeData.next_end}
+                            onChange={(e) => setNewNodeData(prev => ({ ...prev, next_end: parseInt(e.target.value) || null }))}
+                            placeholder="Nhập giá trị next_end..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className="flex justify-end gap-2 pt-4">
                     <Button 
@@ -569,7 +573,7 @@ const ButtonSettings = () => {
           )}
           
           <div className="pt-4 border-t">
-            <GridPreview columns={columnsWantToShow} cells={filteredNodes} onDeleteCell={handleDeleteCell} />
+            <GridPreview columns={columnsWantToShow} cells={filteredNodes} onDeleteCell={handleDeleteCell} selectedNodeType={selectedNodeType} />
           </div>
         </CardContent>
       </Card>

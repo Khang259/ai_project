@@ -12,8 +12,6 @@ const MobileGridDisplay = () => {
   const [selectedNodeType, setSelectedNodeType] = useState('');
   const [filteredNodes, setFilteredNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [columnsPerRow, setColumnsPerRow] = useState(4);
-  const [showSettings, setShowSettings] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const nodeTypeMapping = {
@@ -55,23 +53,11 @@ const MobileGridDisplay = () => {
     setShowConfirmModal(true);
   };
 
-  const toggleSettings = () => {
-    setShowSettings(!showSettings);
-  };
-
-  const handleColumnsChange = (newColumns) => {
-    setColumnsPerRow(newColumns);
-  };
+  
 
   const getGridClasses = () => {
-    const gridMap = {
-      2: 'grid-cols-1 xs:grid-cols-2',
-      3: 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3',
-      4: 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4',
-      5: 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-      6: 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
-    };
-    return gridMap[columnsPerRow] || gridMap[4];
+    // Mapping cột: <350px: 1; ≥350px: 2; ≥730px: 3; ≥1024px (lg): 4; ≥1280px (xl): 5
+    return 'grid-cols-1 min-[350px]:grid-cols-2 min-[730px]:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
   };
 
   const handleConfirmSend = async () => {
@@ -124,49 +110,20 @@ const MobileGridDisplay = () => {
                   User: {currentUser?.username || 'Chưa đăng nhập'}
                 </span>
               </div>
-              <div className="flex justify-center sm:justify-end">
-                <button 
-                  className="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-3 py-1 rounded text-xs sm:text-sm font-medium transition-colors duration-200"
-                  onClick={toggleSettings}
-                >
-                  ⚙️ Cài đặt
-                </button>
-              </div>
+              
             </div>
           </div>
           
           <div className="p-3 sm:p-6">
-            {showSettings && (
-              <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-blue-200">
-                <h3 className="text-sm sm:text-base font-semibold text-blue-800 mb-3">Cài đặt hiển thị</h3>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <label className="text-sm text-blue-700 font-medium">Số ô trên 1 hàng:</label>
-                  <div className="flex gap-2">
-                    {[2, 3, 4, 5, 6].map((num) => (
-                      <button
-                        key={num}
-                        className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
-                          columnsPerRow === num
-                            ? 'bg-[#016B61] text-white'
-                            : 'bg-white text-[#016B61] border border-[#016B61] hover:bg-[#016B61] hover:text-white'
-                        }`}
-                        onClick={() => handleColumnsChange(num)}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            
 
             <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
               <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn loại chu trình:</h2>
-              <div className="flex flex-wrap gap-2 sm:gap-3 justify-center sm:justify-start">
+              <div className="flex flex-wrap justify-between w-full ">
                 {Object.keys(nodeTypes).map((nodeType) => (
                   <button
                     key={nodeType}
-                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base ${
+                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base w-2/7 ${
                       selectedNodeType === nodeType 
                         ? 'bg-[#016B61] text-white' 
                         : 'bg-white text-[#016B61] border-2 border-[#016B61] hover:bg-[#016B61] hover:text-white'
