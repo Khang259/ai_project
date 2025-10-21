@@ -91,7 +91,7 @@ const MobileGridDisplay = () => {
   
   return (
     <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
-      <div className="max-w-7xl mx-auto">
+      <div className=" mx-auto">
         <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden mb-4 sm:mb-6">
           <div className="bg-[#016B61] px-3 py-3 sm:px-6 sm:py-4 text-white">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
@@ -115,8 +115,6 @@ const MobileGridDisplay = () => {
           </div>
           
           <div className="p-3 sm:p-6">
-            
-
             <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
               <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn loại chu trình:</h2>
               <div className="flex flex-wrap justify-between w-full ">
@@ -152,15 +150,16 @@ const MobileGridDisplay = () => {
                       }`}
                       onClick={() => handleNodeSelect(node)}
                     >
-                      <div className="text-center">
-                        <h3 className="font-bold text-gray-800 text-xs sm:text-sm mb-1 sm:mb-2 truncate">
+                      <div className="text-center h-[180px]">
+                        <h3 className="font-bold text-gray-800 text-xl sm:text-2xl mb-1 sm:mb-2 truncate">
                           {node.node_name || `Node ${index + 1}`}
                         </h3>
-                        <div className="space-y-3 text-xs text-gray-600">
+                        <div className="space-y-3 text-3xl text-gray-600">
                           <div className="flex justify-center">
                             <span className="font-bold bg-primary/20 text-[#016B61]">{node.start || 0} → {node.end || 0}</span>
                           </div>
-                          {node.next_start > 0 && node.next_end > 0 && (
+                          
+                          {selectedNodeType === 'both' && (
                             <div className="flex justify-center">
                               <span className="font-bold text-[#016B61]">{node.next_start} → {node.next_end}</span>
                             </div>
