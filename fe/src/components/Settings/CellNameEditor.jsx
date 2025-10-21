@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { 
@@ -12,6 +12,13 @@ import {
 
 const CellNameEditor = ({ cells, handleUpdateBatch }) => {
   const [editedById, setEditedById] = useState({}); //Các thay đổi 
+  const [selectedNodeTypes, setSelectedNodeTypes] = useState('');
+  useEffect(() => {
+    if (cells.length > 0) {
+      setSelectedNodeTypes(cells[0].node_type);  
+    }
+  }, [cells]);
+  
 
   const handleChange = (id, field, value) => {
     setEditedById((prev) => ({
@@ -67,8 +74,12 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
             <TableHead className="w-[150px] font-semibold">Node Name</TableHead>
             <TableHead className="w-[120px] font-semibold">Start</TableHead>
             <TableHead className="w-[120px] font-semibold">End</TableHead>
-            <TableHead className="w-[120px] font-semibold">Next Start</TableHead>
-            <TableHead className="w-[120px] font-semibold">Next End</TableHead>
+            {selectedNodeTypes === 'both' && (
+              <>
+                <TableHead className="w-[120px] font-semibold">Next Start</TableHead>
+                <TableHead className="w-[120px] font-semibold">Next End</TableHead>
+              </>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -101,6 +112,8 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
               </TableCell>
+              {selectedNodeTypes === 'both' && (
+                <>
               <TableCell>
                 <Input
                   type="text"
@@ -119,6 +132,8 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
               </TableCell>
+              </>
+            )}
             </TableRow>
           ))}
         </TableBody>

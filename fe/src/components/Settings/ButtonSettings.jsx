@@ -511,7 +511,7 @@ const ButtonSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    {(selectedNodeType === 'both' || (!selectedNodeType && newNodeData.nodeType === 'both')) && (
+                    {(selectedNodeType === 'both') && (
                       <>
                         <div className="space-y-2 row-start-3">
                           <Label htmlFor="next_start" className="text-sm font-medium">
