@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Truck, Package, AlertCircle, Edit2, Save, XIcon } from "lucide-react"
+import { X, Truck, Package, AlertCircle, Edit2, Save, XIcon, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +16,9 @@ export function AMRDetailsModal({ amrId, onClose }) {
   const [editingRow, setEditingRow] = useState(null)
   const [editData, setEditData] = useState({})
   const [saving, setSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [sortField, setSortField] = useState(null) // "ngayThayThe" hoặc "soLuong"
+  const [sortOrder, setSortOrder] = useState("desc") // "desc" hoặc "asc"
 
   useEffect(() => {
     if (!amrId) return
@@ -41,6 +44,65 @@ export function AMRDetailsModal({ amrId, onClose }) {
 
     fetchAMRDetails()
   }, [amrId])
+
+  // Hàm lọc và sắp xếp dữ liệu linh kiện
+  const getFilteredAndSortedParts = () => {
+    if (!data?.chi_tiet_linh_kien) return []
+
+    let filteredParts = data.chi_tiet_linh_kien
+
+    // Lọc theo mã linh kiện và loại linh kiện
+    if (searchTerm.trim()) {
+      filteredParts = filteredParts.filter(part => {
+        const maLinhKien = part["Mã linh kiện"]?.toLowerCase() || ""
+        const loaiLinhKien = part["Loại linh kiện"]?.toLowerCase() || ""
+        const searchLower = searchTerm.toLowerCase()
+        
+        return maLinhKien.includes(searchLower) || loaiLinhKien.includes(searchLower)
+      })
+    }
+
+    // Sắp xếp theo trường được chọn
+    if (sortField) {
+      filteredParts.sort((a, b) => {
+        let aValue, bValue
+
+        if (sortField === "ngayThayThe") {
+          aValue = new Date(a["Ngày update"] || "1900-01-01")
+          bValue = new Date(b["Ngày update"] || "1900-01-01")
+        } else if (sortField === "soLuong") {
+          aValue = a["Số lượng cần thay"] || 0
+          bValue = b["Số lượng cần thay"] || 0
+        }
+
+        if (sortOrder === "desc") {
+          return bValue > aValue ? 1 : bValue < aValue ? -1 : 0
+        } else {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
+        }
+      })
+    }
+
+    return filteredParts
+  }
+
+  // Hàm thay đổi sắp xếp
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortOrder(prev => prev === "desc" ? "asc" : "desc")
+    } else {
+      setSortField(field)
+      setSortOrder("desc")
+    }
+  }
+
+  // Hàm lấy icon sắp xếp cho cột
+  const getSortIcon = (field) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 opacity-50" />
+    }
+    return sortOrder === "desc" ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+  }
 
   const handleEdit = (index, part) => {
     setEditingRow(index)
@@ -213,7 +275,28 @@ export function AMRDetailsModal({ amrId, onClose }) {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Danh sách linh kiện</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-foreground">Danh sách linh kiện</h3>
+              
+              {/* Thanh tìm kiếm */}
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Tìm theo mã/loại linh kiện..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-8 text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Hiển thị kết quả tìm kiếm */}
+            {searchTerm.trim() && (
+              <div className="mb-3 p-2 bg-muted/50 rounded text-xs text-muted-foreground">
+                Tìm thấy {getFilteredAndSortedParts().length} linh kiện phù hợp với "{searchTerm}"
+              </div>
+            )}
+
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
@@ -221,14 +304,59 @@ export function AMRDetailsModal({ amrId, onClose }) {
                     <TableRow className="bg-muted/50">
                       <TableHead className="font-semibold text-xs whitespace-nowrap">Mã linh kiện</TableHead>
                       <TableHead className="font-semibold text-xs whitespace-nowrap">Loại</TableHead>
-                      <TableHead className="font-semibold text-xs whitespace-nowrap">Ngày thay thế</TableHead>
-                      <TableHead className="font-semibold text-xs whitespace-nowrap">Số lượng</TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSort("ngayThayThe")}
+                          className="h-auto p-0 font-semibold text-xs hover:bg-transparent"
+                        >
+                          Ngày thay thế
+                          {getSortIcon("ngayThayThe")}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSort("soLuong")}
+                          className="h-auto p-0 font-semibold text-xs hover:bg-transparent"
+                        >
+                          Số lượng
+                          {getSortIcon("soLuong")}
+                        </Button>
+                      </TableHead>
                       <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú</TableHead>
                       <TableHead className="font-semibold text-xs whitespace-nowrap">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.chi_tiet_linh_kien?.map((part, index) => (
+                    {getFilteredAndSortedParts().length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          <div className="flex flex-col items-center gap-2">
+                            <Search className="h-8 w-8 opacity-50" />
+                            <p className="text-sm">
+                              {searchTerm.trim() 
+                                ? `Không tìm thấy linh kiện nào phù hợp với "${searchTerm}"`
+                                : "Chưa có dữ liệu linh kiện"
+                              }
+                            </p>
+                            {searchTerm.trim() && (
+                              <Button
+                                onClick={() => setSearchTerm("")}
+                                variant="outline"
+                                size="sm"
+                                className="mt-2"
+                              >
+                                Xóa bộ lọc
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      getFilteredAndSortedParts().map((part, index) => (
                       <TableRow key={part["Mã linh kiện"] || index} className="hover:bg-muted/30">
                         <TableCell className="font-mono text-xs py-3">
                           {editingRow === index ? (
@@ -314,7 +442,8 @@ export function AMRDetailsModal({ amrId, onClose }) {
                           )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>

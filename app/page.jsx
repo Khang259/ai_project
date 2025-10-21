@@ -8,13 +8,14 @@ import { Notice } from "@/components/notice"
 import { MaintenanceChecklist } from "@/components/maintenance-checklist"
 import { PartsReplaceOverview } from "@/components/parts-replace-overview"
 import { AMRDetailsModal } from "@/components/amr-details-modal"
-import { ListChecks, ClipboardList, BarChart3 } from "lucide-react"
+import { MaintenanceHistoryTable } from "@/components/maintenance-history-table"
+import { ListChecks, ClipboardList, BarChart3, History } from "lucide-react"
 
 export default function Home() {
   const [selectedComponent, setSelectedComponent] = useState(null)
   const [selectedVehicleComponent, setSelectedVehicleComponent] = useState(null)
   const [selectedAMR, setSelectedAMR] = useState(null)
-  const [activeTab, setActiveTab] = useState("list") // "list", "checklist", hoặc "overview"
+  const [activeTab, setActiveTab] = useState("list") // "list", "checklist", "overview", hoặc "history"
 
   return (
     <main className="min-h-screen h-screen bg-background p-3 flex flex-col">
@@ -59,6 +60,17 @@ export default function Home() {
             <ListChecks className="w-4 h-4" />
             Danh sách bảo trì
           </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              activeTab === "history"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            }`}
+          >
+            <History className="w-4 h-4" />
+            Lịch sử thay thế
+          </button>
         </div>
       </header>
 
@@ -70,6 +82,8 @@ export default function Home() {
             console.log('Home: onComponentClick called with:', { maLinhKien, componentType })
             setSelectedComponent({ maLinhKien, componentType })
           }} />
+        ) : activeTab === "history" ? (
+          <MaintenanceHistoryTable />
         ) : (
           <MaintenanceChecklist />
         )}

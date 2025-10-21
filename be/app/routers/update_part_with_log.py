@@ -77,7 +77,7 @@ def update_part_with_log(request: UpdatePartRequest):
         # Bước 4: Lưu vào collection maintenanceLogs
         log_entry = {
             "timestamp": datetime.now(),
-            "action": "update_part",
+            "action": "Thay thế linh kiện",
             "amr_id": request.amr_id,
             "ma_linh_kien": request.ma_linh_kien,
             "collections_updated": ["amrParts", "maintenanceLogs"],
@@ -150,30 +150,101 @@ def update_part_with_log(request: UpdatePartRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
 
-@router.get("/part/logs/{amr_id}")
-def get_part_logs(amr_id: str):
+@router.get("/maintenance-logs")
+def get_maintenance_logs():
     """
-    Lấy lịch sử thay đổi của một AMR
+    Lấy tất cả logs từ collection maintenanceLogs với các trường được chỉ định
     """
     try:
+        # Query để lấy các trường cần thiết
         logs = list(maintenanceLogs.find(
-            {"amr_id": amr_id},
-            {"_id": 0}
-        ).sort("timestamp", -1).limit(50))
+            {},  # Empty filter để lấy tất cả
+            {
+                "_id": 0,  # Loại bỏ _id
+                "amr_id": 1,
+                "action": 1,
+                "timestamp": 1,
+                "new_data.Mã linh kiện": 1,
+                "new_data.Loại linh kiện": 1,
+                "new_data.Ngày update": 1,
+                "new_data.Số lượng/ AMR": 1,
+                "new_data.Ghi chú": 1
+            }
+        ).sort("timestamp", -1))  # Sắp xếp theo timestamp giảm dần
+        
+        # Format dữ liệu để flatten structure
+        formatted_logs = []
+        for log in logs:
+            formatted_log = {
+                "amr_id": log.get("amr_id"),
+                "action": log.get("action"),
+                "Mã linh kiện": log.get("new_data", {}).get("Mã linh kiện"),
+                "Loại linh kiện": log.get("new_data", {}).get("Loại linh kiện"),
+                "Ngày update": log.get("new_data", {}).get("Ngày update"),
+                "Số lượng/ AMR": log.get("new_data", {}).get("Số lượng/ AMR"),
+                "Ghi chú": log.get("new_data", {}).get("Ghi chú"),
+                "timestamp": log.get("timestamp")
+            }
+            formatted_logs.append(formatted_log)
         
         return {
-            "amr_id": amr_id,
-            "logs": logs,
-            "total": len(logs)
+            "success": True,
+            "total_logs": len(formatted_logs),
+            "logs": formatted_logs
         }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
 
-@router.get("/part/logs/{amr_id}/{ma_linh_kien}")
-def get_part_specific_logs(amr_id: str, ma_linh_kien: str):
+@router.get("/maintenance-logs/{amr_id}")
+def get_maintenance_logs_by_amr(amr_id: str):
     """
-    Lấy lịch sử thay đổi của một linh kiện cụ thể
+    Lấy logs của một AMR cụ thể từ collection maintenanceLogs
+    """
+    try:
+        logs = list(maintenanceLogs.find(
+            {"amr_id": amr_id},  # Filter theo amr_id
+            {
+                "_id": 0,
+                "amr_id": 1,
+                "action": 1,
+                "timestamp": 1,
+                "new_data.Mã linh kiện": 1,
+                "new_data.Loại linh kiện": 1,
+                "new_data.Ngày update": 1,
+                "new_data.Số lượng/ AMR": 1,
+                "new_data.Ghi chú": 1
+            }
+        ).sort("timestamp", -1))
+        
+        formatted_logs = []
+        for log in logs:
+            formatted_log = {
+                "amr_id": log.get("amr_id"),
+                "action": log.get("action"),
+                "Mã linh kiện": log.get("new_data", {}).get("Mã linh kiện"),
+                "Loại linh kiện": log.get("new_data", {}).get("Loại linh kiện"),
+                "Ngày update": log.get("new_data", {}).get("Ngày update"),
+                "Số lượng/ AMR": log.get("new_data", {}).get("Số lượng/ AMR"),
+                "Ghi chú": log.get("new_data", {}).get("Ghi chú"),
+                "timestamp": log.get("timestamp")
+            }
+            formatted_logs.append(formatted_log)
+        
+        return {
+            "success": True,
+            "amr_id": amr_id,
+            "total_logs": len(formatted_logs),
+            "logs": formatted_logs
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
+
+@router.get("/maintenance-logs/{amr_id}/{ma_linh_kien}")
+def get_maintenance_logs_by_part(amr_id: str, ma_linh_kien: str):
+    """
+    Lấy logs của một linh kiện cụ thể từ collection maintenanceLogs
     """
     try:
         logs = list(maintenanceLogs.find(
@@ -181,14 +252,39 @@ def get_part_specific_logs(amr_id: str, ma_linh_kien: str):
                 "amr_id": amr_id,
                 "ma_linh_kien": ma_linh_kien
             },
-            {"_id": 0}
-        ).sort("timestamp", -1).limit(20))
+            {
+                "_id": 0,
+                "amr_id": 1,
+                "action": 1,
+                "timestamp": 1,
+                "new_data.Mã linh kiện": 1,
+                "new_data.Loại linh kiện": 1,
+                "new_data.Ngày update": 1,
+                "new_data.Số lượng/ AMR": 1,
+                "new_data.Ghi chú": 1
+            }
+        ).sort("timestamp", -1))
+        
+        formatted_logs = []
+        for log in logs:
+            formatted_log = {
+                "amr_id": log.get("amr_id"),
+                "action": log.get("action"),
+                "Mã linh kiện": log.get("new_data", {}).get("Mã linh kiện"),
+                "Loại linh kiện": log.get("new_data", {}).get("Loại linh kiện"),
+                "Ngày update": log.get("new_data", {}).get("Ngày update"),
+                "Số lượng/ AMR": log.get("new_data", {}).get("Số lượng/ AMR"),
+                "Ghi chú": log.get("new_data", {}).get("Ghi chú"),
+                "timestamp": log.get("timestamp")
+            }
+            formatted_logs.append(formatted_log)
         
         return {
+            "success": True,
             "amr_id": amr_id,
             "ma_linh_kien": ma_linh_kien,
-            "logs": logs,
-            "total": len(logs)
+            "total_logs": len(formatted_logs),
+            "logs": formatted_logs
         }
         
     except Exception as e:
