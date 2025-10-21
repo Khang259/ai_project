@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Truck, Package, AlertCircle, Edit2, Save, X as XIcon } from "lucide-react"
+import { X, Truck, Package, AlertCircle, Edit2, Save, XIcon } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -24,15 +24,15 @@ export function AMRDetailsModal({ amrId, onClose }) {
       try {
         setLoading(true)
         const response = await fetch(`/api/sum-parts-replace/${encodeURIComponent(amrId)}`)
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
-        
+
         const result = await response.json()
         setData(result)
       } catch (err) {
-        console.error('Error fetching AMR details:', err)
+        console.error("Error fetching AMR details:", err)
         setError(err.message)
       } finally {
         setLoading(false)
@@ -47,43 +47,48 @@ export function AMRDetailsModal({ amrId, onClose }) {
     setEditData({
       maLinhKien: part["Mã linh kiện"] || "",
       ngayThayThe: part["Ngày update"] || "",
-      ghiChu: part["Ghi chú"] || ""
+      ghiChu: part["Ghi chú"] || "",
     })
   }
 
   const handleSave = async (index) => {
     try {
       setSaving(true)
-      
-      // TODO: Gọi API để lưu dữ liệu
-      // const response = await fetch(`/api/update-part/${amrId}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     maLinhKien: editData.maLinhKien,
-      //     ngayThayThe: editData.ngayThayThe,
-      //     ghiChu: editData.ghiChu
-      //   })
-      // })
 
-      // Cập nhật local state
+      const response = await fetch("/api/part/update-with-log", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amr_id: amrId,
+          ma_linh_kien: editData.maLinhKien,
+          ngay_thay_the: editData.ngayThayThe,
+          ghi_chu: editData.ghiChu,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Lỗi khi lưu dữ liệu")
+      }
+
+      const result = await response.json()
+
       const updatedData = { ...data }
       updatedData.chi_tiet_linh_kien[index] = {
         ...updatedData.chi_tiet_linh_kien[index],
         "Mã linh kiện": editData.maLinhKien,
         "Ngày update": editData.ngayThayThe,
-        "Ghi chú": editData.ghiChu
+        "Ghi chú": editData.ghiChu,
       }
       setData(updatedData)
-      
+
       setEditingRow(null)
       setEditData({})
-      
-      // Hiển thị thông báo thành công
-      console.log("Đã lưu thành công!")
-      
+
+      console.log("Đã lưu thành công!", result)
     } catch (error) {
       console.error("Lỗi khi lưu:", error)
+      alert(`Lỗi: ${error.message}`)
     } finally {
       setSaving(false)
     }
@@ -95,9 +100,9 @@ export function AMRDetailsModal({ amrId, onClose }) {
   }
 
   const handleInputChange = (field, value) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
   }
 
@@ -105,10 +110,10 @@ export function AMRDetailsModal({ amrId, onClose }) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-3">
         <Card className="w-full max-w-4xl bg-card border-border max-h-[90vh] flex flex-col">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0">
             <div>
-              <h2 className="text-lg font-bold text-foreground">Chi tiết linh kiện AMR</h2>
-              <p className="text-xs text-muted-foreground font-mono">{amrId}</p>
+              <h2 className="text-lg font-semibold text-foreground">Chi tiết linh kiện AMR</h2>
+              <p className="text-xs text-muted-foreground font-mono mt-1">{amrId}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-muted h-8 w-8">
               <X className="h-4 w-4" />
@@ -129,10 +134,10 @@ export function AMRDetailsModal({ amrId, onClose }) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-3">
         <Card className="w-full max-w-4xl bg-card border-border max-h-[90vh] flex flex-col">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0">
             <div>
-              <h2 className="text-lg font-bold text-foreground">Chi tiết linh kiện AMR</h2>
-              <p className="text-xs text-muted-foreground font-mono">{amrId}</p>
+              <h2 className="text-lg font-semibold text-foreground">Chi tiết linh kiện AMR</h2>
+              <p className="text-xs text-muted-foreground font-mono mt-1">{amrId}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-muted h-8 w-8">
               <X className="h-4 w-4" />
@@ -154,10 +159,10 @@ export function AMRDetailsModal({ amrId, onClose }) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-3">
         <Card className="w-full max-w-4xl bg-card border-border max-h-[90vh] flex flex-col">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0">
             <div>
-              <h2 className="text-lg font-bold text-foreground">Chi tiết linh kiện AMR</h2>
-              <p className="text-xs text-muted-foreground font-mono">{amrId}</p>
+              <h2 className="text-lg font-semibold text-foreground">Chi tiết linh kiện AMR</h2>
+              <p className="text-xs text-muted-foreground font-mono mt-1">{amrId}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-muted h-8 w-8">
               <X className="h-4 w-4" />
@@ -174,148 +179,117 @@ export function AMRDetailsModal({ amrId, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-3">
       <Card className="w-full max-w-4xl bg-card border-border max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3 flex-shrink-0">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-foreground">Chi tiết linh kiện AMR</h2>
-            <p className="text-xs text-muted-foreground font-mono">{amrId}</p>
+            <h2 className="text-lg font-semibold text-foreground">Chi tiết linh kiện AMR</h2>
+            <p className="text-xs text-muted-foreground font-mono mt-1">{amrId}</p>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-muted h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Header thông tin AMR */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-              <div className="p-4">
-                <div className="flex items-center gap-3">
-                  <Truck className="h-6 w-6" />
-                  <div>
-                    <p className="text-sm opacity-90">Tên AMR</p>
-                    <p className="text-xl font-bold">{data.amr_id}</p>
-                  </div>
-                </div>
+            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Truck className="h-5 w-5 text-primary" />
               </div>
-            </Card>
+              <div>
+                <p className="text-xs text-muted-foreground">Tên AMR</p>
+                <p className="text-base font-semibold text-foreground">{data.amr_id}</p>
+              </div>
+            </div>
 
-            <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-              <div className="p-4">
-                <div className="flex items-center gap-3">
-                  <Package className="h-6 w-6" />
-                  <div>
-                    <p className="text-sm opacity-90">Tổng số linh kiện cần thay thế</p>
-                    <p className="text-xl font-bold">{data.sumPartsReplaceAMR || 0}</p>
-                  </div>
-                </div>
+            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border">
+              <div className="p-2 bg-destructive/10 rounded-lg">
+                <Package className="h-5 w-5 text-destructive" />
               </div>
-            </Card>
+              <div>
+                <p className="text-xs text-muted-foreground">Tổng linh kiện cần thay</p>
+                <p className="text-base font-semibold text-foreground">{data.sumPartsReplaceAMR || 0}</p>
+              </div>
+            </div>
           </div>
 
-          {/* Bảng chi tiết linh kiện */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Danh sách linh kiện</h3>
-            <div className="border rounded-lg overflow-hidden">
+            <h3 className="text-sm font-semibold text-foreground mb-3">Danh sách linh kiện</h3>
+            <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-semibold whitespace-nowrap">Mã linh kiện</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap">Loại linh kiện</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap">Ngày thay thế</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap">Số lượng cần thay</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap">Days left</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap">Ghi chú</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap">Thao tác</TableHead>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">Mã linh kiện</TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">Loại</TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">Ngày thay thế</TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">Số lượng</TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú</TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {data.chi_tiet_linh_kien?.map((part, index) => (
-                      <TableRow key={part["Mã linh kiện"] || index}>
-                        {/* Mã linh kiện */}
-                        <TableCell className="font-mono text-sm">
+                      <TableRow key={part["Mã linh kiện"] || index} className="hover:bg-muted/30">
+                        <TableCell className="font-mono text-xs py-3">
                           {editingRow === index ? (
                             <Input
                               value={editData.maLinhKien}
-                              onChange={(e) => handleInputChange('maLinhKien', e.target.value)}
-                              className="w-full text-sm"
-                              placeholder="Nhập mã linh kiện"
+                              onChange={(e) => handleInputChange("maLinhKien", e.target.value)}
+                              className="w-full text-xs h-8"
+                              placeholder="Mã linh kiện"
                             />
                           ) : (
-                            <span className="whitespace-nowrap">
-                              {part["Mã linh kiện"] || "N/A"}
-                            </span>
+                            <span className="whitespace-nowrap">{part["Mã linh kiện"] || "N/A"}</span>
                           )}
                         </TableCell>
 
-                        {/* Loại linh kiện */}
-                        <TableCell className="whitespace-nowrap">
+                        <TableCell className="text-xs py-3 whitespace-nowrap">
                           {part["Loại linh kiện"] || "N/A"}
                         </TableCell>
 
-                        {/* Ngày thay thế */}
-                        <TableCell>
+                        <TableCell className="text-xs py-3">
                           {editingRow === index ? (
                             <Input
                               type="date"
                               value={editData.ngayThayThe}
-                              onChange={(e) => handleInputChange('ngayThayThe', e.target.value)}
-                              className="w-full text-sm"
+                              onChange={(e) => handleInputChange("ngayThayThe", e.target.value)}
+                              className="w-full text-xs h-8"
                             />
                           ) : (
-                            <span className="whitespace-nowrap">
-                              {part["Ngày update"] || "N/A"}
-                            </span>
+                            <span className="whitespace-nowrap">{part["Ngày update"] || "N/A"}</span>
                           )}
                         </TableCell>
 
-                        {/* Số lượng cần thay */}
-                        <TableCell className="whitespace-nowrap">
-                          <Badge 
+                        <TableCell className="text-xs py-3">
+                          <Badge
                             variant={part["Số lượng cần thay"] > 0 ? "destructive" : "secondary"}
-                            className="font-semibold"
+                            className="text-xs"
                           >
                             {part["Số lượng cần thay"] || 0}
                           </Badge>
                         </TableCell>
 
-                        {/* Days left */}
-                        <TableCell className="whitespace-nowrap">
-                          <Badge 
-                            variant={part["Days left"] > 0 ? "destructive" : "secondary"}
-                            className="font-semibold"
-                          >
-                            {part["Days left"] || 0}
-                          </Badge>
-                        </TableCell>
-
-                        {/* Ghi chú */}
-                        <TableCell className="min-w-[200px]">
+                        <TableCell className="text-xs py-3 max-w-[150px]">
                           {editingRow === index ? (
                             <Textarea
                               value={editData.ghiChu}
-                              onChange={(e) => handleInputChange('ghiChu', e.target.value)}
-                              className="w-full text-sm min-h-[60px] resize-none"
-                              placeholder="Nhập ghi chú..."
+                              onChange={(e) => handleInputChange("ghiChu", e.target.value)}
+                              className="w-full text-xs min-h-[50px] resize-none"
+                              placeholder="Ghi chú..."
                             />
                           ) : (
-                            <div className="max-w-[200px]">
-                              <p className="text-sm text-muted-foreground break-words">
-                                {part["Ghi chú"] || "Chưa có ghi chú"}
-                              </p>
-                            </div>
+                            <p className="text-muted-foreground break-words line-clamp-2">{part["Ghi chú"] || "—"}</p>
                           )}
                         </TableCell>
 
-                        {/* Thao tác */}
-                        <TableCell className="whitespace-nowrap">
+                        <TableCell className="text-xs py-3 whitespace-nowrap">
                           {editingRow === index ? (
                             <div className="flex gap-1">
                               <Button
                                 size="sm"
                                 onClick={() => handleSave(index)}
                                 disabled={saving}
-                                className="h-7 px-2 bg-green-600 hover:bg-green-700"
+                                className="h-7 px-2 text-xs"
                               >
                                 <Save className="h-3 w-3" />
                               </Button>
@@ -323,7 +297,7 @@ export function AMRDetailsModal({ amrId, onClose }) {
                                 size="sm"
                                 variant="outline"
                                 onClick={handleCancel}
-                                className="h-7 px-2"
+                                className="h-7 px-2 bg-transparent"
                               >
                                 <XIcon className="h-3 w-3" />
                               </Button>
@@ -346,18 +320,6 @@ export function AMRDetailsModal({ amrId, onClose }) {
               </div>
             </div>
           </div>
-
-          {/* Ghi chú
-          {data.ghi_chu && (
-            <Card className="bg-muted/50">
-              <div className="p-3">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <p className="text-sm text-muted-foreground">{data.ghi_chu}</p>
-                </div>
-              </div>
-            </Card>
-          )} */}
         </div>
       </Card>
     </div>

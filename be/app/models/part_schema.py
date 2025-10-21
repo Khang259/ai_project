@@ -46,3 +46,16 @@ class AMROverviewResponse(BaseModel):
     tong_so_amr: int = Field(..., description="Tổng số AMR")
     tong_so_linh_kien_can_thay_the: int = Field(..., description="Tổng số linh kiện cần thay thế của tất cả AMR")
     chi_tiet_amr: List[AMRSummaryItem] = Field(..., description="Chi tiết từng AMR")
+
+class UpdatePartRequest(BaseModel):
+    amr_id: str = Field(..., description="ID của AMR")
+    ma_linh_kien: str = Field(..., description="Mã linh kiện cần cập nhật")
+    ngay_thay_the: str = Field(..., description="Ngày thay thế mới (format: YYYY-MM-DD)")
+    ghi_chu: str = Field(default="", description="Ghi chú")
+
+class UpdatePartResponse(BaseModel):
+    success: bool
+    message: str
+    updated_count: int = 0
+    old_data: dict = Field(default_factory=dict, description="Dữ liệu cũ")
+    new_data: dict = Field(default_factory=dict, description="Dữ liệu mới")
