@@ -1,0 +1,128 @@
+[
+  {
+    "id_thietBi": "TB001",
+    "ten_thietBi": "Máy quét laser",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB002",
+    "ten_thietBi": "Bumper",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "not"
+  },
+  {
+    "id_thietBi": "TB003",
+    "ten_thietBi": "Thân AMR",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB004",
+    "ten_thietBi": "Pin",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB005",
+    "ten_thietBi": "Chỉ số",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB006",
+    "ten_thietBi": "Camera",
+    "chu_ky": "tháng",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB007",
+    "ten_thietBi": "Cơ chế nâng",
+    "chu_ky": "tháng",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB008",
+    "ten_thietBi": "Bánh xe",
+    "chu_ky": "tháng",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB009",
+    "ten_thietBi": "Vòng bi",
+    "chu_ky": "nửa năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB010",
+    "ten_thietBi": "Pin (nửa năm)",
+    "chu_ky": "nửa năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB011",
+    "ten_thietBi": "Nội thất AMR",
+    "chu_ky": "nửa năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB012",
+    "ten_thietBi": "Bánh xe đa năng",
+    "chu_ky": "nửa năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB013",
+    "ten_thietBi": "Nâng bóng vít",
+    "chu_ky": "năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB014",
+    "ten_thietBi": "Đai đồng bộ",
+    "chu_ky": "năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB015",
+    "ten_thietBi": "Con lăn",
+    "chu_ky": "năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB016",
+    "ten_thietBi": "Động cơ nâng",
+    "chu_ky": "năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB017",
+    "ten_thietBi": "Động cơ quay",
+    "chu_ky": "năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  },
+  {
+    "id_thietBi": "TB018",
+    "ten_thietBi": "Ô tô",
+    "chu_ky": "năm",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "done"
+  }
+]
