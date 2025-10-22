@@ -4,13 +4,18 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FileText, Calendar, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { FileText, Calendar, Clock, CheckCircle, AlertCircle, Edit3 } from "lucide-react"
 
 export function MaintenanceChecklist() {
   const [maintenanceData, setMaintenanceData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [updating, setUpdating] = useState({}) // Track updating status for each device
+  const [showNotesModal, setShowNotesModal] = useState(false)
+  const [selectedDevice, setSelectedDevice] = useState(null)
+  const [notes, setNotes] = useState("")
 
   // Fetch data từ API
   useEffect(() => {
@@ -65,7 +70,7 @@ export function MaintenanceChecklist() {
         body: JSON.stringify({
           id_thietBi: idThietBi,
           trang_thai: newStatus,
-          ngay_check: newStatus === 'done' ? new Date().toISOString().split('T')[0] : undefined
+          ...(newStatus === 'done' && { ngay_check: new Date().toISOString().split('T')[0] })
         })
       })
 
@@ -107,9 +112,70 @@ export function MaintenanceChecklist() {
       : `Bạn có chắc đã kiểm tra "${item.ten_thietBi}"?`
     
     if (window.confirm(confirmMessage)) {
-      const newStatus = isDone ? 'not' : 'done'
+      const newStatus = isDone ? 'pending' : 'done'
       handleUpdateStatus(item.id_thietBi, newStatus)
     }
+  }
+
+  // Function to handle check with notes
+  const handleCheckWithNotes = async (idThietBi, notes) => {
+    try {
+      setUpdating(prev => ({ ...prev, [idThietBi]: true }))
+      
+      const response = await fetch('/api/maintenance-check/check-with-notes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id_thietBi: idThietBi,
+          ghi_chu: notes,
+          ngay_check: new Date().toISOString().split('T')[0]
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      // Update local state
+      setMaintenanceData(prevData => {
+        const newData = { ...prevData }
+        Object.keys(newData).forEach(chuKy => {
+          newData[chuKy] = newData[chuKy].map(item => 
+            item.id_thietBi === idThietBi 
+              ? { 
+                  ...item, 
+                  trang_thai: 'done',
+                  ngay_check: result.new_data.ngay_check,
+                  ghi_chu: result.new_data.ghi_chu
+                }
+              : item
+          )
+        })
+        return newData
+      })
+
+      // Close modal and reset notes
+      setShowNotesModal(false)
+      setNotes("")
+      setSelectedDevice(null)
+
+    } catch (err) {
+      console.error('Error checking with notes:', err)
+      alert('Lỗi khi kiểm tra với ghi chú: ' + err.message)
+    } finally {
+      setUpdating(prev => ({ ...prev, [idThietBi]: false }))
+    }
+  }
+
+  // Function to open notes modal
+  const openNotesModal = (item) => {
+    setSelectedDevice(item)
+    setNotes(item.ghi_chu || "")
+    setShowNotesModal(true)
   }
 
   // Mapping chu kỳ và styling
@@ -226,19 +292,38 @@ export function MaintenanceChecklist() {
                           {item.ngay_check || 'Chưa có'}
                         </span>
                         
-                        {/* Status Icon - Clickable */}
-                        <div 
-                          className="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => !updating[item.id_thietBi] && handleIconClick(item)}
-                          title={item.trang_thai === 'done' ? 'Click để reset trạng thái' : 'Click để xác nhận đã kiểm tra'}
-                        >
-                          {updating[item.id_thietBi] ? (
-                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                          ) : item.trang_thai === 'done' ? (
-                            <CheckCircle className="w-4 h-4 text-green-600 hover:text-green-700" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-orange-600 hover:text-orange-700" />
+                        {/* Ghi chú */}
+                        <span className="text-sm text-muted-foreground min-w-[150px] truncate">
+                          {item.ghi_chu || 'Chưa có'}
+                        </span>
+                        
+                        {/* Action Icons */}
+                        <div className="flex items-center gap-2">
+                          {/* Check with Notes Icon */}
+                          {item.trang_thai !== 'done' && (
+                            <div 
+                              className="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => !updating[item.id_thietBi] && openNotesModal(item)}
+                              title="Kiểm tra với ghi chú"
+                            >
+                              <Edit3 className="w-4 h-4 text-blue-600 hover:text-blue-700" />
+                            </div>
                           )}
+                          
+                          {/* Status Icon - Clickable */}
+                          <div 
+                            className="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                            onClick={() => !updating[item.id_thietBi] && handleIconClick(item)}
+                            title={item.trang_thai === 'done' ? 'Click để reset trạng thái' : 'Click để xác nhận đã kiểm tra'}
+                          >
+                            {updating[item.id_thietBi] ? (
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                            ) : item.trang_thai === 'done' ? (
+                              <CheckCircle className="w-4 h-4 text-green-600 hover:text-green-700" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-orange-600 hover:text-orange-700" />
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -252,6 +337,63 @@ export function MaintenanceChecklist() {
           </div>
         </div>
       </Card>
+
+      {/* Notes Modal */}
+      <Dialog open={showNotesModal} onOpenChange={setShowNotesModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Kiểm tra thiết bị với ghi chú</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="device-name" className="text-right">
+                Thiết bị:
+              </label>
+              <span className="col-span-3 font-medium">
+                {selectedDevice?.ten_thietBi}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="notes" className="text-right">
+                Ghi chú:
+              </label>
+              <div className="col-span-3">
+                <Textarea
+                  id="notes"
+                  placeholder="Nhập ghi chú kiểm tra..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowNotesModal(false)
+                setNotes("")
+                setSelectedDevice(null)
+              }}
+            >
+              Hủy
+            </Button>
+            <Button 
+              onClick={() => {
+                if (selectedDevice && notes.trim()) {
+                  handleCheckWithNotes(selectedDevice.id_thietBi, notes.trim())
+                } else {
+                  alert('Vui lòng nhập ghi chú')
+                }
+              }}
+              disabled={!notes.trim() || updating[selectedDevice?.id_thietBi]}
+            >
+              {updating[selectedDevice?.id_thietBi] ? 'Đang xử lý...' : 'Xác nhận kiểm tra'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

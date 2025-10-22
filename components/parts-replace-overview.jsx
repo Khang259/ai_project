@@ -12,6 +12,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [sortField, setSortField] = useState("kiemTra") // "kiemTra" hoặc "thayThe"
   const [sortOrder, setSortOrder] = useState("desc") // "desc" hoặc "asc"
 
   useEffect(() => {
@@ -50,10 +51,17 @@ export function PartsReplaceOverview({ onAMRClick }) {
       )
     }
 
-    // Sắp xếp theo số lượng cần thay
+    // Sắp xếp theo tiêu chí được chọn
     filteredAMRs.sort((a, b) => {
-      const aCount = a.sumPartsReplaceAMR || 0
-      const bCount = b.sumPartsReplaceAMR || 0
+      let aCount, bCount
+      
+      if (sortField === "kiemTra") {
+        aCount = a.sumPartsOne || 0
+        bCount = b.sumPartsOne || 0
+      } else if (sortField === "thayThe") {
+        aCount = a.sumPartsTwo || 0
+        bCount = b.sumPartsTwo || 0
+      }
       
       if (sortOrder === "desc") {
         return bCount - aCount // Giảm dần
@@ -61,13 +69,17 @@ export function PartsReplaceOverview({ onAMRClick }) {
         return aCount - bCount // Tăng dần
       }
     })
-
     return filteredAMRs
   }
 
-  // Hàm thay đổi thứ tự sắp xếp
-  const toggleSortOrder = () => {
-    setSortOrder(prev => prev === "desc" ? "asc" : "desc")
+  // Hàm thay đổi sắp xếp theo tiêu chí
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortOrder(prev => prev === "desc" ? "asc" : "desc")
+    } else {
+      setSortField(field)
+      setSortOrder("desc")
+    }
   }
 
   if (loading) {
@@ -109,7 +121,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
     <div className="w-full h-screen flex flex-col bg-background">
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="border-l-4 border-l-primary">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
@@ -124,6 +136,19 @@ export function PartsReplaceOverview({ onAMRClick }) {
               </CardContent>
             </Card>
 
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-yellow-500/10 rounded-lg">
+                    <Package className="h-6 w-6 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground font-medium">Linh kiện cần kiểm tra</p>
+                    <p className="text-3xl font-bold text-foreground">{data.sum_parts_one || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             <Card className="border-l-4 border-l-destructive">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
@@ -132,7 +157,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground font-medium">Linh kiện cần thay thế</p>
-                    <p className="text-3xl font-bold text-foreground">{data.sum_parts_replace || 0}</p>
+                    <p className="text-3xl font-bold text-foreground">{data.sum_parts_two || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -154,17 +179,36 @@ export function PartsReplaceOverview({ onAMRClick }) {
                 />
               </div>
               <Button
-                onClick={toggleSortOrder}
+                onClick={() => handleSort("kiemTra")}
                 variant="outline"
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${
+                  sortField === "kiemTra" ? "bg-primary/10 border-primary" : ""
+                }`}
               >
-                {sortOrder === "desc" ? (
+                {sortField === "kiemTra" && sortOrder === "desc" ? (
                   <ArrowDown className="h-4 w-4" />
-                ) : (
+                ) : sortField === "kiemTra" && sortOrder === "asc" ? (
                   <ArrowUp className="h-4 w-4" />
+                ) : (
+                  <ArrowUpDown className="h-4 w-4" />
                 )}
-                Cần thay
-                <ArrowUpDown className="h-4 w-4" />
+                Kiểm tra
+              </Button>
+              <Button
+                onClick={() => handleSort("thayThe")}
+                variant="outline"
+                className={`flex items-center gap-2 ${
+                  sortField === "thayThe" ? "bg-primary/10 border-primary" : ""
+                }`}
+              >
+                {sortField === "thayThe" && sortOrder === "desc" ? (
+                  <ArrowDown className="h-4 w-4" />
+                ) : sortField === "thayThe" && sortOrder === "asc" ? (
+                  <ArrowUp className="h-4 w-4" />
+                ) : (
+                  <ArrowUpDown className="h-4 w-4" />
+                )}
+                Thay thế
               </Button>
             </div>
 
@@ -216,23 +260,40 @@ export function PartsReplaceOverview({ onAMRClick }) {
                     </CardHeader>
                     <CardContent className="pt-0 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground font-medium">Số lượng cần thay:</span>
+                        <span className="text-xs text-muted-foreground font-medium">Kiểm tra:</span>
                         <Badge
-                          variant={amr.sumPartsReplaceAMR > 0 ? "destructive" : "secondary"}
+                          variant="secondary"
+                          className={`font-semibold ${
+                            amr.sumPartsOne > 0
+                              ? "bg-yellow-400 text-white hover:bg-yellow-300"
+                              : "bg-secondary text-secondary-foreground"
+                          }`}
+                        >
+                          {amr.sumPartsOne || 0}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground font-medium">Thay thế:</span>
+                        <Badge
+                          variant={amr.sumPartsTwo > 0 ? "destructive" : "secondary"}
                           className="font-semibold"
                         >
-                          {amr.sumPartsReplaceAMR || 0}
+                          {amr.sumPartsTwo || 0}
                         </Badge>
                       </div>
 
-                      {amr.sumPartsReplaceAMR > 0 ? (
+                      {amr.sumPartsTwo > 0 ? (
                         <div className="text-xs font-medium text-destructive bg-destructive/5 p-2 rounded border border-destructive/20">
-                          ⚠️ Cần kiểm tra
+                          🔴 Cần thay thế
                         </div>
                       ) : (
-                        <div className="text-xs font-medium text-green-700 bg-green-50 p-2 rounded border border-green-200">
-                          ✓ Hoạt động tốt
-                        </div>
+                        amr.sumPartsOne > 0 ? (
+                          <div className="text-xs font-medium text-yellow-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                            ⚠️ Cần kiểm tra
+                          </div>
+                        ) : (
+                          <div className="text-xs font-medium text-green-700 bg-green-50 p-2 rounded border border-green-200">
+                            ✓ Hoạt động tốt
+                          </div>
+                        )
                       )}
                     </CardContent>
                   </Card>

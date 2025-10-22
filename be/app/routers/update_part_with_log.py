@@ -5,6 +5,35 @@ from app.models.part_schema import UpdatePartRequest, UpdatePartResponse
 
 router = APIRouter()
 
+@router.get("/maintenance-logs/changes")
+def get_maintenance_logs_changes():
+    """
+    Trả về các trường: timestamp, action, amr_id, new_data, changes
+    từ collection maintenanceLogs, sắp xếp timestamp giảm dần.
+    """
+    try:
+        logs = list(
+            maintenanceLogs.find(
+                {},
+                {
+                    "_id": 0,
+                    "timestamp": 1,
+                    "action": 1,
+                    "amr_id": 1,
+                    "new_data": 1,
+                    "changes": 1,
+                },
+            ).sort("timestamp", -1)
+        )
+
+        return {
+            "success": True,
+            "total_logs": len(logs),
+            "logs": logs,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
+
 @router.put("/part/update-with-log")
 def update_part_with_log(request: UpdatePartRequest):
     """

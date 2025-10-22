@@ -30,8 +30,21 @@ class MaintenanceCheckItem(BaseModel):
 
 class UpdateMaintenanceRequest(BaseModel):
     id_thietBi: str = Field(..., description="Mã thiết bị cần cập nhật")
-    trang_thai: str = Field(..., description="Trạng thái mới: 'done' hoặc 'not'")
-    ngay_check: str = Field(..., description="Ngày kiểm tra mới (format: YYYY-MM-DD)")
+    trang_thai: str = Field(..., description="Trạng thái mới: 'done' hoặc 'pending'")
+    ngay_check: str = Field(None, description="Ngày kiểm tra mới (format: YYYY-MM-DD)")
+    ghi_chu: str = Field(None, description="Ghi chú kiểm tra")
+
+class CheckMaintenanceRequest(BaseModel):
+    id_thietBi: str = Field(..., description="Mã thiết bị cần kiểm tra")
+    ghi_chu: str = Field(..., description="Ghi chú kiểm tra")
+    ngay_check: str = Field(..., description="Ngày kiểm tra (format: YYYY-MM-DD)")
+
+class CheckMaintenanceResponse(BaseModel):
+    success: bool
+    message: str
+    old_data: dict = Field(default_factory=dict, description="Dữ liệu cũ")
+    new_data: dict = Field(default_factory=dict, description="Dữ liệu mới")
+    log_id: str = Field(default="", description="ID của log được tạo")
 
 class UpdateMaintenanceResponse(BaseModel):
     success: bool

@@ -11,12 +11,12 @@ export function Notice() {
   const [notificationCount, setNotificationCount] = useState(0)
   const [hasUnread, setHasUnread] = useState(false)
 
-  // Hiển thị popup mỗi 1 phút
+  // Hiển thị popup mỗi 10 phút
   useEffect(() => {
     // Hiển thị ngay khi component mount
     const showInitialNotification = () => {
       setShowPopup(true)
-      setNotificationCount(prev => prev + 1)
+      setNotificationCount(prev => prev + 10)
       setHasUnread(true)
       
       // Tự động ẩn popup sau 10 giây

@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    console.log('Fetching maintenance check data from FastAPI...')
+    console.log('Debug: Fetching maintenance logs debug info...')
     
-    const response = await fetch('http://127.0.0.1:8000/api/maintenance-check')
+    // Call FastAPI backend debug endpoint
+    const response = await fetch('http://127.0.0.1:8000/api/maintenance-logs/debug')
     
     if (!response.ok) {
       throw new Error(`Backend API error: ${response.status}`)
@@ -12,15 +13,15 @@ export async function GET() {
     
     const data = await response.json()
     
-    console.log('Successfully loaded', data.length, 'devices from FastAPI')
+    console.log('Debug: Successfully loaded debug info:', data)
     
     return NextResponse.json(data)
     
   } catch (error) {
-    console.error('Error fetching maintenance data:', error)
+    console.error('Debug: Error fetching maintenance logs debug:', error)
     return NextResponse.json(
       { 
-        error: 'Failed to fetch maintenance data',
+        error: 'Failed to fetch maintenance logs debug',
         details: error.message 
       },
       { status: 500 }

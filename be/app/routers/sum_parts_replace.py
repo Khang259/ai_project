@@ -25,7 +25,8 @@ def get_sum_parts_replace_amr(amr_id: str):
                 detail=f"Không tìm thấy AMR với ID: {amr_id}"
             )
         
-        sum_parts_replace_amr = 0
+        sum_parts_one = 0
+        sum_parts_two = 0
         parts_details = []
         today = datetime.today()
         
@@ -64,13 +65,22 @@ def get_sum_parts_replace_amr(amr_id: str):
                 days_left = (tuoi_tho_years * 365) - ngay_da_su_dung
                 
                 # Tính sumPartsReplaceDoc
-                sum_parts_replace_doc = 0
-                if days_left < 365:
-                    sum_parts_replace_doc = so_luong_amr
+                sum_one = 0
+                if 365 <= days_left < 1000:
+                    sum_one = so_luong_amr
                 
                 # Cộng vào tổng
-                sum_parts_replace_amr += sum_parts_replace_doc
+                sum_parts_one += sum_one
                 
+
+                sum_two = 0
+                if 0 <= days_left < 365:
+                    sum_two = so_luong_amr
+                
+                # Cộng vào tổng
+                sum_parts_two += sum_two
+                
+
                 # Lưu thông tin chi tiết để trả về
                 parts_details.append({
                     "Mã linh kiện": ma_linh_kien,
@@ -79,8 +89,10 @@ def get_sum_parts_replace_amr(amr_id: str):
                     "Tuổi thọ": tuoi_tho_years,
                     "Ngày update": ngay_update_str,
                     "Days left": days_left,
-                    "Cần thay thế": sum_parts_replace_doc > 0,
-                    "Số lượng cần thay": sum_parts_replace_doc
+                    "Cần kiểm tra": sum_one > 0,
+                    "Số lượng cần kiểm tra": sum_one,
+                    "Cần thay thế": sum_two > 0,
+                    "Số lượng cần thay": sum_two,
                 })
                 
             except Exception as e:
@@ -90,8 +102,10 @@ def get_sum_parts_replace_amr(amr_id: str):
         
         return {
             "amr_id": amr_id,
-            "sumPartsReplaceAMR": sum_parts_replace_amr,
-            "tổng_số_linh_kiện_cần_thay_thế": sum_parts_replace_amr,
+            "sumPartsOne": sum_parts_one,
+            "tổng_số_linh_kiện_cần_kiểm_tra": sum_parts_one,
+            "sumPartsTwo": sum_parts_two,
+            "tổng_số_linh_kiện_cần_thay_thế": sum_parts_two,
             "chi_tiet_linh_kien": parts_details,
             "ghi_chu": "Chỉ tính các linh kiện có daysLeft < 300 ngày"
         }
@@ -111,13 +125,14 @@ def get_sum_parts_replace_all():
         amr_ids = amrParts.distinct("amr_id")
         
         result = []
-        total_sum_all_amr = 0
-        
+        total_sum_all_amr_one = 0
+        total_sum_all_amr_two = 0
         for amr_id in amr_ids:
             # Sử dụng lại logic từ API trên
             docs = list(amrParts.find({"amr_id": amr_id}, {"_id": 0}))
             
-            sum_parts_replace_amr = 0
+            sum_parts_one = 0
+            sum_parts_two = 0
             today = datetime.today()
             
             for doc in docs:
@@ -143,22 +158,27 @@ def get_sum_parts_replace_all():
                     ngay_da_su_dung = (today - ngay_update).days
                     days_left = (tuoi_tho_years * 365) - ngay_da_su_dung
                     
-                    if days_left < 365:
-                        sum_parts_replace_amr += so_luong_amr
+                    if 365 <= days_left < 1000:
+                        sum_parts_one += so_luong_amr
+                    if 0 <= days_left < 365:
+                        sum_parts_two += so_luong_amr
                         
                 except Exception:
                     continue
             
             result.append({
                 "amr_id": amr_id,
-                "sumPartsReplaceAMR": sum_parts_replace_amr
+                "sumPartsOne": sum_parts_one,
+                "sumPartsTwo": sum_parts_two,
             })
             
-            total_sum_all_amr += sum_parts_replace_amr
+            total_sum_all_amr_one += sum_parts_one
+            total_sum_all_amr_two += sum_parts_two
         
         return {
             "sum_amr": len(amr_ids),
-            "sum_parts_replace": total_sum_all_amr,
+            "sum_parts_one": total_sum_all_amr_one,
+            "sum_parts_two": total_sum_all_amr_two,
             "chi_tiet_theo_amr": result,
             "ghi_chu": "Chỉ tính các linh kiện có daysLeft < 300 ngày"
         }

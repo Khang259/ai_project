@@ -17,7 +17,7 @@ export function AMRDetailsModal({ amrId, onClose }) {
   const [editData, setEditData] = useState({})
   const [saving, setSaving] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  const [sortField, setSortField] = useState(null) // "ngayThayThe" hoặc "soLuong"
+  const [sortField, setSortField] = useState(null) // "ngayThayThe", "kiemTra" hoặc "thayThe"
   const [sortOrder, setSortOrder] = useState("desc") // "desc" hoặc "asc"
 
   useEffect(() => {
@@ -70,7 +70,10 @@ export function AMRDetailsModal({ amrId, onClose }) {
         if (sortField === "ngayThayThe") {
           aValue = new Date(a["Ngày update"] || "1900-01-01")
           bValue = new Date(b["Ngày update"] || "1900-01-01")
-        } else if (sortField === "soLuong") {
+        } else if (sortField === "kiemTra") {
+          aValue = a["Số lượng cần kiểm tra"] || 0
+          bValue = b["Số lượng cần kiểm tra"] || 0
+        } else if (sortField === "thayThe") {
           aValue = a["Số lượng cần thay"] || 0
           bValue = b["Số lượng cần thay"] || 0
         }
@@ -252,7 +255,7 @@ export function AMRDetailsModal({ amrId, onClose }) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Truck className="h-5 w-5 text-primary" />
@@ -264,13 +267,24 @@ export function AMRDetailsModal({ amrId, onClose }) {
             </div>
 
             <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border">
+              <div className="p-2 bg-yellow-600/10 rounded-lg">
+                <Package className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tổng linh kiện cần kiểm tra</p>
+                <p className="text-base font-semibold text-foreground">{data.sumPartsOne || 0}</p>
+              </div>
+              
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border">
               <div className="p-2 bg-destructive/10 rounded-lg">
                 <Package className="h-5 w-5 text-destructive" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Tổng linh kiện cần thay</p>
-                <p className="text-base font-semibold text-foreground">{data.sumPartsReplaceAMR || 0}</p>
+                <p className="text-xs text-muted-foreground">Tổng linh kiện cần thay thế</p>
+                <p className="text-base font-semibold text-foreground">{data.sumPartsTwo || 0}</p>
               </div>
+              
             </div>
           </div>
 
@@ -319,11 +333,22 @@ export function AMRDetailsModal({ amrId, onClose }) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleSort("soLuong")}
+                          onClick={() => handleSort("kiemTra")}
                           className="h-auto p-0 font-semibold text-xs hover:bg-transparent"
                         >
-                          Số lượng
-                          {getSortIcon("soLuong")}
+                          Kiểm tra
+                          {getSortIcon("kiemTra")}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="font-semibold text-xs whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSort("thayThe")}
+                          className="h-auto p-0 font-semibold text-xs hover:bg-transparent"
+                        >
+                          Thay thế
+                          {getSortIcon("thayThe")}
                         </Button>
                       </TableHead>
                       <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú</TableHead>
@@ -333,7 +358,7 @@ export function AMRDetailsModal({ amrId, onClose }) {
                   <TableBody>
                     {getFilteredAndSortedParts().length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                           <div className="flex flex-col items-center gap-2">
                             <Search className="h-8 w-8 opacity-50" />
                             <p className="text-sm">
@@ -386,6 +411,19 @@ export function AMRDetailsModal({ amrId, onClose }) {
                           ) : (
                             <span className="whitespace-nowrap">{part["Ngày update"] || "N/A"}</span>
                           )}
+                        </TableCell>
+
+                        <TableCell className="text-xs py-3">
+                          <Badge
+                            variant={part["Số lượng cần kiểm tra"] > 0 ? "warning " : "secondary"}
+                            className={`text-xs ${
+                              part["Số lượng cần kiểm tra"] > 0
+                                ? "bg-yellow-500 text-white hover:bg-yellow-200"
+                                : "bg-secondary text-secondary-foreground"
+                            }`}
+                          >
+                            {part["Số lượng cần kiểm tra"] || 0}
+                          </Badge>
                         </TableCell>
 
                         <TableCell className="text-xs py-3">

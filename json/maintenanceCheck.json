@@ -3,15 +3,15 @@
     "id_thietBi": "TB001",
     "ten_thietBi": "Máy quét laser",
     "chu_ky": "ngày",
-    "ngay_check": "2025-10-17",
+    "ngay_check": "2025-10-22",
     "trang_thai": "done"
   },
   {
     "id_thietBi": "TB002",
     "ten_thietBi": "Bumper",
     "chu_ky": "ngày",
-    "ngay_check": "2025-10-17",
-    "trang_thai": "not"
+    "ngay_check": "2025-10-22",
+    "trang_thai": "done"
   },
   {
     "id_thietBi": "TB003",
@@ -31,7 +31,7 @@
     "id_thietBi": "TB005",
     "ten_thietBi": "Chỉ số",
     "chu_ky": "ngày",
-    "ngay_check": "2025-10-17",
+    "ngay_check": "2025-10-22",
     "trang_thai": "done"
   },
   {
@@ -52,7 +52,7 @@
     "id_thietBi": "TB008",
     "ten_thietBi": "Bánh xe",
     "chu_ky": "tháng",
-    "ngay_check": "2025-10-17",
+    "ngay_check": "2025-10-22",
     "trang_thai": "done"
   },
   {
@@ -109,7 +109,7 @@
     "ten_thietBi": "Động cơ nâng",
     "chu_ky": "năm",
     "ngay_check": "2025-10-17",
-    "trang_thai": "done"
+    "trang_thai": "pending"
   },
   {
     "id_thietBi": "TB017",

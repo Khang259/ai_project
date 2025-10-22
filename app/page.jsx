@@ -8,7 +8,7 @@ import { Notice } from "@/components/notice"
 import { MaintenanceChecklist } from "@/components/maintenance-checklist"
 import { PartsReplaceOverview } from "@/components/parts-replace-overview"
 import { AMRDetailsModal } from "@/components/amr-details-modal"
-import { MaintenanceHistoryTable } from "@/components/maintenance-history-table"
+import MaintenanceHistoryTable from "@/components/maintenance-history-table"
 import { ListChecks, ClipboardList, BarChart3, History } from "lucide-react"
 
 export default function Home() {
