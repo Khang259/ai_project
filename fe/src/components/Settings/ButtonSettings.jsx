@@ -302,7 +302,6 @@ const ButtonSettings = () => {
   };
 
   const handleUpdateBatch = async (nodes) => {
-    // Chỉ gửi các trường cần thiết, loại bỏ created_at, updated_at và các trường khác
     const cleanedNodes = nodes.map(node => ({
       id: node.id,
       node_name: node.node_name,
@@ -314,6 +313,7 @@ const ButtonSettings = () => {
       next_end: node.next_end
     }));
     const payload = {'nodes': cleanedNodes};
+    console.log("payload", payload);
     const result = await updateBatch(payload);
     if (result?.success) {
       alert("Cập nhật thành công");

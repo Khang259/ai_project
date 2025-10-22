@@ -58,11 +58,8 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
         return cleanNode;
       });
 
-    const payload = {
-      nodes: changedNodes
-    };
-    
-    handleUpdateBatch(payload);
+    console.log("changedNodes", changedNodes);
+    handleUpdateBatch(changedNodes);
 };
 
 
