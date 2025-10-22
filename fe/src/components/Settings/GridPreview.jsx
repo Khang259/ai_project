@@ -4,6 +4,21 @@ import { Trash2 } from 'lucide-react';
 // lấy hook từ collection task_path_{username}_{khu}
 const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
   const rows = Math.ceil(cells.length / columns);
+  
+  // Hàm xác định màu nền dựa trên node_type
+  const getBackgroundColor = (nodeType) => {
+    switch(nodeType) {
+      case 'supply':
+        return '#D3D3D3'; // Màu xám
+      case 'returns':
+        return '#ADD8E6'; // Màu xanh nước biển nhạt
+      case 'both':
+        return '#1C9B9B'; // Màu #1C9B9B
+      default:
+        return 'transparent';
+    }
+  };
+  
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-medium text-foreground">Xem Trước Lưới</h3>
@@ -17,8 +32,11 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
         {cells.slice(0, rows * columns).map((cell, index) => (
           <div
             key={cell.id}
-            className="bg-card border-2  border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
-            style={{ height: 130 }}
+            className="border-2 border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
+            style={{ 
+              height: 130,
+              backgroundColor: getBackgroundColor(cell.node_type)
+            }}
           >
             {/* Nút xóa hiện khi hover */}
             {onDeleteCell && (
