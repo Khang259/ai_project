@@ -236,11 +236,11 @@ const ButtonSettings = () => {
             id: existing ? existing.id : String(idx) ,
             node_name: nodeName,
             node_type: nodeType,
-            owner: selectedUser.username,
+            owner:  r.owner || selectedUser.username ,
             start: Number(r.start) ,
             end: Number(r.end),
-            next_start: Number(r.next_start) || '',
-            next_end: Number(r.next_end) || '',
+            next_start: Number(r.next_start) || 0,
+            next_end: Number(r.next_end) || 0,
           };
         });
 
@@ -593,14 +593,36 @@ const ButtonSettings = () => {
                 className="hidden"
                 onChange={handleExcelImport}
               />
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('excel-import').click()}
-                size="sm"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Import Excel
-              </Button>
+              {(() => {
+                if (!selectedUser?.id) {
+                  return (
+                    <div className="relative inline-block group">
+                      <Button
+                        variant="outline"
+                        disabled
+                        onClick={() => {}}
+                        size="sm"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Import Excel
+                      </Button>
+                      <div className="pointer-events-none absolute -top-8 left-0 -translate-x-1/2 whitespace-nowrap rounded bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 transition-opacity group-hover:opacity-100 border shadow-sm">
+                        Chọn user trước khi import bằng Excel
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('excel-import').click()}
+                    size="sm"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import Excel
+                  </Button>
+                );
+              })()}
               <div className="text-xs text-muted-foreground text-right">
                 Format: node_name, node_type, owner, start, end, next_start, next_end
               </div>
