@@ -3,7 +3,7 @@ import { useState, useCallback} from 'react';
 const useLeafletMapControls = () => {
   const [mapInstance, setMapInstance] = useState(null);
 
-  const handleMapReady = useCallback((map) => {
+  const handleMapReady = useCallback((map, mapData) => {
     setMapInstance(map);
 
     if (map) {
@@ -17,16 +17,23 @@ const useLeafletMapControls = () => {
       map.options.worldCopyJump = false;
       map.options.maxBoundsViscosity = 1.0;
 
-      // Thiết lập giá trị ban đầu cho map
+      // Thiết lập giá trị ban đầu cho map với kích thước 300000 x 300000
       const initialZoom = 0;
+      const mapWidth = mapData.width;   // Chiều rộng
+      const mapHeight = mapData.height; // Chiều cao
+
+      // Tính toán bounds để căn giữa
       const initialBounds = [
-        [6912, 1280], // [south, west]
-        [70912, 89600], // [north, east]
+        [0, 0],                    // [south, west] - Bottom-left
+        [mapHeight, mapWidth],     // [north, east] - Top-right
       ];
+
+      // Center point ở giữa map
       const initialCenter = [
-        (6912 + 70912) / 2, // lat: trung bình của south và north
-        (1280 + 89600) / 2, // lng: trung bình của west và east
+        mapHeight / 2,  // lat: 150000 (giữa chiều cao)
+        mapWidth / 2,   // lng: 150000 (giữa chiều rộng)
       ];
+
 
       // Đặt zoom và bounds ban đầu
       map.setView(initialCenter, initialZoom);
@@ -38,10 +45,6 @@ const useLeafletMapControls = () => {
       // Thêm event listener cho zoom
       map.on('zoom', (e) => {
         const currentZoom = map.getZoom();
-        console.log('🖱️ Mouse zoom event:', {
-          currentZoom: currentZoom,
-          center: map.getCenter(),
-        });
       });
     }
   }, []);

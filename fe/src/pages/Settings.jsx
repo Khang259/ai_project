@@ -21,8 +21,8 @@ const Settings = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 max-w-7xl">
+    <main className="min-h-screen w-screen bg-background">
+      <div className="container mx-auto p-6 max-w-screen">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-3">
@@ -37,7 +37,7 @@ const Settings = () => {
         {/* Main Content with Sidebar */}
         <div className="flex gap-6">
           {/* Sidebar Navigation */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-1">
             <SidebarNavigation activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
 

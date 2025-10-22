@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 import { useArea } from "@/contexts/AreaContext";
-import { getStatistics, getPayloadStatistics, filterWorkStatusData, convertWorkStatusToChartData, filterPayloadStatisticsData, convertPayloadStatisticsToChartData } from "@/services/statistics";
+import { getStatistics, getPayloadStatistics,convertWorkStatusToChartData, convertPayloadStatisticsToChartData } from "@/services/statistics";
 import {
   BarChart,
   Bar,
@@ -30,7 +30,7 @@ const workflowDistribution = [
 ]
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState("30d")
+  const [timeRange, setTimeRange] = useState("1d")
   const [workStatusData, setWorkStatusData] = useState(null)
   const [payloadData, setPayloadData] = useState(null)
   const [workStatusChartData, setWorkStatusChartData] = useState([])
@@ -47,10 +47,9 @@ export default function AnalyticsPage() {
       
       // Chuyển đổi timeRange từ frontend sang backend format
       const timeFilterMap = {
-        "7d": "d",
-        "30d": "d", 
-        "90d": "w",
-        "1y": "m"
+        "1d": "d",
+        "7d": "w",
+        "30d": "m", 
       }
       const backendTimeFilter = timeFilterMap[timeRange] || "d"
       // Lấy dữ liệu work status
@@ -76,13 +75,11 @@ export default function AnalyticsPage() {
       setLoading(false)
     }
   }
-
-  // useEffect để tự động refresh dữ liệu mỗi 5 giây
   useEffect(() => {
     // Lấy dữ liệu lần đầu
     fetchData()
     
-    // Thiết lập interval để refresh mỗi 5 giây
+    // Thiết lập interval để refresh mỗi 1'
     const interval = setInterval(() => {
       fetchData()
     }, 60000)
@@ -107,10 +104,9 @@ export default function AnalyticsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="1d">1 ngày gần nhất</SelectItem>
                 <SelectItem value="7d">7 ngày gần nhất</SelectItem>
                 <SelectItem value="30d">30 ngày gần nhất</SelectItem>
-                <SelectItem value="90d">90 ngày gần nhất</SelectItem>
-                <SelectItem value="1y">1 năm gần nhất</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" className="gap-2 bg-transparent">

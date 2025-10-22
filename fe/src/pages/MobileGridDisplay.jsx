@@ -1,267 +1,229 @@
 // src/pages/MobileGridDisplay.jsx
-import React, { useState, useCallback } from 'react';
-import { Card } from 'react-bootstrap';
-import '../styles/bootstrap-scoped.css';
-
-// Import custom hooks
-import { useGridConfig } from '@/hooks/GridManagement/useGridConfig';
-import { useTaskData } from '@/hooks/GridManagement/useTaskData';
-import { useTaskManagement } from '@/hooks/GridManagement/useTaskManagement';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/GridManagement/useAuth';
-import { useArea } from '@/contexts/AreaContext';
-
-// Import components
-import GridArea from '@/components/GridManagement/GridArea';
-import DropdownMenu from '@/components/GridManagement/DropdownMenu';
-import ConfirmationModal from '@/components/GridManagement/ConfirmationModal';
-import KhuAreaSelector from '@/components/GridManagement/KhuAreaSelector';
-import ServerInfo from '@/components/GridManagement/ServerInfo';
-import LoginPrompt from '@/components/GridManagement/LoginPrompt';
-
-const SERVER_URL = import.meta.env.VITE_API_URL;
-const SERVER_ICS_URL = import.meta.env.VITE_ICS_API_URL;
+import useNodesBySelectedUser from '@/hooks/Setting/useNodesBySelectedUser';
+import { useCreateTask } from '@/hooks/MobileGrid/useCreateTask';
 
 const MobileGridDisplay = () => {
-  // Authentication hook
-  const { currentUser, isAdmin, isUserAE3, isUserAE4, isUserMainOvh, logout } = useAuth();
-  const { currAreaName, currAreaId } = useArea();
+  const { currentUser, logout } = useAuth();
+  const { data: nodesData, fetchData: fetchNodesData } = useNodesBySelectedUser(currentUser);
+  const { createTaskHandler } = useCreateTask();
+
+  const [selectedNodeType, setSelectedNodeType] = useState('');
+  const [filteredNodes, setFilteredNodes] = useState([]);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const nodeTypeMapping = {
+    'supply': 'Cấp',
+    'returns': 'Trả', 
+    'both': 'Cấp&Trả'
+  };
+
+  useEffect(() => {
+    if (currentUser?.username) {
+      fetchNodesData();
+    }
+  }, [currentUser, fetchNodesData]);
+
+  const nodeTypes = React.useMemo(() => {
+    return (nodesData || []).reduce((acc, node) => {
+      const type = node.node_type || 'unknown';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+  }, [nodesData]);
+
+  useEffect(() => {
+    if (!selectedNodeType) {
+      setFilteredNodes([]);
+      return;
+    }
+    const filtered = (nodesData || []).filter(node => node.node_type === selectedNodeType);
+    setFilteredNodes(filtered);
+  }, [nodesData, selectedNodeType]);
+
+  const handleNodeTypeSelect = (nodeType) => {
+    setSelectedNodeType(nodeType);
+    setSelectedNode(null);
+  };
+
+  const handleNodeSelect = (node) => {
+    setSelectedNode(node);
+    setShowConfirmModal(true);
+  };
+
   
-  // Bỏ useSettings: sử dụng serverIPs cục bộ từ biến môi trường
-  const serverIPs = [SERVER_URL, SERVER_ICS_URL].filter(Boolean);
-  
-  // State management
-  const [selectedKhu, setSelectedKhu] = useState('');
-  const [selectedCell, setSelectedCell] = useState('');
-  const [selectedSupplyCell, setSelectedSupplyCell] = useState('');
-  const [selectedDemandCell, setSelectedDemandCell] = useState('');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [cellStates, setCellStates] = useState({});
 
-  // Custom hooks
-  const { gridConfig, isConfigLoading, error: configError } = useGridConfig(serverIPs, currentUser?.username);
-  const { supplyTaskData, demandTaskData, loading: taskLoading, error: taskError } = useTaskData(
-    serverIPs,
-    selectedKhu,
-    currentUser?.username
-  );
-  const { isSending, sendResult, setSendResult, handleSendSignalGrid, handleSendDoubleTask } = useTaskManagement(
-    serverIPs,
-    setCellStates
-  );
+  const getGridClasses = () => {
+    // Mapping cột: <350px: 1; ≥350px: 2; ≥730px: 3; ≥1024px (lg): 4; ≥1280px (xl): 5
+    return 'grid-cols-1 min-[350px]:grid-cols-2 min-[730px]:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+  };
 
-  // Computed values
-  const effectiveServerIP = serverIPs && Array.isArray(serverIPs) && serverIPs.length > 0 ? serverIPs[0] : SERVER_URL;
-  const currentKhuConfig = gridConfig && selectedKhu ? gridConfig[selectedKhu + 'Config'] : null;
-  const totalCells = currentKhuConfig ? currentKhuConfig.cells : 0;
-
-  // Helper functions
-  const checkSetup = useCallback(() => {
-    return selectedSupplyCell && selectedDemandCell;
-  }, [selectedSupplyCell, selectedDemandCell]);
-
-  const addHistoryRecord = useCallback(() => {
-    // Placeholder function for history recording
-    console.log('History record added');
-  }, []);
-
-  // Event handlers
-  const handleCellClick = useCallback(
-    (cellNumber) => {
-      console.log(`🖱️ Ô được chọn: cell-${cellNumber} cho khu ${selectedKhu}`);
-      setSelectedCell(cellNumber);
-      setSendResult(null);
-      setShowSuccessModal(true);
-    },
-    [selectedKhu]
-  );
-
-  const handleSupplyCellSelect = useCallback((cell) => {
-    setSelectedSupplyCell(cell);
-    setSelectedCell(cell);
-  }, []);
-
-  const handleDemandCellSelect = useCallback((cell) => {
-    setSelectedDemandCell(cell);
-    setSelectedCell(cell);
-  }, []);
-
-  const handleKhuSelect = useCallback((khu) => {
-    setSelectedKhu(khu);
-  }, []);
-
-  const handleConfirmSend = useCallback(async () => {
-    const taskData = selectedKhu === 'Supply' ? supplyTaskData : demandTaskData;
-    const result = await handleSendSignalGrid(selectedCell, selectedKhu, taskData, addHistoryRecord);
+  const handleConfirmSend = async () => {
+    if (!selectedNode) return;
+    
+    const taskData = {
+      node_name: selectedNode.node_name,
+      node_type: selectedNode.node_type,
+      owner: currentUser?.username,
+      start: selectedNode.start,
+      end: selectedNode.end,
+      next_start: selectedNode.next_start || 0,
+      next_end: selectedNode.next_end || 0
+    };
+    console.log('taskData', taskData);
+    const result = await createTaskHandler(taskData);
     
     if (result.success) {
-      setTimeout(() => {
-        setShowSuccessModal(false);
-        setSendResult(null);
-      }, 2000);
+      alert(`✅ Gửi lệnh thành công!\nNode: ${selectedNode.node_name}\nStart: ${selectedNode.start} → End: ${selectedNode.end}`);
+      setShowConfirmModal(false);
+      setSelectedNode(null);
+    } else {
+      alert(`❌ Gửi lệnh thất bại: ${result.error || 'Lỗi không xác định'}`);
     }
-  }, [selectedCell, selectedKhu, supplyTaskData, demandTaskData, handleSendSignalGrid, addHistoryRecord]);
+  };
 
-  const handleSendDoubleTaskWrapper = useCallback(async () => {
-    await handleSendDoubleTask(
-      selectedSupplyCell,
-      selectedDemandCell,
-      supplyTaskData,
-      demandTaskData,
-      checkSetup,
-      addHistoryRecord
-    );
-  }, [
-    selectedSupplyCell,
-    selectedDemandCell,
-    supplyTaskData,
-    demandTaskData,
-    checkSetup,
-    handleSendDoubleTask,
-    addHistoryRecord
-  ]);
+  const handleCancelSend = () => {
+    setShowConfirmModal(false);
+    setSelectedNode(null);
+  };
+  
+  return (
+    <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
+      <div className=" mx-auto">
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden mb-4 sm:mb-6">
+          <div className="bg-[#016B61] px-3 py-3 sm:px-6 sm:py-4 text-white">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+              <h1 className="text-lg sm:text-xl font-bold text-center sm:text-left">MOBILE GRID DISPLAY</h1>
+              <button 
+                className="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-3 py-2 sm:px-4 rounded font-medium transition-colors duration-200 text-sm sm:text-base"
+                onClick={logout}
+              >
+                Đăng xuất
+              </button>
+            </div>
+            
+            <div className="mt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <div className="text-center sm:text-left">
+                <span className="bg-white/20 border border-white/30 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm font-medium">
+                  User: {currentUser?.username || 'Chưa đăng nhập'}
+                </span>
+              </div>
+              
+            </div>
+          </div>
+          
+          <div className="p-3 sm:p-6">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn loại chu trình:</h2>
+              <div className="flex flex-wrap justify-between w-full ">
+                {Object.keys(nodeTypes).map((nodeType) => (
+                  <button
+                    key={nodeType}
+                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base w-2/7 ${
+                      selectedNodeType === nodeType 
+                        ? 'bg-[#016B61] text-white' 
+                        : 'bg-white text-[#016B61] border-2 border-[#016B61] hover:bg-[#016B61] hover:text-white'
+                    }`}
+                    onClick={() => handleNodeTypeSelect(nodeType)}
+                  >
+                    {nodeTypeMapping[nodeType] || nodeType} ({nodeTypes[nodeType]})
+                  </button>
+                ))}
+              </div>
+            </div>
 
-  // Render functions
-  const renderGridContent = useCallback(() => {
-    if (selectedKhu === 'SupplyAndDemand') {
-      return (
-        <DropdownMenu
-          gridConfig={gridConfig}
-          supplyTaskData={supplyTaskData}
-          demandTaskData={demandTaskData}
-          selectedSupplyCell={selectedSupplyCell}
-          selectedDemandCell={selectedDemandCell}
-          onSupplyCellSelect={handleSupplyCellSelect}
-          onDemandCellSelect={handleDemandCellSelect}
-          checkSetup={checkSetup}
-          onSendDoubleTask={handleSendDoubleTaskWrapper}
-          isSending={isSending}
-          sendResult={sendResult}
-          isUserAE3={isUserAE3}
-          isUserAE4={isUserAE4}
-          isUserMainOvh={isUserMainOvh}
-        />
-      );
-    }
+            {selectedNodeType && (
+              <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
+                  Danh sách nodes ({filteredNodes.length}):
+                </h2>
+                <div className={`grid gap-2 sm:gap-3 ${getGridClasses()}`}>
+                  {filteredNodes.map((node, index) => (
+                    <div 
+                      key={node.id || index}
+                      className={`bg-gray-50 rounded-lg p-2 sm:p-3 cursor-pointer transition-colors duration-200 border-2 ${
+                        selectedNode?.id === node.id 
+                          ? 'border-[#016B61] bg-[#016B61]/10' 
+                          : 'border-gray-200 hover:border-[#016B61] hover:bg-gray-100'
+                      }`}
+                      onClick={() => handleNodeSelect(node)}
+                    >
+                      <div className="text-center h-[180px]">
+                        <h3 className="font-bold text-gray-800 text-xl sm:text-2xl mb-1 sm:mb-2 truncate">
+                          {node.node_name || `Node ${index + 1}`}
+                        </h3>
+                        <div className="space-y-3 text-3xl text-gray-600">
+                          <div className="flex justify-center">
+                            <span className="font-bold bg-primary/20 text-[#016B61]">{node.start || 0} → {node.end || 0}</span>
+                          </div>
+                          
+                          {selectedNodeType === 'both' && (
+                            <div className="flex justify-center">
+                              <span className="font-bold text-[#016B61]">{node.next_start} → {node.next_end}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-    return (
-      <GridArea
-        selectedKhu={selectedKhu}
-        currentKhuConfig={currentKhuConfig}
-        totalCells={totalCells}
-        supplyTaskData={supplyTaskData}
-        demandTaskData={demandTaskData}
-        cellStates={cellStates}
-        onCellClick={handleCellClick}
-        isConfigLoading={isConfigLoading}
-        taskLoading={taskLoading}
-        configError={configError}
-        taskError={taskError}
-        isUserAE3={isUserAE3}
-        isUserAE4={isUserAE4}
-        isUserMainOvh={isUserMainOvh}
-      />
-    );
-  }, [
-    selectedKhu,
-    gridConfig,
-    supplyTaskData,
-    demandTaskData,
-    selectedSupplyCell,
-    selectedDemandCell,
-    handleSupplyCellSelect,
-    handleDemandCellSelect,
-    checkSetup,
-    handleSendDoubleTaskWrapper,
-    isSending,
-    sendResult,
-    isUserAE3,
-    isUserAE4,
-    isUserMainOvh,
-    currentKhuConfig,
-    totalCells,
-    cellStates,
-    handleCellClick,
-    isConfigLoading,
-    taskLoading,
-    configError,
-    taskError
-  ]);
+      {showConfirmModal && selectedNode && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#016B61]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">✅</span>
+              </div>
+              
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Xác nhận gửi lệnh</h3>
+              
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Node:</span>
+                    <span className="font-bold text-gray-800">{selectedNode.node_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Loại:</span>
+                    <span className="font-bold text-gray-800">{nodeTypeMapping[selectedNode.node_type] || selectedNode.node_type}</span>
+                  </div>
+                  <div className="flex justify-center">
+                    <span className="font-bold text-[#016B61] text-lg">{selectedNode.start} → {selectedNode.end}</span>
+                  </div>
+                  {selectedNode.next_start > 0 && selectedNode.next_end > 0 && (
+                    <div className="flex justify-center">
+                      <span className="font-bold text-[#016B61] text-lg">{selectedNode.next_start} → {selectedNode.next_end}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-  // Hiển thị LoginPrompt nếu user chưa đăng nhập
-  if (!currentUser) {
-    return (
-      <div className="mobile-grid-bootstrap">
-        <div className="d-flex flex-column min-vh-100 w-100">
-          <div className="container-fluid main-container flex-grow-1 py-3">
-            <div className="container">
-              <div className="w-100">
-                <Card className="w-100">
-                  <Card.Header className="bg-light">
-                    <h5 className="mb-0">CHỌN KHU VỰC VÀ TASK PATH</h5>
-                  </Card.Header>
-                  <Card.Body>
-                    <LoginPrompt />
-                  </Card.Body>
-                </Card>
+              <div className="flex gap-3">
+                <button
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded font-medium transition-colors duration-200"
+                  onClick={handleCancelSend}
+                >
+                  Hủy
+                </button>
+                <button
+                  className="flex-1 bg-[#016B61] hover:bg-[#014d47] text-white py-2 px-4 rounded font-medium transition-colors duration-200"
+                  onClick={handleConfirmSend}
+                >
+                  Xác nhận
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mobile-grid-bootstrap">
-      <div className="d-flex flex-column min-vh-100 w-100">
-        <div className="container-fluid main-container flex-grow-1 py-3">
-          <div className="container">
-            <div className="w-100">
-              <Card className="w-100">
-                <Card.Header className="bg-light">
-                  <h5 className="mb-0">CHỌN KHU VỰC VÀ TASK PATH</h5>
-                  <div className="mt-2">
-                    <span className="badge bg-info text-dark">
-                      Khu vực hiện tại: {currAreaName} (ID: {currAreaId})
-                    </span>
-                  </div>
-                </Card.Header>
-                <Card.Body>
-                  <ServerInfo
-                    effectiveServerIP={effectiveServerIP}
-                    currentUser={currentUser}
-                    isAdmin={isAdmin}
-                    selectedKhu={selectedKhu}
-                    currentKhuConfig={currentKhuConfig}
-                    totalCells={totalCells}
-                    onLogout={logout}
-                  />
-
-                  <KhuAreaSelector
-                    selectedKhu={selectedKhu}
-                    onKhuSelect={handleKhuSelect}
-                  />
-
-                  {selectedKhu && (
-                    <div className="bg-light p-3 rounded">
-                      {renderGridContent()}
-                    </div>
-                  )}
-
-                  <ConfirmationModal
-                    show={showSuccessModal}
-                    onHide={() => setShowSuccessModal(false)}
-                    selectedCell={selectedCell}
-                    sendResult={sendResult}
-                    isSending={isSending}
-                    onConfirm={handleConfirmSend}
-                  />
-                </Card.Body>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

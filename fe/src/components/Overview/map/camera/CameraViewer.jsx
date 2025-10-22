@@ -6,34 +6,20 @@ const CameraViewer = ({ cameraData, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  console.log('streamUrl', streamUrl);
-
   useEffect(() => {
-    console.log('🔄 useEffect triggered with cameraData:', cameraData);
-    
     const fetchStreamUrl = async () => {
-      console.log('🚀 Starting fetchStreamUrl...');
-      
       if (cameraData?.cameraPath) {
-        console.log('✅ Camera path exists:', cameraData.cameraPath);
         try {
-          console.log('📞 Calling getStreamCamera...');
           const streamUrl = await getStreamCamera(cameraData.cameraPath);
-          console.log('✅ getStreamCamera returned:', streamUrl);
-          console.log('✅ streamUrl type:', typeof streamUrl);
-          console.log('✅ streamUrl length:', streamUrl?.length);
           
           if (streamUrl) {
             setStreamUrl(streamUrl);
-            console.log('🔍 Final stream URL set:', streamUrl);
             setLoading(false);
           } else {
-            console.error('❌ streamUrl is empty or null');
             setError('Stream URL is empty');
             setLoading(false);
           }
         } catch (error) {
-          console.error('❌ Error fetching stream URL:', error);
           setError('Không thể tạo stream URL');
           setLoading(false);
         }
@@ -46,8 +32,6 @@ const CameraViewer = ({ cameraData, onClose }) => {
 
     fetchStreamUrl();
   }, [cameraData]);
-
-  console.log('🎨 Render - streamUrl:', streamUrl, 'loading:', loading, 'error:', error);
 
   if (!cameraData) {
     console.log('❌ No cameraData, returning null');
@@ -69,7 +53,6 @@ const CameraViewer = ({ cameraData, onClose }) => {
               alt="Camera stream"
               style={{ width: '640px', height: 'auto', border: '2px solid #333' }}
               onLoad={() => {
-                console.log('✅ Image loaded successfully:', streamUrl);
                 setLoading(false);
               }}
               onError={(e) => {

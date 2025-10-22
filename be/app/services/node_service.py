@@ -110,15 +110,6 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
         try:
             node_id = node_data.get("id")
             
-            # Validate node_id
-            if not node_id or not ObjectId.is_valid(node_id):
-                errors.append({
-                    "index": idx,
-                    "node_id": node_id,
-                    "error": "Invalid or missing node ID"
-                })
-                continue
-            
             # Validate owner exists
             owner = node_data.get("owner")
             user_exists = await users.find_one({"username": owner, "is_active": True})
@@ -128,6 +119,26 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
                     "node_id": node_id,
                     "error": f"Owner '{owner}' does not exist or is inactive"
                 })
+                continue
+
+            # Validate node_id
+            if not node_id or not ObjectId.is_valid(node_id):
+                # Node không tồn tại -> Tạo mới với ID được cung cấp
+                new_node_data = {
+                    "node_name": node_data["node_name"],
+                    "node_type": node_data["node_type"],
+                    "owner": node_data["owner"],
+                    "start": node_data["start"],
+                    "end": node_data["end"],
+                    "next_start": node_data.get("next_start"),
+                    "next_end": node_data.get("next_end"),
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+                
+                await nodes.insert_one(new_node_data)
+                created += 1
+                logger.info(f"Created new node ID {node_id}: {node_data['node_name']}")
                 continue
             
             # Find existing node by ID
@@ -158,7 +169,7 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
                     "node_id": node_id,
                     "error": "Node not found"
                 })
-                logger.warning(f"Node not found: {node_id}")
+                continue
                 
         except Exception as e:
             errors.append({
@@ -168,7 +179,7 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
             })
             logger.error(f"Error processing node {node_data.get('id')}: {e}")
     
-    message = f"Processed {total} nodes: {updated} updated"
+    message = f"Processed {total} nodes: {updated} updated, {created} created"
     if errors:
         message += f", {len(errors)} errors"
     

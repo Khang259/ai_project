@@ -2,9 +2,8 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 
 // lấy hook từ collection task_path_{username}_{khu}
-const mockData = ["A", "B"];
-
-const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
+const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
+  const rows = Math.ceil(cells.length / columns);
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-medium text-foreground">Xem Trước Lưới</h3>
@@ -12,13 +11,14 @@ const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
         className="grid gap-2 p-4 bg-muted/30 rounded-lg border"
         style={{
           gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, auto)`,
         }}
       >
         {cells.slice(0, rows * columns).map((cell, index) => (
           <div
             key={cell.id}
-            className="aspect-video bg-card border-2 border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
+            className="bg-card border-2  border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
+            style={{ height: 130 }}
           >
             {/* Nút xóa hiện khi hover */}
             {onDeleteCell && (
@@ -32,14 +32,16 @@ const GridPreview = ({ rows, columns, cells, onDeleteCell }) => {
             )}
             
             <div className="text-center space-y-1">
-              <p className="text-xs font-mono text-muted-foreground">{cell.id}</p>
-              <p className="text-xs font-medium text-foreground truncate max-w-full">{cell.name}</p>
-              <div className="flex gap-1 justify-center mt-2">
-                {mockData.map((data, i) => (
-                  <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
-                    {data}
+              <p className="text-xs font-mono text-muted-foreground">{cell.node_name}</p>
+              <div className="flex flex-col gap-1 justify-center mt-2 gap-y-4">
+                <span className="px-2 py-0.5 bg-primary/30 text-primary text-xs font-semibold rounded">
+                  {cell.start} → {cell.end}
+                </span>
+                {selectedNodeType === 'both' && cell.next_start > 0 && cell.next_end > 0 && (
+                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
+                    {cell.next_start} → {cell.next_end}
                   </span>
-                ))}
+                )}
               </div>
             </div>
           </div>

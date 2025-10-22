@@ -30,6 +30,11 @@ const MapFilters = ({ cameraFilter, setCameraFilter}) => {
     key: c.id || c.camera_name, // đảm bảo unique
   }));
 
+  const handleSelect = (value) => {
+    setCameraFilter(value);
+    setOpen(false); // Đóng dropdown sau khi chọn
+  };
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1px #333', borderRadius: 10, boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)', padding: 10 }}>
       {/* Filter Camera ID */}
@@ -41,14 +46,18 @@ const MapFilters = ({ cameraFilter, setCameraFilter}) => {
           open={open}
           onFocus={() => setOpen(true)}
           onBlur={() => setOpen(false)}
-          onChange={(val) => setCameraFilter(val)}
-          onSelect={(val) => setCameraFilter(val)}
+          onChange={(val) => {
+            setCameraFilter(val);
+          }}
+          onSelect={handleSelect}
           style={{ width: 220 }}
         >
         <Input
           placeholder="Nhập Camera ID"
           value={cameraFilter || ''}
-          onChange={(e) => setCameraFilter(e.target.value)}
+          onChange={(e) => {
+            setCameraFilter(e.target.value);
+          }}
           style={{ width: 120 }}
           allowClear
           size="middle"
