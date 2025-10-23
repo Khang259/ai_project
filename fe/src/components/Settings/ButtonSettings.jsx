@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
-import { Plus, Grid3x3, User, Upload, Settings } from 'lucide-react';
+import { Plus, Grid3x3, User, Upload, Settings, Download } from 'lucide-react';
 import GridPreview from './GridPreview';
 import CellNameEditor from './CellNameEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -37,7 +37,7 @@ const ButtonSettings = () => {
   const {users, usersLoading, usersError } = useUsers();
   const [selectedUser, setSelectedUser] = useState({});
   const [selectedNodeType, setSelectedNodeType] = useState();
-  const [filteredNodes, setFilteredNodes] = useState([]);
+  const [dataFilteredByNodes, setdataFilteredByNodes] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const {
@@ -58,10 +58,6 @@ const ButtonSettings = () => {
   useEffect(() => {
     if (selectedUser?.id) fetchData();
   }, [selectedUser, fetchData]);
-  useEffect(() => {
-    setFilteredNodes(data || []);
-  }, [data]);
-
 
   // Định nghĩa các chế độ cố định
   const fixedNodeTypes = ["Cấp", "Trả", "Cấp&Trả"];
@@ -77,17 +73,17 @@ const ButtonSettings = () => {
 
   // Tính tổng số cells của nodeType được chọn
   const totalCellsSelectedType = React.useMemo(() => {
-    return nodeTypes[selectedNodeType] || filteredNodes.length;
-  }, [nodeTypes, selectedNodeType, filteredNodes.length]);
+    return nodeTypes[selectedNodeType] || dataFilteredByNodes.length;
+  }, [nodeTypes, selectedNodeType, dataFilteredByNodes.length]);
 
   // Lọc data theo selectedNodeType và cập nhật dữ liệu cho GridPreview
   useEffect(() => {
     if (!selectedNodeType) {
-      setFilteredNodes([]);
+      setdataFilteredByNodes(data); // Hiển thị toàn bộ data khi chưa chọn loại
       return;
     }
     const next = (data || []).filter(n => n.node_type === selectedNodeType);
-    setFilteredNodes(next);
+    setdataFilteredByNodes(next);
   }, [data, selectedNodeType,fetchData]);
   // ===========================================
   // 3. HANDLERS CHO CHỌN USER
@@ -176,7 +172,7 @@ const ButtonSettings = () => {
   
   // Xóa ô có confirm UI, sau đó gọi hook
   const handleDeleteCell = async (cellId) => {
-    const nodeToDelete = filteredNodes.find(node => node.id === cellId);
+    const nodeToDelete = dataFilteredByNodes.find(node => node.id === cellId);
     if (!nodeToDelete) return;
     if (confirm(`Bạn có chắc chắn muốn xóa ô ${nodeToDelete.node_name}?`)) {
       const res = await deleteNode(cellId);
@@ -235,52 +231,63 @@ const ButtonSettings = () => {
         const importedNodes = normalisedRows.map((r, idx) => {
           const nodeName = String(r.node_name ?? '').trim();
           const nodeType = String(r.node_type ?? '').trim();
-          const existing = filteredNodes.find((n) => n.node_name === nodeName && n.node_type === nodeType);
+          const existing = (data || []).find((n) => n.node_name === nodeName && n.node_type === nodeType);
+          const isBoth = nodeType === 'both';
           return {
-            id: existing ? existing.id : String(idx) ,
+            id: existing ? existing.id : String(idx),
             node_name: nodeName,
             node_type: nodeType,
-            owner:  r.owner || selectedUser.username ,
-            start: Number(r.start) ,
+            owner: selectedUser?.username,
+            start: Number(r.start),
             end: Number(r.end),
-            next_start: Number(r.next_start) || 0,
-            next_end: Number(r.next_end) || 0,
+            next_start: isBoth ? (Number(r.next_start) || 0) : 0,
+            next_end: isBoth ? (Number(r.next_end) || 0) : 0,
           };
         });
 
+        // Merge trên toàn bộ data của user: base = data, import ghi đè
         const mergedMap = new Map();
-        // Ưu tiên dữ liệu mới: put imported first, then fill others not overridden
+        (data || []).forEach((n) => {
+          const key = `${n.node_name}__${n.node_type}`;
+          mergedMap.set(key, n);
+        });
         importedNodes.forEach((n) => {
           const key = `${n.node_name}__${n.node_type}`;
           mergedMap.set(key, n);
         });
-        filteredNodes.forEach((n) => {
-          const key = `${n.node_name}__${n.node_type}`;
-          if (!mergedMap.has(key)) mergedMap.set(key, n);
-        });
         const mergedNodes = Array.from(mergedMap.values());
+
+        // Kiểm tra node_type hợp lệ trước khi import
+        const validTypes = ['supply', 'returns', 'both'];
+        const invalidNode = mergedNodes.find(node => 
+          node && node.node_type && !validTypes.includes(node.node_type)
+        );
+        if (invalidNode) {
+          alert(`❌ Phát hiện node_type không hợp lệ: "${invalidNode.node_type}" tại node "${invalidNode.node_name}".\n\nChỉ chấp nhận: supply, returns, both.\n\nImport đã bị hủy.`);
+          event.target.value = '';
+          return;
+        }
 
         // Gọi saveBatchWithNodes để gửi API ngay sau khi import
         // Chỉ gửi các trường cần thiết, loại bỏ created_at, updated_at và các trường khác
-        const cleanedNodes = mergedNodes.map(node => ({
-          id: node.id,
-          node_name: node.node_name,
-          node_type: node.node_type,
-          owner: node.owner,
-          start: node.start,
-          end: node.end,
-          next_start: node.next_start,
-          next_end: node.next_end
-        }));
+        const cleanedNodes = mergedNodes
+          .filter(node => node && node.node_name && node.node_type) // Lọc bỏ phần tử rỗng/undefined
+          .map(node => ({
+            id: node.id,
+            node_name: node.node_name,
+            node_type: node.node_type,
+            owner: node.owner,
+            start: node.start,
+            end: node.end,
+            next_start: node.next_start,
+            next_end: node.next_end
+          }));
         const payload = {'nodes': cleanedNodes};
         console.log("payload", payload);
         const result = await updateBatch(payload);
-        console.log("result", result);
-        console.log("result.data", result.data);
         if (result?.success) {
-          setFilteredNodes(mergedNodes);
-          alert(`Đã import và lưu ${importedNodes.length} dòng thành công!`);
           await fetchData();
+          alert(`Đã import và lưu ${importedNodes.length} dòng thành công!`);
         } else {
           alert(`Import thành công nhưng lưu thất bại: ${result?.error || 'Unknown error'}`);
         }
@@ -295,7 +302,6 @@ const ButtonSettings = () => {
   };
 
   const handleUpdateBatch = async (nodes) => {
-    // Chỉ gửi các trường cần thiết, loại bỏ created_at, updated_at và các trường khác
     const cleanedNodes = nodes.map(node => ({
       id: node.id,
       node_name: node.node_name,
@@ -307,11 +313,70 @@ const ButtonSettings = () => {
       next_end: node.next_end
     }));
     const payload = {'nodes': cleanedNodes};
+    console.log("payload", payload);
     const result = await updateBatch(payload);
     if (result?.success) {
       alert("Cập nhật thành công");
       await fetchData();
     }
+  };
+
+
+  const handleExportData = () => {
+    let exportData;
+    let filename;
+
+    // Nếu có dữ liệu thật, export data
+    if (data && data.length > 0) {
+      exportData = data.map(node => ({
+        node_name: node.node_name,
+        node_type: node.node_type,
+        start: node.start,
+        end: node.end,
+        next_start: node.next_start || 0,
+        next_end: node.next_end || 0
+      }));
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      filename = `nodes_${selectedUser?.username || 'user'}_${timestamp}.xlsx`;
+    } 
+    // Nếu không có dữ liệu, export mẫu
+    else {
+      exportData = [
+        {
+          node_name: 'Tên ô cấp',
+          node_type: 'supply',
+          start: "100(Optional)",
+          end: 200,
+          next_start: "100(Optional)",
+          next_end: "100(Optional)"
+        },
+        {
+          node_name: 'Tên ô trả',
+          node_type: 'returns',
+          start: 300,
+          end: 400,
+          next_start: 0,
+          next_end: 0
+        },
+        {
+          node_name: 'Tên cấp&trả',
+          node_type: 'both',
+          start: 500,
+          end: 600,
+          next_start: 700,
+          next_end: 800
+        }
+      ];
+      
+      filename = 'mau_import_nodes.xlsx';
+    }
+
+    // Tạo và tải file
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Nodes');
+    XLSX.writeFile(workbook, filename);
   };
 
   // ===========================================
@@ -369,7 +434,7 @@ const ButtonSettings = () => {
                           <div>
                             <div className="font-medium">{user.username}</div>
                             <div className="text-xs text-muted-foreground">
-                              {user?.roles}
+                              {user.is_superuser ? "Administrator" : "User"}
                             </div>
                           </div>
                         </div>
@@ -577,7 +642,7 @@ const ButtonSettings = () => {
           )}
           
           <div className="pt-4 border-t">
-            <GridPreview columns={columnsWantToShow} cells={filteredNodes} onDeleteCell={handleDeleteCell} selectedNodeType={selectedNodeType} />
+            <GridPreview columns={columnsWantToShow} cells={dataFilteredByNodes} onDeleteCell={handleDeleteCell} selectedNodeType={selectedNodeType} />
           </div>
         </CardContent>
       </Card>
@@ -597,23 +662,59 @@ const ButtonSettings = () => {
                 className="hidden"
                 onChange={handleExcelImport}
               />
+              <div className="flex flex-row items-end gap-2">
+              {/* Nút Export Excel */}
               <Button
                 variant="outline"
-                onClick={() => document.getElementById('excel-import').click()}
+                onClick={handleExportData}
                 size="sm"
+                title={data && data.length > 0 ? 'Export dữ liệu hiện có' : 'Tải file mẫu'}
               >
-                <Upload className="h-4 w-4 mr-2" />
-                Import Excel
+                <Download className="h-4 w-4 mr-2" />
+                {data && data.length > 0 ? 'Export Excel' : 'Tải Mẫu Excel'}
               </Button>
+
+              {/* Nút Import Excel */}
+              {(() => {
+                if (!selectedUser?.id) {
+                  return (
+                    <div className="relative inline-block group">
+                      <Button
+                        variant="outline"
+                        disabled
+                        onClick={() => {}}
+                        size="sm"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Import Excel
+                      </Button>
+                      <div className="pointer-events-none absolute -top-8 left-0 -translate-x-1/2 whitespace-nowrap rounded bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 transition-opacity group-hover:opacity-100 border shadow-sm">
+                        Chọn user trước khi import bằng Excel
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('excel-import').click()}
+                    size="sm"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import Excel
+                  </Button>
+                );
+              })()}
+              </div>
               <div className="text-xs text-muted-foreground text-right">
-                Format: node_name, node_type, owner, start, end, next_start, next_end
+                Format: node_name, node_type, start, end, next_start, next_end
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <CellNameEditor 
-            cells={filteredNodes} 
+            cells={dataFilteredByNodes} 
             handleUpdateBatch={handleUpdateBatch} 
           />
         </CardContent>
