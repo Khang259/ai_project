@@ -22,3 +22,4 @@ class CameraUpdate(BaseModel):
     camera_name: Optional[str] = None
     camera_path: Optional[str] = None
     area: Optional[int] = None
+

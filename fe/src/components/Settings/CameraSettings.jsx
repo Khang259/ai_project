@@ -6,8 +6,10 @@ import { Button } from '../ui/button';
 import { Plus, Trash2, Video, Loader2 } from 'lucide-react';
 import { getCamerasByArea, addCamera, updateCamera, deleteCamera } from '@/services/camera-settings';
 import { useArea } from '@/contexts/AreaContext';
+import { useTranslation } from 'react-i18next';
 
 const CameraSettings = () => {
+  const {t} = useTranslation();
   const [cameras, setCameras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,7 +27,7 @@ const CameraSettings = () => {
       setCameras(camerasData);
     } catch (error) {
       console.error('Error loading cameras:', error);
-      alert('Lỗi khi tải danh sách camera từ database');
+      alert(t('settings.errorLoadingCameras'));
     } finally {
       setLoading(false);
     }
@@ -55,10 +57,10 @@ const CameraSettings = () => {
       // Nếu là camera đã lưu trong DB, gọi API xóa
       await deleteCamera(cameraId);
       setCameras(cameras.filter(cam => cam.id !== cameraId));
-      alert('Camera đã được xóa thành công!');
+      alert(t('settings.cameraDeletedSuccessfully'));
     } catch (error) {
       console.error('Error deleting camera:', error);
-      alert('Lỗi khi xóa camera');
+      alert(t('settings.errorDeletingCamera'));
     }
   };
 
@@ -83,7 +85,7 @@ const CameraSettings = () => {
       );
       
       if (invalidCameras.length > 0) {
-        alert(`Có ${invalidCameras.length} camera có URL không hợp lệ. Vui lòng kiểm tra lại định dạng RTSP.`);
+        alert(t('settings.invalidRTSPUrls'));
         return;
       }
 
@@ -114,10 +116,10 @@ const CameraSettings = () => {
 
       // Reload cameras from database
       await loadCamerasFromDatabase();
-      alert('Cấu hình camera đã được lưu thành công!');
+      alert(t('settings.cameraConfigurationSavedSuccessfully'));
     } catch (error) {
       console.error('Error saving cameras:', error);
-      alert('Lỗi khi lưu cấu hình camera');
+      alert(t('settings.errorSavingCameraConfiguration'));
     } finally {
       setSaving(false);
     }
@@ -127,7 +129,7 @@ const CameraSettings = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Đang tải danh sách camera cho khu vực: {currAreaName || 'Không xác định'}</span>
+        <span className="ml-2">{t('settings.loadingCamerasForArea')}: {currAreaName || t('settings.undetermined')}</span>
       </div>
     );
   }
@@ -139,7 +141,7 @@ const CameraSettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5 text-primary" />
-            Quản Lý Camera
+            {t('settings.cameraManagement')}
           </CardTitle>
           <CardDescription>
             Thêm và quản lý camera từ database
@@ -159,12 +161,12 @@ const CameraSettings = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label htmlFor={`name-${camera.id}`} className="text-xs text-muted-foreground">
-                          Tên Camera
+                          {t('settings.cameraName')}
                         </Label>
                         <Input
                           id={`name-${camera.id}`}
                           type="text"
-                          placeholder="Camera 1"
+                          placeholder={t('settings.cameraName')}
                           value={camera.camera_name}
                           onChange={(e) => updateCameraField(camera.id, 'camera_name', e.target.value)}
                           className="text-sm"
@@ -172,7 +174,7 @@ const CameraSettings = () => {
                       </div>
                       <div>
                       <Label htmlFor={`path-${camera.id}`} className="text-xs text-muted-foreground">
-                        Đường Dẫn RTSP
+                        {t('settings.rtspUrl')}
                       </Label>
                       <Input
                         id={`path-${camera.id}`}
@@ -214,7 +216,7 @@ const CameraSettings = () => {
             className="w-full border-dashed border-2 hover:border-primary hover:bg-primary/5 bg-transparent"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Thêm Camera
+            {t('settings.addCamera')}
           </Button>
 
           <div className="mt-4 pt-4 border-t">
@@ -226,12 +228,12 @@ const CameraSettings = () => {
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Đang lưu...
+                  {t('settings.savingCameras')}
                 </>
               ) : (
                 <>
                   <Video className="h-4 w-4 mr-2" />
-                  Lưu Cấu Hình Camera
+                  {t('settings.saveCameraConfiguration')}
                 </>
               )}
             </Button>
@@ -244,10 +246,10 @@ const CameraSettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5 text-primary" />
-            Thông Tin Camera Từ Database
+            {t('settings.cameraInformationFromDatabase')}
           </CardTitle>
           <CardDescription>
-            Xem trạng thái và thông tin chi tiết của các camera từ database
+            {t('settings.cameraInformationFromDatabaseDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -259,18 +261,18 @@ const CameraSettings = () => {
                   <div>
                     <p className="font-medium">{camera.camera_name || `Camera ${index + 1}`}</p>
                     <p className="text-sm text-muted-foreground font-mono">
-                      {camera.camera_path || 'Chưa cấu hình'}
+                      {camera.camera_path || t('settings.notConfigured')}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Khu vực: {camera.area} | ID: {camera.id}
+                      {t('settings.area')}: {camera.area} | {t('settings.id')}: {camera.id}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Trạng thái</p>
-                  <p className="text-sm font-medium text-green-600">Hoạt động</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.status')}</p>
+                  <p className="text-sm font-medium text-green-600">{t('settings.active')}</p>
                   <p className="text-xs text-muted-foreground">
-                    {camera.created_at ? new Date(camera.created_at).toLocaleDateString('vi-VN') : 'Mới'}
+                    {camera.created_at ? new Date(camera.created_at).toLocaleDateString('vi-VN') : t('settings.new')}
                   </p>
                 </div>
               </div>

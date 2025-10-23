@@ -240,7 +240,10 @@ async def get_process_code(node_type: str, owner: str) -> str:
 async def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
     process_code = await get_process_code(node.node_type, node.owner)
-    order_id = str(uuid.uuid4())
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
+    # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
+    order_id = f"{node.owner}_{timestamp}_{str(uuid.uuid4())[:8]}"
 
     if node.node_type == "supply" or node.node_type == "return":
         payload = {

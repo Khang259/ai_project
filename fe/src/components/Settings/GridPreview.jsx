@@ -1,10 +1,11 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // lấy hook từ collection task_path_{username}_{khu}
 const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
   const rows = Math.ceil(cells.length / columns);
-  
+  const {t} = useTranslation();
   // Hàm xác định màu nền dựa trên node_type
   const getBackgroundColor = (nodeType) => {
     switch(nodeType) {
@@ -21,7 +22,7 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
   
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-foreground">Xem Trước Lưới</h3>
+      <h3 className="text-sm font-medium text-foreground">{t('settings.gridPreview')}</h3>
       <div
         className="grid gap-2 p-4 bg-muted/30 rounded-lg border"
         style={{
@@ -43,7 +44,7 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
               <button
                 onClick={() => onDeleteCell(cell.id)}
                 className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
-                title="Xóa ô này"
+                title={t('settings.deleteCell')}
               >
                 <Trash2 className="h-3 w-3" />
               </button>

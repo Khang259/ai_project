@@ -16,8 +16,14 @@ python-multipart==0.0.9            # Hỗ trợ upload form/file (nếu login qu
 pydantic-settings==2.4.0
 loguru==0.7.2
 
+# --- Scheduler ---
+APScheduler==3.10.4
+
+# --- Computer Vision ---
+opencv-python==4.10.0.84
+numpy==1.26.4
+
 # --- Development & Testing ---
 pytest==8.3.3
 pytest-asyncio==0.24.0
 httpx[http2]==0.27.0
-apscheduler

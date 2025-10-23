@@ -1,0 +1,32 @@
+2025-10-23 16:04:24,570 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-10-23 16:04:24,571 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-10-23 16:04:29,560 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-10-23 16:04:29,563 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-10-23 16:04:29,564 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-10-23 23:00:00+07:00
+2025-10-23 16:04:29,564 - camera_ai_app - INFO - AGV Scheduler started
+2025-10-23 16:06:10,877 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-10-23 16:10:04,185 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-10-23 16:10:04,185 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-10-23 16:10:09,351 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-10-23 16:10:09,354 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-10-23 16:10:09,354 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-10-23 23:00:00+07:00
+2025-10-23 16:10:09,354 - camera_ai_app - INFO - AGV Scheduler started
+2025-10-23 16:29:04,087 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-10-23 16:29:26,450 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-10-23 16:29:26,611 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:29:28,022 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-10-23 16:29:28,955 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:29:29,501 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-10-23 16:29:29,533 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:29:29,661 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-10-23 16:29:30,913 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-10-23 16:29:38,125 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-10-23 16:29:40,297 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:29:40,750 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:29:44,876 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-10-23 16:29:50,560 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:29:51,083 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:30:05,020 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:30:05,556 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-10-23 16:30:11,135 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
+2025-10-23 16:44:40,994 - camera_ai_app - INFO - WebSocket connected. Total connections: 4

@@ -15,6 +15,13 @@ from app.core.config import settings
 from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera, task_status
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.scheduler import start_scheduler, shutdown_scheduler
+from app.routers.parts_summary import router as parts_router
+from app.routers.part_detail import router as part_detail_router
+from app.routers.update_parts import router as update_router
+from app.routers.sum_parts_replace import router as sum_parts_router
+from app.routers.update_part_with_log import router as update_part_log_router
+from app.routers.maintenance_check import router as maintenance_check_router
+from app.routers.update_amr_name import router as update_amr_name_router
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -65,8 +72,16 @@ app.include_router(camera.router, prefix="/cameras", tags=["Camera Management"])
 app.include_router(agv_dashboard.router, tags=["AGV Dashboard"])
 app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
-app.include_router(notification.router, prefix="/notification", tags=["Notification"])
-app.include_router(task_status.router, prefix="/task-status", tags=["Task Status"])
+app.include_router(notification.router, tags=["Notification"])
+app.include_router(task_status.router, tags=["Task Status"])
+# Add Maintenance API
+app.include_router(parts_router, prefix="/api", tags=["Parts Summary"])
+app.include_router(part_detail_router, prefix="/api", tags=["Part Detail"])
+app.include_router(update_router, prefix="/api", tags=["Update Parts"])
+app.include_router(sum_parts_router, prefix="/api", tags=["Sum Parts Replace"])
+app.include_router(update_part_log_router, prefix="/api", tags=["Update Part With Log"])
+app.include_router(maintenance_check_router, prefix="/api", tags=["Maintenance Check"])
+app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name"])
 
 @app.get("/")
 async def root():
@@ -84,3 +99,7 @@ if __name__ == "__main__":
         port=8001,
         reload=settings.app_debug
     )
+
+
+
+

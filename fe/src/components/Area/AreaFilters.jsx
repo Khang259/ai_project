@@ -10,18 +10,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const AreaFilters = ({ search, onSearchChange, areaFilter, onAreaChange, areas }) => {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200">
       {/* Area Filter Dropdown */}
       <div className="flex items-center gap-2">
         <Select value={areaFilter} onValueChange={onAreaChange}>
           <SelectTrigger className="w-48 border-gray-300">
-            <SelectValue placeholder="Tất cả khu vực" />
+            <SelectValue placeholder={t('area.allAreas')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tất cả khu vực</SelectItem>
+            <SelectItem value="all">{t('area.allAreas')}</SelectItem>
             {areas.map((area) => (
               <SelectItem key={area.area_id} value={area.area_name}>
                 {area.area_name}
@@ -36,7 +38,7 @@ const AreaFilters = ({ search, onSearchChange, areaFilter, onAreaChange, areas }
       <div className="flex-1 relative">
         <Input
           type="text"
-          placeholder="Nhập tên khu vực..."
+          placeholder={t('area.enterAreaName')}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 pr-4 py-2 border-gray-300 focus:border-blue-500 focus:ring-blue-500"

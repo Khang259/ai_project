@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { getRoles } from "@/services/roles";
+import { useTranslation } from "react-i18next";
 
 export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -31,7 +33,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
           console.error("Error loading roles:", error);
           setErrors(prev => ({
             ...prev,
-            roles: "Không thể tải danh sách vai trò"
+            roles: t('users.roleLoadingError')
           }));
         } finally {
           setRolesLoading(false);
@@ -46,19 +48,19 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     const newErrors = {};
     
     if (!formData.username.trim()) {
-      newErrors.username = "Tên người dùng là bắt buộc";
+      newErrors.username = t('users.usernameRequired');
     } else if (formData.username.length < 3) {
-      newErrors.username = "Tên người dùng phải có ít nhất 3 ký tự";
+      newErrors.username = t('users.usernameMinLength');
     }
     
     if (!formData.password.trim()) {
-      newErrors.password = "Mật khẩu là bắt buộc";
+      newErrors.password = t('users.passwordRequired');
     } else if (formData.password.length < 3) {
-      newErrors.password = "Mật khẩu phải có ít nhất 3 ký tự";
+      newErrors.password = t('users.passwordMinLength');
     }
     
     if (!formData.roles || formData.roles.length === 0) {
-      newErrors.roles = "Vai trò là bắt buộc";
+      newErrors.roles = t('users.roleRequired');
     }
     
     setErrors(newErrors);
@@ -105,9 +107,9 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
       <Card className="w-full max-w-md mx-4 bg-gray-300" style={{ borderRadius: "30px" }}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle>Thêm người dùng mới</CardTitle>
+            <CardTitle>{t('users.addUser')}</CardTitle>
             <CardDescription>
-              Tạo tài khoản người dùng mới trong hệ thống
+              {t('users.addUserDescription')}
             </CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={handleClose}>
@@ -118,11 +120,11 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Tên người dùng *</Label>
+              <Label htmlFor="username">{t('users.username')}</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Nhập tên người dùng"
+                placeholder={t('users.usernamePlaceholder')}
                 style={{ backgroundColor: "#fff" }}
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
@@ -134,11 +136,11 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu *</Label>
+              <Label htmlFor="password">{t('users.password')}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Nhập mật khẩu"
+                placeholder={t('users.passwordPlaceholder')}
                 style={{ backgroundColor: "#fff" }}
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
@@ -150,14 +152,14 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="roles">Vai trò *</Label>
+              <Label htmlFor="roles">{t('users.role')}</Label>
               <Select
                 value={formData.roles[0] || ""}
                 onValueChange={(value) => handleInputChange("roles", [value])}
                 disabled={rolesLoading}
               >
                 <SelectTrigger style={{ backgroundColor: "#fff" }}>
-                  <SelectValue placeholder={rolesLoading ? "Đang tải..." : "Chọn vai trò"} />
+                  <SelectValue placeholder={rolesLoading ? t('users.loadingRoles') : t('users.selectRole')} />
                 </SelectTrigger>
                 <SelectContent>
                   {roles.map((role) => (
@@ -175,10 +177,10 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
 
           <CardFooter className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={handleClose}>
-              Hủy
+              {t('users.cancel')}
             </Button>
             <Button type="submit" disabled={loading || rolesLoading}>
-              {loading ? "Đang tạo..." : "Tạo người dùng"}
+              {loading ? t('users.loading') : t('users.createUser')}
             </Button>
           </CardFooter>
         </form>

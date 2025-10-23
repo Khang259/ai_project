@@ -7,15 +7,19 @@ import Notification from './pages/Notification';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import LoginPage from './pages/Login';
+import Maintain from './pages/Maintain';
 import MobileGridDisplay from './pages/MobileGridDisplay';
 import Area from './pages/Area';
-import PrivateRoute from './components/PrivateRoute';
+import PrivateRoute from './components/PrivateRoute'; 
 import { AreaProvider } from './contexts/AreaContext';
+import { LanguageProvider } from './contexts/LanguageContext';
+import './i18n';
 
 function App() {
   return (
-    <AreaProvider>
-      <Routes>
+    <LanguageProvider>
+      <AreaProvider>
+        <Routes>
       {/* Public routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<LoginPage />} />
@@ -37,6 +41,16 @@ function App() {
           <PrivateRoute requiredRole="admin">
             <DashboardLayout>
               <Dashboard />
+            </DashboardLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/maintain"
+        element={
+          <PrivateRoute requiredRole="admin">
+            <DashboardLayout>
+              <Maintain />
             </DashboardLayout>
           </PrivateRoute>
         }
@@ -101,8 +115,9 @@ function App() {
           </PrivateRoute>
         }
       />
-      </Routes>
-    </AreaProvider>
+        </Routes>
+      </AreaProvider>
+    </LanguageProvider>
   );
 }
 

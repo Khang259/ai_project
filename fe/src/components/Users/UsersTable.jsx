@@ -2,20 +2,22 @@ import React from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 export default function UsersTable({ users, onDelete, onEdit }) {
+  const {t} = useTranslation();
   return (
     <div className="rounded-lg border border-gray-200 overflow-hidden border border-gray-200 shadow-md">
       <Table>
-        <TableCaption>Danh sách người dùng trong hệ thống</TableCaption>
+        <TableCaption>{t('users.userList')}</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>
-            <TableHead>Thời gian tạo</TableHead>
-            <TableHead>Tên người dùng</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead>Quyền</TableHead>
-            <TableHead>Tùy chỉnh</TableHead>
+            <TableHead>{t('users.createdAt')}</TableHead>
+            <TableHead>{t('users.username')}</TableHead>
+            <TableHead>{t('users.status')}</TableHead>
+            <TableHead>{t('users.role')}</TableHead>
+            <TableHead>{t('users.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -24,16 +26,16 @@ export default function UsersTable({ users, onDelete, onEdit }) {
               <TableCell>{user.id}</TableCell>
               <TableCell>{user.created_at}</TableCell>
               <TableCell>{user.name}</TableCell>
-              <TableCell>{user.is_active ? "Active" : "Inactive"}</TableCell>
+              <TableCell>{user.is_active ? t('users.active') : t('users.inactive')}</TableCell>
               <TableCell>
                 <Badge variant="secondary">{user.roles.join(", ")}</Badge>
               </TableCell>
               <TableCell className="space-x-2">
                 <Button variant="outline" size="sm" onClick={() => onEdit(user.id, user)}>
-                  Edit
+                  {t('users.edit')}
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => onDelete(user.id)}>
-                  Delete
+                  {t('users.delete')}
                 </Button>
               </TableCell>
             </TableRow>

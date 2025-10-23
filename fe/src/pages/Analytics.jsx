@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from 'react-i18next';
 
 
 const workflowDistribution = [
@@ -38,6 +39,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const { currAreaName, currAreaId } = useArea()
+  const {t} = useTranslation();
 
   // Hàm để lấy dữ liệu từ backend
   const fetchData = async () => {
@@ -95,7 +97,7 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-semibold text-gray-900 mt-4 ml-4">Trang thống kê</h1>
+            <h1 className="text-4xl font-semibold text-gray-900 mt-4 ml-4">{t('analytics.analytics')}</h1>
           </div>
           {/* Filter */}
           <div className="flex items-center gap-3">
@@ -104,22 +106,22 @@ export default function AnalyticsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1d">1 ngày gần nhất</SelectItem>
-                <SelectItem value="7d">7 ngày gần nhất</SelectItem>
-                <SelectItem value="30d">30 ngày gần nhất</SelectItem>
+                <SelectItem value="1d">{t('analytics.1d')}</SelectItem>
+                <SelectItem value="7d">{t('analytics.7d')}</SelectItem>
+                <SelectItem value="30d">{t('analytics.30d')}</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" className="gap-2 bg-transparent">
               <Download className="w-4 h-4" />
-              Export
+              {t('analytics.export')}
             </Button>
           </div>
         </div>
 
         <Tabs defaultValue="performance" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="workflows">Workflows</TabsTrigger>
+            <TabsTrigger value="performance">{t('analytics.performance')}</TabsTrigger>
+            <TabsTrigger value="workflows">{t('analytics.workflows')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="performance" className="space-y-6">
@@ -127,7 +129,7 @@ export default function AnalyticsPage() {
               {/* Execution Trends */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian làm và nghỉ</CardTitle>
+                  <CardTitle>{t('analytics.timeRangeIdleAndTask')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
@@ -158,7 +160,7 @@ export default function AnalyticsPage() {
               {/* Success vs Failed */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian tải và không tải</CardTitle>
+                  <CardTitle>{t('analytics.timeRangeWithPayloadandWithoutPayload')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
@@ -189,7 +191,7 @@ export default function AnalyticsPage() {
               {/* Workflow Distribution */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Workflow Distribution</CardTitle>
+                  <CardTitle>{t('analytics.workflowDistribution')}</CardTitle>
                   <CardDescription>Execution breakdown by workflow type</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -218,7 +220,7 @@ export default function AnalyticsPage() {
               {/* Top Workflows */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Top Performing Workflows</CardTitle>
+                  <CardTitle>{t('analytics.topPerformingWorkflows')}</CardTitle>
                   <CardDescription>Most executed workflows this month</CardDescription>
                 </CardHeader>
                 <CardContent>

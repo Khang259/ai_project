@@ -2,20 +2,22 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Settings2, Grid3x3, Video, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const SidebarNavigation = ({ activeTab, onTabChange }) => {
+  const {t} = useTranslation();
   const tabs = [
     {
       id: 'button',
-      label: 'Cấu Hình Nút',
+      label: t('settings.buttonSettings'),
       icon: Grid3x3,
-      description: 'Thiết lập nút bấm và phân quyền user'
+      description: t('settings.buttonSettingsDescription')
     },
     {
       id: 'camera',
-      label: 'Cấu Hình Camera',
+      label: t('settings.cameraSettings'),
       icon: Video,
-      description: 'Quản lý địa chỉ IP camera'
+      description: t('settings.cameraSettingsDescription')
     }
   ];
 
@@ -25,7 +27,7 @@ const SidebarNavigation = ({ activeTab, onTabChange }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2 mb-4">
             <Settings2 className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-lg">Cài Đặt</h3>
+            <h3 className="font-semibold text-lg">{t('settings.settings')}</h3>
           </div>
           
           {tabs.map((tab) => {

@@ -235,3 +235,4 @@ def generate_frames_from_rtsp(rtsp_url: str):
     finally:
         cap.release()
         logger.info(f"Camera stream closed: {rtsp_url}")
+

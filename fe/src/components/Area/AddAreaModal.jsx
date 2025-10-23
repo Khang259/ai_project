@@ -10,8 +10,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-
+import { useTranslation } from "react-i18next";
 const AddAreaModal = ({ isOpen, onClose, onSubmit, loading }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     area_id: "",
     area_name: "",
@@ -38,15 +39,15 @@ const AddAreaModal = ({ isOpen, onClose, onSubmit, loading }) => {
     const newErrors = {};
     
     if (!formData.area_id.trim()) {
-      newErrors.area_id = "Area ID is required";
+      newErrors.area_id = t('area.areaIdRequired');
     } else if (isNaN(formData.area_id) || parseInt(formData.area_id) <= 0) {
-      newErrors.area_id = "Area ID must be a positive number";
+      newErrors.area_id = t('area.areaIdMustBeAPositiveNumber');
     }
     
     if (!formData.area_name.trim()) {
-      newErrors.area_name = "Area Name is required";
+      newErrors.area_name = t('area.areaNameRequired');
     } else if (formData.area_name.trim().length < 2) {
-      newErrors.area_name = "Area Name must be at least 2 characters";
+      newErrors.area_name = t('area.areaNameMustBeAtLeast2Characters');
     }
     
     setErrors(newErrors);
@@ -90,18 +91,18 @@ const AddAreaModal = ({ isOpen, onClose, onSubmit, loading }) => {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Area</DialogTitle>
+          <DialogTitle>{t('area.addNewArea')}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="area_id">Area ID</Label>
+            <Label htmlFor="area_id">{t('area.areaId')}</Label>
             <Input
               id="area_id"
               type="number"
               value={formData.area_id}
               onChange={(e) => handleInputChange("area_id", e.target.value)}
-              placeholder="Enter area ID"
+              placeholder={t('area.enterAreaId')}
               className={errors.area_id ? "border-red-500" : ""}
             />
             {errors.area_id && (
@@ -110,13 +111,13 @@ const AddAreaModal = ({ isOpen, onClose, onSubmit, loading }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="area_name">Area Name</Label>
+            <Label htmlFor="area_name">{t('area.areaName')}</Label>
             <Input
               id="area_name"
               type="text"
               value={formData.area_name}
               onChange={(e) => handleInputChange("area_name", e.target.value)}
-              placeholder="Enter area name"
+              placeholder={t('area.enterAreaName')}
               className={errors.area_name ? "border-red-500" : ""}
             />
             {errors.area_name && (
@@ -131,14 +132,14 @@ const AddAreaModal = ({ isOpen, onClose, onSubmit, loading }) => {
               onClick={handleClose}
               disabled={loading}
             >
-              Cancel
+              {t('area.cancel')}
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {loading ? "Adding..." : "Add Area"}
+              {loading ? t('area.loading') : t('area.addArea')}
             </Button>
           </DialogFooter>
         </form>

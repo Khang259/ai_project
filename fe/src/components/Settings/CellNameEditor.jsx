@@ -136,9 +136,9 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
         </TableBody>
       </Table>
       <div className="flex justify-end mt-4">
-        <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700 text-white">
+        {/* <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700 text-white">
           Lưu Cấu Hình Nút
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

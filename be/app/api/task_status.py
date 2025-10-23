@@ -11,3 +11,4 @@ async def receive_task_status(request: Request):
     print(payload)
     return {"status": "success"}
 
+

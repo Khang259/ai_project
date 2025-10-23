@@ -5,7 +5,6 @@ from app.services.agv_dashboard_service import (
     get_agv_position,
     get_all_robots_payload_data,
     get_all_robots_work_status,
-    reverse_dashboard_data
 )
 from app.api.agv_websocket import manager
 from datetime import datetime
@@ -167,3 +166,4 @@ async def get_all_robots_work_status_endpoint(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+

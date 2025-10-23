@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { getRoles } from "@/services/roles";
-
+import { useTranslation } from "react-i18next";
 export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, userData }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: "",
     roles: [], // Sẽ được set từ API
@@ -40,7 +41,7 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
           console.error("Error loading roles:", error);
           setErrors(prev => ({
             ...prev,
-            roles: "Không thể tải danh sách vai trò"
+            roles: t('users.roleLoadingError')
           }));
         } finally {
           setRolesLoading(false);
@@ -54,9 +55,9 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
   const validateForm = () => {
     const newErrors = {};
     if (!formData.username.trim()) {
-      newErrors.username = "Tên người dùng là bắt buộc";
+      newErrors.username = t('users.usernameRequired');
     } else if (formData.username.length < 3) {
-      newErrors.username = "Tên người dùng phải có ít nhất 3 ký tự";
+      newErrors.username = t('users.usernameMinLength');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -103,9 +104,9 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
       <Card className="w-full max-w-md mx-4 bg-gray-300" style={{ borderRadius: "30px" }}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle>Cập nhật người dùng</CardTitle>
+            <CardTitle>{t('users.updateUser')}</CardTitle>
             <CardDescription>
-              Cập nhật người dùng trong hệ thống
+              {t('users.updateUserDescription')}
             </CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={handleClose}>
@@ -116,11 +117,11 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Tên người dùng *</Label>
+              <Label htmlFor="username">{t('users.username')}</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Nhập tên người dùng"
+                placeholder={t('users.usernamePlaceholder')}
                 style={{ backgroundColor: "#fff" }} // Đổi màu nền placeholder
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
@@ -134,14 +135,14 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
             {/* Password không cập nhật tại đây, tách riêng endpoint đổi mật khẩu */}
 
             <div className="space-y-2">
-              <Label htmlFor="roles">Vai trò *</Label>
+              <Label htmlFor="roles">{t('users.role')}</Label>
               <Select
                 value={formData.roles[0] || ""}
                 onValueChange={(value) => handleInputChange("roles", [value])}
                 disabled={rolesLoading}
               >
                 <SelectTrigger style={{ backgroundColor: "#fff" }}>
-                  <SelectValue placeholder={rolesLoading ? "Đang tải ..." : "Chọn vai trò"} />
+                  <SelectValue placeholder={rolesLoading ? t('users.loadingRoles') : t('users.selectRole')} />
                 </SelectTrigger>
                 <SelectContent>
                   {roles.map((role) => (
@@ -159,10 +160,10 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
 
           <CardFooter className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={handleClose}>
-              Hủy
+              {t('users.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Đang cập nhật..." : "Cập nhật người dùng"}
+              {loading ? t('users.loading') : t('users.updateUser')}
             </Button>
           </CardFooter>
         </form>

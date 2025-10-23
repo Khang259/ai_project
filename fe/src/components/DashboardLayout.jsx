@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, Home, Workflow, BarChart3, Settings, Users, ChevronDown, Map } from "lucide-react";
+import { Bell, Home, Workflow, BarChart3, Settings, Users, ChevronDown, Map, Wrench } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
@@ -13,16 +13,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useArea } from "@/contexts/AreaContext";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const navigation = [
-  { name: "Tổng quan", href: "/dashboard", icon: Home },
-  { name: "Quản lý nhiệm vụ", href: "/task", icon: Workflow },
-  { name: "Thống kê", href: "/analytics", icon: BarChart3 },
-  { name: "Thông báo", href: "/notification", icon: Bell },
-  { name: "Quản lý người dùng", href: "/users", icon: Users },
-  { name: "Quản lý khu vực", href: "/area", icon: Map },
-  { name: "Cài đặt", href: "/settings", icon: Settings },
-
+  { nameKey: "navigation.dashboard", href: "/dashboard", icon: Home },
+  { nameKey: "navigation.taskManagement", href: "/task", icon: Workflow },
+  { nameKey: "navigation.analytics", href: "/analytics", icon: BarChart3 },
+  { nameKey: "navigation.notification", href: "/notification", icon: Bell },
+  { nameKey: "navigation.userManagement", href: "/users", icon: Users },
+  { nameKey: "navigation.areaManagement", href: "/area", icon: Map },
+  { nameKey: "navigation.settings", href: "/settings", icon: Settings },
+  { nameKey: "navigation.maintain", href: "/maintain", icon: Wrench },
 ];
 
 export default function DashboardLayout({ children }) {  // Bỏ interface, dùng { children }
@@ -31,6 +33,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
   const navigate = useNavigate();
   const { auth, logout } = useAuth();
   const { areaData, currAreaName, setCurrAreaName, setCurrAreaId, loading: areaLoading, error: areaError } = useArea();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -54,7 +57,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
     }
     // Nếu chỉ có role user, ẩn một số menu nhạy cảm
     if (auth.user?.roles?.includes('user') && !auth.user?.roles?.includes('admin')) {
-      return !['Quản lý người dùng', 'Cài đặt'].includes(item.name);
+      return !['navigation.userManagement', 'navigation.settings'].includes(item.nameKey);
     }
     return true;
   });
@@ -72,19 +75,19 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2" disabled={areaLoading}>
                   <span className="font-medium">
-                    {areaLoading ? "Đang tải..." : areaError ? "Lỗi tải areas" : `Khu vực: ${currAreaName || "Chưa chọn"}`}
+                    {areaLoading ? t('area.loading') : areaError ? t('area.errorLoading') : `${t('area.currentArea')}: ${currAreaName || t('area.notSelected')}`}
                   </span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuLabel>Chọn khu vực</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('area.selectArea')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {areaLoading ? (
                   <DropdownMenuItem disabled>
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      Đang tải areas...
+                      {t('area.loadingAreas')}
                     </div>
                   </DropdownMenuItem>
                 ) : areaError ? (
@@ -93,7 +96,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                   </DropdownMenuItem>
                 ) : areaData.length === 0 ? (
                   <DropdownMenuItem disabled>
-                    Không có area nào
+                    {t('area.noAreas')}
                   </DropdownMenuItem>
                 ) : (
                   areaData.map((area) => (
@@ -116,7 +119,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
               const isActive = pathname === item.href;
               return (
                 <Link
-                  key={item.name}
+                  key={item.nameKey}
                   to={item.href}
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
@@ -125,7 +128,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                   }`}
                 >
                   <item.icon className="w-7 h-7 mr-2" />
-                  {item.name}
+                  {t(item.nameKey)}
                 </Link>
               );
             })}
@@ -133,6 +136,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
         </div>
 
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -143,9 +147,9 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>{auth.user?.username || 'User'}</DropdownMenuLabel>
+              <DropdownMenuLabel>{auth.user?.username || t('user.user')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>{t('user.logout')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

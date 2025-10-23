@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { getRoles } from "@/services/roles";
-
+import { useTranslation } from "react-i18next";
 export default function UsersFilters({ search, onSearchChange, roleFilter, onRoleChange }) {
+  const { t } = useTranslation();
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
 
@@ -27,20 +28,20 @@ export default function UsersFilters({ search, onSearchChange, roleFilter, onRol
   return (
     <div className="flex gap-4">
       <Input
-        placeholder="Search by name..."
+        placeholder={t('users.searchByName')}
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         className="max-w-xs"
       />
       <Select value={roleFilter} onValueChange={onRoleChange} disabled={rolesLoading}>
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder={rolesLoading ? "Loading roles..." : "Filter by role"} />
+          <SelectValue placeholder={rolesLoading ? t('users.loadingRoles') : t('users.filterByRole')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Roles</SelectItem>
+          <SelectItem value="all">{t('users.allRoles')}</SelectItem>
           {roles.map((role) => (
             <SelectItem key={role.id} value={role.name}>
-              {role.name}
+              {t(`users.${role.name}`)}
             </SelectItem>
           ))}
         </SelectContent>

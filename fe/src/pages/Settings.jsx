@@ -4,10 +4,12 @@ import ButtonSettings from '../components/Settings/ButtonSettings';
 import CameraSettings from '../components/Settings/CameraSettings';
 import { Settings2 } from 'lucide-react';
 import { useArea } from '../contexts/AreaContext';
+import { useTranslation } from "react-i18next";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('button');
   const { currAreaName, currAreaId } = useArea();
+  const { t } = useTranslation();
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -27,10 +29,10 @@ const Settings = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-3">
             <Settings2 className="h-8 w-8 text-primary" />
-            Cài Đặt Hệ Thống
+            {t('settings.systemSettings')}
           </h1>
           <p className="text-muted-foreground text-lg">
-            Quản lý cấu hình lưới hiển thị và địa chỉ IP camera
+            {t('settings.systemSettingsDescription')}
           </p>
         </div>
 

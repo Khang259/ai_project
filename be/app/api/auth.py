@@ -12,9 +12,9 @@ async def signup(user_in: UserCreate):
     try:
         user = await register_user(user_in)
         logger.info(f"Signup success for username='{user_in.username}'")
-    except ValueError:
-        logger.error(f"Signup attempt with existing username='{user_in.username}'")
-        raise HTTPException(status_code=400, detail="User already exists")
+    except ValueError as e:
+        logger.error(f"Signup failed for username='{user_in.username}': {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
 
     token = create_user_token(user)
     user_info = await get_current_user_info(str(user["_id"]))

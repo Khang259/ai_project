@@ -5,7 +5,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     # Database
-    mongo_url: str = "mongodb://localhost:27017"
+    mongo_url: str = "mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/"
     mongo_db: str = "CamAI_Honda"
     
     # JWT
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     hashing_rounds: int = 12
     
     # CORS
-    cors_origins: str = "*"
+    cors_origins: str = "http://localhost:3000"
     
     # Environment
     app_env: str = "development"
