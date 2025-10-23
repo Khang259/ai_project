@@ -5,11 +5,68 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 // Import camera images
-import onlineCameraIcon from '@/assets/online_camera.png';
-import offlineCameraIcon from '@/assets/offline_camera.png';
-import cameraConfig from '@/components/config/camera';
+// Camera layer moved to dedicated component
+import Camera from '../camera/Camera';
+import { getCamerasByArea } from '@/services/camera-settings';
+import { useArea } from "@/contexts/AreaContext";
 // Import NodeComponent
 import NodeComponent from './Node';
+// MapFilters is handled in parent AMRWarehouseMap component
+
+// Error Boundary Component
+class CameraErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('🚨 Camera component error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ 
+          padding: '10px', 
+          color: 'red', 
+          background: '#ffe6e6',
+          borderRadius: '4px',
+          margin: '10px',
+          border: '1px solid #ff4d4f'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+            Camera component error
+          </div>
+          <div style={{ fontSize: '12px' }}>
+            {this.state.error?.message || 'Unknown error occurred'}
+          </div>
+          <button 
+            onClick={() => this.setState({ hasError: false, error: null })}
+            style={{ 
+              marginTop: '5px', 
+              padding: '2px 8px', 
+              fontSize: '10px',
+              background: '#ff4d4f',
+              color: 'white',
+              border: 'none',
+              borderRadius: '2px',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 // Biểu tường AGV
 const createSVGIcon = (size = 28, color = '#4285F4') => {
   const svg = `
@@ -43,16 +100,7 @@ const getIconUrl = () => {
   return createSVGIcon(); // Return SVG as final fallback
 };
 
-// Tính kích thước icon camera theo zoom hiện tại của map (CRS.Simple)
-const getCameraIconSizeByZoom = (map) => {
-  if (!map) return [32, 32];
-  const zoom = map.getZoom();
-  // Với CRS.Simple: zoom 0 ~ 1x, -1 ~ 0.5x, 1 ~ 2x
-  const baseSize = 24; // kích thước cơ sở tại zoom 0
-  const scale = Math.pow(2, zoom);
-  const size = Math.max(16, Math.min(64, Math.round(baseSize * scale)));
-  return [size, size];
-};
+// Camera icon sizing handled inside Camera component
 
 // Fix for default markers in Leaflet
 L.Icon.Default.mergeOptions({
@@ -121,13 +169,16 @@ const LeafletMap = ({
   showChargeStations,
   onMapReady,
   onCameraClick,
-  onNodeClick
+  onNodeClick,
+  cameraFilter, // Thêm prop từ parent
 }) => {
   const [cameraStatus, setCameraStatus] = useState({});
   const [nodeStatus, setNodeStatus] = useState({});
+  const { currAreaId } = useArea();
+  const [camerasData, setCamerasData] = useState([]);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const [mapInstanceState, setMapInstanceState] = useState(null); // ensure children re-render when map is ready
+  const [mapInstanceState, setMapInstanceState] = useState(null);
   const robotMarkerRef = useRef(null);
   const previousPositionRef = useRef(null);
   const layersRef = useRef({
@@ -161,12 +212,29 @@ const LeafletMap = ({
     if (onMapReady) {
       // Store map data reference for reset functionality
       map._mapData = mapData;
-      onMapReady(map);
+      onMapReady(map, mapData);
     }
 
     return () => {
       if (map) {
-        map.remove();
+        try {
+          // Clear all layers trước khi remove map
+          map.eachLayer((layer) => {
+            try {
+              map.removeLayer(layer);
+            } catch (error) {
+              console.warn('⚠️ Error removing layer:', error);
+            }
+          });
+          
+          // Clear all event listeners
+          map.off();
+          
+          // Remove map
+          map.remove();
+        } catch (error) {
+          console.warn('⚠️ Error cleaning up map:', error);
+        }
       }
     };
   }, [mapData, onMapReady]);
@@ -177,6 +245,27 @@ const LeafletMap = ({
       mapInstanceRef.current._mapData = mapData;
     }
   }, [mapData]);
+
+  // ✅ useEffect để fetch camera data từ database
+  useEffect(() => {
+    const fetchCamerasData = async () => {
+      if (!currAreaId) {
+        console.log('⚠️ No currentAreaId provided, skipping camera fetch');
+        setCamerasData([]);
+        return;
+      }
+
+      try {
+        const cameras = await getCamerasByArea(currAreaId);
+        setCamerasData(cameras || []);
+      } catch (error) {
+        console.error('❌ Error fetching cameras data:', error);
+        setCamerasData([]);
+      }
+    };
+
+    fetchCamerasData();
+  }, [currAreaId]); // Re-fetch khi area thay đổi
 
   // Draw paths
   useEffect(() => {
@@ -200,7 +289,7 @@ const LeafletMap = ({
         if (line.startNode && line.endNode) {
           const startNode = mapData.nodeArr.find(node => node.key === line.startNode);
           const endNode = mapData.nodeArr.find(node => node.key === line.endNode);
-          
+   
           if (startNode && endNode && 
               typeof startNode.x !== 'undefined' && typeof startNode.y !== 'undefined' &&
               typeof endNode.x !== 'undefined' && typeof endNode.y !== 'undefined') {
@@ -253,123 +342,10 @@ const LeafletMap = ({
     layersRef.current.paths = pathsLayer;
   }, [mapData, showPaths]);
 
-  // Tách riêng useEffect cho camera layer
-  useEffect(() => {
-    if (!mapInstanceRef.current || !mapData || !showCameras) {
-      if (layersRef.current.cameras) {
-        mapInstanceRef.current.removeLayer(layersRef.current.cameras);
-        layersRef.current.cameras = null;
-      }
-      return;
-    }
-
-    // Remove existing camera layer
-    if (layersRef.current.cameras) {
-      mapInstanceRef.current.removeLayer(layersRef.current.cameras);
-    }
-
-    const camerasLayer = L.layerGroup();
-
-    if (mapData.nodeArr) {
-      let cameraCount = 0;
-      let skippedCount = 0;
-      
-      mapData.nodeArr.forEach((node, index) => {
-        // Skip nodes without required properties
-        if (!node || typeof node.x === 'undefined' || typeof node.y === 'undefined') {
-          skippedCount++;
-          return;
-        }
-
-        // Chỉ xử lý camera nodes
-        if (typeof node.name === 'string' && /^Camera\d+$/i.test(node.name.trim())) {
-          
-          // Extract camera ID from name
-          const cameraId = parseInt(node.name.replace(/Camera/i, ''));
-          const isOnline = cameraStatus[cameraId]?.online || false;
-        
-          
-          // Get camera info from config
-          let ipAddress = `192.168.1.${100 + cameraId}`; // IP mặc định có file riêng để sửa sau
-          
-          // Tạo camera icon sử dụng hình ảnh với kích thước theo zoom
-          const currentSize = getCameraIconSizeByZoom(mapInstanceRef.current);
-          const cameraIcon = L.icon({
-            iconUrl: isOnline ? onlineCameraIcon : offlineCameraIcon,
-            iconSize: currentSize ,
-            iconAnchor: [Math.round(currentSize[0] / 2), Math.round(currentSize[1] / 2)],
-            popupAnchor: [0, -Math.round(currentSize[1] / 2)],
-            className: 'camera-marker-icon'
-          });
-          
-          const marker = L.marker([node.y, node.x], { icon: cameraIcon });
-          
-          // Add tooltip with IP address
-          marker.bindTooltip(`<div style="
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            border: 1px solid ${isOnline ? '#52c41a' : '#ff4d4f'};
-          ">
-            <div style="margin-bottom: 4px; font-weight: 600;">${node.name}</div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${isOnline ? '#52c41a' : '#ff4d4f'}; display: inline-block;"></span>
-              <span>${ipAddress}</span>
-            </div>
-            <div style="margin-top: 4px; font-size: 11px; opacity: 0.8;">
-              Status: ${isOnline ? 'ONLINE' : 'OFFLINE'}
-            </div>
-          </div>`, {
-            permanent: false,
-            direction: 'top',
-            offset: [0, -20],
-            className: 'camera-tooltip'
-          });
-          
-          if (onCameraClick) {
-            marker.on('click', () => {
-              onCameraClick(node.name.replace('Camera', ''));
-            });
-          }
-          camerasLayer.addLayer(marker);
-
-          // Cập nhật kích thước icon khi zoom thay đổi
-          if (mapInstanceRef.current) {
-            const onZoom = () => {
-              const newSize = getCameraIconSizeByZoom(mapInstanceRef.current);
-              const newIcon = L.icon({
-                iconUrl: isOnline ? onlineCameraIcon : offlineCameraIcon,
-                iconSize: newSize,
-                iconAnchor: [Math.round(newSize[0] / 2), Math.round(newSize[1] / 2)],
-                popupAnchor: [0, -Math.round(newSize[1] / 2)],
-                className: 'camera-marker-icon'
-              });
-              marker.setIcon(newIcon);
-            };
-            mapInstanceRef.current.on('zoomend', onZoom);
-            // Lưu cleanup trên marker để gỡ listener khi remove layer
-            marker.on('remove', () => {
-              mapInstanceRef.current && mapInstanceRef.current.off('zoomend', onZoom);
-            });
-          }
-          cameraCount++;
-        } else {
-          skippedCount++;
-        }
-      });
-    }
-
-    camerasLayer.addTo(mapInstanceRef.current);
-    layersRef.current.cameras = camerasLayer;
-  }, [mapData, showCameras, onCameraClick, cameraStatus]);
+  // Camera layer moved into Camera component
 
   // Handle node click events
   const handleNodeClick = (nodeInfo) => {
-    console.log('Node clicked in Map:', nodeInfo);
     
     // Update node status (example: toggle lock status)
     setNodeStatus(prev => ({
@@ -646,18 +622,35 @@ const LeafletMap = ({
           }
         `}
       </style>
-      <div 
-        ref={mapRef} 
-        style={{ 
-          width: '100%', 
-          height: '1000px',
-          backgroundColor: 'rgb(255, 255, 255)',
-          position: 'relative',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-        }} 
-      />
+        <div 
+          ref={mapRef} 
+          style={{ 
+            width: '100%', 
+            height: '85vh',
+            backgroundColor: 'rgb(255, 255, 255)',
+            position: 'relative',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          }} 
+        />
+      {/* Camera layer với error boundary */}
+      <CameraErrorBoundary>
+        {(() => {
+          const ready = !!mapInstanceState;
+          return (
+            <Camera 
+              mapInstance={mapInstanceState}
+              mapData={mapData}
+              showCameras={showCameras}
+              onCameraClick={onCameraClick}
+              cameraStatus={cameraStatus}
+              camerasData={camerasData}
+              focusCamera={cameraFilter}
+            />
+          );
+        })()}
+      </CameraErrorBoundary>
       {/* NodeComponent for handling supply/return points */}
       {(() => {
         const ready = !!mapInstanceState;

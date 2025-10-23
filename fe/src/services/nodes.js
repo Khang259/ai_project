@@ -70,5 +70,3 @@ export const deleteNodeById = async (nodeId) => {
   }
 };
 
-
-

@@ -1,20 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
+import { getRoles } from "@/services/roles";
 
 export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    roles: ["user"], // Default role theo backend
+    roles: [], // Sẽ được set từ API
     permissions: []
   });
-
+  
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Load roles khi modal mở
+  useEffect(() => {
+    const loadRoles = async () => {
+      if (isOpen) {
+        try {
+          setRolesLoading(true);
+          const rolesData = await getRoles();
+          setRoles(rolesData || []);
+        } catch (error) {
+          console.error("Error loading roles:", error);
+          setErrors(prev => ({
+            ...prev,
+            roles: "Không thể tải danh sách vai trò"
+          }));
+        } finally {
+          setRolesLoading(false);
+        }
+      }
+    };
+
+    loadRoles();
+  }, [isOpen]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -29,6 +55,10 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
       newErrors.password = "Mật khẩu là bắt buộc";
     } else if (formData.password.length < 3) {
       newErrors.password = "Mật khẩu phải có ít nhất 3 ký tự";
+    }
+    
+    if (!formData.roles || formData.roles.length === 0) {
+      newErrors.roles = "Vai trò là bắt buộc";
     }
     
     setErrors(newErrors);
@@ -61,7 +91,8 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     setFormData({
       username: "",
       password: "",
-      roles: ["user"]
+      roles: [],
+      permissions: []
     });
     setErrors({});
     onClose();
@@ -92,7 +123,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
                 id="username"
                 type="text"
                 placeholder="Nhập tên người dùng"
-                style={{ backgroundColor: "#fff" }} // Đổi màu nền placeholder
+                style={{ backgroundColor: "#fff" }}
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
                 className={errors.username ? "border-red-500" : ""}
@@ -102,13 +133,13 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
               )}
             </div>
 
-            <div >
+            <div className="space-y-2">
               <Label htmlFor="password">Mật khẩu *</Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="Nhập mật khẩu"
-                style={{ backgroundColor: "#fff" }} // Đổi màu nền placeholder
+                style={{ backgroundColor: "#fff" }}
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 className={errors.password ? "border-red-500" : ""}
@@ -121,19 +152,24 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
             <div className="space-y-2">
               <Label htmlFor="roles">Vai trò *</Label>
               <Select
-                value={formData.roles[0] || "user"}
+                value={formData.roles[0] || ""}
                 onValueChange={(value) => handleInputChange("roles", [value])}
+                disabled={rolesLoading}
               >
                 <SelectTrigger style={{ backgroundColor: "#fff" }}>
-                  <SelectValue placeholder="Chọn role" />
+                  <SelectValue placeholder={rolesLoading ? "Đang tải..." : "Chọn vai trò"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* <SelectItem value="viewer">Viewer</SelectItem> */}
-                  <SelectItem value="admin">Admin</SelectItem>
-                  {/* <SelectItem value="manager">Manager</SelectItem> */}
-                  <SelectItem value="user">User</SelectItem>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {errors.roles && (
+                <p className="text-sm text-red-500">{errors.roles}</p>
+              )}
             </div>
           </CardContent>
 
@@ -141,7 +177,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
             <Button type="button" variant="outline" onClick={handleClose}>
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || rolesLoading}>
               {loading ? "Đang tạo..." : "Tạo người dùng"}
             </Button>
           </CardFooter>

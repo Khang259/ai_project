@@ -6,16 +6,25 @@ import useZipImport from '@/hooks/MapDashboard/useZipImport';
 import useLeafletMapControls from '@/hooks/MapDashboard/useMapControl';
 import useAGVWebSocket from '@/hooks/MapDashboard/useAGVWebsocket';
 import CameraViewer from '@/components/Overview/map/camera/CameraViewer.jsx';
-// import MapLegend from '@/components/Overview/map/AMRWarehouseMap/MapLegend';
 import MapFilters from '@/components/Overview/map/AMRWarehouseMap/MapFilters';
-import MapImport from '@/components/Overview/map/AMRWarehouseMap/MapImport';
+// import MapImport from '@/components/Overview/map/AMRWarehouseMap/MapImport';
 import NodeDetailsModal from '@/components/Overview/map/AMRWarehouseMap/NodeDetailsModal';
 import SwitchButton from '@/components/Overview/map/AMRWarehouseMap/SwitchButton';
+import { useArea } from '@/contexts/AreaContext';
+import { getMapFromBackend } from '@/services/mapService';
 const { Title } = Typography;
 
 const AMRWarehouseMap = () => {
+  // Area context
+  const { currAreaId, currAreaName } = useArea();
+  
+  // Map data states
   const [mapData, setMapData] = useState(null);
   const [securityConfig, setSecurityConfig] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState(null);
+  
+  // UI states
   const [selectedAvoidanceMode, setSelectedAvoidanceMode] = useState(1);
   const [showNodes, setShowNodes] = useState(true);
   const [showCameras, setShowCameras] = useState(true);
@@ -29,7 +38,7 @@ const AMRWarehouseMap = () => {
   const [cameraFilter, setCameraFilter] = useState('');
   const [amrFilter, setAmrFilter] = useState('');
 
-  const { loading: zipLoading, error: zipError, zipFileName, handleZipImport } = useZipImport();
+  const { loading: zipLoading, error: zipError, zipFileName, handleZipImport, saveToBackendLoading, saveToBackendError } = useZipImport();
   const { handleMapReady } = useLeafletMapControls();
   const { isConnected, agvData, error: wsError } = useAGVWebSocket();
 
@@ -53,15 +62,43 @@ const AMRWarehouseMap = () => {
     return null;
   };
 
-  // Load data from localStorage (unchanged)
+  // Load map data from backend based on current area_id
   useEffect(() => {
-    const mapDataStr = localStorage.getItem('mapData');
-    const securityDataStr = localStorage.getItem('securityData');
-    if (mapDataStr) {
+    const loadMapFromBackend = async () => {
+      if (!currAreaId) {
+        console.log('[AMRWarehouseMap] No currAreaId, skipping map load');
+        return;
+      }
+      
+      setMapLoading(true);
+      setMapError(null);
+      
       try {
-        setMapData(JSON.parse(mapDataStr));
-      } catch {}
-    }
+        const result = await getMapFromBackend(currAreaId);
+        
+        if (result.success && result.data) {
+          setMapData(result.data);
+          
+          // Also save to localStorage as backup
+          localStorage.setItem('mapData', JSON.stringify(result.data));
+          localStorage.setItem('currentAreaId', currAreaId.toString());
+        } else {
+          throw new Error('No map data received from backend');
+        }
+      } catch (error) {
+        console.error(`[AMRWarehouseMap] ❌ Error loading map for area_id ${currAreaId}:`, error);
+        setMapError(error.message);
+      } finally {
+        setMapLoading(false);
+      }
+    };
+
+    loadMapFromBackend();
+  }, [currAreaId]); // Dependency on currAreaId
+
+  // Load security config from localStorage (unchanged)
+  useEffect(() => {
+    const securityDataStr = localStorage.getItem('securityData');
     if (securityDataStr) {
       try {
         setSecurityConfig(JSON.parse(securityDataStr));
@@ -80,104 +117,127 @@ const AMRWarehouseMap = () => {
   };
 
   return (
-    <div className="dashboard-page" style={{ background: 'white', minHeight: '100vh' }}>
+    <div className="dashboard-page" style={{ background: 'white', minHeight: '75vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 8 }}>
+        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 24, paddingRight: 24 }}>
           Bản đồ quan sát AMR
         </Title>
         <MapFilters
           cameraFilter={cameraFilter}
-          setCameraFilter={setCameraFilter}
+          setCameraFilter={(value) => {
+            setCameraFilter(value);
+          }}
           amrFilter={amrFilter}
           setAmrFilter={setAmrFilter}
         />
         <SwitchButton />
-        <MapImport
-          zipLoading={zipLoading}
-          zipError={zipError}
-          zipFileName={zipFileName}
-          handleZipImport={handleZipImport}
-          setMapData={setMapData}
-          setSecurityConfig={setSecurityConfig}
-          setSelectedAvoidanceMode={setSelectedAvoidanceMode}
-        />
       </div>
       {/* <MapLegend /> */}
-      <Card variant="borderless" style={{ borderRadius: 16, color: '#fff' }}>
-        <div style={{ padding: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-            {agvData && agvData.data && agvData.data.length > 0 && (
-              <>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{ color: '#fff', fontWeight: 600 }}>AGV {agvData.data[0].deviceName || 'Unknown'}</span>
-                  <Tag color={agvData.data[0].state === 'InTask' ? 'green' : 'orange'}>{agvData.data[0].state || 'Unknown'}</Tag>
-                </div>
-                <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ color: '#ccc', fontSize: 12 }}>Battery: {agvData.data[0].battery || 'N/A'}%</span>
-                  <span style={{ color: '#ccc', fontSize: 12 }}>Speed: {agvData.data[0].speed || 'N/A'} mm/s</span>
-                  <span style={{ color: '#ccc', fontSize: 12 }}>
-                    Payload: {String(agvData.data[0].payLoad) === '0.0' ? 'Unload' : String(agvData.data[0].payLoad) === '1.0' ? 'Load' : 'N/A'}
-                  </span>
-                </div>
-              </>
-            )}
+      {/* <Card variant="borderless" style={{ borderRadius: 16, color: '#fff' }}> */}
+      <div className="map-area-box">
+        {/* Map Loading State */}
+        {mapLoading && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '600px',
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '8px',
+            border: '2px dashed #d9d9d9'
+          }}>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+            <div style={{ color: '#1890ff', fontSize: '16px', fontWeight: '500' }}>
+              Đang tải bản đồ cho khu vực: {currAreaName || 'Unknown'}
+            </div>
+            <div style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+              Area ID: {currAreaId}
+            </div>
           </div>
-        </div>
-        <div className="map-area-box">
-          {(() => {
-            const rawList = Array.isArray(agvData) ? agvData : (agvData?.data || []);
-            const processedList = rawList
-              .map((item) => {
-                if (!item) return null;
-                const parsedPosition = parseDevicePosition(item.devicePosition, mapData);
-                if (parsedPosition) {
-                  return {
-                    ...item,
-                    devicePositionParsed: parsedPosition,
-                    devicePositionOriginal: item.devicePosition,
-                  };
-                }
-                if (item.devicePosition && typeof item.devicePosition === 'object') {
-                  const pos = item.devicePosition;
-                  if (pos.x !== undefined && pos.y !== undefined && pos.x !== null && pos.y !== null && !isNaN(pos.x) && !isNaN(pos.y)) {
-                    return item;
-                  }
-                }
-                if (item.devicePositionParsed || item.position || (item.x !== undefined && item.y !== undefined)) {
+        )}
+
+        {/* Map Error State */}
+        {mapError && !mapLoading && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '600px',
+            background: 'rgba(255, 245, 245, 0.9)',
+            borderRadius: '8px',
+            border: '2px dashed #ff4d4f',
+            padding: '20px'
+          }}>
+            <div style={{ color: '#ff4d4f', fontSize: '24px', marginBottom: '16px' }}>⚠️</div>
+            <div style={{ color: '#ff4d4f', fontSize: '16px', fontWeight: '500', textAlign: 'center' }}>
+              Không thể tải bản đồ cho khu vực: {currAreaName || 'Unknown'}
+            </div>
+            <div style={{ color: '#666', fontSize: '14px', marginTop: '8px', textAlign: 'center' }}>
+              Area ID: {currAreaId}
+            </div>
+            <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '12px', textAlign: 'center', maxWidth: '400px' }}>
+              Lỗi: {mapError}
+            </div>
+          </div>
+        )}
+
+        {/* Map Content */}
+        {!mapLoading && !mapError && (() => {
+          const rawList = Array.isArray(agvData) ? agvData : (agvData?.data || []);
+          const processedList = rawList
+            .map((item) => {
+              if (!item) return null;
+              const parsedPosition = parseDevicePosition(item.devicePosition, mapData);
+              if (parsedPosition) {
+                return {
+                  ...item,
+                  devicePositionParsed: parsedPosition,
+                  devicePositionOriginal: item.devicePosition,
+                };
+              }
+              if (item.devicePosition && typeof item.devicePosition === 'object') {
+                const pos = item.devicePosition;
+                if (pos.x !== undefined && pos.y !== undefined && pos.x !== null && pos.y !== null && !isNaN(pos.x) && !isNaN(pos.y)) {
                   return item;
                 }
-                return null;
-              })
-              .filter(Boolean);
-            const filteredList = processedList;
-            const finalRobotList = [...filteredList];
-            return (
-              <LeafletMap
-                mapData={mapData}
-                securityConfig={securityConfig}
-                robotList={finalRobotList}
-                showNodes={showNodes}
-                showCameras={showCameras}
-                showPaths={showPaths}
-                showChargeStations={showChargeStations}
-                selectedAvoidanceMode={selectedAvoidanceMode}
-                nodeRadius={nodeRadius}
-                nodeStrokeWidth={nodeStrokeWidth}
-                nodeFontSize={nodeFontSize}
-                onMapReady={handleMapReady}
-                onCameraClick={setSelectedCamera}
-                onNodeClick={handleNodeClick}
-              />
-            );
-          })()}
-          {selectedCamera && <CameraViewer camId={selectedCamera} onClose={() => setSelectedCamera(null)} />}
-          <NodeDetailsModal
-            selectedNode={selectedNode}
-            onClose={() => setSelectedNode(null)}
-            onToggleLock={handleToggleLock}
-          />
-        </div>
-      </Card>
+              }
+              if (item.devicePositionParsed || item.position || (item.x !== undefined && item.y !== undefined)) {
+                return item;
+              }
+              return null;
+            })
+            .filter(Boolean);
+          const filteredList = processedList;
+          const finalRobotList = [...filteredList];
+          return (
+            <LeafletMap
+              mapData={mapData}
+              securityConfig={securityConfig}
+              robotList={finalRobotList}
+              showNodes={showNodes}
+              showCameras={showCameras}
+              showPaths={showPaths}
+              showChargeStations={showChargeStations}
+              selectedAvoidanceMode={selectedAvoidanceMode}
+              nodeRadius={nodeRadius}
+              nodeStrokeWidth={nodeStrokeWidth}
+              nodeFontSize={nodeFontSize}
+              onMapReady={handleMapReady}
+              onCameraClick={setSelectedCamera}
+              onNodeClick={handleNodeClick}
+              cameraFilter={cameraFilter}
+            />
+          );
+        })()}
+        {selectedCamera && <CameraViewer cameraData={selectedCamera} onClose={() => setSelectedCamera(null)} />}
+        <NodeDetailsModal
+          selectedNode={selectedNode}
+          onClose={() => setSelectedNode(null)}
+          onToggleLock={handleToggleLock}
+        />
+      </div>
     </div>
   );
 };

@@ -5,12 +5,15 @@ import UsersHeader from "@/components/Users/UsersHeader";
 import UsersFilters from "@/components/Users/UsersFilters";
 import UsersTable from "@/components/Users/UsersTable";
 import AddUserModal from "@/components/Users/AddUserModal";
+import UpdateUserModal from "@/components/Users/UpdateUserModal";
 import { useUsers } from "@/hooks/Users/useUsers";
 import Username from "@/components/Users/username";
 import { useArea } from "@/contexts/AreaContext";
 
 export default function UserDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const { currAreaName, currAreaId } = useArea();
   
   const {
@@ -22,6 +25,7 @@ export default function UserDashboard() {
     filteredUsers,
     handleDelete,
     handleAddUser,
+    handleUpdateUser,
     loading,
     error,
   } = useUsers();
@@ -37,6 +41,22 @@ export default function UserDashboard() {
     } catch (error) {
       console.error("Lỗi khi thêm user:", error);
       toast.error(error?.message || "Thêm người dùng thất bại");
+    }
+  };
+
+  const handleEdit = (id, user) => {
+    setSelectedUser(user);
+    setIsUpdateModalOpen(true);
+  };
+
+  const handleUpdateUserSubmit = async (payload) => {
+    if (!selectedUser?.id) return;
+    try {
+      await handleUpdateUser(selectedUser.id, payload);
+      toast.success("Cập nhật người dùng thành công");
+      setIsUpdateModalOpen(false);
+    } catch (error) {
+      toast.error(error?.message || "Cập nhật người dùng thất bại");
     }
   };
 
@@ -60,6 +80,7 @@ export default function UserDashboard() {
           email: "-"  // API không có email field
         }))}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
 
       <AddUserModal
@@ -68,6 +89,15 @@ export default function UserDashboard() {
         onSubmit={handleAddUserSubmit}
         loading={loading}
       />
+
+      <UpdateUserModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        onSubmit={handleUpdateUserSubmit}
+        loading={loading}
+        userData={selectedUser}
+      />
+      
     </div>
   );
 }

@@ -7,70 +7,70 @@ import { useArea } from "@/contexts/AreaContext"
 const mockTasks = [
   {
     id: "TASK-8782",
-    title: "You can't compress the program without quantifying the open-source SSD pixel!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "In Progress",
     priority: "Medium",
     createdAt: new Date("2024-01-15T10:30:00"),
   },
   {
     id: "TASK-7878",
-    title: "Try to calculate the EXE feed, maybe it will index the multi-byte pixel!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "Backlog",
     priority: "Medium",
     createdAt: new Date("2024-01-14T14:20:00"),
   },
   {
     id: "TASK-7839",
-    title: "We need to bypass the neural TCP card!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "Todo",
     priority: "High",
     createdAt: new Date("2024-01-16T09:15:00"),
   },
   {
     id: "TASK-5562",
-    title: "The SAS interface is down, bypass the open-source pixel so we can back up the PNG bandwidth!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "Backlog",
     priority: "Medium",
     createdAt: new Date("2024-01-12T16:45:00"),
   },
   {
     id: "TASK-8686",
-    title: "I'll parse the wireless SSL protocol, that should driver the API panel!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "Canceled",
     priority: "Medium",
     createdAt: new Date("2024-01-10T11:30:00"),
   },
   {
     id: "TASK-1280",
-    title: "Use the digital TLS panel, then you can transmit the haptic system!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "Done",
     priority: "High",
     createdAt: new Date("2024-01-08T13:20:00"),
   },
   {
     id: "TASK-7262",
-    title: "The UTF8 application is down, parse the neural bandwidth so we can back up the PNG firewall!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "Done",
     priority: "High",
     createdAt: new Date("2024-01-09T15:10:00"),
   },
   {
     id: "TASK-1138",
-    title: "Generating the driver won't do anything, we need to quantify the 1080p SMTP bandwidth!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "In Progress",
     priority: "Medium",
     createdAt: new Date("2024-01-13T08:45:00"),
   },
   {
     id: "TASK-7184",
-    title: "We need to program the back-end THX pixel!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "Todo",
     priority: "Low",
     createdAt: new Date("2024-01-17T12:00:00"),
   },
   {
     id: "TASK-5160",
-    title: "Calculating the bus won't do anything, we need to navigate the back-end JSON protocol!",
+    title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     status: "In Progress",
     priority: "High",
     createdAt: new Date("2024-01-11T17:30:00"),
@@ -91,9 +91,6 @@ export default function TasksPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl font-semibold">Trang quản lý nhiệm vụ</CardTitle>
-          <CardDescription>
-            Quản lý nhiệm vụ cho khu vực: <span className="font-semibold text-primary">{currAreaName}</span> (ID: {currAreaId})
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <TaskTable tasks={tasks} onTasksChange={handleTasksChange} />

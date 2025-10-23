@@ -7,13 +7,11 @@ function PrivateRoute({ children, requiredRole = null }) {
   const user = auth?.user || null;
 
   if (!token) {
-    console.log('❌ No token, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   // Nếu chưa có thông tin user, đợi load xong
   if (!user) {
-    console.log('⏳ No user data, showing loading');
     return <div style={{ padding: '20px', background: 'yellow', color: 'black' }}>
       <h2>Đang tải thông tin user...</h2>
       <p>Token: {token ? 'Có' : 'Không'}</p>
@@ -24,11 +22,11 @@ function PrivateRoute({ children, requiredRole = null }) {
   // Nếu có requiredRole, kiểm tra quyền
   if (requiredRole) {
     if (!user.roles || !user.roles.includes(requiredRole)) {
-      console.log('❌ User does not have required role, redirecting...');
+      console.log('❌ User does not have required role, redirecting...', {requiredRole});
       // Nếu không có quyền → redirect về trang phù hợp với role
       if (user.roles?.includes("user")) {
         return <Navigate to="/mobile-grid-display" replace />;
-      } else {
+      } else{
         return <Navigate to="/dashboard" replace />;
       }
     }

@@ -1,0 +1,621 @@
+{
+  "starts": [
+    {
+      "slot_number": 1,
+      "camera_id": "cam-1",
+      "qr_code": 10002417 
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-1",
+      "qr_code": 12
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-2",
+      "qr_code": 21
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-2",
+      "qr_code": 22
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-3",
+      "qr_code": 31
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-3",
+      "qr_code": 32
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-4",
+      "qr_code": 41
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-4",
+      "qr_code": 42
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-5",
+      "qr_code": 51
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-5",
+      "qr_code": 52
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-6",
+      "qr_code": 10001777 
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-6",
+      "qr_code": 62
+    }
+  ],
+  "ends": [
+    {
+      "slot_number": 3,
+      "camera_id": "cam-1",
+      "qr_code": 13
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-2",
+      "qr_code": 23
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-2",
+      "qr_code": 24
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-3",
+      "qr_code": 33
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-3",
+      "qr_code": 34
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-4",
+      "qr_code": 43
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-4",
+      "qr_code": 44
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-5",
+      "qr_code": 53
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-5",
+      "qr_code": 54
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-6",
+      "qr_code": 63
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-6",
+      "qr_code": 64
+    }
+  ],
+  "pairs": [
+    {
+      "start_qr": 10001777,
+      "end_qrs": 10002417 
+    },
+    {
+      "start_qr": 13,
+      "end_qrs": 25
+    },
+    {
+      "start_qr": 13,
+      "end_qrs": 32
+    }
+  ],
+  "roi_coordinates": [
+    {
+      "slot_number": 1,
+      "camera_id": "cam-2",
+      "points": [
+        [
+          79,
+          257
+        ],
+        [
+          279,
+          257
+        ],
+        [
+          279,
+          409
+        ],
+        [
+          79,
+          409
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-2",
+      "points": [
+        [
+          390,
+          255
+        ],
+        [
+          626,
+          255
+        ],
+        [
+          626,
+          425
+        ],
+        [
+          390,
+          425
+        ]
+      ]
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-2",
+      "points": [
+        [
+          623,
+          258
+        ],
+        [
+          854,
+          258
+        ],
+        [
+          854,
+          427
+        ],
+        [
+          623,
+          427
+        ]
+      ]
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-2",
+      "points": [
+        [
+          976,
+          284
+        ],
+        [
+          1140,
+          284
+        ],
+        [
+          1140,
+          439
+        ],
+        [
+          976,
+          439
+        ]
+      ]
+    },
+    {
+      "slot_number": 5,
+      "camera_id": "cam-2",
+      "points": [
+        [
+          1144,
+          297
+        ],
+        [
+          1278,
+          297
+        ],
+        [
+          1278,
+          439
+        ],
+        [
+          1144,
+          439
+        ]
+      ]
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-3",
+      "points": [
+        [
+          71,
+          255
+        ],
+        [
+          279,
+          255
+        ],
+        [
+          279,
+          416
+        ],
+        [
+          71,
+          416
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-3",
+      "points": [
+        [
+          387,
+          253
+        ],
+        [
+          618,
+          253
+        ],
+        [
+          618,
+          425
+        ],
+        [
+          387,
+          425
+        ]
+      ]
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-3",
+      "points": [
+        [
+          620,
+          256
+        ],
+        [
+          855,
+          256
+        ],
+        [
+          855,
+          436
+        ],
+        [
+          620,
+          436
+        ]
+      ]
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-3",
+      "points": [
+        [
+          977,
+          275
+        ],
+        [
+          1141,
+          275
+        ],
+        [
+          1141,
+          447
+        ],
+        [
+          977,
+          447
+        ]
+      ]
+    },
+    {
+      "slot_number": 5,
+      "camera_id": "cam-3",
+      "points": [
+        [
+          1156,
+          291
+        ],
+        [
+          1279,
+          291
+        ],
+        [
+          1279,
+          437
+        ],
+        [
+          1156,
+          437
+        ]
+      ]
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-4",
+      "points": [
+        [
+          99,
+          150
+        ],
+        [
+          301,
+          150
+        ],
+        [
+          301,
+          294
+        ],
+        [
+          99,
+          294
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-4",
+      "points": [
+        [
+          397,
+          114
+        ],
+        [
+          660,
+          114
+        ],
+        [
+          660,
+          304
+        ],
+        [
+          397,
+          304
+        ]
+      ]
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-4",
+      "points": [
+        [
+          647,
+          109
+        ],
+        [
+          907,
+          109
+        ],
+        [
+          907,
+          297
+        ],
+        [
+          647,
+          297
+        ]
+      ]
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-4",
+      "points": [
+        [
+          1008,
+          121
+        ],
+        [
+          1263,
+          121
+        ],
+        [
+          1263,
+          311
+        ],
+        [
+          1008,
+          311
+        ]
+      ]
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-5",
+      "points": [
+        [
+          106,
+          146
+        ],
+        [
+          291,
+          146
+        ],
+        [
+          291,
+          302
+        ],
+        [
+          106,
+          302
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-5",
+      "points": [
+        [
+          405,
+          114
+        ],
+        [
+          652,
+          114
+        ],
+        [
+          652,
+          290
+        ],
+        [
+          405,
+          290
+        ]
+      ]
+    },
+    {
+      "slot_number": 3,
+      "camera_id": "cam-5",
+      "points": [
+        [
+          655,
+          104
+        ],
+        [
+          898,
+          104
+        ],
+        [
+          898,
+          299
+        ],
+        [
+          655,
+          299
+        ]
+      ]
+    },
+    {
+      "slot_number": 4,
+      "camera_id": "cam-5",
+      "points": [
+        [
+          1019,
+          122
+        ],
+        [
+          1266,
+          122
+        ],
+        [
+          1266,
+          319
+        ],
+        [
+          1019,
+          319
+        ]
+      ]
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-1",
+      "points": [
+        [
+          813,
+          98
+        ],
+        [
+          969,
+          98
+        ],
+        [
+          969,
+          350
+        ],
+        [
+          813,
+          350
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-1",
+      "points": [
+        [
+          798,
+          331
+        ],
+        [
+          948,
+          331
+        ],
+        [
+          948,
+          591
+        ],
+        [
+          798,
+          591
+        ]
+      ]
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-6",
+      "points": [
+        [
+          109,
+          149
+        ],
+        [
+          308,
+          149
+        ],
+        [
+          308,
+          292
+        ],
+        [
+          109,
+          292
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-6",
+      "points": [
+        [
+          404,
+          113
+        ],
+        [
+          664,
+          113
+        ],
+        [
+          664,
+          293
+        ],
+        [
+          404,
+          293
+        ]
+      ]
+    }
+  ]
+}

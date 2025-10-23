@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, Home, Workflow, BarChart3, Settings, Users, Database, ChevronDown } from "lucide-react";
+import { Bell, Home, Workflow, BarChart3, Settings, Users, ChevronDown, Map } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
@@ -18,22 +18,19 @@ const navigation = [
   { name: "Tổng quan", href: "/dashboard", icon: Home },
   { name: "Quản lý nhiệm vụ", href: "/task", icon: Workflow },
   { name: "Thống kê", href: "/analytics", icon: BarChart3 },
-  { name: "Thông báo", href: "/notification", icon: Database },
+  { name: "Thông báo", href: "/notification", icon: Bell },
   { name: "Quản lý người dùng", href: "/users", icon: Users },
+  { name: "Quản lý khu vực", href: "/area", icon: Map },
   { name: "Cài đặt", href: "/settings", icon: Settings },
-];
 
-const area = [
-  {name: "MS2"},
-  {name: "MS3"},
-]
+];
 
 export default function DashboardLayout({ children }) {  // Bỏ interface, dùng { children }
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
   const { auth, logout } = useAuth();
-  const { areaData, currAreaName, setCurrAreaName, setCurrAreaId } = useArea();
+  const { areaData, currAreaName, setCurrAreaName, setCurrAreaId, loading: areaLoading, error: areaError } = useArea();
 
   const handleLogout = () => {
     logout();
@@ -41,10 +38,11 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
   };
 
   const handleAreaSelect = (areaName) => {
-    const selected = areaData.find((a) => a.areaName === areaName);
+    const selected = areaData.find((a) => a.area_name === areaName);
     if (selected) {
-      setCurrAreaName(selected.areaName);
-      setCurrAreaId(selected.areaId);
+      setCurrAreaName(selected.area_name);
+      setCurrAreaId(selected.area_id);
+      console.log('[DashboardLayout] Area selected:', selected);
     }
   };
 
@@ -72,23 +70,42 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <span className="font-medium">Khu vực: {currAreaName}</span>
+                <Button variant="outline" className="flex items-center gap-2" disabled={areaLoading}>
+                  <span className="font-medium">
+                    {areaLoading ? "Đang tải..." : areaError ? "Lỗi tải areas" : `Khu vực: ${currAreaName || "Chưa chọn"}`}
+                  </span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuLabel>Chọn khu vực</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {areaData.map((area) => (
-                  <DropdownMenuItem
-                    key={area.areaId}
-                    onClick={() => handleAreaSelect(area.areaName)}
-                    className={currAreaName === area.areaName ? "bg-accent" : ""}
-                  >
-                    {area.title}
+                {areaLoading ? (
+                  <DropdownMenuItem disabled>
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      Đang tải areas...
+                    </div>
                   </DropdownMenuItem>
-                ))}
+                ) : areaError ? (
+                  <DropdownMenuItem disabled className="text-red-500">
+                    ❌ {areaError}
+                  </DropdownMenuItem>
+                ) : areaData.length === 0 ? (
+                  <DropdownMenuItem disabled>
+                    Không có area nào
+                  </DropdownMenuItem>
+                ) : (
+                  areaData.map((area) => (
+                    <DropdownMenuItem
+                      key={area.area_id}
+                      onClick={() => handleAreaSelect(area.area_name)}
+                      className={currAreaName === area.area_name ? "bg-accent" : ""}
+                    >
+                      {area.area_name}
+                    </DropdownMenuItem>
+                  ))
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

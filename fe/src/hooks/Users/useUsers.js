@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getUsers, deleteUser, addUser } from "@/services/users";
+import { getUsers, deleteUser, addUser, updateUser } from "@/services/users";
 
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
@@ -27,7 +27,9 @@ export const useUsers = () => {
     const q = search.toLowerCase();
     return users.filter((u) => {
       const matchSearch = (u.username || "").toLowerCase().includes(q);
-      const matchRole = roleFilter === "" || (u.is_superuser ? "Admin" : "User" ) === roleFilter;
+      const matchRole = roleFilter === "" || 
+                     roleFilter === "all" || 
+                     (u.roles && u.roles.includes(roleFilter));
       return matchSearch && matchRole;
     });
   }, [users, search, roleFilter]);
@@ -60,6 +62,20 @@ export const useUsers = () => {
     }
   }, []);
 
+  const handleUpdateUser = useCallback(async (id, userData) => {
+    try {
+      await updateUser(id, userData);
+      // Refresh danh sách sau khi cập nhật
+      const updated = await getUsers();
+      setUsers(Array.isArray(updated) ? updated : []);
+    } catch (err) {
+      setError(err?.message || "Cập nhật người dùng thất bại");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     users,
     setUsers,
@@ -70,6 +86,7 @@ export const useUsers = () => {
     filteredUsers,
     handleDelete,
     handleAddUser,
+    handleUpdateUser,
     loading,
     error,
   };

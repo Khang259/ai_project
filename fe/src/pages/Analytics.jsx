@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { BarChart3, Activity, Clock, CheckCircle, XCircle, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download } from "lucide-react";
 import { useArea } from "@/contexts/AreaContext";
+import { getStatistics, getPayloadStatistics,convertWorkStatusToChartData, convertPayloadStatisticsToChartData } from "@/services/statistics";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart as RechartsPieChart,
@@ -20,18 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import AGVCard from "@/components/AGVCard";
 
-
-const performanceData = [
-  { name: "Jan", executions: 4000, success: 3800, failed: 200, avgDuration: 45 },
-  { name: "Feb", executions: 3000, success: 2850, failed: 150, avgDuration: 42 },
-  { name: "Mar", executions: 5000, success: 4900, failed: 100, avgDuration: 38 },
-  { name: "Apr", executions: 2780, success: 2650, failed: 130, avgDuration: 41 },
-  { name: "May", executions: 1890, success: 1820, failed: 70, avgDuration: 39 },
-  { name: "Jun", executions: 2390, success: 2300, failed: 90, avgDuration: 37 },
-  { name: "Jul", executions: 3490, success: 3400, failed: 90, avgDuration: 35 },
-]
 
 const workflowDistribution = [
   { name: "Product Sync", value: 35, color: "#8b5cf6" },
@@ -41,52 +29,66 @@ const workflowDistribution = [
   { name: "Other", value: 5, color: "#ef4444" },
 ]
 
-const errorAnalysis = [
-  { name: "Timeout", count: 45, percentage: 35 },
-  { name: "API Error", count: 32, percentage: 25 },
-  { name: "Data Validation", count: 28, percentage: 22 },
-  { name: "Network", count: 15, percentage: 12 },
-  { name: "Other", count: 8, percentage: 6 },
-]
-
-const kpiData = [
-  {
-    title: "Total Executions",
-    value: "24,847",
-    change: "+12.5%",
-    trend: "up",
-    icon: Activity,
-    description: "This month",
-  },
-  {
-    title: "Success Rate",
-    value: "98.7%",
-    change: "+0.3%",
-    trend: "up",
-    icon: CheckCircle,
-    description: "Last 30 days",
-  },
-  {
-    title: "Avg Duration",
-    value: "38.2s",
-    change: "-2.1s",
-    trend: "up",
-    icon: Clock,
-    description: "Per execution",
-  },
-  {
-    title: "Error Rate",
-    value: "1.3%",
-    change: "-0.2%",
-    trend: "up",
-    icon: XCircle,
-    description: "Last 30 days",
-  },
-]
-
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState("30d")
+  const [timeRange, setTimeRange] = useState("1d")
+  const [workStatusData, setWorkStatusData] = useState(null)
+  const [payloadData, setPayloadData] = useState(null)
+  const [workStatusChartData, setWorkStatusChartData] = useState([])
+  const [payloadChartData, setPayloadChartData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const { currAreaName, currAreaId } = useArea()
+
+  // Hàm để lấy dữ liệu từ backend
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Chuyển đổi timeRange từ frontend sang backend format
+      const timeFilterMap = {
+        "1d": "d",
+        "7d": "w",
+        "30d": "m", 
+      }
+      const backendTimeFilter = timeFilterMap[timeRange] || "d"
+      // Lấy dữ liệu work status
+      const workStatusResponse = await getStatistics(backendTimeFilter)
+      setWorkStatusData(workStatusResponse)
+      
+      // Lấy dữ liệu payload statistics
+      const payloadResponse = await getPayloadStatistics(backendTimeFilter, "InTask")
+      setPayloadData(payloadResponse)
+      
+      // Chuyển đổi sang format cho charts
+      const workStatusChartData = convertWorkStatusToChartData(workStatusResponse)
+      const payloadChartData = convertPayloadStatisticsToChartData(payloadResponse)
+      console.log("[Analytics] Chart data work status:", workStatusChartData)
+      console.log("[Analytics] Chart data payload:", payloadChartData)
+      setWorkStatusChartData(workStatusChartData)
+      setPayloadChartData(payloadChartData)
+      
+    } catch (err) {
+      console.error("[Analytics] Lỗi khi lấy dữ liệu:", err)
+      setError(err.message || "Có lỗi xảy ra khi tải dữ liệu")
+    } finally {
+      setLoading(false)
+    }
+  }
+  useEffect(() => {
+    // Lấy dữ liệu lần đầu
+    fetchData()
+    
+    // Thiết lập interval để refresh mỗi 1'
+    const interval = setInterval(() => {
+      fetchData()
+    }, 60000)
+    
+    // Cleanup interval khi component unmount
+    return () => {
+      clearInterval(interval)
+    }
+  }, [timeRange]) // Re-run khi timeRange thay đổi
 
   return (
       <div className="space-y-8">
@@ -102,10 +104,9 @@ export default function AnalyticsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="1d">1 ngày gần nhất</SelectItem>
                 <SelectItem value="7d">7 ngày gần nhất</SelectItem>
                 <SelectItem value="30d">30 ngày gần nhất</SelectItem>
-                <SelectItem value="90d">90 ngày gần nhất</SelectItem>
-                <SelectItem value="1y">1 năm gần nhất</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" className="gap-2 bg-transparent">
@@ -115,29 +116,10 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 bg-gray-100 border border-2 border-gray-200 rounded-xl m-6">
-          <Card className="border-2 border-gray-200 rounded-xl">
-            <CardHeader>
-              <CardTitle className="text">Thông tin AGV</CardTitle>
-              <CardDescription>Thông tin hiện tại của AGV</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-6">
-              <AGVCard />
-              <AGVCard />
-              <AGVCard />
-              <AGVCard />
-              <AGVCard />
-              <AGVCard />
-            </CardContent>
-          </Card>
-        </div>
-
         <Tabs defaultValue="performance" className="space-y-6">
           <TabsList>
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="workflows">Workflows</TabsTrigger>
-            <TabsTrigger value="errors">Error Analysis</TabsTrigger>
-            <TabsTrigger value="usage">Usage Patterns</TabsTrigger>
           </TabsList>
 
           <TabsContent value="performance" className="space-y-6">
@@ -145,15 +127,19 @@ export default function AnalyticsPage() {
               {/* Execution Trends */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian tải và không tải</CardTitle>
+                  <CardTitle>Thời gian làm và nghỉ</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceData}>
+                      <BarChart data={workStatusChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
-                        <YAxis stroke="#6b7280" fontSize={12} />
+                        <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
+                        <YAxis 
+                        stroke="#6b7280" 
+                        fontSize={12} 
+                        domain={[0, 100]}
+                        />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "white",
@@ -162,8 +148,7 @@ export default function AnalyticsPage() {
                             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                           }}
                         />
-                        <Bar dataKey="success" fill="#10b981" name="Success" />
-                        <Bar dataKey="failed" fill="#ef4444" name="Failed" />
+                        <Bar dataKey="InTask_percentage" fill="#10b981" name="InTask %" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -173,15 +158,15 @@ export default function AnalyticsPage() {
               {/* Success vs Failed */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian làm và nghỉ</CardTitle>
+                  <CardTitle>Thời gian tải và không tải</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceData}>
+                      <BarChart data={payloadChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
-                        <YAxis stroke="#6b7280" fontSize={12} />
+                        <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
+                        <YAxis stroke="#6b7280" fontSize={12} domain={[0, 100]} />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "white",
@@ -190,48 +175,13 @@ export default function AnalyticsPage() {
                             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                           }}
                         />
-                        <Bar dataKey="success" fill="#10b981" name="Success" />
-                        <Bar dataKey="failed" fill="#ef4444" name="Failed" />
+                        <Bar dataKey="payLoad_1_0_percentage" fill="#ef4444" name="Payload %" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
             </div>
-
-            {/* Average Duration */}
-            <Card className="border-gray-200">
-              <CardHeader>
-                <CardTitle>Average Execution Duration</CardTitle>
-                <CardDescription>Performance trends over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                      <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
-                      <YAxis stroke="#6b7280" fontSize={12} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "white",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "8px",
-                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="avgDuration"
-                        stroke="#3b82f6"
-                        strokeWidth={3}
-                        dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="workflows" className="space-y-6">
@@ -290,80 +240,6 @@ export default function AnalyticsPage() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="errors" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Error Types */}
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <CardTitle>Error Types</CardTitle>
-                  <CardDescription>Most common error categories</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {errorAnalysis.map((error, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900">{error.name}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">{error.count} errors</span>
-                            <span className="text-sm font-medium">{error.percentage}%</span>
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-red-500 h-2 rounded-full" style={{ width: `${error.percentage}%` }}></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Error Trends */}
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <CardTitle>Error Trends</CardTitle>
-                  <CardDescription>Error rate over time</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={performanceData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
-                        <YAxis stroke="#6b7280" fontSize={12} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "white",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                          }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="failed"
-                          stroke="#ef4444"
-                          strokeWidth={3}
-                          dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="usage" className="space-y-6">
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Usage Patterns Coming Soon</h3>
-              <p className="text-gray-600">Advanced usage analytics and patterns will be available soon.</p>
             </div>
           </TabsContent>
         </Tabs>

@@ -53,4 +53,3 @@ const NodeTypeCells = ({ cells = [], onCellPress }) => {
 export default NodeTypeCells;
 
 
-
