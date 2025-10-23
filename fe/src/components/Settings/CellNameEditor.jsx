@@ -49,6 +49,7 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
           node_name: mergedData.node_name,
           node_type: mergedData.node_type,
           owner: mergedData.owner,
+          line: mergedData.line,  // ← BẮT BUỘC: Field line cho backend
           start: mergedData.start,
           end: mergedData.end,
           next_start: mergedData.next_start,

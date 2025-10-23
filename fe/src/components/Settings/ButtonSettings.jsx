@@ -25,10 +25,14 @@ const ButtonSettings = () => {
     'both': 'Cấp&Trả'
   };
   
+  // Line options
+  const LINE_OPTIONS = ['Line 1', 'Line 2', 'Line 3'];
+  
   // State cho form thêm node mới
   const [newNodeData, setNewNodeData] = useState({
     node_name: "",
     nodeType: "",
+    line: "",
     start: 0,
     end: 0,
     next_start: 0,
@@ -39,6 +43,7 @@ const ButtonSettings = () => {
   const [selectedNodeType, setSelectedNodeType] = useState();
   const [dataFilteredByNodes, setdataFilteredByNodes] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedLine, setSelectedLine] = useState();
 
   const {
     data,
@@ -71,20 +76,39 @@ const ButtonSettings = () => {
     }, {});
   }, [data]);
 
-  // Tính tổng số cells của nodeType được chọn
+  // Tính tổng số cells theo selectedNodeType và selectedLine
   const totalCellsSelectedType = React.useMemo(() => {
-    return nodeTypes[selectedNodeType] || dataFilteredByNodes.length;
-  }, [nodeTypes, selectedNodeType, dataFilteredByNodes.length]);
-
-  // Lọc data theo selectedNodeType và cập nhật dữ liệu cho GridPreview
-  useEffect(() => {
-    if (!selectedNodeType) {
-      setdataFilteredByNodes(data); // Hiển thị toàn bộ data khi chưa chọn loại
-      return;
+    let filteredData = data || [];
+    
+    // Filter theo node type
+    if (selectedNodeType) {
+      filteredData = filteredData.filter(n => n.node_type === selectedNodeType);
     }
-    const next = (data || []).filter(n => n.node_type === selectedNodeType);
-    setdataFilteredByNodes(next);
-  }, [data, selectedNodeType,fetchData]);
+    
+    // Filter theo line
+    if (selectedLine) {
+      filteredData = filteredData.filter(n => n.line === selectedLine);
+    }
+    
+    return filteredData.length;
+  }, [data, selectedNodeType, selectedLine]);
+
+  // Lọc data theo selectedNodeType và selectedLine
+  useEffect(() => {
+    let filteredData = data || [];
+    
+    // Filter theo node type
+    if (selectedNodeType) {
+      filteredData = filteredData.filter(n => n.node_type === selectedNodeType);
+    }
+    
+    // Filter theo line
+    if (selectedLine) {
+      filteredData = filteredData.filter(n => n.line === selectedLine);
+    }
+    
+    setdataFilteredByNodes(filteredData);
+  }, [data, selectedNodeType, selectedLine, fetchData]);
   // ===========================================
   // 3. HANDLERS CHO CHỌN USER
   // ===========================================
@@ -121,8 +145,9 @@ const ButtonSettings = () => {
 
   // Xác nhận thêm node mới
   const handleConfirmAddNode = async () => {
-    if (!newNodeData.node_name || !newNodeData.start || !newNodeData.end) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Tên Node, Start, End)");
+    
+    if (!newNodeData.line || !newNodeData.node_name || !newNodeData.start || !newNodeData.end) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Tên Node,Tên Line,  Start, End)");
       return;
     }
     
@@ -131,6 +156,7 @@ const ButtonSettings = () => {
       node_name: newNodeData.node_name,
       node_type: selectedNodeType || newNodeData.nodeType,
       owner: selectedUser.username,
+      line: selectedLine || newNodeData.line,
       start: newNodeData.start,
       end: newNodeData.end,
       next_start: newNodeData.next_start || 0,
@@ -154,6 +180,7 @@ const ButtonSettings = () => {
     setNewNodeData({
       node_name: "",
       nodeType: "",
+      line: "",
       start: 0,
       end: 0,
       next_start: 0,
@@ -220,11 +247,11 @@ const ButtonSettings = () => {
           return obj;
         });
 
-        const requiredHeaders = ['node_name', 'node_type', 'start', 'end', 'next_start', 'next_end'];
+        const requiredHeaders = ['node_name', 'node_type', 'line', 'start', 'end', 'next_start', 'next_end'];
         const firstRowKeys = Object.keys(normalisedRows[0] || {});
         const isValid = requiredHeaders.every((h) => firstRowKeys.includes(h));
         if (!isValid) {
-          alert('Header không hợp lệ. Cần các cột: node_name, node_type, start, end, next_start, next_end');
+          alert('Header không hợp lệ. Cần các cột: node_name, node_type, line, start, end, next_start, next_end');
           return;
         }
         // Tạo danh sách node từ file và hợp nhất vào allNodes
@@ -238,6 +265,7 @@ const ButtonSettings = () => {
             node_name: nodeName,
             node_type: nodeType,
             owner: selectedUser?.username,
+            line: selectedLine || String(r.line ?? ''),
             start: Number(r.start),
             end: Number(r.end),
             next_start: isBoth ? (Number(r.next_start) || 0) : 0,
@@ -277,6 +305,7 @@ const ButtonSettings = () => {
             node_name: node.node_name,
             node_type: node.node_type,
             owner: node.owner,
+            line: node.line,
             start: node.start,
             end: node.end,
             next_start: node.next_start,
@@ -307,6 +336,7 @@ const ButtonSettings = () => {
       node_name: node.node_name,
       node_type: node.node_type,
       owner: node.owner,
+      line: node.line,
       start: node.start,
       end: node.end,
       next_start: node.next_start,
@@ -331,6 +361,8 @@ const ButtonSettings = () => {
       exportData = data.map(node => ({
         node_name: node.node_name,
         node_type: node.node_type,
+        owner: node.owner,
+        line: node.line,
         start: node.start,
         end: node.end,
         next_start: node.next_start || 0,
@@ -346,6 +378,7 @@ const ButtonSettings = () => {
         {
           node_name: 'Tên ô cấp',
           node_type: 'supply',
+          line: 'Line 1',
           start: 100,
           end: 200,
           next_start: 0,
@@ -354,6 +387,7 @@ const ButtonSettings = () => {
         {
           node_name: 'Tên ô trả',
           node_type: 'returns',
+          line: 'Line 2',
           start: 300,
           end: 400,
           next_start: 0,
@@ -362,6 +396,7 @@ const ButtonSettings = () => {
         {
           node_name: 'Tên cấp&trả',
           node_type: 'both',
+          line: 'Line 3',
           start: 500,
           end: 600,
           next_start: 700,
@@ -478,6 +513,33 @@ const ButtonSettings = () => {
 
 
         <CardContent className="space-y-6">
+          {/* Line Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="line" className="text-sm font-medium">
+              Chọn Line *
+            </Label>
+            <Select 
+              value={selectedLine || ""} 
+              onValueChange={(value) => {
+                setSelectedLine(value);
+                setNewNodeData(prev => ({ ...prev, line: value }));
+              }}
+            >
+              <SelectTrigger id="line" className="text-lg">
+                <SelectValue placeholder="Chọn line">
+                  {selectedLine || "Chọn line"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {LINE_OPTIONS.map((lineOption) => (
+                  <SelectItem key={lineOption} value={lineOption}>
+                    {lineOption}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="nodeType" className="text-sm font-medium">
               Chế độ chu trình
@@ -521,6 +583,24 @@ const ButtonSettings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                {!selectedLine && (
+                    <div className="space-y-2">
+                      <Label htmlFor="nodeType" className="text-sm font-medium">
+                        Line *
+                      </Label>
+                      <select
+                        id="line"
+                        value={newNodeData.line || ""}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, line: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Chọn Line...</option>
+                        <option value="Line 1">Line 1</option>
+                        <option value="Line 2">Line 2</option>
+                        <option value="Line 3">Line 3</option>
+                      </select>
+                    </div>
+                  )}
                   {/* Chu trình - chỉ hiển thị khi chưa có selectedNodeType */}
                   {!selectedNodeType && (
                     <div className="space-y-2">
@@ -580,7 +660,7 @@ const ButtonSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    {(selectedNodeType === 'both') && (
+                    {(selectedNodeType === 'both' ||newNodeData.nodeType === 'both') && (
                       <>
                         <div className="space-y-2 row-start-3">
                           <Label htmlFor="next_start" className="text-sm font-medium">
@@ -630,7 +710,7 @@ const ButtonSettings = () => {
                     </Button>
                     <Button 
                       onClick={handleConfirmAddNode}
-                      disabled={!newNodeData.node_name || !newNodeData.start || !newNodeData.end || (!selectedNodeType && !newNodeData.nodeType)}
+                      disabled={(!newNodeData.line && !selectedLine) || !newNodeData.node_name || !newNodeData.start || !newNodeData.end || (!selectedNodeType && !newNodeData.nodeType)}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       Xác Nhận
@@ -707,7 +787,7 @@ const ButtonSettings = () => {
               })()}
               </div>
               <div className="text-xs text-muted-foreground text-right">
-                Format: node_name, node_type, start, end, next_start, next_end
+                Format: node_name, node_type, line, start, end, next_start, next_end
               </div>
             </div>
           </div>

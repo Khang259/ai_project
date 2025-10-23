@@ -10,6 +10,7 @@ const MobileGridDisplay = () => {
   const { createTaskHandler } = useCreateTask();
 
   const [selectedNodeType, setSelectedNodeType] = useState('');
+  const [selectedLine, setSelectedLine] = useState('');
   const [filteredNodes, setFilteredNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -34,17 +35,36 @@ const MobileGridDisplay = () => {
     }, {});
   }, [nodesData]);
 
+  const lines = React.useMemo(() => {
+    return (nodesData || []).reduce((acc, node) => {
+      if (node.line) {
+        acc[node.line] = (acc[node.line] || 0) + 1;
+      }
+      return acc;
+    }, {});
+  }, [nodesData]);
+
   useEffect(() => {
-    if (!selectedNodeType) {
+    if (!selectedNodeType || !selectedLine) {
       setFilteredNodes([]);
       return;
     }
-    const filtered = (nodesData || []).filter(node => node.node_type === selectedNodeType);
+    const filtered = (nodesData || []).filter(node => {
+      const matchNodeType = node.node_type === selectedNodeType;
+      const matchLine = node.line === selectedLine;
+      return matchNodeType && matchLine;
+    });
     setFilteredNodes(filtered);
-  }, [nodesData, selectedNodeType]);
+  }, [nodesData, selectedNodeType, selectedLine]);
 
   const handleNodeTypeSelect = (nodeType) => {
     setSelectedNodeType(nodeType);
+    setSelectedLine('');
+    setSelectedNode(null);
+  };
+
+  const handleLineSelect = (line) => {
+    setSelectedLine(line);
     setSelectedNode(null);
   };
 
@@ -67,6 +87,7 @@ const MobileGridDisplay = () => {
       node_name: selectedNode.node_name,
       node_type: selectedNode.node_type,
       owner: currentUser?.username,
+      line: selectedNode.line,  // ← BẮT BUỘC: Field line cho backend
       start: selectedNode.start,
       end: selectedNode.end,
       next_start: selectedNode.next_start || 0,
@@ -134,7 +155,28 @@ const MobileGridDisplay = () => {
               </div>
             </div>
 
-            {selectedNodeType && (
+            {selectedNodeType && Object.keys(lines).length > 0 && (
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn Line:</h2>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(lines).sort().map((line) => (
+                    <button
+                      key={line}
+                      className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base ${
+                        selectedLine === line 
+                          ? 'bg-[#016B61] text-white' 
+                          : 'bg-white text-[#016B61] border-2 border-[#016B61] hover:bg-[#016B61] hover:text-white'
+                      }`}
+                      onClick={() => handleLineSelect(line)}
+                    >
+                    {line} ({lines[line]})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedNodeType && selectedLine && (
               <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                   Danh sách nodes ({filteredNodes.length}):
@@ -195,6 +237,12 @@ const MobileGridDisplay = () => {
                     <span className="font-medium text-gray-600">Loại:</span>
                     <span className="font-bold text-gray-800">{nodeTypeMapping[selectedNode.node_type] || selectedNode.node_type}</span>
                   </div>
+                  {selectedNode.line && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Line:</span>
+                      <span className="font-bold text-blue-600">{selectedNode.line}</span>
+                    </div>
+                  )}
                   <div className="flex justify-center">
                     <span className="font-bold text-[#016B61] text-lg">{selectedNode.start} → {selectedNode.end}</span>
                   </div>

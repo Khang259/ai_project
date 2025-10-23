@@ -51,6 +51,14 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
             
             <div className="text-center space-y-1">
               <p className="text-xs font-mono text-muted-foreground">{cell.node_name}</p>
+              
+              {/* Hiển thị Line */}
+              {cell.line && (
+                <p className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  {cell.line}
+                </p>
+              )}
+              
               <div className="flex flex-col gap-1 justify-center mt-2 gap-y-4">
                 <span className="px-2 py-0.5 bg-primary/30 text-primary text-xs font-semibold rounded">
                   {cell.start} → {cell.end}
