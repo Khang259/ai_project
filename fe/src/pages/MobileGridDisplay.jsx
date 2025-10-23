@@ -21,6 +21,20 @@ const MobileGridDisplay = () => {
     'both': 'Cấp&Trả'
   };
 
+  // Color palette cho các lines (10 màu khác nhau)
+  const LINE_COLORS = {
+    'Line 1': '#016B61',   // Teal Green (hiện tại)
+    'Line 2': '#2563EB',   // Blue
+    'Line 3': '#DC2626',   // Red
+    'Line 4': '#9333EA',   // Purple
+    'Line 5': '#EA580C',   // Orange
+    'Line 6': '#059669',   // Emerald
+    'Line 7': '#DB2777',   // Pink
+    'Line 8': '#7C3AED',   // Violet
+    'Line 9': '#0891B2',   // Cyan
+    'Line 10': '#CA8A04',  // Yellow
+  };
+
   useEffect(() => {
     if (currentUser?.username) {
       fetchNodesData();
@@ -159,19 +173,37 @@ const MobileGridDisplay = () => {
               <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn Line:</h2>
                 <div className="flex flex-wrap gap-2">
-                  {Object.keys(lines).sort().map((line) => (
-                    <button
-                      key={line}
-                      className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base ${
-                        selectedLine === line 
-                          ? 'bg-[#016B61] text-white' 
-                          : 'bg-white text-[#016B61] border-2 border-[#016B61] hover:bg-[#016B61] hover:text-white'
-                      }`}
-                      onClick={() => handleLineSelect(line)}
-                    >
-                    {line} ({lines[line]})
-                    </button>
-                  ))}
+                  {Object.keys(lines).sort().map((line) => {
+                    const lineColor = LINE_COLORS[line] || '#016B61';
+                    return (
+                      <button
+                        key={line}
+                        className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base ${
+                          selectedLine === line 
+                            ? 'text-white' 
+                            : 'bg-white border-2 hover:text-white'
+                        }`}
+                        style={
+                          selectedLine === line
+                            ? { backgroundColor: lineColor }
+                            : { color: lineColor, borderColor: lineColor }
+                        }
+                        onMouseEnter={(e) => {
+                          if (selectedLine !== line) {
+                            e.currentTarget.style.backgroundColor = lineColor;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedLine !== line) {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }
+                        }}
+                        onClick={() => handleLineSelect(line)}
+                      >
+                        {line} ({lines[line]})
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

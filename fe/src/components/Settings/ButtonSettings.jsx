@@ -25,8 +25,22 @@ const ButtonSettings = () => {
     'both': 'Cấp&Trả'
   };
   
-  // Line options
-  const LINE_OPTIONS = ['Line 1', 'Line 2', 'Line 3'];
+  // Line options (10 lines)
+  const LINE_OPTIONS = ['Line 1', 'Line 2', 'Line 3', 'Line 4', 'Line 5', 'Line 6', 'Line 7', 'Line 8', 'Line 9', 'Line 10'];
+  
+  // Color palette cho các lines
+  const LINE_COLORS = {
+    'Line 1': '#016B61',   // Teal Green
+    'Line 2': '#2563EB',   // Blue
+    'Line 3': '#DC2626',   // Red
+    'Line 4': '#9333EA',   // Purple
+    'Line 5': '#EA580C',   // Orange
+    'Line 6': '#059669',   // Emerald
+    'Line 7': '#DB2777',   // Pink
+    'Line 8': '#7C3AED',   // Violet
+    'Line 9': '#0891B2',   // Cyan
+    'Line 10': '#CA8A04',  // Yellow
+  };
   
   // State cho form thêm node mới
   const [newNodeData, setNewNodeData] = useState({
@@ -527,13 +541,18 @@ const ButtonSettings = () => {
             >
               <SelectTrigger id="line" className="text-lg">
                 <SelectValue placeholder="Chọn line">
-                  {selectedLine || "Chọn line"}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {LINE_OPTIONS.map((lineOption) => (
                   <SelectItem key={lineOption} value={lineOption}>
-                    {lineOption}
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full border border-gray-300"
+                        style={{ backgroundColor: LINE_COLORS[lineOption] }}
+                      />
+                      <span>{lineOption}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
