@@ -1,0 +1,192 @@
+[{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db802"
+  },
+  "id_thietBi": "TB001",
+  "ten_thietBi": "Máy quét laser",
+  "chu_ky": "ngày",
+  "ngay_check": "2025-10-22",
+  "trang_thai": "done",
+  "ghi_chu": "update các tính năng cơ bản",
+  "last_updated": "2025-10-22T16:41:40.992926"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db803"
+  },
+  "id_thietBi": "TB002",
+  "ten_thietBi": "Bumper",
+  "chu_ky": "ngày",
+  "ngay_check": "2025-10-23",
+  "trang_thai": "done",
+  "ghi_chu": "THÔNG BÁO\n\n1. Nhắc nhở hằng ngày\nMỗi ngày sẽ có 1 thông báo nhắc nhở hiện lên màn hình với nội dung cố định\n\n\n2. Nhắc nhở từng tháng\nNội dung:\n\n3. Nhắc nhở theo nửa năm\n\n\n4. Nhắc nhở mỗi năm\n\nTạo thêm 3 thông báo tương tự thông báo theo ngày nữa\n1. Nhắc nhở bảo trì hằng tháng:\n   Sẽ xuất hiện vào đầu tháng ( ngày 1 mõi tháng lúc 7h và mỗi 15 phút 1 popup xuất hiện lại trong vòng 4 tiếng)\n      Nội dung giống hệt với \"Thông báo theo ngày\"\n\n2. Nhắc nhở bảo trì hằng tháng:\n Sẽ xuất hiện vào đầu tháng ( ngày 1 mõi tháng lúc 7h và mỗi 15 phút 1 popup xuất hiện lại trong vòng 4 tiếng)\n      Nội dung giống hệt với \"Thông báo theo ngày\"",
+  "last_updated": "2025-10-23T09:17:15.439325"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db804"
+  },
+  "id_thietBi": "TB003",
+  "ten_thietBi": "Thân AMR",
+  "chu_ky": "ngày",
+  "ngay_check": "2025-10-17",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db805"
+  },
+  "id_thietBi": "TB004",
+  "ten_thietBi": "Pin",
+  "chu_ky": "ngày",
+  "ngay_check": "2025-10-22",
+  "trang_thai": "done",
+  "ghi_chu": "ftrwetwetwe",
+  "last_updated": "2025-10-22T11:32:39.180417"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db806"
+  },
+  "id_thietBi": "TB005",
+  "ten_thietBi": "Chỉ số",
+  "chu_ky": "ngày",
+  "ngay_check": "2025-10-23",
+  "trang_thai": "done",
+  "ghi_chu": "1\n1\n1\n1\n1\n11\n1\n1111\nưdsa\nrsa\nrẻ\néarf\nsdf\nds\nfsd\nfsdf\nsd\nfsd\nfsd\nfsd\nfsd\nfsd\nfsd\nfds\nfds\nfd",
+  "last_updated": "2025-10-23T09:16:01.226327"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db807"
+  },
+  "id_thietBi": "TB006",
+  "ten_thietBi": "Camera",
+  "chu_ky": "tháng",
+  "ngay_check": "2025-10-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db808"
+  },
+  "id_thietBi": "TB007",
+  "ten_thietBi": "Cơ chế nâng",
+  "chu_ky": "tháng",
+  "ngay_check": "2025-10-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db809"
+  },
+  "id_thietBi": "TB008",
+  "ten_thietBi": "Bánh xe",
+  "chu_ky": "tháng",
+  "ngay_check": "2025-10-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db80a"
+  },
+  "id_thietBi": "TB009",
+  "ten_thietBi": "Vòng bi",
+  "chu_ky": "nửa năm",
+  "ngay_check": "2025-07-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db80b"
+  },
+  "id_thietBi": "TB010",
+  "ten_thietBi": "Pin (nửa năm)",
+  "chu_ky": "nửa năm",
+  "ngay_check": "2025-10-22",
+  "trang_thai": "done",
+  "ghi_chu": "hehehehehehehehheheheheheheeh",
+  "last_updated": "2025-10-22T11:16:36.891051"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db80c"
+  },
+  "id_thietBi": "TB011",
+  "ten_thietBi": "Nội thất AMR",
+  "chu_ky": "nửa năm",
+  "ngay_check": "2025-10-22",
+  "trang_thai": "done",
+  "ghi_chu": "1111111111111111111111111111111111111111",
+  "last_updated": "2025-10-22T14:23:16.261016"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db80d"
+  },
+  "id_thietBi": "TB012",
+  "ten_thietBi": "Bánh xe đa năng",
+  "chu_ky": "nửa năm",
+  "ngay_check": "2025-07-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db80e"
+  },
+  "id_thietBi": "TB013",
+  "ten_thietBi": "Nâng bóng vít",
+  "chu_ky": "năm",
+  "ngay_check": "2025-01-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db80f"
+  },
+  "id_thietBi": "TB014",
+  "ten_thietBi": "Đai đồng bộ",
+  "chu_ky": "năm",
+  "ngay_check": "2025-01-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db810"
+  },
+  "id_thietBi": "TB015",
+  "ten_thietBi": "Con lăn",
+  "chu_ky": "năm",
+  "ngay_check": "2025-01-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db811"
+  },
+  "id_thietBi": "TB016",
+  "ten_thietBi": "Động cơ nâng",
+  "chu_ky": "năm",
+  "ngay_check": "2025-01-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db812"
+  },
+  "id_thietBi": "TB017",
+  "ten_thietBi": "Động cơ quay",
+  "chu_ky": "năm",
+  "ngay_check": "2025-01-01",
+  "trang_thai": "done"
+},
+{
+  "_id": {
+    "$oid": "68f1a4db377d2ee1681db813"
+  },
+  "id_thietBi": "TB018",
+  "ten_thietBi": "Ô tô",
+  "chu_ky": "năm",
+  "ngay_check": "2025-01-01",
+  "trang_thai": "done"
+}]

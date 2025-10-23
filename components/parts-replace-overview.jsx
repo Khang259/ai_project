@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Package, Truck, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { AlertCircle, Package, Truck, Search, ArrowUpDown, ArrowUp, ArrowDown, Edit3, Save, X } from "lucide-react"
 
 export function PartsReplaceOverview({ onAMRClick }) {
   const [data, setData] = useState(null)
@@ -14,6 +15,10 @@ export function PartsReplaceOverview({ onAMRClick }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortField, setSortField] = useState("kiemTra") // "kiemTra" hoặc "thayThe"
   const [sortOrder, setSortOrder] = useState("desc") // "desc" hoặc "asc"
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingAMR, setEditingAMR] = useState(null)
+  const [newAMRName, setNewAMRName] = useState("")
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,6 +84,80 @@ export function PartsReplaceOverview({ onAMRClick }) {
     } else {
       setSortField(field)
       setSortOrder("desc")
+    }
+  }
+
+  // Hàm mở modal edit AMR name
+  const handleEditAMR = (amrId, event) => {
+    event.stopPropagation() // Ngăn chặn click event bubble lên card
+    setEditingAMR(amrId)
+    setNewAMRName(amrId)
+    setShowEditModal(true)
+  }
+
+  // Hàm đóng modal edit
+  const handleCloseEditModal = () => {
+    setShowEditModal(false)
+    setEditingAMR(null)
+    setNewAMRName("")
+  }
+
+  // Hàm cập nhật tên AMR
+  const handleUpdateAMRName = async () => {
+    if (!editingAMR || !newAMRName.trim()) {
+      alert('Vui lòng nhập tên AMR mới')
+      return
+    }
+
+    if (editingAMR === newAMRName.trim()) {
+      alert('Tên AMR mới phải khác tên hiện tại')
+      return
+    }
+
+    try {
+      setUpdating(true)
+      
+      const response = await fetch('/api/amr/update-name', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          old_amr_id: editingAMR,
+          new_amr_id: newAMRName.trim()
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Lỗi khi cập nhật tên AMR')
+      }
+
+      // Cập nhật dữ liệu local
+      setData(prevData => {
+        if (!prevData?.chi_tiet_theo_amr) return prevData
+        
+        const updatedAMRs = prevData.chi_tiet_theo_amr.map(amr => 
+          amr.amr_id === editingAMR 
+            ? { ...amr, amr_id: newAMRName.trim() }
+            : amr
+        )
+        
+        return {
+          ...prevData,
+          chi_tiet_theo_amr: updatedAMRs
+        }
+      })
+
+      alert(`Đã cập nhật thành công tên AMR từ "${editingAMR}" thành "${newAMRName.trim()}"`)
+      handleCloseEditModal()
+      
+    } catch (error) {
+      console.error('Error updating AMR name:', error)
+      alert('Lỗi khi cập nhật tên AMR: ' + error.message)
+    } finally {
+      setUpdating(false)
     }
   }
 
@@ -253,9 +332,20 @@ export function PartsReplaceOverview({ onAMRClick }) {
                     onClick={() => onAMRClick && onAMRClick(amr.amr_id)}
                   >
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-primary" />
-                        <span className="truncate">{amr.amr_id || `AMR ${index + 1}`}</span>
+                      <CardTitle className="text-base flex items-center justify-between">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Truck className="h-4 w-4 text-primary flex-shrink-0" />
+                          <span className="truncate">{amr.amr_id || `AMR ${index + 1}`}</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => handleEditAMR(amr.amr_id, e)}
+                          className="h-6 w-6 p-0 hover:bg-primary/10 flex-shrink-0"
+                          title="Sửa tên AMR"
+                        >
+                          <Edit3 className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                        </Button>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0 space-y-3">
@@ -280,7 +370,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                         </Badge>
                       </div>
 
-                      {amr.sumPartsTwo > 0 ? (
+                      {/* {amr.sumPartsTwo > 0 ? (
                         <div className="text-xs font-medium text-destructive bg-destructive/5 p-2 rounded border border-destructive/20">
                           🔴 Cần thay thế
                         </div>
@@ -294,7 +384,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                             ✓ Hoạt động tốt
                           </div>
                         )
-                      )}
+                      )} */}
                     </CardContent>
                   </Card>
                 ))}
@@ -303,6 +393,69 @@ export function PartsReplaceOverview({ onAMRClick }) {
           </div>
         </div>
       </div>
+
+      {/* Edit AMR Name Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit3 className="h-5 w-5 text-primary" />
+              Sửa tên AMR
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="current-name" className="text-right text-sm font-medium">
+                Tên hiện tại:
+              </label>
+              <span className="col-span-3 font-mono text-sm bg-muted p-2 rounded">
+                {editingAMR}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="new-name" className="text-right text-sm font-medium">
+                Tên mới:
+              </label>
+              <div className="col-span-3">
+                <Input
+                  id="new-name"
+                  placeholder="Nhập tên AMR mới..."
+                  value={newAMRName}
+                  onChange={(e) => setNewAMRName(e.target.value)}
+                  className="font-mono"
+                  disabled={updating}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleCloseEditModal}
+              disabled={updating}
+            >
+              <X className="h-4 w-4 mr-1" />
+              Hủy
+            </Button>
+            <Button 
+              onClick={handleUpdateAMRName}
+              disabled={updating || !newAMRName.trim() || newAMRName.trim() === editingAMR}
+            >
+              {updating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+                  Đang cập nhật...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-1" />
+                  Cập nhật
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

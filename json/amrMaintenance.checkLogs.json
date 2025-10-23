@@ -1,0 +1,202 @@
+[{
+  "_id": {
+    "$oid": "68f886647ad03cd9ff8f79d2"
+  },
+  "id_thietBi": "TB011",
+  "ten_thietBi": "Nội thất AMR",
+  "action": "kiểm tra định kỳ",
+  "chu_ky": "nửa năm",
+  "old_data": {
+    "_id": "68f1a4db377d2ee1681db80c",
+    "id_thietBi": "TB011",
+    "ten_thietBi": "Nội thất AMR",
+    "chu_ky": "nửa năm",
+    "ngay_check": "2025-07-01",
+    "trang_thai": "not"
+  },
+  "new_data": {
+    "id_thietBi": "TB011",
+    "ten_thietBi": "Nội thất AMR",
+    "chu_ky": "nửa năm",
+    "ngay_check": "2025-10-22",
+    "trang_thai": "done",
+    "ghi_chu": "1111111111111111111111111111111111111111",
+    "last_updated": "2025-10-22T14:23:16.261016"
+  },
+  "ghi_chu": "1111111111111111111111111111111111111111",
+  "ngay_check": "2025-10-22",
+  "created_at": "2025-10-22T14:23:16.261956",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f8a6ba9c5b2e03bb8e0a0d"
+  },
+  "id_thietBi": "TB005",
+  "action": "cập nhật trạng thái",
+  "trang_thai": "pending",
+  "ngay_check": null,
+  "updated_count": 1,
+  "created_at": "2025-10-22T16:41:14.317451",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f8a6be9c5b2e03bb8e0a0e"
+  },
+  "id_thietBi": "TB001",
+  "action": "cập nhật trạng thái",
+  "trang_thai": "pending",
+  "ngay_check": null,
+  "updated_count": 1,
+  "created_at": "2025-10-22T16:41:18.235856",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f8a6d49c5b2e03bb8e0a0f"
+  },
+  "id_thietBi": "TB001",
+  "ten_thietBi": "Máy quét laser",
+  "action": "kiểm tra định kỳ",
+  "chu_ky": "ngày",
+  "old_data": {
+    "_id": "68f1a4db377d2ee1681db802",
+    "id_thietBi": "TB001",
+    "ten_thietBi": "Máy quét laser",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-17",
+    "trang_thai": "pending"
+  },
+  "new_data": {
+    "id_thietBi": "TB001",
+    "ten_thietBi": "Máy quét laser",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-22",
+    "trang_thai": "done",
+    "ghi_chu": "update các tính năng cơ bản",
+    "last_updated": "2025-10-22T16:41:40.992926"
+  },
+  "ghi_chu": "update các tính năng cơ bản",
+  "ngay_check": "2025-10-22",
+  "created_at": "2025-10-22T16:41:40.994293",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f98fd0309d9992bbcf5a9e"
+  },
+  "id_thietBi": "TB005",
+  "ten_thietBi": "Chỉ số",
+  "action": "kiểm tra định kỳ",
+  "chu_ky": "ngày",
+  "old_data": {
+    "_id": "68f1a4db377d2ee1681db806",
+    "id_thietBi": "TB005",
+    "ten_thietBi": "Chỉ số",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-22",
+    "trang_thai": "pending"
+  },
+  "new_data": {
+    "id_thietBi": "TB005",
+    "ten_thietBi": "Chỉ số",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-23",
+    "trang_thai": "done",
+    "ghi_chu": "1\n1\n1\n1\n1\n11\n1\n1111",
+    "last_updated": "2025-10-23T09:15:44.858703"
+  },
+  "ghi_chu": "1\n1\n1\n1\n1\n11\n1\n1111",
+  "ngay_check": "2025-10-23",
+  "created_at": "2025-10-23T09:15:44.859703",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f98fd7309d9992bbcf5a9f"
+  },
+  "id_thietBi": "TB005",
+  "action": "cập nhật trạng thái",
+  "trang_thai": "pending",
+  "ngay_check": null,
+  "updated_count": 1,
+  "created_at": "2025-10-23T09:15:51.138161",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f98fe1309d9992bbcf5aa0"
+  },
+  "id_thietBi": "TB005",
+  "ten_thietBi": "Chỉ số",
+  "action": "kiểm tra định kỳ",
+  "chu_ky": "ngày",
+  "old_data": {
+    "_id": "68f1a4db377d2ee1681db806",
+    "id_thietBi": "TB005",
+    "ten_thietBi": "Chỉ số",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-23",
+    "trang_thai": "pending",
+    "ghi_chu": "1\n1\n1\n1\n1\n11\n1\n1111",
+    "last_updated": "2025-10-23T09:15:44.858703"
+  },
+  "new_data": {
+    "id_thietBi": "TB005",
+    "ten_thietBi": "Chỉ số",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-23",
+    "trang_thai": "done",
+    "ghi_chu": "1\n1\n1\n1\n1\n11\n1\n1111\nưdsa\nrsa\nrẻ\néarf\nsdf\nds\nfsd\nfsdf\nsd\nfsd\nfsd\nfsd\nfsd\nfsd\nfsd\nfds\nfds\nfd",
+    "last_updated": "2025-10-23T09:16:01.226327"
+  },
+  "ghi_chu": "1\n1\n1\n1\n1\n11\n1\n1111\nưdsa\nrsa\nrẻ\néarf\nsdf\nds\nfsd\nfsdf\nsd\nfsd\nfsd\nfsd\nfsd\nfsd\nfsd\nfds\nfds\nfd",
+  "ngay_check": "2025-10-23",
+  "created_at": "2025-10-23T09:16:01.227330",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f99028309d9992bbcf5aa1"
+  },
+  "id_thietBi": "TB002",
+  "action": "cập nhật trạng thái",
+  "trang_thai": "pending",
+  "ngay_check": null,
+  "updated_count": 1,
+  "created_at": "2025-10-23T09:17:12.062048",
+  "created_by": "system"
+},
+{
+  "_id": {
+    "$oid": "68f9902b309d9992bbcf5aa2"
+  },
+  "id_thietBi": "TB002",
+  "ten_thietBi": "Bumper",
+  "action": "kiểm tra định kỳ",
+  "chu_ky": "ngày",
+  "old_data": {
+    "_id": "68f1a4db377d2ee1681db803",
+    "id_thietBi": "TB002",
+    "ten_thietBi": "Bumper",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-22",
+    "trang_thai": "pending",
+    "ghi_chu": "ádfusdfudshfisdofhsdifhasdiohfsdiofhsdifhsdipfhsdipfhsdipfhsdifhsdfihdipf",
+    "last_updated": "2025-10-22T11:16:59.421857"
+  },
+  "new_data": {
+    "id_thietBi": "TB002",
+    "ten_thietBi": "Bumper",
+    "chu_ky": "ngày",
+    "ngay_check": "2025-10-23",
+    "trang_thai": "done",
+    "ghi_chu": "THÔNG BÁO\n\n1. Nhắc nhở hằng ngày\nMỗi ngày sẽ có 1 thông báo nhắc nhở hiện lên màn hình với nội dung cố định\n\n\n2. Nhắc nhở từng tháng\nNội dung:\n\n3. Nhắc nhở theo nửa năm\n\n\n4. Nhắc nhở mỗi năm\n\nTạo thêm 3 thông báo tương tự thông báo theo ngày nữa\n1. Nhắc nhở bảo trì hằng tháng:\n   Sẽ xuất hiện vào đầu tháng ( ngày 1 mõi tháng lúc 7h và mỗi 15 phút 1 popup xuất hiện lại trong vòng 4 tiếng)\n      Nội dung giống hệt với \"Thông báo theo ngày\"\n\n2. Nhắc nhở bảo trì hằng tháng:\n Sẽ xuất hiện vào đầu tháng ( ngày 1 mõi tháng lúc 7h và mỗi 15 phút 1 popup xuất hiện lại trong vòng 4 tiếng)\n      Nội dung giống hệt với \"Thông báo theo ngày\"",
+    "last_updated": "2025-10-23T09:17:15.439325"
+  },
+  "ghi_chu": "THÔNG BÁO\n\n1. Nhắc nhở hằng ngày\nMỗi ngày sẽ có 1 thông báo nhắc nhở hiện lên màn hình với nội dung cố định\n\n\n2. Nhắc nhở từng tháng\nNội dung:\n\n3. Nhắc nhở theo nửa năm\n\n\n4. Nhắc nhở mỗi năm\n\nTạo thêm 3 thông báo tương tự thông báo theo ngày nữa\n1. Nhắc nhở bảo trì hằng tháng:\n   Sẽ xuất hiện vào đầu tháng ( ngày 1 mõi tháng lúc 7h và mỗi 15 phút 1 popup xuất hiện lại trong vòng 4 tiếng)\n      Nội dung giống hệt với \"Thông báo theo ngày\"\n\n2. Nhắc nhở bảo trì hằng tháng:\n Sẽ xuất hiện vào đầu tháng ( ngày 1 mõi tháng lúc 7h và mỗi 15 phút 1 popup xuất hiện lại trong vòng 4 tiếng)\n      Nội dung giống hệt với \"Thông báo theo ngày\"",
+  "ngay_check": "2025-10-23",
+  "created_at": "2025-10-23T09:17:15.440322",
+  "created_by": "system"
+}]

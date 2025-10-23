@@ -1,0 +1,32 @@
+# --- Core ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# --- Database (MongoDB) ---
+motor==3.6.0              # Async driver cho MongoDB
+pydantic==2.9.2           # Validate schema
+python-dotenv==1.1.1
+
+# --- Security (Auth) ---
+python-jose[cryptography]==3.3.0   # JWT
+passlib[bcrypt]==1.7.4             # Hash mật khẩu
+bcrypt==3.2.0
+python-multipart==0.0.9            # Hỗ trợ upload form/file
+
+# --- Config & Logging ---
+pydantic-settings==2.4.0
+loguru==0.7.2
+apscheduler==3.10.4
+
+# --- Development & Testing ---
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx[http2]==0.27.0
+
+# --- Video ---
+opencv-python==4.11.0.86
+numpy==1.26.4
+
+# --- Date utilities ---
+python-dateutil==2.8.2
+

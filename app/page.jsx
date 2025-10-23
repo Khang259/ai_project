@@ -49,7 +49,7 @@ export default function Home() {
             <ClipboardList className="w-4 h-4" />
             Checklist bảo trì
           </button>
-          <button
+          {/* <button
             onClick={() => setActiveTab("list")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
               activeTab === "list"
@@ -59,7 +59,7 @@ export default function Home() {
           >
             <ListChecks className="w-4 h-4" />
             Danh sách bảo trì
-          </button>
+          </button> */}
           <button
             onClick={() => setActiveTab("history")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${

@@ -227,6 +227,7 @@ export default function MaintenanceHistoryTable() {
                         <TableHead className="font-semibold text-xs whitespace-nowrap">Ngày thay thế</TableHead>
                         <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú cũ</TableHead>
                         <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú mới</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap">Timestamp</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -239,6 +240,7 @@ export default function MaintenanceHistoryTable() {
                           <TableCell className="text-sm py-3">{renderValue(row?.new_data?.["Ngày update"])}</TableCell>
                           <TableCell className="text-sm py-3">{renderValue(row?.changes?.["Ghi chú"]?.old)}</TableCell>
                           <TableCell className="text-sm py-3">{renderValue(row?.changes?.["Ghi chú"]?.new)}</TableCell>
+                          <TableCell className="text-sm py-3">{renderValue(row?.timestamp)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

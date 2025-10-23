@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { FileText, Calendar, Clock, CheckCircle, AlertCircle, Edit3 } from "lucide-react"
+import { FileText, Calendar, Clock, CheckCircle, AlertCircle, Edit3, Download, X } from "lucide-react"
 
 export function MaintenanceChecklist() {
   const [maintenanceData, setMaintenanceData] = useState([])
@@ -16,6 +16,8 @@ export function MaintenanceChecklist() {
   const [showNotesModal, setShowNotesModal] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState(null)
   const [notes, setNotes] = useState("")
+  const [showPdfViewer, setShowPdfViewer] = useState(false)
+  const [selectedPdf, setSelectedPdf] = useState(null)
 
   // Fetch data từ API
   useEffect(() => {
@@ -178,6 +180,17 @@ export function MaintenanceChecklist() {
     setShowNotesModal(true)
   }
 
+  // PDF handling functions
+  const handleOpenPdf = (pdfName) => {
+    setSelectedPdf(pdfName)
+    setShowPdfViewer(true)
+  }
+
+  const handleClosePdfViewer = () => {
+    setShowPdfViewer(false)
+    setSelectedPdf(null)
+  }
+
   // Mapping chu kỳ và styling
   const chuKyConfig = {
     'ngày': {
@@ -243,13 +256,35 @@ export function MaintenanceChecklist() {
       <Card className="bg-card border-border h-full flex flex-col">
         {/* Header */}
         <div className="border-b border-border px-6 py-4 bg-muted/30">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/20 p-2 rounded-lg">
-              <FileText className="w-6 h-6 text-primary" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/20 p-2 rounded-lg">
+                <FileText className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-foreground">Nội dung bảo trì</h2>
+                <p className="text-sm text-muted-foreground">Danh sách thiết bị cần kiểm tra định kỳ</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground">Nội dung bảo trì</h2>
-              <p className="text-sm text-muted-foreground">Danh sách thiết bị cần kiểm tra định kỳ</p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleOpenPdf('taiLieuBaoTri.pdf')}
+                className="text-xs"
+              >
+                <FileText className="w-3 h-3 mr-1" />
+                Hướng dẫn bảo trì AMR
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleOpenPdf('linhKien.pdf')}
+                className="text-xs"
+              >
+                <Download className="w-3 h-3 mr-1" />
+                Chi tiết linh kiện
+              </Button>
             </div>
           </div>
         </div>
@@ -394,6 +429,111 @@ export function MaintenanceChecklist() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Viewer Modal */}
+      {showPdfViewer && (
+        <PdfViewerModal
+          pdfName={selectedPdf}
+          onClose={handleClosePdfViewer}
+        />
+      )}
+    </div>
+  )
+}
+
+// PDF Viewer Modal Component - Native Browser PDF Viewer
+function PdfViewerModal({ pdfName, onClose }) {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const pdfUrl = `/api/pdf/${pdfName}`
+
+  const handleLoad = () => {
+    setLoading(false)
+  }
+
+  const handleError = () => {
+    setLoading(false)
+    setError('Không thể tải tài liệu PDF')
+  }
+
+  const handleDownload = () => {
+    const link = document.createElement('a')
+    link.href = pdfUrl
+    link.download = pdfName === 'taiLieuBaoTri.pdf' 
+      ? 'taiLieuBaoTri.pdf' 
+      : 'linhKien.pdf'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      <div className="w-full h-full bg-card flex flex-col">
+        {/* Header - Compact for fullscreen */}
+        <div className="flex items-center justify-between border-b border-border px-6 py-2 flex-shrink-0 bg-muted/50">
+          <div className="flex items-center gap-3">
+            <FileText className="w-5 h-5 text-primary" />
+            <div>
+              <h2 className="text-base font-bold text-foreground">
+                {pdfName === 'taiLieuBaoTri.pdf' ? 'Tài liệu bảo trì' : 'Danh sách linh kiện'}
+              </h2>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownload}
+              className="text-xs"
+            >
+              <Download className="w-4 h-4 mr-1" />
+              Tải xuống
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onClose} 
+              className="text-xs"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Đóng
+            </Button>
+          </div>
+        </div>
+
+        {/* PDF Content - Fullscreen Native Browser Viewer */}
+        <div className="flex-1 relative overflow-hidden bg-muted/30">
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Đang tải tài liệu...</p>
+              </div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
+              <div className="text-center">
+                <p className="text-destructive text-lg mb-2">{error}</p>
+                <Button variant="outline" onClick={onClose}>Đóng</Button>
+              </div>
+            </div>
+          )}
+
+          {/* Native browser PDF viewer - Fullscreen mode */}
+          <iframe
+            src={pdfUrl}
+            className="w-full h-full border-0"
+            onLoad={handleLoad}
+            onError={handleError}
+            title="PDF Viewer"
+            type="application/pdf"
+          />
+        </div>
+      </div>
     </div>
   )
 }
