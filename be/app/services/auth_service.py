@@ -1,9 +1,9 @@
 from app.core.database import get_collection
-from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_refresh_token
 from app.schemas.user import UserCreate, UserOut
 from app.services.role_service import get_user_permissions
 from shared.logging import get_logger
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime
 from bson import ObjectId
 
@@ -79,12 +79,50 @@ def create_user_token(user):
     logger.debug(f"Creating token for user '{user['username']}'")
     # Convert role ObjectIds to strings for token
     role_ids = [str(role_id) for role_id in user.get("roles", [])]
-    return create_access_token(data={
+    token_data = {
         "sub": user["username"],
         "user_id": str(user["_id"]),
         "roles": role_ids,
         "permissions": user.get("permissions", [])
-    })
+    }
+    access_token = create_access_token(data=token_data)
+    refresh_token = create_refresh_token(data=token_data)
+    return access_token, refresh_token
+
+async def refresh_access_token(refresh_token: str) -> Optional[Dict]:
+    """Refresh access token using refresh token"""
+    payload = verify_refresh_token(refresh_token)
+    if not payload:
+        logger.warning("Invalid refresh token")
+        return None
+    
+    username = payload.get("sub")
+    if not username:
+        logger.warning("Refresh token missing username")
+        return None
+    
+    # Get user from database
+    users = get_collection("users")
+    user = await users.find_one({"username": username, "is_active": True})
+    if not user:
+        logger.warning(f"User '{username}' not found or inactive")
+        return None
+    
+    # Create new tokens
+    role_ids = [str(role_id) for role_id in user.get("roles", [])]
+    token_data = {
+        "sub": user["username"],
+        "user_id": str(user["_id"]),
+        "roles": role_ids,
+        "permissions": user.get("permissions", [])
+    }
+    access_token = create_access_token(data=token_data)
+    new_refresh_token = create_refresh_token(data=token_data)
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": new_refresh_token
+    }
 
 async def get_current_user_info(user_id: str) -> Optional[UserOut]:
     """Get current user information with permissions"""

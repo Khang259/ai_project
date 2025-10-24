@@ -73,9 +73,13 @@ class PermissionOut(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user: Optional[UserOut] = None  # Thêm thông tin user vào token
 
 class TokenData(BaseModel):
     username: str | None = None
     permissions: List[str] = []  # Thêm permissions vào token data
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
