@@ -50,13 +50,19 @@ const MobileGridDisplay = () => {
   }, [nodesData]);
 
   const lines = React.useMemo(() => {
-    return (nodesData || []).reduce((acc, node) => {
+    // Filter nodes theo selectedNodeType trước
+    const filteredByType = selectedNodeType 
+      ? (nodesData || []).filter(n => n.node_type === selectedNodeType)
+      : (nodesData || []);
+    
+    // Sau đó count lines
+    return filteredByType.reduce((acc, node) => {
       if (node.line) {
         acc[node.line] = (acc[node.line] || 0) + 1;
       }
       return acc;
     }, {});
-  }, [nodesData]);
+  }, [nodesData, selectedNodeType]);
 
   useEffect(() => {
     if (!selectedNodeType || !selectedLine) {
