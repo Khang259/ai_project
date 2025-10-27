@@ -20,9 +20,10 @@ const ButtonSettings = () => {
   
   // Mapping cho các giá trị node_type
   const nodeTypeMapping = {
-    'supply': 'Cấp',
-    'returns': 'Trả', 
-    'both': 'Cấp&Trả'
+    'supply': 'Cấp hàng',
+    'returns': 'Trả hàng', 
+    'both': 'Cấp và trả hàng',
+    'auto': 'Tự động'
   };
   
   // Line options (10 lines)
@@ -300,12 +301,12 @@ const ButtonSettings = () => {
         const mergedNodes = Array.from(mergedMap.values());
 
         // Kiểm tra node_type hợp lệ trước khi import
-        const validTypes = ['supply', 'returns', 'both'];
+        const validTypes = ['supply', 'returns', 'both', 'auto'];
         const invalidNode = mergedNodes.find(node => 
           node && node.node_type && !validTypes.includes(node.node_type)
         );
         if (invalidNode) {
-          alert(`❌ Phát hiện node_type không hợp lệ: "${invalidNode.node_type}" tại node "${invalidNode.node_name}".\n\nChỉ chấp nhận: supply, returns, both.\n\nImport đã bị hủy.`);
+          alert(`❌ Phát hiện node_type không hợp lệ: "${invalidNode.node_type}" tại node "${invalidNode.node_name}".\n\nChỉ chấp nhận: supply, returns, both, auto.\n\nImport đã bị hủy.`);
           event.target.value = '';
           return;
         }
@@ -415,6 +416,15 @@ const ButtonSettings = () => {
           end: 600,
           next_start: 700,
           next_end: 800
+        },
+        {
+          node_name: 'Tên tự động',
+          node_type: 'auto',
+          line: 'Line 4',
+          start: 900,
+          end: 1000,
+          next_start: 0,
+          next_end: 0
         }
       ];
       
@@ -617,6 +627,13 @@ const ButtonSettings = () => {
                         <option value="Line 1">Line 1</option>
                         <option value="Line 2">Line 2</option>
                         <option value="Line 3">Line 3</option>
+                        <option value="Line 4">Line 4</option>
+                        <option value="Line 5">Line 5</option>
+                        <option value="Line 6">Line 6</option>
+                        <option value="Line 7">Line 7</option>
+                        <option value="Line 8">Line 8</option>
+                        <option value="Line 9">Line 9</option>
+                        <option value="Line 10">Line 10</option>
                       </select>
                     </div>
                   )}
@@ -636,6 +653,7 @@ const ButtonSettings = () => {
                         <option value="supply">Cấp</option>
                         <option value="returns">Trả</option>
                         <option value="both">Cấp&Trả</option>
+                        <option value="auto">Tự động</option>
                       </select>
                     </div>
                   )}

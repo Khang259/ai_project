@@ -28,6 +28,8 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
         return '#ADD8E6'; // Màu xanh nước biển nhạt
       case 'both':
         return '#1C9B9B'; // Màu #1C9B9B
+      case 'auto':
+        return '#FFD700'; // Màu vàng (Gold)
       default:
         return 'transparent';
     }

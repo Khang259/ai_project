@@ -16,9 +16,10 @@ const MobileGridDisplay = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const nodeTypeMapping = {
-    'supply': 'Cấp',
-    'returns': 'Trả', 
-    'both': 'Cấp&Trả'
+    'supply': 'Cấp hàng',
+    'returns': 'Trả hàng', 
+    'both': 'Cấp và trả hàng',
+    'auto': 'Tự động'
   };
 
   // Color palette cho các lines (10 màu khác nhau)
@@ -162,7 +163,7 @@ const MobileGridDisplay = () => {
                 {Object.keys(nodeTypes).map((nodeType) => (
                   <button
                     key={nodeType}
-                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base w-2/7 ${
+                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base w-1/${Object.keys(nodeTypes).length} ${
                       selectedNodeType === nodeType 
                         ? 'bg-[#016B61] text-white' 
                         : 'bg-white text-[#016B61] border-2 border-[#016B61] hover:bg-[#016B61] hover:text-white'
