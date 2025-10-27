@@ -108,7 +108,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 20.0, cooldown_seconds: float = 10.0) -> None:
+                 stable_seconds: float = 10.0, cooldown_seconds: float = 5.0) -> None:
         print(f"Khởi tạo StablePairProcessor - DB: {db_path}, Config: {config_path}, Stable: {stable_seconds}s, Cooldown: {cooldown_seconds}s")
         
         # Thiết lập loggers
@@ -144,7 +144,14 @@ class StablePairProcessor:
         self.dual_blocked_pairs: Dict[str, Dict[str, int]] = {}  # dual_id -> {start_qr, end_qrs}
         self.dual_end_states: Dict[Tuple[str, int], Dict[str, Any]] = {}  # (camera_id, slot) -> {state, since}
 
+        # User-controlled end slot states (CHỈ CHO NORMAL PAIRS, không ảnh hưởng dual)
+        # Format: {end_qr: {"status": "empty"|"shelf", "timestamp": epoch, "source": str}}
+        self.user_end_slot_states: Dict[int, Dict[str, Any]] = {}
+
         self._load_pairing_config()
+        
+        # Khởi tạo tất cả end slots trong pairs là shelf mặc định
+        self._initialize_end_slots_as_shelf()
 
     def _load_pairing_config(self) -> None:
         print(f"Bắt đầu load pairing config từ {self.config_path}")
@@ -198,6 +205,21 @@ class StablePairProcessor:
         if self.dual_pairs:
             for dual in self.dual_pairs:
                 print(f"Dual pair: {dual['start_qr']} -> {dual['end_qrs']} + {dual['start_qr_2']} -> {dual['end_qrs_2']}")
+
+    def _initialize_end_slots_as_shelf(self) -> None:
+        """
+        Khởi tạo tất cả end slots trong PAIRS là shelf (mặc định).
+        CHỈ ÁP DỤNG CHO NORMAL PAIRS, không ảnh hưởng đến dual pairs.
+        """
+        for start_qr, end_qrs in self.pairs:
+            for end_qr in end_qrs:
+                self.user_end_slot_states[end_qr] = {
+                    "status": "shelf",
+                    "timestamp": time.time(),
+                    "source": "system_init"
+                }
+        
+        print(f"[PAIRS_INIT] Đã khởi tạo {len(self.user_end_slot_states)} end slots với trạng thái shelf mặc định")
 
     # No ROI polygons dependency anymore
 
@@ -379,7 +401,7 @@ class StablePairProcessor:
                 "state": "empty",  # Bắt đầu với empty
                 "since": time.time(),
                 "dual_id": dual_id,
-                "stable_time": 20.0  # Cần stable 20s
+                "stable_time": 10.0  # Cần stable 20s
             }
         
         log_msg = f"[DUAL_BLOCK] Đã block start_qr={start_qr} cho dual {dual_id}, monitoring end_qrs={end_qrs}"
@@ -450,6 +472,102 @@ class StablePairProcessor:
         
         log_msg = f"[DUAL_UNBLOCK] Đã unblock start_qr={start_qr} cho dual {dual_id} (end_qrs={end_qrs} stable shelf)"
         print(log_msg)
+    
+    def _subscribe_end_slot_requests(self) -> None:
+        """
+        Subscribe end_slot_request và end_slot_cancel topics để nhận yêu cầu từ người dùng.
+        CHỈ ÁP DỤNG CHO NORMAL PAIRS, không ảnh hưởng đến dual pairs.
+        """
+        print("Bắt đầu subscribe end_slot_request (cho normal pairs)...")
+        
+        last_request_id = 0
+        last_cancel_id = 0
+        
+        try:
+            with self.queue._connect() as conn:
+                # Get last ID cho end_slot_request
+                cur = conn.execute(
+                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                    ("end_slot_request",),
+                )
+                row = cur.fetchone()
+                if row:
+                    last_request_id = row[0]
+                
+                # Get last ID cho end_slot_cancel
+                cur = conn.execute(
+                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                    ("end_slot_cancel",),
+                )
+                row = cur.fetchone()
+                if row:
+                    last_cancel_id = row[0]
+        except Exception as e:
+            print(f"Lỗi khi khởi tạo end_slot_request cursor: {e}")
+
+        while True:
+            try:
+                # Đọc end_slot_request messages
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("end_slot_request", last_request_id),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_request_id = msg_id
+                    
+                    end_qr = payload.get("end_qr")
+                    # Chỉ xử lý nếu end_qr là part of normal pairs
+                    if end_qr and end_qr in self.user_end_slot_states:
+                        self.user_end_slot_states[end_qr] = {
+                            "status": "empty",
+                            "timestamp": time.time(),
+                            "source": "user_api"
+                        }
+                        print(f"[END_SLOT_REQUEST] Đã cập nhật end_qr={end_qr} → empty (từ người dùng)")
+                
+                # Đọc end_slot_cancel messages
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("end_slot_cancel", last_cancel_id),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_cancel_id = msg_id
+                    
+                    end_qr = payload.get("end_qr")
+                    # Chỉ xử lý nếu end_qr là part of normal pairs
+                    if end_qr and end_qr in self.user_end_slot_states:
+                        self.user_end_slot_states[end_qr] = {
+                            "status": "shelf",
+                            "timestamp": time.time(),
+                            "source": "user_api_cancel"
+                        }
+                        print(f"[END_SLOT_CANCEL] Đã hủy end_qr={end_qr} → shelf")
+                
+                time.sleep(0.2)
+                
+            except Exception as e:
+                print(f"Lỗi khi subscribe end_slot_request: {e}")
+                time.sleep(1.0)
     
     def _subscribe_dual_unblock_trigger(self) -> None:
         """Subscribe dual_unblock_trigger topic từ roi_processor"""
@@ -624,6 +742,11 @@ class StablePairProcessor:
         dual_trigger_thread.start()
         print("Started dual unblock trigger subscription thread")
         
+        # Start end slot request subscription thread (CHỈ CHO NORMAL PAIRS)
+        end_slot_thread = threading.Thread(target=self._subscribe_end_slot_requests, daemon=True)
+        end_slot_thread.start()
+        print("Started end slot request subscription thread (for normal pairs only)")
+        
         # Prepare roi_detection trackers
         roi_det_cameras = self._iter_roi_detections()
         last_roi_det_id: Dict[str, int] = {}
@@ -646,7 +769,7 @@ class StablePairProcessor:
 
                 # read new roi_detection per camera
                 for cam, last_id in list(last_roi_det_id.items()):
-                    rows = self.queue.get_after_id("roi_detection", cam, last_id, limit=20)
+                    rows = self.queue.get_after_id("roi_detection", cam, last_id, limit=30)
                     for r in rows:
                         payload = r["payload"]
                         last_roi_det_id[cam] = r["id"]
@@ -657,47 +780,51 @@ class StablePairProcessor:
                         if status_by_slot:
                             self._update_slot_state(cam, status_by_slot)
 
-                # evaluate pairs với logic mới
+                # LOGIC MỚI: evaluate pairs với user-controlled end slots (CHỈ CHO NORMAL PAIRS)
                 for start_qr, end_qrs in self.pairs:
                     start_cam_slot = self.qr_to_slot.get(start_qr)
                     if not start_cam_slot:
                         continue
                     start_cam, start_slot = start_cam_slot
+                    
+                    # Check start_qr == shelf (stable) từ AI detection
                     start_ok, start_since = self._is_slot_stable(start_cam, start_slot, expect_status="shelf")
                     if not start_ok or start_since is None:
                         continue
 
-                    # Thu thập tất cả các end_qrs đang empty và stable
-                    empty_end_qrs = []
+                    # Thu thập end_qrs theo trạng thái từ NGƯỜI DÙNG (không phải AI)
+                    user_empty_end_qrs = []
                     for end_qr in end_qrs:
-                        end_cam_slot = self.qr_to_slot.get(end_qr)
-                        if not end_cam_slot:
-                            continue
-                        end_cam, end_slot = end_cam_slot
-                        end_ok, end_since = self._is_slot_stable(end_cam, end_slot, expect_status="empty")
-                        if end_ok and end_since is not None:
-                            empty_end_qrs.append((end_qr, end_since))
+                        user_state = self.user_end_slot_states.get(end_qr, {})
+                        if user_state.get("status") == "empty":
+                            user_empty_end_qrs.append((end_qr, user_state.get("timestamp", time.time())))
                     
-                    # Logic mới: chỉ publish 1 cặp duy nhất
-                    if empty_end_qrs:
-                        # Case 1: TẤT CẢ end_qrs đều empty (len(empty_end_qrs) == len(end_qrs))
-                        # Case 2: CHỈ 1 hoặc MỘT SỐ end_qrs empty
-                        # Trong cả 2 case: chọn end_qr đầu tiên trong danh sách empty
-                        # (đây là end_qr có thứ tự ưu tiên cao nhất trong config)
-                        end_qr, end_since = empty_end_qrs[0]
-                        stable_since_epoch = max(start_since, end_since)
+                    # Chỉ publish khi có end_qr được người dùng đánh dấu empty
+                    if user_empty_end_qrs:
+                        # Chọn end_qr ĐẦU TIÊN trong danh sách (ưu tiên theo config)
+                        end_qr, end_timestamp = user_empty_end_qrs[0]
+                        stable_since_epoch = max(start_since, end_timestamp)
                         
-                        # Tạo danh sách tất cả end_qrs đang empty (chỉ QR codes)
-                        all_empty_qrs = [qr for qr, _ in empty_end_qrs]
+                        # Tạo danh sách tất cả end_qrs đang empty (do người dùng)
+                        all_empty_qrs = [qr for qr, _ in user_empty_end_qrs]
                         
                         # Log để debug
-                        if len(empty_end_qrs) == len(end_qrs):
-                            print(f"[PAIR_LOGIC] TẤT CẢ {len(end_qrs)} end_qrs đều empty cho start_qr={start_qr}, chọn end_qr={end_qr}, all_empty={all_empty_qrs}")
+                        if len(user_empty_end_qrs) == len(end_qrs):
+                            print(f"[PAIR_LOGIC_USER] TẤT CẢ {len(end_qrs)} end_qrs đều empty (user request) cho start_qr={start_qr}, chọn end_qr={end_qr}")
                         else:
-                            print(f"[PAIR_LOGIC] {len(empty_end_qrs)}/{len(end_qrs)} end_qrs empty cho start_qr={start_qr}, chọn end_qr={end_qr}")
+                            print(f"[PAIR_LOGIC_USER] {len(user_empty_end_qrs)}/{len(end_qrs)} end_qrs empty (user request) cho start_qr={start_qr}, chọn end_qr={end_qr}")
                         
                         # Publish với thông tin về tất cả end_qrs empty
-                        self._maybe_publish_pair(start_qr, end_qr, stable_since_epoch, all_empty_end_qrs=all_empty_qrs if len(all_empty_qrs) > 1 else None)
+                        self._maybe_publish_pair(start_qr, end_qr, stable_since_epoch, 
+                                               all_empty_qrs if len(all_empty_qrs) > 1 else None)
+                        
+                        # AUTO RESET: Đánh dấu lại end_qr về shelf sau khi publish
+                        self.user_end_slot_states[end_qr] = {
+                            "status": "shelf",
+                            "timestamp": time.time(),
+                            "source": "auto_reset_after_publish"
+                        }
+                        print(f"[AUTO_RESET] Đã reset end_qr={end_qr} → shelf sau khi publish pair")
 
                 # Evaluate dual pairs
                 self._evaluate_dual_pairs()

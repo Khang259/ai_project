@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
-API_URL = "http://192.168.1.169:7000/ics/taskOrder/addTask"
+API_URL = "http://localhost:7000/ics/taskOrder/addTask"
 DB_PATH = "../queues.db"  # relative to this script folder
 ORDER_ID_FILE = os.path.join(os.path.dirname(__file__), "order_id.txt")
 TOPICS = ["stable_pairs", "stable_dual"]  # Subscribe to both topics
@@ -468,10 +468,16 @@ def main() -> int:
                         fail_msg = f"\n✗ THẤT BẠI HOÀN TOÀN | {topic}={pair_id} | OrderID: {order_id} | Đã thử 3 lần"
                         print(fail_msg)
                         
-                        # Gửi unlock message sau 1 phút (sử dụng start_slot)
-                        unlock_msg = f"[UNLOCK_SCHEDULE] Sẽ unlock start_slot={start_slot} sau 60 giây do POST thất bại"
-                        print(unlock_msg)
-                        send_unlock_after_delay(queue, pair_id, start_slot, delay_seconds=60)
+                        # CHỈ unlock cho dual pairs (blocking required), KHÔNG unlock cho normal pairs
+                        if topic == "stable_dual":
+                            # Gửi unlock message sau 1 phút (sử dụng start_slot) - CHỈ CHO DUAL
+                            unlock_msg = f"[UNLOCK_SCHEDULE] Sẽ unlock start_slot={start_slot} sau 60 giây do POST thất bại (DUAL ONLY)"
+                            print(unlock_msg)
+                            send_unlock_after_delay(queue, pair_id, start_slot, delay_seconds=60)
+                        else:
+                            # Normal pairs không block → không cần unlock
+                            no_unlock_msg = f"[NO_UNLOCK] Normal pairs không block → không cần unlock mechanism"
+                            print(no_unlock_msg)
                     
                     # End of message processing
                     print(f"{'='*60}\nKẾT THÚC XỬ LÝ MESSAGE | ID: {r['id']} | Status: {'SUCCESS' if ok else 'FAILED'}\n{'='*60}\n")

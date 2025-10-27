@@ -453,8 +453,8 @@ class ROIProcessor:
         return filtered_detections
 
     def _subscribe_stable_pairs(self) -> None:
-        """Subscribe topic stable_pairs để nhận start_qr và block ROI tương ứng, đồng thời theo dõi end_qr."""
-        print("Bắt đầu subscribe stable_pairs để nhận lệnh block ROI và theo dõi end slot...")
+        """Subscribe topic stable_pairs để track end slot. KHÔNG block cho normal pairs - chỉ block cho dual."""
+        print("Bắt đầu subscribe stable_pairs (KHÔNG block - chỉ track end slot cho normal pairs)...")
         
         # Thiết lập end_to_start mapping
         self._setup_end_to_start_mapping()
@@ -495,28 +495,14 @@ class ROIProcessor:
                     start_qr_str = payload.get("start_slot")
                     end_qr_str = payload.get("end_slot")
                     
-                    # Xử lý start_qr (block ROI)
-                    if start_qr_str:
-                        try:
-                            start_qr = int(start_qr_str)
-                        except Exception:
-                            continue
-                        # Đảm bảo mapping mới nhất
-                        self._load_qr_mapping()
-                        cam_slot = self.qr_to_slot.get(start_qr)
-                        if not cam_slot:
-                            continue
-                        cam_id, slot_number = cam_slot
-                        expire_at = self.block_seconds  # vô thời hạn
-                        with self.cache_lock:
-                            if cam_id not in self.blocked_slots:
-                                self.blocked_slots[cam_id] = {}
-                            self.blocked_slots[cam_id][slot_number] = expire_at
-                            log_msg = f"[BLOCK] Đã block ROI slot {slot_number} trên {cam_id} (vô thời hạn) do start_qr={start_qr}"
-                            self.block_logger.info(f"BLOCK_SUCCESS: camera={cam_id}, slot={slot_number}, qr={start_qr}, type=stable_pair")
-                            print(log_msg)
+                    # KHÔNG BLOCK cho normal pairs - CHỈ track end_slot
+                    # Block chỉ áp dụng cho dual 2P và dual 4P
                     
-                    # Xử lý end_qr (bắt đầu theo dõi)
+                    pair_id = payload.get("pair_id", "")
+                    if start_qr_str and end_qr_str:
+                        print(f"[NORMAL_PAIR] Nhận normal pair {pair_id}: start_qr={start_qr_str} → end_qr={end_qr_str} (KHÔNG block)")
+                    
+                    # Xử lý end_qr (bắt đầu theo dõi) - OPTIONAL cho normal pairs
                     if end_qr_str:
                         try:
                             end_qr = int(end_qr_str)
@@ -524,7 +510,7 @@ class ROIProcessor:
                             continue
                         # Đảm bảo mapping mới nhất
                         self._load_qr_mapping()
-                        # Thêm end slot vào danh sách theo dõi
+                        # Thêm end slot vào danh sách theo dõi (nếu cần unlock mechanism)
                         self._add_end_slot_monitoring(end_qr)
                         
                 time.sleep(0.2)

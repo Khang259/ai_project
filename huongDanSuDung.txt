@@ -33,3 +33,8 @@ python roi_tool.py --camera-id cam-2 --save-coords
 
 # Legacy mode (video file)
 python roi_tool.py --video video/hanam.mp4 --save-coords
+
+
+1. Sửa lại orderID: timestamp + random salt
+2. Check lại body json lệnh Đôi
+
