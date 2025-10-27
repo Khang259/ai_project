@@ -1,0 +1,47 @@
+# OpenCV - Xử lý video và camera
+opencv-python>=4.8.0
+
+# Numpy - Xử lý array và matrix
+numpy==1.26.4
+
+# Ultralytics - YOLO object detection
+ultralytics==8.0.221
+
+# PyTorch - Deep learning framework (CUDA support)
+
+torch>=2.0.0
+torchvision>=0.15.0
+
+# ONNX Runtime (optional, cho TensorRT)
+# onnxruntime-gpu==1.16.3
+
+# TensorRT (optional, nếu dùng .engine models)
+# tensorrt==8.6.1
+
+# Pillow - Image processing
+Pillow==10.1.0
+
+# PyYAML - Config file handling
+PyYAML==6.0.1
+
+# Scipy - Scientific computing
+scipy==1.11.4
+
+# Matplotlib - Plotting (optional)
+matplotlib==3.8.2
+
+# Requests - HTTP requests (nếu cần post API)
+requests==2.31.0
+
+# Python dependencies cho multiprocessing
+psutil==5.9.6
+
+# Tqdm - Progress bars
+tqdm==4.66.1
+
+# Pandas - Data manipulation (optional)
+pandas==2.1.4
+
+# Seaborn - Visualization (optional)
+seaborn==0.13.0
+

@@ -1,0 +1,44 @@
+1. File roi_tool
+Vẽ roi trên video và lưu vào cấu hình vào queue
+
+2. File yolo_detector
+Chạy model nhận diện trong toàn bộ frames, input đầu vào là video.mp4, output là các object được detect. Sau đó raw data được lưu vào trong queues.db
+
+3. File roi_processor
+Sub vào queues.db lấy data detect (toạ độ) để xử lý với thuật toán IoU để chốt nhận diện trong ROI đã vẽ (toạ độ lấy từ queue mà file roi_tool đã lưu vào)
+Đồng thời lưu vào queue, và vẽ các class trên video để hiển thị trên video trực quan
+
+4. File view_roi_results để xem kết quả của file roi_processor trên terminal
+
+Để xem kết quả YOLO:
+Xem bản ghi mới nhất cho cam-1:
+    python view_queue.py latest raw_detection cam-1
+Theo dõi realtime cho cam-2 (in đẹp):
+    python view_queue.py tail raw_detection cam-2 --pretty
+Liệt kê các key có dữ liệu trong topic raw_detection:
+    python view_queue.py keys raw_detection
+
+
+
+Kích hoạt venv :"Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
+
+# Xem danh sách camera
+python roi_tool.py --list-cameras
+
+# Vẽ ROI cho camera-1 (RTSP)
+python roi_tool.py --camera-id cam-1 --save-coords
+
+# Vẽ ROI cho camera-2 (RTSP)  
+python roi_tool.py --camera-id cam-2 --save-coords
+
+# Legacy mode (video file)
+python roi_tool.py --video video/hanam.mp4 --save-coords
+
+================================
+[YOLO] Lỗi: CUDA không khả dụng. Vui lòng chạy trên máy có GPU/CUDA.
+Bước 1: Gỡ PyTorch hiện tại
+.\venv\Scripts\Activate.ps1
+pip uninstall torch torchvision -y
+
+Bước 2: Cài PyTorch với CUDA 12.1 (tương thích với CUDA 12.9)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121

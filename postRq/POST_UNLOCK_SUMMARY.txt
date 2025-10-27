@@ -1,0 +1,226 @@
+================================================================================
+    CƠ CHẾ UNLOCK KHI POST REQUEST THẤT BẠI
+================================================================================
+
+🎯 TỔNG QUAN:
+------------
+Khi POST request thất bại sau 3 lần thử → Tự động gửi UNLOCK message sau 60s
+
+Áp dụng cho:
+  ✅ Regular Pairs (stable_pairs)
+  ✅ Dual Pairs (stable_dual - cả 2P và 4P)
+
+================================================================================
+
+🔍 LOGIC (4 BƯỚC):
+------------------
+
+BƯỚC 1: Nhận message từ queue
+  - Topic: "stable_pairs" hoặc "stable_dual"
+  - Extract: pair_id, start_slot, end_slot
+
+BƯỚC 2: Tạo orderId và build payload
+  - orderId = {timestamp_ms}{random_salt}
+  - Build payload tùy loại (pair hoặc dual)
+
+BƯỚC 3: Retry 3 lần POST to API
+  ┌─────────────────────────────────────┐
+  │ Attempt 1: POST → Failed → Sleep 2s │
+  │ Attempt 2: POST → Failed → Sleep 2s │
+  │ Attempt 3: POST → Failed            │
+  └─────────────────────────────────────┘
+        ↓
+    TẤT CẢ THẤT BẠI
+        ↓
+BƯỚC 4: Gửi unlock message sau 60s
+  - Start background thread
+  - Sleep 60 giây
+  - Publish "unlock_start_slot"
+
+================================================================================
+
+⏱️  TIMELINE:
+-------------
+
+T=0s:    Nhận message, tạo orderId
+T=0s:    Attempt 1: POST → FAILED → Sleep 2s
+T=2s:    Attempt 2: POST → FAILED → Sleep 2s
+T=4s:    Attempt 3: POST → FAILED
+T=4s:    ✗ THẤT BẠI HOÀN TOÀN
+         → Start unlock thread (sleep 60s)
+T=64s:   🔓 Publish unlock message
+
+Tổng thời gian: 64 giây (từ nhận message đến unlock)
+
+================================================================================
+
+🔓 UNLOCK MESSAGE:
+------------------
+
+Topic: "unlock_start_slot"
+Key:   start_slot (ví dụ: "62")
+
+Payload:
+{
+  "pair_id": "62 -> 13",                    // Hoặc dual_id
+  "start_slot": "62",
+  "reason": "post_failed_after_retries",
+  "timestamp": "2024-10-16T10:31:04.123456"
+}
+
+================================================================================
+
+📊 BẢNG QUYẾT ĐỊNH:
+-------------------
+
+┌─────────────────┬───────┬──────────┬─────────────────┐
+│ Trường hợp      │ Retry │ Kết quả  │ Hành động       │
+├─────────────────┼───────┼──────────┼─────────────────┤
+│ Attempt 1 OK    │ 1/3   │ ✅ Success│ Dừng, no unlock │
+│ Attempt 2 OK    │ 2/3   │ ✅ Success│ Dừng, no unlock │
+│ Attempt 3 OK    │ 3/3   │ ✅ Success│ Dừng, no unlock │
+│ Tất cả failed   │ 3/3   │ ❌ Failed │ 🔓 Unlock 60s   │
+└─────────────────┴───────┴──────────┴─────────────────┘
+
+================================================================================
+
+💡 TẠI SAO 60 GIÂY?
+-------------------
+
+1. Tránh spam unlock ngay lập tức
+   → Ngăn vòng lặp: detect → POST fail → unlock → detect lại
+
+2. Cho phép can thiệp thủ công
+   → Admin có 60s để check/fix
+
+3. Tránh overload hệ thống
+   → API có thời gian recover
+
+4. Phù hợp với stable time
+   → Stable 20s + Unlock 60s = 80s giữa 2 lần publish
+
+================================================================================
+
+🎬 VÍ DỤ - REGULAR PAIR:
+------------------------
+
+Input:
+  pair_id: "62 -> 13"
+  start_slot: "62"
+  end_slot: "13"
+
+Console log:
+  ============================================================
+  XỬ LÝ MESSAGE MỚI | Topic: stable_pairs | ID: 123
+  ============================================================
+  Bắt đầu xử lý regular pair: 62 -> 13, orderId=1729085400000a1b2
+  
+  --- Lần thử 1/3 ---
+  [ERROR] ✗ Request timeout sau 10s
+  ⚠ Lần thử 1 thất bại, 2 giây trước khi thử lại...
+  
+  --- Lần thử 2/3 ---
+  [ERROR] ✗ Connection error
+  ⚠ Lần thử 2 thất bại, 2 giây trước khi thử lại...
+  
+  --- Lần thử 3/3 ---
+  [ERROR] ✗ HTTP 500
+  ⚠ Lần thử 3 thất bại
+  
+  ✗ THẤT BẠI HOÀN TOÀN | OrderID: 1729085400000a1b2
+  [UNLOCK_SCHEDULE] Sẽ unlock start_slot=62 sau 60 giây
+  
+  ... (60 giây sau) ...
+  
+  [UNLOCK_SCHEDULED] Đã gửi unlock message cho start_slot=62
+
+================================================================================
+
+🎬 VÍ DỤ - DUAL 4P:
+-------------------
+
+Input:
+  dual_id: "10000628-> 10000386-> 10000374-> 10000124"
+  start_slot: "10000628"
+  start_slot_2: "10000374"
+
+Kết quả:
+  - Retry 3 lần → Tất cả failed
+  - Unlock CHỈ start_slot="10000628"
+  - KHÔNG unlock start_slot_2="10000374"
+
+Lý do:
+  start_slot là điểm xuất phát chính
+  → Chỉ cần unlock điểm chính để tránh stuck
+
+================================================================================
+
+🔧 HÀM QUAN TRỌNG:
+------------------
+
+1. send_unlock_after_delay(queue, pair_id, start_slot, delay=60)
+   - Tạo background thread
+   - Sleep 60s
+   - Publish unlock message
+   - Non-blocking, daemon thread
+
+2. main() - Retry logic
+   - Loop 3 lần
+   - Sleep 2s giữa các attempt
+   - Gọi send_unlock_after_delay() nếu tất cả failed
+
+================================================================================
+
+📝 THAM SỐ:
+-----------
+
+Số lần retry:        3
+Delay giữa retry:    2 giây
+Delay trước unlock:  60 giây
+Topic unlock:        "unlock_start_slot"
+
+================================================================================
+
+🔄 FLOW HOÀN CHỈNH:
+-------------------
+
+stable_pair_processor.py
+  → Detect pair stable
+  → Publish "stable_pairs"
+        ↓
+postAPI.py
+  → Subscribe message
+  → Retry POST 3 lần
+  → Tất cả failed
+  → Start unlock thread (60s)
+  → Publish "unlock_start_slot"
+        ↓
+roi_processor.py (hoặc component khác)
+  → Subscribe "unlock_start_slot"
+  → Xử lý unlock logic
+
+================================================================================
+
+✅ TÓM TẮT:
+-----------
+
+Khi POST thất bại 3 lần:
+  1. Log thất bại
+  2. Start background thread
+  3. Sleep 60 giây
+  4. Publish unlock message
+
+Mục đích:
+  ✅ Tránh pair bị stuck
+  ✅ Tự phục hồi khi API down
+  ✅ Không spam detect lại ngay
+
+================================================================================
+
+📚 TÀI LIỆU CHI TIẾT:
+---------------------
+
+docs/README_POST_UNLOCK_MECHANISM.md - Tài liệu đầy đủ với ví dụ chi tiết
+
+================================================================================
+

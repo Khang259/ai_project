@@ -1,0 +1,53 @@
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+*.m4v
+*.3gp
+
+*.log
+
+# Video folders
+video/
+videos/
+
+# Model files
+*.pt
+*.pth
+*.onnx
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Output files
+output_*.mp4
+detection_*.jpg
+detection_*.png
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
