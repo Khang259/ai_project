@@ -119,12 +119,12 @@ const AMRWarehouseMap = () => {
   };
 
   return (
-    <div className="dashboard-page" style={{ background: 'white', minHeight: '75vh' }}>
+    <div className="dashboard-page" style={{minHeight: '75vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '20%', flexWrap: 'wrap' }}>
-        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 24, paddingRight: 24 }}>
+        <Title level={1} style={{ fontWeight: 500, fontSize: 32, paddingLeft: 24, paddingRight: 24, color: 'white' }}>
           {t('map.map')}
         </Title>
-        <MapFilters
+        <MapFilters className='glass'
           cameraFilter={cameraFilter}
           setCameraFilter={(value) => {
             setCameraFilter(value);

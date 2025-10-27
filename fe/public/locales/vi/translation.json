@@ -41,7 +41,8 @@
     "areaName": "Tên khu vực",
     "areaNameRequired": "Vui lòng nhập tên khu vực",
     "cancel": "Hủy",
-    "addArea": "Thêm khu vực"
+    "addArea": "Thêm khu vực",
+    "areaManagement": "Trang quản lý khu vực"
   },
   "users": {
     "userManagement": "Trang quản lý người dùng",

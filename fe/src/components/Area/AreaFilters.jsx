@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 const AreaFilters = ({ search, onSearchChange, areaFilter, onAreaChange, areas }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200">
+    <div className="flex items-center gap-4 p-4 rounded-lg border border-gray-200">
       {/* Area Filter Dropdown */}
       <div className="flex items-center gap-2">
         <Select value={areaFilter} onValueChange={onAreaChange}>

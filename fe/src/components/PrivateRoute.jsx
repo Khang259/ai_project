@@ -12,7 +12,7 @@ function PrivateRoute({ children, requiredRole = null }) {
 
   // Nếu chưa có thông tin user, đợi load xong
   if (!user) {
-    return <div style={{ padding: '20px', background: 'yellow', color: 'black' }}>
+    return <div style={{ padding: '20px',color: 'black' }}>
       <h2>Đang tải thông tin user...</h2>
       <p>Token: {token ? 'Có' : 'Không'}</p>
       <p>User: {user ? 'Có' : 'Không'}</p>

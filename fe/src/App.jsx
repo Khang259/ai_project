@@ -13,111 +13,114 @@ import Area from './pages/Area';
 import PrivateRoute from './components/PrivateRoute'; 
 import { AreaProvider } from './contexts/AreaContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './i18n';
 
 function App() {
   return (
-    <LanguageProvider>
-      <AreaProvider>
-        <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<LoginPage />} />
+    <ThemeProvider>
+      <LanguageProvider>
+        <AreaProvider>
+          <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
 
-      {/* User routes - Mobile Grid Display */}
-      <Route
-        path="/mobile-grid-display"
-        element={
-          <PrivateRoute>
-            <MobileGridDisplay />
-          </PrivateRoute>
-        }
-      />
+        {/* User routes - Mobile Grid Display */}
+        <Route
+          path="/mobile-grid-display"
+          element={
+            <PrivateRoute>
+              <MobileGridDisplay />
+            </PrivateRoute>
+          }
+        />
 
-      {/* Admin routes - Dashboard Layout */}
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <Dashboard />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/maintain"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <Maintain />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/analytics"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <Analytics />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/task"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <TaskManagement />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/notification"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <Notification />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/users"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <Users />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/area"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <Area />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute requiredRole="admin">
-            <DashboardLayout>
-              <Settings />
-            </DashboardLayout>
-          </PrivateRoute>
-        }
-      />
-        </Routes>
-      </AreaProvider>
-    </LanguageProvider>
+        {/* Admin routes - Dashboard Layout */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <Dashboard />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/maintain"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <Maintain />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <Analytics />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/task"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <TaskManagement />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/notification"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <Notification />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <Users />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/area"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <Area />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardLayout>
+                <Settings />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+          </Routes>
+        </AreaProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

@@ -6,10 +6,11 @@ import { Button } from '../ui/button';
 import { Plus, Trash2, Video, Loader2 } from 'lucide-react';
 import { getCamerasByArea, addCamera, updateCamera, deleteCamera } from '@/services/camera-settings';
 import { useArea } from '@/contexts/AreaContext';
+import { getStreamCamera } from '@/services/infocamera-dashboard';
 import { useTranslation } from 'react-i18next';
 
 const CameraSettings = () => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const [cameras, setCameras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,7 +25,12 @@ const CameraSettings = () => {
     try {
       setLoading(true);
       const camerasData = await getCamerasByArea(currAreaId);
-      setCameras(camerasData);
+      // Ensure b_box is an array
+      const formattedCameras = camerasData.map(cam => ({
+        ...cam,
+        b_box: cam.b_box ? (Array.isArray(cam.b_box) ? cam.b_box : [cam.b_box]) : ['']
+      }));
+      setCameras(formattedCameras);
     } catch (error) {
       console.error('Error loading cameras:', error);
       alert(t('settings.errorLoadingCameras'));
@@ -34,27 +40,44 @@ const CameraSettings = () => {
   };
 
   const addNewCamera = () => {
-    setCameras([...cameras, { 
+    setCameras([...cameras, {
       id: `temp_${Date.now()}`,
-      camera_id: Date.now(), 
-      camera_name: '', 
-      camera_path: '', 
+      camera_id: Date.now(),
+      camera_name: '',
+      camera_path: '',
+      b_box: [''],
       area: currAreaId,
-      isNew: true 
+      isNew: true
     }]);
+  };
+
+  const addBoundingBox = (cameraId) => {
+    setCameras(cameras.map(cam =>
+      cam.id === cameraId ? { ...cam, b_box: [...cam.b_box, ''] } : cam
+    ));
+  };
+
+  const removeBoundingBox = (cameraId, bboxIndex) => {
+    setCameras(cameras.map(cam => {
+      if (cam.id === cameraId && cam.b_box.length > 1) {
+        return {
+          ...cam,
+          b_box: cam.b_box.filter((_, index) => index !== bboxIndex)
+        };
+      }
+      return cam;
+    }));
   };
 
   const removeCamera = async (cameraId) => {
     if (cameras.length <= 1) return;
-    
+
     try {
-      // Nếu là camera mới (chưa lưu vào DB), chỉ xóa khỏi state
       if (cameraId.startsWith('temp_')) {
         setCameras(cameras.filter(cam => cam.id !== cameraId));
         return;
       }
 
-      // Nếu là camera đã lưu trong DB, gọi API xóa
       await deleteCamera(cameraId);
       setCameras(cameras.filter(cam => cam.id !== cameraId));
       alert(t('settings.cameraDeletedSuccessfully'));
@@ -64,10 +87,18 @@ const CameraSettings = () => {
     }
   };
 
-  const updateCameraField = (cameraId, field, value) => {
-    setCameras(cameras.map(cam => 
-      cam.id === cameraId ? { ...cam, [field]: value } : cam
-    ));
+  const updateCameraField = (cameraId, field, value, bboxIndex = null) => {
+    setCameras(cameras.map(cam => {
+      if (cam.id === cameraId) {
+        if (field === 'b_box' && bboxIndex !== null) {
+          const newBbox = [...cam.b_box];
+          newBbox[bboxIndex] = value;
+          return { ...cam, b_box: newBbox };
+        }
+        return { ...cam, [field]: value };
+      }
+      return cam;
+    }));
   };
 
   const validateRTSPUrl = (url) => {
@@ -75,46 +106,47 @@ const CameraSettings = () => {
     return rtspRegex.test(url);
   };
 
+  const validateBBox = (bbox) => {
+    const bboxRegex = /^\d+,\d+,\d+,\d+$/;
+    return bboxRegex.test(bbox);
+  };
+
   const handleSaveCameras = async () => {
     try {
       setSaving(true);
-      
+
       // Validate all cameras
-      const invalidCameras = cameras.filter(camera => 
-        camera.camera_path && !validateRTSPUrl(camera.camera_path)
+      const invalidCameras = cameras.filter(camera =>
+        (camera.camera_path && !validateRTSPUrl(camera.camera_path)) ||
+        camera.b_box.some(bbox => bbox && !validateBBox(bbox))
       );
-      
+
       if (invalidCameras.length > 0) {
-        alert(t('settings.invalidRTSPUrls'));
+        alert(t('settings.invalidRTSPUrlsOrBbox'));
         return;
       }
 
       // Process each camera
       for (const camera of cameras) {
+        const cameraData = {
+          camera_id: camera.camera_id,
+          camera_name: camera.camera_name,
+          camera_path: camera.camera_path,
+          b_box: camera.b_box.filter(bbox => bbox !== ''), // Remove empty bboxes
+          area: camera.area
+        };
+
         if (camera.isNew) {
-          // Thêm camera mới
           if (camera.camera_name && camera.camera_path) {
-            await addCamera({
-              camera_id: camera.camera_id,
-              camera_name: camera.camera_name,
-              camera_path: camera.camera_path,
-              area: camera.area
-            });
+            await addCamera(cameraData);
           }
         } else {
-          // Cập nhật camera hiện có
-          if (camera.camera_name || camera.camera_path) {
-            await updateCamera({
-              id: camera.id,
-              camera_name: camera.camera_name,
-              camera_path: camera.camera_path,
-              area: camera.area
-            });
+          if (camera.camera_name || camera.camera_path || camera.b_box.length > 0) {
+            await updateCamera({ ...cameraData, id: camera.id });
           }
         }
       }
 
-      // Reload cameras from database
       await loadCamerasFromDatabase();
       alert(t('settings.cameraConfigurationSavedSuccessfully'));
     } catch (error) {
@@ -147,7 +179,7 @@ const CameraSettings = () => {
             Thêm và quản lý camera từ database
             <br />
             <span className="text-xs text-muted-foreground">
-              Định dạng yêu cầu: rtsp://ip:port/path (ví dụ: rtsp://192.168.1.100:554/stream)
+              Định dạng yêu cầu: rtsp://ip:port/path (ví dụ: rtsp://192.168.1.100:554/stream) | Bounding box: x,y,w,h (ví dụ: 0,0,100,100)
             </span>
           </CardDescription>
         </CardHeader>
@@ -158,7 +190,7 @@ const CameraSettings = () => {
               return (
                 <div key={camera.id} className="flex gap-2 items-start p-3 border rounded-lg">
                   <div className="flex-1 space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
                         <Label htmlFor={`name-${camera.id}`} className="text-xs text-muted-foreground">
                           {t('settings.cameraName')}
@@ -172,27 +204,76 @@ const CameraSettings = () => {
                           className="text-sm"
                         />
                       </div>
+
+                      {/* RTSP url settings */}
                       <div>
-                      <Label htmlFor={`path-${camera.id}`} className="text-xs text-muted-foreground">
-                        {t('settings.rtspUrl')}
-                      </Label>
-                      <Input
-                        id={`path-${camera.id}`}
-                        type="text"
-                        placeholder="rtsp://192.168.1.100:554/stream"
-                        value={camera.camera_path}
-                        onChange={(e) => updateCameraField(camera.id, 'camera_path', e.target.value)}
-                        className={`font-mono text-sm ${
-                          camera.camera_path && !isValidRTSP 
-                            ? 'border-red-500 focus:border-red-500' 
-                            : ''
-                        }`}
-                      />
-                      {camera.camera_path && !isValidRTSP && (
-                        <p className="text-xs text-red-500 mt-1">
-                          URL phải có định dạng RTSP (ví dụ: rtsp://192.168.1.100:554/stream)
-                        </p>
-                      )}
+                        <Label htmlFor={`path-${camera.id}`} className="text-xs text-muted-foreground">
+                          {t('settings.rtspUrl')}
+                        </Label>
+                        <Input
+                          id={`path-${camera.id}`}
+                          type="text"
+                          placeholder="rtsp://192.168.1.100:554/stream"
+                          value={camera.camera_path}
+                          onChange={(e) => updateCameraField(camera.id, 'camera_path', e.target.value)}
+                          className={`font-mono text-sm ${
+                            camera.camera_path && !isValidRTSP
+                              ? 'border-red-500 focus:border-red-500'
+                              : ''
+                          }`}
+                        />
+                        {camera.camera_path && !isValidRTSP && (
+                          <p className="text-xs text-red-500 mt-1">
+                            URL phải có định dạng RTSP (ví dụ: rtsp://192.168.1.100:554/stream)
+                          </p>
+                        )}
+                      </div>
+
+                      {/* BBox settings */}
+                      <div>
+                        <Label className="text-xs text-muted-foreground">
+                          {t('settings.bBoxSettings')}
+                        </Label>
+                        {camera.b_box.map((bbox, bboxIndex) => (
+                          <div key={`${camera.id}-bbox-${bboxIndex}`} className="flex items-center gap-2 mb-2">
+                            <Input
+                              id={`bbox-${camera.id}-${bboxIndex}`}
+                              type="text"
+                              placeholder="0,0,0,0"
+                              value={bbox}
+                              onChange={(e) => updateCameraField(camera.id, 'b_box', e.target.value, bboxIndex)}
+                              className={`font-mono text-sm ${
+                                bbox && !validateBBox(bbox)
+                                  ? 'border-red-500 focus:border-red-500'
+                                  : ''
+                              }`}
+                            />
+                            {camera.b_box.length > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeBoundingBox(camera.id, bboxIndex)}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          onClick={() => addBoundingBox(camera.id)}
+                          variant="outline"
+                          size="sm"
+                          className="mt-1 w-full border-dashed"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {t('settings.addBoundingBox')}
+                        </Button>
+                        {camera.b_box.some(bbox => bbox && !validateBBox(bbox)) && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {t('settings.invalidBBoxFormat')}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -220,8 +301,8 @@ const CameraSettings = () => {
           </Button>
 
           <div className="mt-4 pt-4 border-t">
-            <Button 
-              onClick={handleSaveCameras} 
+            <Button
+              onClick={handleSaveCameras}
               disabled={saving}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >

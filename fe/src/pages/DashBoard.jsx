@@ -7,10 +7,10 @@ export default function Dashboard() {
     <div className="min-h-screen">
       <div className="flex flex-row h-[calc(100vh-4rem)]">
         <div className="w-[25%] p-6 ">
-          <StatisticsLeftSide />
+            <StatisticsLeftSide />
         </div>
         {/* Main map area - 75% */}
-        <div className="w-[75%] bg-gray-50 p-6">
+        <div className="w-[75%] p-6">
           <div className="space-y-6">
             <div className="rounded-lg shadow-sm">
               <AMRWarehouseMap />

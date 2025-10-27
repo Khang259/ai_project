@@ -18,7 +18,7 @@ const LanguageSwitcher = () => {
 
   const languages = [
     { code: 'vi', name: t('language.vietnamese'), flag: '🇻🇳' },
-    { code: 'en', name: t('language.english'), flag: '🇺🇸' }
+    { code: 'en', name: t('language.english'), flag: 'en' }
   ];
 
   const currentLang = languages.find(lang => lang.code === currentLanguage);
@@ -29,11 +29,10 @@ const LanguageSwitcher = () => {
         <Button variant="outline" size="sm" className="flex items-center gap-2">
           <Globe className="h-4 w-4" />
           <span className="hidden sm:inline">{currentLang?.flag}</span>
-          <span className="hidden md:inline">{currentLang?.name}</span>
+          {/* <span className="hidden md:inline">{currentLang?.name}</span> */}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Ngôn ngữ / Language</DropdownMenuLabel>
+      <DropdownMenuContent align="end">
         <DropdownMenuSeparator />
         {languages.map((language) => (
           <DropdownMenuItem

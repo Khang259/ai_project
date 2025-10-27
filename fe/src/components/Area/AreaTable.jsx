@@ -97,12 +97,12 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="rounded-lg border border-gray-200 overflow-hidden">
       {/* Table */}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow className="">
               <TableHead className="font-semibold text-gray-900">Area ID</TableHead>
               <TableHead className="font-semibold text-gray-900">Area Name</TableHead>
               <TableHead className="font-semibold text-gray-900">Area Description</TableHead>
@@ -113,7 +113,7 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
           </TableHeader>
           <TableBody>
             {currentAreas.map((area) => (
-              <TableRow key={area.area_id} className="hover:bg-gray-50">
+              <TableRow key={area.area_id} className="">
                 <TableCell className="font-medium text-gray-900">
                   {area.area_id}
                 </TableCell>
@@ -161,7 +161,7 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"

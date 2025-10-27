@@ -1,10 +1,14 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Button = () => {
+  const { isDarkMode, toggleTheme } = useTheme();
+  
   return (
     <StyledWrapper>
-      <button> I'M READY
+      <button onClick={toggleTheme}>
+        {isDarkMode ? '🌙 DARK' : '☀️ LIGHT'}
       </button>
     </StyledWrapper>
   );
@@ -23,8 +27,8 @@ const StyledWrapper = styled.div`
     transition: all 0.3s;
     line-height: 1.4em;
     border: 2px solid var(--green);
-    background: linear-gradient(to right, rgba(27, 253, 156, 0.1) 1%, transparent 40%,transparent 60% , rgba(27, 253, 156, 0.1) 100%);
-    color: var(--green);
+    // background: linear-gradient(to right, rgba(27, 253, 156, 0.1) 1%, transparent 40%,transparent 60% , rgba(27, 253, 156, 0.1) 100%);
+    // color: var(--green);
     box-shadow: inset 0 0 10px rgba(27, 253, 156, 0.4), 0 0 9px 3px rgba(27, 253, 156, 0.1);
   }
 

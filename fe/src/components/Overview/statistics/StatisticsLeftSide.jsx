@@ -43,11 +43,7 @@ export default function StatisticsLeftSide() {
 
   return (
     <div
-      className="w-[100%] h-[105%] rounded-lg shadow-xl p-6 pt-8 overflow-y-auto"
-      style={{
-        backgroundColor: "",
-        boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 2px 8px 0 rgba(60, 60, 100, 0.07)",
-      }}
+      className="w-[100%] h-[105%] rounded-lg shadow-xl p-6 pt-8 overflow-y-auto glass"
     >
       <h2 className="text-lg font-semibold mb-4">Thống kê</h2>
 

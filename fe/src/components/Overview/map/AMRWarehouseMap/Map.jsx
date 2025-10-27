@@ -623,16 +623,13 @@ const LeafletMap = ({
         `}
       </style>
         <div 
+          className='glass map-wrapper'
           ref={mapRef} 
-          style={{ 
-            width: '100%', 
+          style={{
+            width: '100%',
             height: '85vh',
-            backgroundColor: 'rgb(255, 255, 255)',
-            position: 'relative',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          }} 
+            position: 'relative'
+          }}
         />
       {/* Camera layer với error boundary */}
       <CameraErrorBoundary>

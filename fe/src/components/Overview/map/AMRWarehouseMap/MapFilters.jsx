@@ -36,10 +36,10 @@ const MapFilters = ({ cameraFilter, setCameraFilter}) => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1px #333', borderRadius: 10, boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)', padding: 10 }}>
-      {/* Filter Camera ID */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{ fontWeight: 500, color: '#333' }}>Camera ID:</span>
+    <div style={{display: 'flex', alignItems: 'center', gap: 12, border: '1px #333', borderRadius: 10, boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)', padding: 10 }}>
+     {/* Filter Camera ID */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'white' }}>
+        <span style={{ fontWeight: 500 }}>Camera ID:</span>
         <AutoComplete
           value={cameraFilter || ''}
           options={options}
@@ -58,7 +58,7 @@ const MapFilters = ({ cameraFilter, setCameraFilter}) => {
           onChange={(e) => {
             setCameraFilter(e.target.value);
           }}
-          style={{ width: 120 }}
+          style={{ width: 120}}
           allowClear
           size="middle"
         />

@@ -115,6 +115,21 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-image: url('/src/assets/bg4.jpg');
+    background-size: 100% 100%;
+    transition: background 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    color: black !important; /* Light mode: chữ đen */
+  }
+
+  
+  /* Ensure smooth transitions for theme switching */
+  html {
+    transition: background-color 1s ease;
+  }
+
+  .map-wrapper {
+    background: transparent !important;
   }
 }
