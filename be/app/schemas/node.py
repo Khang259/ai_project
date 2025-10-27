@@ -6,6 +6,7 @@ class NodeCreate(BaseModel):
     node_name: str
     node_type: str
     owner: str = Field(..., description="Username của người sở hữu node")
+    line: str = Field(..., description="Line number (Line 1, Line 2, Line 3)")
     start: int
     end: int
     next_start : Optional[int] = None
@@ -16,6 +17,7 @@ class NodeOut(BaseModel):
     node_name: str
     node_type: str
     owner: str  # Username của người sở hữu
+    line: Optional[str] = None  # Optional để support nodes cũ chưa có line
     start: int
     end: int
     next_start: Optional[int] = None
@@ -27,6 +29,7 @@ class ProcessCaller(BaseModel):
     node_name: str
     node_type: str
     owner: str  # Username của người sở hữu
+    line: Optional[str] = None  # Optional để support tasks từ nodes cũ
     start: int
     end: int
     next_start: Optional[int] = None
@@ -36,6 +39,7 @@ class NodeUpdate(BaseModel):
     node_name: Optional[str] = None
     node_type: Optional[str] = None
     owner: Optional[str] = None  # Username của người sở hữu
+    line: Optional[str] = None
     start: Optional[int] = None
     end: Optional[int] = None
     next_start: Optional[int] = None
@@ -47,6 +51,7 @@ class NodeBatchUpdateItem(BaseModel):
     node_name: str = Field(..., description="Tên node")
     node_type: str
     owner: str
+    line: str
     start: int
     end: int
     next_start: Optional[int] = None
