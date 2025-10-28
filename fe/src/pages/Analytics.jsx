@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateFilter } from "@/components/Analytics/DateFilter";
 
 
 const workflowDistribution = [
@@ -30,7 +30,10 @@ const workflowDistribution = [
 ]
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState("1d")
+  const [dateFilter, setDateFilter] = useState({
+    startDate: new Date(),
+    endDate: new Date()
+  })
   const [workStatusData, setWorkStatusData] = useState(null)
   const [payloadData, setPayloadData] = useState(null)
   const [workStatusChartData, setWorkStatusChartData] = useState([])
@@ -39,25 +42,41 @@ export default function AnalyticsPage() {
   const [error, setError] = useState(null)
   const { currAreaName, currAreaId } = useArea()
 
+  // Helper: Date -> YYYY-MM-DD (tránh lệch múi giờ/locale)
+  const toYMD = (d) => {
+    if (!(d instanceof Date)) return null
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  // Hàm xử lý khi filter thay đổi
+  const handleFilterChange = (startDate, endDate) => {
+    setDateFilter({ startDate, endDate })
+  }
+
   // Hàm để lấy dữ liệu từ backend
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      // Chuyển đổi timeRange từ frontend sang backend format
-      const timeFilterMap = {
-        "1d": "d",
-        "7d": "w",
-        "30d": "m", 
+      // Chỉ fetch khi đã chọn range từ DateFilter
+      if (!dateFilter.startDate || !dateFilter.endDate) {
+        return
       }
-      const backendTimeFilter = timeFilterMap[timeRange] || "d"
-      // Lấy dữ liệu work status
-      const workStatusResponse = await getStatistics(backendTimeFilter)
+
+      const startDate = toYMD(dateFilter.startDate)
+      const endDate = toYMD(dateFilter.endDate)
+
+      console.log("[Analytics] Fetching data for:", { startDate, endDate })
+      // Lấy dữ liệu work status theo khoảng ngày
+      const workStatusResponse = await getStatistics(startDate, endDate)
       setWorkStatusData(workStatusResponse)
       
-      // Lấy dữ liệu payload statistics
-      const payloadResponse = await getPayloadStatistics(backendTimeFilter, "InTask")
+      // Lấy dữ liệu payload statistics theo khoảng ngày (giữ state = InTask)
+      const payloadResponse = await getPayloadStatistics(startDate, endDate, "InTask")
       setPayloadData(payloadResponse)
       
       // Chuyển đổi sang format cho charts
@@ -67,7 +86,7 @@ export default function AnalyticsPage() {
       console.log("[Analytics] Chart data payload:", payloadChartData)
       setWorkStatusChartData(workStatusChartData)
       setPayloadChartData(payloadChartData)
-      
+
     } catch (err) {
       console.error("[Analytics] Lỗi khi lấy dữ liệu:", err)
       setError(err.message || "Có lỗi xảy ra khi tải dữ liệu")
@@ -76,7 +95,6 @@ export default function AnalyticsPage() {
     }
   }
   useEffect(() => {
-    // Lấy dữ liệu lần đầu
     fetchData()
     
     // Thiết lập interval để refresh mỗi 1'
@@ -88,7 +106,7 @@ export default function AnalyticsPage() {
     return () => {
       clearInterval(interval)
     }
-  }, [timeRange]) // Re-run khi timeRange thay đổi
+  }, [dateFilter]) // Re-run khi dateFilter thay đổi
 
   return (
       <div className="space-y-8">
@@ -99,16 +117,7 @@ export default function AnalyticsPage() {
           </div>
           {/* Filter */}
           <div className="flex items-center gap-3">
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1d">1 ngày gần nhất</SelectItem>
-                <SelectItem value="7d">7 ngày gần nhất</SelectItem>
-                <SelectItem value="30d">30 ngày gần nhất</SelectItem>
-              </SelectContent>
-            </Select>
+            <DateFilter onFilterChange={handleFilterChange} />
             <Button variant="outline" className="gap-2 bg-transparent">
               <Download className="w-4 h-4" />
               Export
@@ -123,7 +132,7 @@ export default function AnalyticsPage() {
           </TabsList>
 
           <TabsContent value="performance" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Execution Trends */}
               <Card className="border-gray-200">
                 <CardHeader>
