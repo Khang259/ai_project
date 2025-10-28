@@ -1,27 +1,37 @@
-import { Doughnut } from "react-chartjs-2";
+import {Doughnut } from "react-chartjs-2"; // Đổi thành Pie
 import {
   Chart as ChartJS,
   ArcElement,
   Tooltip,
   Legend,
 } from "chart.js";
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function StatisticsLeftSide() {
+  const { t } = useTranslation();
+
   const todayData = {
-    labels: ["Completed", "In progress", "Not Start", "Failed", "Cancelled"],
+    labels: [t('statistics.completed'), t('statistics.inProgress'), t('statistics.failed'), t('statistics.cancelled')],
     datasets: [
       {
-        data: [10, 20, 30, 40, 50],
+        data: [10, 20, 40, 50],
         backgroundColor: [
-          "#3b82f6", // blue (completed)
-          "#facc15", // yellow (in progress)
-          "#a78bfa", // purple (not start)
-          "#ef4444", // red (failed)
-          "#d1d5db", // gray (cancelled)
+          "#3b82f6",
+          "#facc15",
+          "#ef4444",
+          "#d1d5db",
         ],
-        borderWidth: 1,
+        // borderWidth: 3,
+         borderColor: [
+          "#3b82f6",
+          "#facc15",
+          "#ef4444",
+          "#d1d5db",
+        ],
+        borderRadius: 10, // Bo góc
+        spacing: 3,
       },
     ],
   };
@@ -30,114 +40,113 @@ export default function StatisticsLeftSide() {
     labels: ["Completed", "Remaining"],
     datasets: [
       {
-        data: [43, 14], // 43 done / 57 total
+        data: [43, 14],
         backgroundColor: ["#3b82f6", "#e5e7eb"],
+        borderWidth: 3,
+        borderColor: "#ffffff",
       },
     ],
   };
 
   const options = {
-    plugins: { legend: { display: false } },
-    cutout: "70%",
+    plugins: { 
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        titleColor: 'white',
+        bodyColor: 'white',
+      },
+    },
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+    },
   };
 
-  return (
-    <div
-      className="w-[100%] h-[105%] rounded-lg shadow-xl p-6 pt-8 overflow-y-auto glass"
-    >
-      <h2 className="text-lg font-semibold mb-4">Thống kê</h2>
+  // 2 chart nhỏ vẫn dùng Doughnut (hoặc đổi thành Pie nếu muốn)
+  const smallOptions = { ...options };
 
-      {/* Today Section */}
+  return (
+    <div className="w-full h-full rounded-lg shadow-xl p-6 pt-8 overflow-y-auto glass">
+      <h2 className="text-lg font-semibold mb-4 text-white">{t('statistics.statistics')}</h2>
+
+      {/* Today Section - Dùng Pie Chart */}
       <div className="mb-6">
-        <h1 className="text-lg font-large mb-2">Hôm nay</h1>
+        <h1 className="text-lg font-medium mb-2 text-white">{t('statistics.today')}</h1>
         
-        {/* Main Doughnut Chart */}
-        <div className="flex justify-center mb-4 mt-4 ">
-          <div className="relative align-center w-50 h-50">
-            <Doughnut data={todayData} options={options} />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-700">
-              <span className="text-3xl font-bold">150</span>
-              <span className="text-base">Tổng nhiệm vụ</span>
+        <div className="flex justify-center mb-4 mt-4">
+          <div className="relative w-56 h-56">
+            <Doughnut data={todayData} options={options} /> {/* Đổi thành Pie */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-3xl font-bold text-white drop-shadow-md">150</span>
+              <span className="text-base text-white drop-shadow">{t('statistics.totalTasks')}</span>
             </div>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="grid grid-cols-2 gap-y-4 gap-x-16 text-md">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-blue-500 inline-block rounded-sm"></span>
-            Completed 0%
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-yellow-400 inline-block rounded-sm"></span>
-            In progress 0%
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-purple-400 inline-block rounded-sm"></span>
-            Not Start 0%
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-red-500 inline-block rounded-sm"></span>
-            Failed 0%
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-gray-300 inline-block rounded-sm"></span>
-            Cancelled 0%
-          </div>
+        <div className="grid grid-cols-2 gap-y-4 gap-x-16 text-sm">
+          {[
+            { label: t('statistics.completed'), color: 'bg-blue-500' },
+            { label: t('statistics.inProgress'), color: 'bg-yellow-400' },
+            { label: t('statistics.failed'), color: 'bg-red-500' },
+            { label: t('statistics.cancelled'), color: 'bg-gray-300' },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className={`w-3 h-3 ${item.color} inline-block rounded-sm`}></span>
+              <span className="text-white">{item.label}</span>
+              <span className="text-white ml-auto">
+                {Math.round((todayData.datasets[0].data[i] / 120) * 100)}%
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Task Completion Rate */}
+      {/* Task Completion Rate - Vẫn dùng Doughnut (hoặc đổi thành Pie) */}
       <div className="mb-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col items-center">
-          <h1 className="text-lg font-large mb-2">7 ngày gần nhất</h1>
-            <div className="relative w-24 h-24">
-              <Doughnut data={rateData} options={options} />
-              <div className="absolute inset-0 flex items-center justify-center text-lg font-bold text-blue-600">
-                75%
+          {[
+            { title: t('statistics.last7Days'), percent: 75 },
+            { title: t('statistics.last30Days'), percent: 75 },
+          ].map((item, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <h1 className="text-lg font-medium mb-2 text-white">{item.title}</h1>
+              <div className="relative w-24 h-24">
+                <Doughnut data={rateData} options={smallOptions} /> {/* Giữ Doughnut */}
+                <div className="absolute inset-0 flex items-center justify-center text-lg font-bold text-blue-600">
+                  {item.percent}%
+                </div>
               </div>
+              <p className="text-xs mt-1 text-gray-500">
+                <span className="text-white">{t('statistics.completed')}</span> <span className="text-white">43</span> / 
+                <span className="text-white ml-1">{t('statistics.total')}</span> <span className="text-white">57</span>
+              </p>
             </div>
-            
-            <p className="text-xs mt-1 text-gray-500">
-              Completed 43 / Total 57
-            </p>
-          </div>
-          <div className="flex flex-col items-center">
-          <h1 className="text-lg font-large mb-2">30 ngày gần nhất</h1>
-            <div className="relative w-24 h-24">
-              <Doughnut data={rateData} options={options} />
-              <div className="absolute inset-0 flex items-center justify-center text-lg font-bold text-blue-600">
-                75%
-              </div>
-            </div>
-            <p className="text-xs mt-1 text-gray-500">
-              Completed 43 / Total 57
-            </p>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Device Overview */}
       <div>
-        <h1 className="text-lg font-large mb-2">Tổng quan thiết bị</h1>
+        <h1 className="text-lg font-medium mb-2 text-white">{t('statistics.deviceOverview')}</h1>
         <div className="flex justify-around text-center text-xs">
           <div>
-            <div className="text-xl font-semibold">1</div>
-            <div className="text-gray-500 flex items-center justify-center gap-1">
-              <img src="/src/assets/robotic_ic.png" alt="Battery" className="w-7 h-7" />
-              Số lượng thiết bị
+            <div className="text-xl font-semibold text-white">1</div>
+            <div className="text-white flex items-center justify-center gap-1">
+              <img src="/src/assets/robotic_ic.png" alt="Robot" className="w-7 h-7" />
+              <span className="text-white">{t('statistics.totalDevices')}</span>
             </div>
           </div>
           <div>
-            <div className="text-xl font-semibold">0%</div>
-            <div className="text-gray-500 flex items-center justify-center gap-1">
+            <div className="text-xl font-semibold text-white">0%</div>
+            <div className="text-white flex items-center justify-center gap-1">
               <img src="/src/assets/battery_ic.png" alt="Battery" className="w-7 h-7" />
-              Pin trung bình
+              <span className="text-white">{t('statistics.averageBattery')}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

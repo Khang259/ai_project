@@ -125,7 +125,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-roboto text-white transition-colors ${
                       isActive
                         ? "bg-[rgb(34,189,189)/.1] text-[rgb(34,189,189)] hover:bg-[rgb(34,189,189)/.2]"
-                        : "text-gray-600 hover:bg-gray-50"
+                        : "text-gray-600 hover:shadow-[0_4px_24px_0_rgb(34,189,189,0.5)] "
                     }`}
                   >
                     <item.icon className="w-7 h-7 mr-2" />

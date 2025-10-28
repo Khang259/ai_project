@@ -30,7 +30,7 @@ export function LoginForm() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="glass space-y-6 p-4">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-black">Đăng nhập</h1>

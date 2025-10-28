@@ -11,7 +11,10 @@
   },
   "map": {
     "map": "Bản đồ kho AMR",
-    "mapManagement": "Quản lý bản đồ"
+    "mapManagement": "Quản lý bản đồ",
+    "ai_mode": "Chế độ AI",
+    "cameraId": "Mã camera",
+    "enterCameraId": "Nhập mã camera"
   },
   "analytics": {
     "analytics": "Phân tích",
@@ -141,6 +144,14 @@
   "user": {
     "logout": "Đăng xuất",
     "user": "Người dùng"
+  },
+  "statistics": {
+    "statistics": "Thống kê",
+    "today": "Hôm nay",
+    "totalTasks": "Tổng số nhiệm vụ",
+    "completed": "Hoàn thành",
+    "inProgress": "Đang thực hiện",
+    "failed": "Thất bại",
+    "cancelled": "Hủy bỏ"
   }
-
 }

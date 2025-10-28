@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Plus, Trash2, Video, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Video, Loader2, Eye, EyeOff } from 'lucide-react';
 import { getCamerasByArea, addCamera, updateCamera, deleteCamera } from '@/services/camera-settings';
 import { useArea } from '@/contexts/AreaContext';
-import { getStreamCamera } from '@/services/infocamera-dashboard';
+import CameraViewer from '../Overview/map/camera/CameraViewer';
+import CameraViewerModal from '../Overview/map/camera/CameraViewerModal';
 import { useTranslation } from 'react-i18next';
 
 const CameraSettings = () => {
@@ -16,6 +17,7 @@ const CameraSettings = () => {
   const [saving, setSaving] = useState(false);
   const { currAreaId, currAreaName } = useArea();
 
+  const [selectedCamera, setSelectedCamera] = useState(null);
   // Load cameras from database on component mount
   useEffect(() => {
     loadCamerasFromDatabase();
@@ -28,7 +30,8 @@ const CameraSettings = () => {
       // Ensure b_box is an array
       const formattedCameras = camerasData.map(cam => ({
         ...cam,
-        b_box: cam.b_box ? (Array.isArray(cam.b_box) ? cam.b_box : [cam.b_box]) : ['']
+        b_box: cam.b_box ? (Array.isArray(cam.b_box) ? cam.b_box : [cam.b_box]) : [''],
+        showPath: false
       }));
       setCameras(formattedCameras);
     } catch (error) {
@@ -38,6 +41,36 @@ const CameraSettings = () => {
       setLoading(false);
     }
   };
+
+
+  const selectCameraForViewing = (camera) => {
+    if (!camera.camera_path) {
+      alert(t('settings.noRtspPath'));
+      return;
+    }
+  
+    setSelectedCamera({
+      id: camera.id,
+      cameraName: camera.camera_name || `Camera ${camera.camera_id}`,
+      cameraPath: camera.camera_path,
+      b_box: camera.b_box || [],
+    });
+  };
+
+  const handleSaveBBoxes = (newBBoxes) => {
+    if (!selectedCamera) return;
+  
+    setCameras(prev =>
+      prev.map(cam =>
+        cam.id === selectedCamera.id
+          ? { ...cam, b_box: newBBoxes } // Lưu dạng x1,y1,x2,y2
+          : cam
+      )
+    );
+  
+    setSelectedCamera(null);
+  };
+  
 
   const addNewCamera = () => {
     setCameras([...cameras, {
@@ -195,14 +228,24 @@ const CameraSettings = () => {
                         <Label htmlFor={`name-${camera.id}`} className="text-xs text-muted-foreground">
                           {t('settings.cameraName')}
                         </Label>
-                        <Input
-                          id={`name-${camera.id}`}
-                          type="text"
-                          placeholder={t('settings.cameraName')}
-                          value={camera.camera_name}
-                          onChange={(e) => updateCameraField(camera.id, 'camera_name', e.target.value)}
-                          className="text-sm"
-                        />
+                        <div className="relative">
+                          <Input
+                            id={`name-${camera.id}`}
+                            type="text"
+                            placeholder={t('settings.cameraName')}
+                            value={camera.camera_name}
+                            onChange={(e) => updateCameraField(camera.id, 'camera_name', e.target.value)}
+                            className="text-sm pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => selectCameraForViewing(camera)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80"
+                            title="Xem stream + bounding box"
+                          >
+                            <Video className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* RTSP url settings */}
@@ -241,9 +284,14 @@ const CameraSettings = () => {
                               type="text"
                               placeholder="0,0,0,0"
                               value={bbox}
-                              onChange={(e) => updateCameraField(camera.id, 'b_box', e.target.value, bboxIndex)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (/^\d*,\d*,\d*,\d*$/.test(value)) {
+                                  updateCameraField(camera.id, 'b_box', value, bboxIndex);
+                                }
+                              }}
                               className={`font-mono text-sm ${
-                                bbox && !validateBBox(bbox)
+                                bbox && !/^\d+,\d+,\d+,\d+$/.test(bbox)
                                   ? 'border-red-500 focus:border-red-500'
                                   : ''
                               }`}
@@ -361,6 +409,15 @@ const CameraSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Nhận props từ CameraViewer */}
+      {selectedCamera && (
+        <CameraViewerModal
+          cameraData={selectedCamera}
+          onClose={() => setSelectedCamera(null)}
+          onSaveBBoxes={handleSaveBBoxes}
+        />
+      )}
     </div>
   );
 };

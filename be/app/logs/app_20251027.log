@@ -210,3 +210,18 @@
 2025-10-27 16:17:15,706 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
 2025-10-27 16:17:16,022 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
 2025-10-27 16:35:02,228 - camera_ai_app - INFO - WebSocket connected. Total connections: 7
+2025-10-27 16:51:51,013 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-10-27 16:51:51,014 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-10-27 16:51:51,014 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-10-27 16:51:51,014 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-10-27 16:51:51,015 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-10-27 16:51:51,015 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 6
+2025-10-27 16:51:51,015 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 5
+2025-10-27 16:51:51,015 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 4
+2025-10-27 16:51:51,016 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 3
+2025-10-27 16:51:51,016 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 2
+2025-10-27 17:17:51,010 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-10-27 17:17:51,011 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-10-27 17:17:51,011 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 1
+2025-10-27 17:17:51,011 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 0
+2025-10-27 17:25:10,431 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
