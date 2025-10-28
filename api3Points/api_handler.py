@@ -1,11 +1,17 @@
+import sys
+import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
+
+# Add parent directory to path để import queue_store
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 app = FastAPI()
-queue = SQLiteQueue("queues.db")
+# Sử dụng queues.db từ thư mục cha (cùng với stable_pair_processor)
+queue = SQLiteQueue("../queues.db")
 
 class EndSlotRequest(BaseModel):
     end_qr: int

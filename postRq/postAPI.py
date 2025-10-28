@@ -156,6 +156,35 @@ def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_
     }
 
 
+def build_payload_from_pair_3_points(pair_id: str, start_slot: str, end_slot: str, end_slot_2: str, order_id: str) -> Dict[str, Any]:
+    """
+    Build payload cho stable_pairs với 3 điểm (3 QR codes)
+    
+    Format:
+    {
+        "modelProcessCode": "lenh3diem",
+        "fromSystem": "ICS",
+        "orderId": "...",
+        "taskOrderDetail": [
+            {
+                "taskPath": "start_qr,end_qrs,end_qrs_2"
+            }
+        ]
+    }
+    """
+    task_path = f"{start_slot},{end_slot},{end_slot_2}"
+    return {
+        "modelProcessCode": "lenh3diem",
+        "fromSystem": "ICS",
+        "orderId": order_id,
+        "taskOrderDetail": [
+            {
+                "taskPath": task_path
+            }
+        ]
+    }
+
+
 def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict[str, Any]:
     """
     Build payload cho stable_dual (2-point hoặc 4-point)
@@ -397,19 +426,29 @@ def main() -> int:
                     
                     # Xử lý dựa trên topic type
                     if topic == "stable_pairs":
-                        # Xử lý regular stable pairs
+                        # Xử lý regular stable pairs (có thể 2 hoặc 3 điểm)
                         pair_id = payload.get("pair_id", r.get("key", ""))
                         start_slot = str(payload.get("start_slot", ""))
                         end_slot = str(payload.get("end_slot", ""))
+                        end_slot_2 = payload.get("end_slot_2", "")
                         
                         if not start_slot or not end_slot:
                             print(f"[SKIP] Invalid pair payload: {payload}")
                             continue
                         
                         order_id = get_next_order_id()
-                        body = build_payload_from_pair(pair_id, start_slot, end_slot, order_id)
                         
-                        print(f"Bắt đầu xử lý regular pair: {pair_id}, orderId={order_id}")
+                        # Kiểm tra nếu có 3 điểm
+                        if end_slot_2:
+                            # Xử lý pair với 3 điểm
+                            body = build_payload_from_pair_3_points(pair_id, start_slot, end_slot, str(end_slot_2), order_id)
+                            task_path = f"{start_slot},{end_slot},{end_slot_2}"
+                            print(f"Bắt đầu xử lý pair 3 điểm: {pair_id}, orderId={order_id}, taskPath={task_path}")
+                        else:
+                            # Xử lý pair với 2 điểm
+                            body = build_payload_from_pair(pair_id, start_slot, end_slot, order_id)
+                            task_path = f"{start_slot},{end_slot}"
+                            print(f"Bắt đầu xử lý pair 2 điểm: {pair_id}, orderId={order_id}, taskPath={task_path}")
                         
                     elif topic == "stable_dual":
                         # Xử lý dual pairs (2-point hoặc 4-point)

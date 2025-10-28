@@ -108,7 +108,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 10.0, cooldown_seconds: float = 5.0) -> None:
+                 stable_seconds: float = 10.0, cooldown_seconds: float = 8.0) -> None:
         print(f"Khởi tạo StablePairProcessor - DB: {db_path}, Config: {config_path}, Stable: {stable_seconds}s, Cooldown: {cooldown_seconds}s")
         
         # Thiết lập loggers
@@ -133,7 +133,7 @@ class StablePairProcessor:
 
         # Pairing config
         self.qr_to_slot: Dict[int, Tuple[str, int]] = {}  # qr_code -> (camera_id, slot_number)
-        self.pairs: List[Tuple[int, List[int]]] = []      # (start_qr, [end_qrs])
+        self.pairs: List[Dict[str, Any]] = []  # [{"start_qr": int, "end_qrs": List[int], "end_qrs_2": int}]
         
         # Dual pairing config
         self.dual_pairs: List[Dict[str, int]] = []        # [{start_qr, end_qrs, start_qr_2, end_qrs_2}]
@@ -176,7 +176,7 @@ class StablePairProcessor:
             self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
             ends_count += 1
 
-        # Normalize pairs: ensure list for end_qrs
+        # Normalize pairs: ensure list for end_qrs, and load end_qrs_2
         self.pairs.clear()
         for pair in cfg.get("pairs", []):
             start_qr = int(pair["start_qr"])
@@ -185,7 +185,15 @@ class StablePairProcessor:
                 end_qrs = [int(x) for x in end_qrs_raw]
             else:
                 end_qrs = [int(end_qrs_raw)]
-            self.pairs.append((start_qr, end_qrs))
+            
+            # Load end_qrs_2 if exists
+            end_qrs_2 = pair.get("end_qrs_2")
+            pair_config = {
+                "start_qr": start_qr,
+                "end_qrs": end_qrs,
+                "end_qrs_2": int(end_qrs_2) if end_qrs_2 else None
+            }
+            self.pairs.append(pair_config)
         
         # Load dual pairs configuration
         self.dual_pairs.clear()
@@ -211,7 +219,8 @@ class StablePairProcessor:
         Khởi tạo tất cả end slots trong PAIRS là shelf (mặc định).
         CHỈ ÁP DỤNG CHO NORMAL PAIRS, không ảnh hưởng đến dual pairs.
         """
-        for start_qr, end_qrs in self.pairs:
+        for pair_config in self.pairs:
+            end_qrs = pair_config.get("end_qrs", [])
             for end_qr in end_qrs:
                 self.user_end_slot_states[end_qr] = {
                     "status": "shelf",
@@ -563,7 +572,7 @@ class StablePairProcessor:
                         }
                         print(f"[END_SLOT_CANCEL] Đã hủy end_qr={end_qr} → shelf")
                 
-                time.sleep(0.2)
+                time.sleep(0.5)
                 
             except Exception as e:
                 print(f"Lỗi khi subscribe end_slot_request: {e}")
@@ -612,13 +621,13 @@ class StablePairProcessor:
                         print(f"Nhận dual_unblock_trigger cho {dual_id}")
                         self._unblock_dual_start(dual_id)
                 
-                time.sleep(0.2)
+                time.sleep(0.5)
                 
             except Exception as e:
                 print(f"Lỗi khi subscribe dual_unblock_trigger: {e}")
                 time.sleep(1.0)
 
-    def _maybe_publish_pair(self, start_qr: int, end_qr: int, stable_since_epoch: float, all_empty_end_qrs: Optional[List[int]] = None) -> None:
+    def _maybe_publish_pair(self, start_qr: int, end_qr: int, stable_since_epoch: float, all_empty_end_qrs: Optional[List[int]] = None, end_qrs_2: Optional[int] = None) -> None:
         """
         Publish một cặp pair vào queue.
         
@@ -627,6 +636,7 @@ class StablePairProcessor:
             end_qr: QR code của end slot chính (sẽ được publish)
             stable_since_epoch: Thời điểm stable
             all_empty_end_qrs: Danh sách TẤT CẢ các end_qrs đang empty (optional)
+            end_qrs_2: QR code của điểm thứ 3 (optional)
         """
         pair_id = f"{start_qr} -> {end_qr}"
         
@@ -656,14 +666,21 @@ class StablePairProcessor:
             payload["all_empty_end_slots"] = [str(qr) for qr in all_empty_end_qrs]
             payload["is_all_empty"] = True
         
+        # Thêm end_qrs_2 (điểm thứ 3) nếu có
+        if end_qrs_2 is not None:
+            payload["end_slot_2"] = str(end_qrs_2)
+        
         # Use pair_id as key for convenience
         self.queue.publish("stable_pairs", pair_id, payload)
         
         # Log successful publish
+        log_msg = f"STABLE_PAIR_PUBLISHED: pair_id={pair_id}, start_slot={start_qr}, end_slot={end_qr}"
         if all_empty_end_qrs and len(all_empty_end_qrs) > 1:
-            self.pair_logger.info(f"STABLE_PAIR_PUBLISHED: pair_id={pair_id}, start_slot={start_qr}, end_slot={end_qr}, all_empty_end_slots={all_empty_end_qrs}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
-        else:
-            self.pair_logger.info(f"STABLE_PAIR_PUBLISHED: pair_id={pair_id}, start_slot={start_qr}, end_slot={end_qr}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
+            log_msg += f", all_empty_end_slots={all_empty_end_qrs}"
+        if end_qrs_2 is not None:
+            log_msg += f", end_slot_2={end_qrs_2}"
+        log_msg += f", stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z"
+        self.pair_logger.info(log_msg)
     
     def _evaluate_dual_pairs(self) -> None:
         """
@@ -769,7 +786,7 @@ class StablePairProcessor:
 
                 # read new roi_detection per camera
                 for cam, last_id in list(last_roi_det_id.items()):
-                    rows = self.queue.get_after_id("roi_detection", cam, last_id, limit=30)
+                    rows = self.queue.get_after_id("roi_detection", cam, last_id, limit=5)
                     for r in rows:
                         payload = r["payload"]
                         last_roi_det_id[cam] = r["id"]
@@ -781,7 +798,11 @@ class StablePairProcessor:
                             self._update_slot_state(cam, status_by_slot)
 
                 # LOGIC MỚI: evaluate pairs với user-controlled end slots (CHỈ CHO NORMAL PAIRS)
-                for start_qr, end_qrs in self.pairs:
+                for pair_config in self.pairs:
+                    start_qr = pair_config["start_qr"]
+                    end_qrs = pair_config["end_qrs"]
+                    end_qrs_2 = pair_config.get("end_qrs_2")  # Điểm thứ 3
+                    
                     start_cam_slot = self.qr_to_slot.get(start_qr)
                     if not start_cam_slot:
                         continue
@@ -814,9 +835,10 @@ class StablePairProcessor:
                         else:
                             print(f"[PAIR_LOGIC_USER] {len(user_empty_end_qrs)}/{len(end_qrs)} end_qrs empty (user request) cho start_qr={start_qr}, chọn end_qr={end_qr}")
                         
-                        # Publish với thông tin về tất cả end_qrs empty
+                        # Publish với thông tin về tất cả end_qrs empty và end_qrs_2
                         self._maybe_publish_pair(start_qr, end_qr, stable_since_epoch, 
-                                               all_empty_qrs if len(all_empty_qrs) > 1 else None)
+                                               all_empty_qrs if len(all_empty_qrs) > 1 else None,
+                                               end_qrs_2=end_qrs_2)
                         
                         # AUTO RESET: Đánh dấu lại end_qr về shelf sau khi publish
                         self.user_end_slot_states[end_qr] = {
@@ -832,7 +854,7 @@ class StablePairProcessor:
                 # Note: Dual end state monitoring is now handled by roi_processor
                 # via dual_unblock_trigger subscription thread
 
-                time.sleep(0.2)
+                time.sleep(0.5)
 
             except KeyboardInterrupt:
                 stop_msg = "Stopping StablePairProcessor..."
