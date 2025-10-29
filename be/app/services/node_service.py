@@ -22,22 +22,17 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         logger.warning(f"Node creation failed: owner '{node_in.owner}' does not exist or is inactive")
         raise ValueError("Owner does not exist or is inactive")
     
-    # Kiểm tra xem node_name đã tồn tại chưa (trong cùng owner)
-    existing = await nodes.find_one({"node_name": node_in.node_name, "owner": node_in.owner, "node_type": node_in.node_type})
-    if existing:
-        logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists for owner '{node_in.owner}'")
-        raise ValueError("Node name already exists for this owner")
-    
     
     node_data = {
         "node_name": node_in.node_name,
         "node_type": node_in.node_type,
         "owner": node_in.owner,
-        "line": node_in.line,
+        "process_code": node_in.process_code,
         "start": node_in.start,
         "end": node_in.end,
         "next_start": node_in.next_start,
         "next_end": node_in.next_end,
+        "line": node_in.line,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -129,11 +124,12 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
                     "node_name": node_data["node_name"],
                     "node_type": node_data["node_type"],
                     "owner": node_data["owner"],
-                    "line": node_data.get("line"),
+                    "process_code": node_data["process_code"],
                     "start": node_data["start"],
                     "end": node_data["end"],
                     "next_start": node_data.get("next_start"),
                     "next_end": node_data.get("next_end"),
+                    "line": node_data.get("line"),
                     "created_at": datetime.utcnow(),
                     "updated_at": datetime.utcnow()
                 }
@@ -152,11 +148,12 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
                     "node_name": node_data["node_name"],
                     "node_type": node_data["node_type"],
                     "owner": node_data["owner"],
-                    "line": node_data.get("line"),
+                    "process_code": node_data["process_code"],
                     "start": node_data["start"],
                     "end": node_data["end"],
                     "next_start": node_data.get("next_start"),
                     "next_end": node_data.get("next_end"),
+                    "line": node_data.get("line"),
                     "updated_at": datetime.utcnow()
                 }
                 
@@ -229,48 +226,110 @@ async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOu
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
-async def get_process_code(node_type: str, owner: str) -> str:
-    """Lấy process code từ config_caller.json - sử dụng owner thay vì area"""
-    owners = get_collection("users")
-    owner_exists = await owners.find_one({"username": owner, "is_active": True})
-    if not owner_exists:
-        logger.warning(f"Owner '{owner}' does not exist or is inactive")
-        raise ValueError("Owner does not exist or is inactive")
-    modelProcessCode = owner_exists.get(node_type)
-    # Tạm thời sử dụng owner như area_id, có thể cần điều chỉnh logic
-    return modelProcessCode
+def _get_caller_type_from_node_name(node_name: str) -> int:
+    """Xác định type từ node_name
+    Returns:
+        0: PT - nếu phần cuối sau dấu - chỉ là số hoặc rỗng
+        1: VL PHP - nếu phần cuối sau dấu - có chứa chữ cái
+    """
+    parts = node_name.split('-')
+    last_part = parts[-1] if parts else ""
+    
+    # Kiểm tra xem phần cuối có chứa chữ cái không
+    if last_part and any(c.isalpha() for c in last_part):
+        return 1  # VL - có chữ cái
+    else:
+        return 0  # PT - chỉ số hoặc rỗng
+
+async def get_nodes_advanced(owner: str) -> dict:
+    """Lấy danh sách nodes theo owner và phân loại thành PT/VL, đồng thời nhóm theo node_type và line."""
+    nodes = get_collection("nodes")
+    cursor = nodes.find({"owner": owner})
+    node_list = await cursor.to_list(length=None)
+    
+    # Phân loại nodes thành 2 loại: PT và VL, và nhóm theo node_type và line
+    pt_nodes = {}  # type = 0 -> { node_type: { line: [NodeOut, ...] } }
+    vl_nodes = {}  # type = 1 -> { node_type: { line: [NodeOut, ...] } }
+    
+    for node in node_list:
+        node_out = NodeOut(**node, id=str(node["_id"]))
+        caller_type = _get_caller_type_from_node_name(node_out.node_name)
+        
+        node_type_key = node_out.node_type
+        line_key = node_out.line
+        
+        if caller_type == 0:
+            if node_type_key not in pt_nodes:
+                pt_nodes[node_type_key] = {}
+            if line_key not in pt_nodes[node_type_key]:
+                pt_nodes[node_type_key][line_key] = []
+            pt_nodes[node_type_key][line_key].append(node_out)
+        else:
+            if node_type_key not in vl_nodes:
+                vl_nodes[node_type_key] = {}
+            if line_key not in vl_nodes[node_type_key]:
+                vl_nodes[node_type_key][line_key] = []
+            vl_nodes[node_type_key][line_key].append(node_out)
+    
+    return {
+        "pt_nodes": pt_nodes,  # type = 0 -> { node_type: { line: [...] } }
+        "vl_nodes": vl_nodes,  # type = 1 -> { node_type: { line: [...] } }
+    }
+
 
 async def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
-    process_code = await get_process_code(node.node_type, node.owner)
-    order_id = str(uuid.uuid4())
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
+    # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
+    order_id = f"{node.owner}_{timestamp}_{str(uuid.uuid4())[:8]}"
 
-    if node.node_type == "supply" or node.node_type == "return":
+    # Xác định type từ node_name
+    type = _get_caller_type_from_node_name(node.node_name)
+
+    if type == 0:
+        if node.node_type == "supply" or node.node_type == "returns":
+            payload = {
+                "modelProcessCode": f"{node.process_code}", 
+                "priority": priority, 
+                "fromSystem": "Thadosoft", 
+                "orderId": order_id,  # Gán orderId bằng timestamp
+                "taskOrderDetail": [ 
+                    {    
+                        "taskPath": f"{node.start},{node.end}", 
+                    } 
+                ] 
+            }
+        else:
+            payload = {
+                "modelProcessCode": f"{node.process_code}", 
+                "priority": priority, 
+                "fromSystem": "Thadosoft", 
+                "orderId": order_id,  # Gán orderId bằng timestamp
+                "taskOrderDetail": [ 
+                    {    
+                        "taskPath": f"{node.start},{node.end}", 
+                    }, 
+                    {    
+                        "taskPath": f"{node.next_start},{node.next_end}", 
+                    } 
+                ] 
+            }
+
+    elif type == 1:
         payload = {
-            "modelProcessCode": f"{process_code}", 
+            "modelProcessCode": f"{node.process_code}", 
             "priority": priority, 
             "fromSystem": "Thadosoft", 
             "orderId": order_id,  # Gán orderId bằng timestamp
             "taskOrderDetail": [ 
                 {    
-                    "taskPath": f"{node.start},{node.end}", 
+                    "taskPath": f"{node.start},{node.end},{node.next_start}", 
                 } 
             ] 
         }
+
     else:
-        payload = {
-            "modelProcessCode": f"{process_code}", 
-            "priority": priority, 
-            "fromSystem": "Thadosoft", 
-            "orderId": order_id,  # Gán orderId bằng timestamp
-            "taskOrderDetail": [ 
-                {    
-                    "taskPath": f"{node.start},{node.end}", 
-                }, 
-                {    
-                    "taskPath": f"{node.next_start},{node.next_end}", 
-                } 
-            ] 
-        }
+        raise ValueError("Invalid caller type")
 
     return payload

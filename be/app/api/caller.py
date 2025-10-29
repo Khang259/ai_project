@@ -22,14 +22,17 @@ async def manual_caller(node: ProcessCaller, priority: Optional[int] = Query(Non
 
 @router.post("/cancel-task")
 async def manual_cancel(order_id: str, dest_position: Optional[int] = Query(None, description="Destination of the current task")):
-    payload = {
-        "orderId": order_id,
-        "destPosition": dest_position
-    }
+    payload = [{"orderId": order_id}]
+    if dest_position:
+        payload[0]["destPosition"] = dest_position
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post('http://192.168.1.169:7000/ics/out/task/cancelTask ', json=payload)
+            response = await client.post('http://192.168.1.169:7000/ics/out/task/cancelTask', json=payload)
         return {"status": response.status_code, "payload": payload}
     except Exception as e:  
         logger.error(f"Error calling process caller: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+
+

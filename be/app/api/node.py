@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from app.schemas.node import NodeCreate, NodeOut, NodeUpdate, NodeBatchUpdate, NodeBatchUpdateResponse
+from app.schemas.node import NodeCreate, NodeOut, NodeUpdate, NodeBatchUpdate, NodeBatchUpdateResponse, NodesAdvancedResponse
 from app.services.node_service import (
     create_node,
     get_nodes,
@@ -7,6 +7,7 @@ from app.services.node_service import (
     update_multiple_nodes,
     delete_node,
     get_nodes_by_owner_and_type,
+    get_nodes_advanced,
 )
 from shared.logging import get_logger
 from typing import List
@@ -116,7 +117,7 @@ async def delete_node_by_id(
         )
 
 @router.get("/owner/{owner}/{node_type}", response_model=List[NodeOut])
-async def get_nodes_by_owner_and_type(
+async def get_nodes_by_owner_and_type_endpoint(
     owner: str,
     node_type: str,
 ):
@@ -129,5 +130,21 @@ async def get_nodes_by_owner_and_type(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
+
+@router.get("/advanced/{owner}", response_model=NodesAdvancedResponse)
+async def get_nodes_advanced_endpoint(
+    owner: str,
+):
+    """Lấy danh sách nodes theo owner và phân loại theo PT/VL, node_type và line"""
+    try:
+        result = await get_nodes_advanced(owner)
+        return NodesAdvancedResponse(**result)
+    except Exception as e:
+        logger.error(f"Error getting advanced nodes for owner {owner}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
 
 
