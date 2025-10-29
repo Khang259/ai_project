@@ -143,10 +143,6 @@ export default function AnalyticsPage() {
               selectedDevices={selectedDeviceCodes}
               onFilterChange={setSelectedDeviceCodes}
             />
-            <Button variant="outline" className="gap-2 bg-transparent">
-              <Download className="w-4 h-4" />
-              Export
-            </Button>
           </div>
         </div>
 

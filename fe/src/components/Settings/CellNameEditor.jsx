@@ -50,6 +50,7 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
           node_type: mergedData.node_type,
           owner: mergedData.owner,
           line: mergedData.line,  // ← BẮT BUỘC: Field line cho backend
+          process_name: mergedData.process_name || "",
           start: mergedData.start,
           end: mergedData.end,
           next_start: mergedData.next_start,
@@ -70,6 +71,7 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[150px] font-semibold">Node Name</TableHead>
+            <TableHead className="w-[160px] font-semibold">Process Name</TableHead>
             <TableHead className="w-[120px] font-semibold">Start</TableHead>
             <TableHead className="w-[120px] font-semibold">End</TableHead>
             {selectedNodeTypes === 'both' && (
@@ -89,6 +91,15 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
                   value={(editedById[cell.id]?.node_name ?? cell.node_name) || ''}
                   onChange={(e) => handleChange(cell.id, 'node_name', e.target.value)}
                   placeholder={`Tên cho ${cell.node_name}`}
+                  className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  type="text"
+                  value={(editedById[cell.id]?.process_name ?? cell.process_name) || ''}
+                  onChange={(e) => handleChange(cell.id, 'process_name', e.target.value)}
+                  placeholder={`Process name cho ${cell.node_name}`}
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />
               </TableCell>
