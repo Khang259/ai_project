@@ -80,3 +80,35 @@ export const convertPayloadStatisticsToChartData = (payloadStatisticsData) => {
 
     return chartData
 }
+
+// Lấy SUMMARY work status - tổng hợp tất cả robots
+export const getWorkStatusSummary = async (startDate, endDate, deviceCode) => {
+    try {
+        const qs = new URLSearchParams({
+            start_date: startDate,
+            end_date: endDate,
+            ...(deviceCode ? { device_code: deviceCode } : {})
+        }).toString();
+        const response = await api.get(`/all-robots-work-status-summary?${qs}`);
+        return response.data;
+    } catch (error) {
+        console.error("[statistics.getWorkStatusSummary] Request failed", error);
+        throw error;
+    }
+}
+
+// Lấy SUMMARY payload statistics - tổng hợp tất cả robots
+export const getPayloadStatisticsSummary = async (startDate, endDate, deviceCode) => {
+    try {
+        const qs = new URLSearchParams({
+            start_date: startDate,
+            end_date: endDate,
+            ...(deviceCode ? { device_code: deviceCode } : {})
+        }).toString();
+        const response = await api.get(`/all-robots-payload-statistics-summary?${qs}`);
+        return response.data;
+    } catch (error) {
+        console.error("[statistics.getPayloadStatisticsSummary] Request failed", error);
+        throw error;
+    }
+}

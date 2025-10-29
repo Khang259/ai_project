@@ -268,7 +268,6 @@ async def reverse_dashboard_data():
         }
 
 
-# ✅ HELPER: Hàm này dùng cho get_data_by_time() - giữ lại vì endpoint đang dùng
 def get_time_filter_simple(time_filter: str):
     """
     Nhận string từ frontend: "d", "w", "m"
@@ -300,7 +299,6 @@ def get_time_filter_simple(time_filter: str):
 
     return start, end
 
-# ✅ ĐANG DÙNG: Endpoints /work-status và /payload-statistics sử dụng
 async def get_data_by_time(time_filter: str, device_code: str = None, state: str = None):
     """
     Lấy dữ liệu AGV theo thời gian với 2 trường hợp:
@@ -894,6 +892,219 @@ async def get_all_robots_work_status(
 
     except Exception as e:
         logger.error(f"Error getting all robots work status: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+async def get_all_robots_work_status_summary(
+    start_date: str,
+    end_date: str,
+    device_code: str = None
+):
+    """
+    Lấy summary của work status (InTask/Idle) - AGGREGATE TẤT CẢ ROBOTS
+    
+    Args:
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
+        device_code: mã thiết bị để lọc (tùy chọn)
+    
+    Returns:
+        dict: summary statistics - tổng hợp tất cả robots
+    """
+    try:
+        # Parse date range
+        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # Chọn collection dựa theo độ dài range
+        days_diff = (end - start).days
+        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
+        collection = get_collection(collection_name)
+
+        # Base query
+        if collection_name == "agv_data":
+            base_query = {"created_at": {"$gte": start, "$lt": end}}
+        else:
+            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
+
+        if device_code:
+            base_query["device_code"] = device_code
+
+        # Aggregate tất cả robots lại
+        if collection_name == "agv_data":
+            # Query từ raw data và aggregate
+            pipeline = [
+                {"$match": base_query},
+                {
+                    "$group": {
+                        "_id": "$state",
+                        "count": {"$sum": 1}
+                    }
+                }
+            ]
+            cursor = collection.aggregate(pipeline)
+            result = await cursor.to_list(length=None)
+            
+            total_intask = 0
+            total_idle = 0
+            
+            for item in result:
+                if item["_id"] == "InTask":
+                    total_intask = item["count"]
+                elif item["_id"] == "Idle":
+                    total_idle = item["count"]
+            
+            total_records = total_intask + total_idle
+            intask_percentage = round((total_intask / total_records) * 100, 2) if total_records > 0 else 0
+            idle_percentage = round((total_idle / total_records) * 100, 2) if total_records > 0 else 0
+            
+            return {
+                "status": "success",
+                "time_range": f"{start_date} to {end_date}",
+                "collection_used": collection_name,
+                "summary": {
+                    "total_inTask_count": total_intask,
+                    "total_idle_count": total_idle,
+                    "total_records": total_records,
+                    "inTask_percentage": intask_percentage,
+                    "idle_percentage": idle_percentage
+                }
+            }
+        else:
+            # Query từ daily statistics và aggregate
+            cursor = collection.find(base_query)
+            daily_stats = await cursor.to_list(length=None)
+            
+            total_intask = sum(stat.get("InTask_count", 0) for stat in daily_stats)
+            total_idle = sum(stat.get("Idle_count", 0) for stat in daily_stats)
+            
+            total_records = total_intask + total_idle
+            intask_percentage = round((total_intask / total_records) * 100, 2) if total_records > 0 else 0
+            idle_percentage = round((total_idle / total_records) * 100, 2) if total_records > 0 else 0
+            
+            return {
+                "status": "success",
+                "time_range": f"{start_date} to {end_date}",
+                "collection_used": collection_name,
+                "summary": {
+                    "total_inTask_count": total_intask,
+                    "total_idle_count": total_idle,
+                    "total_records": total_records,
+                    "inTask_percentage": intask_percentage,
+                    "idle_percentage": idle_percentage
+                }
+            }
+
+    except Exception as e:
+        logger.error(f"Error getting all robots work status summary: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+async def get_all_robots_payload_statistics_summary(
+    start_date: str,
+    end_date: str,
+    device_code: str = None
+):
+    """
+    Lấy summary của payload statistics - AGGREGATE TẤT CẢ ROBOTS
+    
+    Args:
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
+        device_code: mã thiết bị để lọc (tùy chọn)
+    
+    Returns:
+        dict: summary payload statistics - tổng hợp tất cả robots
+    """
+    try:
+        # Parse date range
+        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        days_diff = (end - start).days
+        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
+        collection = get_collection(collection_name)
+
+        if collection_name == "agv_data":
+            base_query = {"created_at": {"$gte": start, "$lt": end}}
+        else:
+            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
+
+        if device_code:
+            base_query["device_code"] = device_code
+
+        if collection_name == "agv_data":
+            # Query từ raw data và aggregate
+            pipeline = [
+                {"$match": {**base_query, "state": "InTask"}},
+                {
+                    "$group": {
+                        "_id": "$payLoad",
+                        "count": {"$sum": 1}
+                    }
+                }
+            ]
+            cursor = collection.aggregate(pipeline)
+            result = await cursor.to_list(length=None)
+            
+            total_0_0 = 0
+            total_1_0 = 0
+            
+            for item in result:
+                if item["_id"] == "0.0":
+                    total_0_0 = item["count"]
+                elif item["_id"] == "1.0":
+                    total_1_0 = item["count"]
+            
+            total_records = total_0_0 + total_1_0
+            payload_0_0_percentage = round((total_0_0 / total_records) * 100, 2) if total_records > 0 else 0
+            payload_1_0_percentage = round((total_1_0 / total_records) * 100, 2) if total_records > 0 else 0
+            
+            return {
+                "status": "success",
+                "time_range": f"{start_date} to {end_date}",
+                "collection_used": collection_name,
+                "summary": {
+                    "total_payLoad_0_0_count": total_0_0,
+                    "total_payLoad_1_0_count": total_1_0,
+                    "total_records": total_records,
+                    "payLoad_0_0_percentage": payload_0_0_percentage,
+                    "payLoad_1_0_percentage": payload_1_0_percentage
+                }
+            }
+        else:
+            # Query từ daily statistics và aggregate
+            cursor = collection.find(base_query)
+            daily_stats = await cursor.to_list(length=None)
+            
+            total_0_0 = sum(stat.get("InTask_payLoad_0_0_count", 0) for stat in daily_stats)
+            total_1_0 = sum(stat.get("InTask_payLoad_1_0_count", 0) for stat in daily_stats)
+            
+            total_records = total_0_0 + total_1_0
+            payload_0_0_percentage = round((total_0_0 / total_records) * 100, 2) if total_records > 0 else 0
+            payload_1_0_percentage = round((total_1_0 / total_records) * 100, 2) if total_records > 0 else 0
+            
+            return {
+                "status": "success",
+                "time_range": f"{start_date} to {end_date}",
+                "collection_used": collection_name,
+                "summary": {
+                    "total_payLoad_0_0_count": total_0_0,
+                    "total_payLoad_1_0_count": total_1_0,
+                    "total_records": total_records,
+                    "payLoad_0_0_percentage": payload_0_0_percentage,
+                    "payLoad_1_0_percentage": payload_1_0_percentage
+                }
+            }
+
+    except Exception as e:
+        logger.error(f"Error getting all robots payload statistics summary: {e}")
         return {
             "status": "error",
             "message": str(e)
