@@ -33,10 +33,12 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         "node_name": node_in.node_name,
         "node_type": node_in.node_type,
         "owner": node_in.owner,
+        "process_code": node_in.process_code,
         "start": node_in.start,
         "end": node_in.end,
         "next_start": node_in.next_start,
         "next_end": node_in.next_end,
+        "line": node_in.line,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -128,10 +130,12 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
                     "node_name": node_data["node_name"],
                     "node_type": node_data["node_type"],
                     "owner": node_data["owner"],
+                    "process_code": node_data["process_code"],
                     "start": node_data["start"],
                     "end": node_data["end"],
                     "next_start": node_data.get("next_start"),
                     "next_end": node_data.get("next_end"),
+                    "line": node_data.get("line"),
                     "created_at": datetime.utcnow(),
                     "updated_at": datetime.utcnow()
                 }
@@ -150,10 +154,12 @@ async def update_multiple_nodes(nodes_data: List[dict]) -> dict:
                     "node_name": node_data["node_name"],
                     "node_type": node_data["node_type"],
                     "owner": node_data["owner"],
+                    "process_code": node_data["process_code"],
                     "start": node_data["start"],
                     "end": node_data["end"],
                     "next_start": node_data.get("next_start"),
                     "next_end": node_data.get("next_end"),
+                    "line": node_data.get("line"),
                     "updated_at": datetime.utcnow()
                 }
                 
@@ -226,20 +232,9 @@ async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOu
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
-async def get_process_code(node_type: str, owner: str) -> str:
-    """Lấy process code từ config_caller.json - sử dụng owner thay vì area"""
-    owners = get_collection("users")
-    owner_exists = await owners.find_one({"username": owner, "is_active": True})
-    if not owner_exists:
-        logger.warning(f"Owner '{owner}' does not exist or is inactive")
-        raise ValueError("Owner does not exist or is inactive")
-    modelProcessCode = owner_exists.get(node_type)
-    # Tạm thời sử dụng owner như area_id, có thể cần điều chỉnh logic
-    return modelProcessCode
 
 async def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
-    process_code = await get_process_code(node.node_type, node.owner)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
     # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
@@ -247,7 +242,7 @@ async def process_caller(node: ProcessCaller, priority: int) -> str:
 
     if node.node_type == "supply" or node.node_type == "return":
         payload = {
-            "modelProcessCode": f"{process_code}", 
+            "modelProcessCode": f"{node.process_code}", 
             "priority": priority, 
             "fromSystem": "Thadosoft", 
             "orderId": order_id,  # Gán orderId bằng timestamp
@@ -259,7 +254,7 @@ async def process_caller(node: ProcessCaller, priority: int) -> str:
         }
     else:
         payload = {
-            "modelProcessCode": f"{process_code}", 
+            "modelProcessCode": f"{node.process_code}", 
             "priority": priority, 
             "fromSystem": "Thadosoft", 
             "orderId": order_id,  # Gán orderId bằng timestamp

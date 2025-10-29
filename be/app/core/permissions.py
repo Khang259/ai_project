@@ -56,9 +56,6 @@ async def get_current_active_user(current_user: dict = Depends(get_current_user)
         is_superuser=current_user.get("is_superuser", False),
         roles=role_names,
         permissions=permissions,
-        supply=current_user.get("supply"),
-        returns=current_user.get("returns"),
-        both=current_user.get("both"),
         created_at=current_user.get("created_at"),
         last_login=current_user.get("last_login")
     )

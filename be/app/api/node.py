@@ -116,7 +116,7 @@ async def delete_node_by_id(
         )
 
 @router.get("/owner/{owner}/{node_type}", response_model=List[NodeOut])
-async def get_nodes_by_owner_and_type(
+async def get_nodes_by_owner_and_type_endpoint(
     owner: str,
     node_type: str,
 ):
