@@ -22,12 +22,6 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         logger.warning(f"Node creation failed: owner '{node_in.owner}' does not exist or is inactive")
         raise ValueError("Owner does not exist or is inactive")
     
-    # Kiểm tra xem node_name đã tồn tại chưa (trong cùng owner)
-    existing = await nodes.find_one({"node_name": node_in.node_name, "owner": node_in.owner, "node_type": node_in.node_type})
-    if existing:
-        logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists for owner '{node_in.owner}'")
-        raise ValueError("Node name already exists for this owner")
-    
     
     node_data = {
         "node_name": node_in.node_name,
@@ -233,14 +227,44 @@ async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOu
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
 
-async def process_caller(node: ProcessCaller, priority: int) -> str:
+async def process_caller(node: ProcessCaller, priority: int, type: str) -> str:
     """Gọi process caller"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
     # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
     order_id = f"{node.owner}_{timestamp}_{str(uuid.uuid4())[:8]}"
 
-    if node.node_type == "supply" or node.node_type == "return":
+
+    if type == "PT":
+        if node.node_type == "supply" or node.node_type == "returns":
+            payload = {
+                "modelProcessCode": f"{node.process_code}", 
+                "priority": priority, 
+                "fromSystem": "Thadosoft", 
+                "orderId": order_id,  # Gán orderId bằng timestamp
+                "taskOrderDetail": [ 
+                    {    
+                        "taskPath": f"{node.start},{node.end}", 
+                    } 
+                ] 
+            }
+        else:
+            payload = {
+                "modelProcessCode": f"{node.process_code}", 
+                "priority": priority, 
+                "fromSystem": "Thadosoft", 
+                "orderId": order_id,  # Gán orderId bằng timestamp
+                "taskOrderDetail": [ 
+                    {    
+                        "taskPath": f"{node.start},{node.end}", 
+                    }, 
+                    {    
+                        "taskPath": f"{node.next_start},{node.next_end}", 
+                    } 
+                ] 
+            }
+
+    if type == "VL":
         payload = {
             "modelProcessCode": f"{node.process_code}", 
             "priority": priority, 
@@ -248,24 +272,12 @@ async def process_caller(node: ProcessCaller, priority: int) -> str:
             "orderId": order_id,  # Gán orderId bằng timestamp
             "taskOrderDetail": [ 
                 {    
-                    "taskPath": f"{node.start},{node.end}", 
+                    "taskPath": f"{node.start},{node.end},{node.next_start}", 
                 } 
             ] 
         }
+
     else:
-        payload = {
-            "modelProcessCode": f"{node.process_code}", 
-            "priority": priority, 
-            "fromSystem": "Thadosoft", 
-            "orderId": order_id,  # Gán orderId bằng timestamp
-            "taskOrderDetail": [ 
-                {    
-                    "taskPath": f"{node.start},{node.end}", 
-                }, 
-                {    
-                    "taskPath": f"{node.next_start},{node.next_end}", 
-                } 
-            ] 
-        }
+        raise ValueError("Invalid caller type")
 
     return payload
