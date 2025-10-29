@@ -227,15 +227,23 @@ async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOu
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
 
-async def process_caller(node: ProcessCaller, priority: int, type: str) -> str:
+async def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
     # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
     order_id = f"{node.owner}_{timestamp}_{str(uuid.uuid4())[:8]}"
 
+    parts = node.node_name.split('-')
+    last_part = parts[-1] if parts else ""
+    
+    # Kiểm tra xem phần cuối có chứa chữ cái không
+    if last_part and any(c.isalpha() for c in last_part):
+        type = 1  # VL - có chữ cái
+    else:
+        type = 0  # PT - chỉ số hoặc rỗng
 
-    if type == "PT":
+    if type == 0:
         if node.node_type == "supply" or node.node_type == "returns":
             payload = {
                 "modelProcessCode": f"{node.process_code}", 
@@ -264,7 +272,7 @@ async def process_caller(node: ProcessCaller, priority: int, type: str) -> str:
                 ] 
             }
 
-    if type == "VL":
+    elif type == 1:
         payload = {
             "modelProcessCode": f"{node.process_code}", 
             "priority": priority, 
