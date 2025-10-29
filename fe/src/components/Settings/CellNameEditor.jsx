@@ -50,7 +50,7 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
           node_type: mergedData.node_type,
           owner: mergedData.owner,
           line: mergedData.line,  // ← BẮT BUỘC: Field line cho backend
-          process_name: mergedData.process_name || "",
+          process_code: mergedData.process_code || "",
           start: mergedData.start,
           end: mergedData.end,
           next_start: mergedData.next_start,
@@ -97,8 +97,8 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
               <TableCell>
                 <Input
                   type="text"
-                  value={(editedById[cell.id]?.process_name ?? cell.process_name) || ''}
-                  onChange={(e) => handleChange(cell.id, 'process_name', e.target.value)}
+                  value={(editedById[cell.id]?.process_code ?? cell.process_code) || ''}
+                  onChange={(e) => handleChange(cell.id, 'process_code', e.target.value)}
                   placeholder={`Process name cho ${cell.node_name}`}
                   className="text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                 />

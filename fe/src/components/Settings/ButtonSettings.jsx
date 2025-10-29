@@ -48,7 +48,7 @@ const ButtonSettings = () => {
     node_name: "",
     nodeType: "",
     line: "",
-    process_name: "",
+    process_code: "",
     start: 0,
     end: 0,
     next_start: 0,
@@ -162,7 +162,7 @@ const ButtonSettings = () => {
   // Xác nhận thêm node mới
   const handleConfirmAddNode = async () => {
     
-    if (!newNodeData.line || !newNodeData.node_name || !newNodeData.process_name || !newNodeData.start || !newNodeData.end) {
+    if (!newNodeData.line || !newNodeData.node_name || !newNodeData.process_code || !newNodeData.start || !newNodeData.end) {
       alert("Vui lòng điền đầy đủ thông tin bắt buộc (Tên Node, Tên Line, Process Name, Start, End)");
       return;
     }
@@ -173,7 +173,7 @@ const ButtonSettings = () => {
       node_type: selectedNodeType || newNodeData.nodeType,
       owner: selectedUser.username,
       line: selectedLine || newNodeData.line,
-      process_name: newNodeData.process_name || "",
+      process_code: newNodeData.process_code || "",
       start: newNodeData.start,
       end: newNodeData.end,
       next_start: newNodeData.next_start || 0,
@@ -197,8 +197,9 @@ const ButtonSettings = () => {
     setNewNodeData({
       node_name: "",
       nodeType: "",
+      owner: "",
       line: "",
-      process_name: "",
+      process_code: "",
       start: 0,
       end: 0,
       next_start: 0,
@@ -265,11 +266,11 @@ const ButtonSettings = () => {
           return obj;
         });
 
-        const requiredHeaders = ['node_name', 'node_type', 'line', 'process_name', 'start', 'end', 'next_start', 'next_end'];
+        const requiredHeaders = ['node_name', 'node_type', 'line', 'process_code', 'start', 'end', 'next_start', 'next_end'];
         const firstRowKeys = Object.keys(normalisedRows[0] || {});
         const isValid = requiredHeaders.every((h) => firstRowKeys.includes(h));
         if (!isValid) {
-          alert('Header không hợp lệ. Cần các cột: node_name, node_type, line, process_name, start, end, next_start, next_end');
+          alert('Header không hợp lệ. Cần các cột: node_name, node_type, line, process_code, start, end, next_start, next_end');
           return;
         }
         // Tạo danh sách node từ file và hợp nhất vào allNodes
@@ -284,7 +285,7 @@ const ButtonSettings = () => {
             node_type: nodeType,
             owner: selectedUser?.username,
             line: selectedLine || String(r.line ?? ''),
-            process_name: String(r.process_name ?? '').trim(),
+            process_code: String(r.process_code ?? '').trim(),
             start: Number(r.start),
             end: Number(r.end),
             next_start: isBoth ? (Number(r.next_start) || 0) : 0,
@@ -325,7 +326,7 @@ const ButtonSettings = () => {
             node_type: node.node_type,
             owner: node.owner,
             line: node.line,
-            process_name: node.process_name || "",
+            process_code: node.process_code || "",
             start: node.start,
             end: node.end,
             next_start: node.next_start,
@@ -357,7 +358,7 @@ const ButtonSettings = () => {
       node_type: node.node_type,
       owner: node.owner,
       line: node.line,
-      process_name: node.process_name || "",
+      process_code: node.process_code || "",
       start: node.start,
       end: node.end,
       next_start: node.next_start,
@@ -384,7 +385,7 @@ const ButtonSettings = () => {
         node_type: node.node_type,
         owner: node.owner,
         line: node.line,
-        process_name: node.process_name || "",
+        process_code: node.process_code || "",
         start: node.start,
         end: node.end,
         next_start: node.next_start || 0,
@@ -401,7 +402,7 @@ const ButtonSettings = () => {
           node_name: 'Tên ô cấp',
           node_type: 'supply',
           line: 'Line 1',
-          process_name: 'PROC_A',
+          process_code: 'PROC_A',
           start: 100,
           end: 200,
           next_start: 0,
@@ -411,7 +412,7 @@ const ButtonSettings = () => {
           node_name: 'Tên ô trả',
           node_type: 'returns',
           line: 'Line 2',
-          process_name: 'PROC_B',
+          process_code: 'PROC_B',
           start: 300,
           end: 400,
           next_start: 0,
@@ -421,7 +422,7 @@ const ButtonSettings = () => {
           node_name: 'Tên cấp&trả',
           node_type: 'both',
           line: 'Line 3',
-          process_name: 'PROC_C',
+          process_code: 'PROC_C',
           start: 500,
           end: 600,
           next_start: 700,
@@ -431,7 +432,7 @@ const ButtonSettings = () => {
           node_name: 'Tên tự động',
           node_type: 'auto',
           line: 'Line 4',
-          process_name: 'PROC_AUTO',
+          process_code: 'PROC_AUTO',
           start: 900,
           end: 1000,
           next_start: 0,
@@ -683,15 +684,15 @@ const ButtonSettings = () => {
                       />
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <Label htmlFor="process_name" className="text-sm font-medium">
+                      <Label htmlFor="process_code" className="text-sm font-medium">
                         Process Name
                       </Label>
                       <input
-                        id="process_name"
+                        id="process_code"
                         type="text"
-                        value={newNodeData.process_name}
-                        onChange={(e) => setNewNodeData(prev => ({ ...prev, process_name: e.target.value }))}
-                        placeholder="Nhập process_name (tùy chọn)"
+                        value={newNodeData.process_code}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, process_code: e.target.value }))}
+                        placeholder="Nhập process_code (tùy chọn)"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -761,7 +762,7 @@ const ButtonSettings = () => {
                           node_name: "",
                           nodeType: "",
                           line: "",
-                          process_name: "",
+                          process_code: "",
                           start: 0,
                           end: 0,
                           next_start: 0,
@@ -773,7 +774,7 @@ const ButtonSettings = () => {
                     </Button>
                     <Button 
                       onClick={handleConfirmAddNode}
-                      disabled={(!newNodeData.line && !selectedLine) || !newNodeData.node_name || !newNodeData.process_name || !newNodeData.start || !newNodeData.end || (!selectedNodeType && !newNodeData.nodeType)}
+                      disabled={(!newNodeData.line && !selectedLine) || !newNodeData.node_name || !newNodeData.process_code || !newNodeData.start || !newNodeData.end || (!selectedNodeType && !newNodeData.nodeType)}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       Xác Nhận
@@ -850,7 +851,7 @@ const ButtonSettings = () => {
               })()}
               </div>
               <div className="text-xs text-muted-foreground text-right">
-                Format: node_name, node_type, line, process_name, start, end, next_start, next_end
+                Format: node_name, node_type, line, process_code, start, end, next_start, next_end
               </div>
             </div>
           </div>
