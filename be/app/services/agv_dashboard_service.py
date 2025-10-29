@@ -591,9 +591,11 @@ async def get_all_robots_payload_data(
         else:
             base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
-        # Lọc theo device_code nếu có
+        # Lọc theo device_code nếu có (hỗ trợ danh sách phân tách bằng dấu phẩy)
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         robots_data = {}
 
@@ -762,9 +764,11 @@ async def get_all_robots_work_status(
             # daily stats dùng field 'date' dạng YYYY-MM-DD
             base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
-        # Lọc theo device_code nếu có
+        # Lọc theo device_code nếu có (hỗ trợ danh sách phân tách bằng dấu phẩy)
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         robots_data = {}
 
@@ -931,7 +935,9 @@ async def get_all_robots_work_status_summary(
             base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         # Aggregate tất cả robots lại
         if collection_name == "agv_data":
@@ -1037,7 +1043,9 @@ async def get_all_robots_payload_statistics_summary(
             base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         if collection_name == "agv_data":
             # Query từ raw data và aggregate

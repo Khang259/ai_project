@@ -32,7 +32,7 @@ async def receive_robot_data(request: Request):
 async def get_payload_statistics(
     time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
     state: str = Query(..., description="AGV state: 'InTask', 'Idle', etc."),
-    device_code: str = Query(None, description="Specific device code (optional)")
+    device_code: str = Query(None, description="Filter by device code(s) (optional). Có thể truyền nhiều mã, ngăn cách bởi dấu phẩy: AGV_01,AGV_02")
 ):
     """
     Get AGV payload statistics for a specific state
@@ -67,7 +67,7 @@ async def get_payload_statistics(
 @router.get("/work-status")
 async def get_work_status(
     time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
-    device_code: str = Query(None, description="Specific device code (optional)")
+    device_code: str = Query(None, description="Filter by device code(s) (optional). Có thể truyền nhiều mã, ngăn cách bởi dấu phẩy: AGV_01,AGV_02")
 ):
     """
     Get AGV work status statistics (InTask vs Idle)
@@ -103,7 +103,7 @@ async def get_work_status(
 async def get_all_robots_payload_statistics(
     start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
     end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
-    device_code: str = Query(None, description="Filter by specific device code (optional)")
+    device_code: str = Query(None, description="Filter by device code(s) (optional). Có thể truyền nhiều mã, ngăn cách bởi dấu phẩy: AGV_01,AGV_02")
 ):
     """
     Lấy thống kê payload (có hàng/không hàng) cho TẤT CẢ robots - theo từng robot riêng biệt
@@ -137,7 +137,7 @@ async def get_all_robots_payload_statistics(
 async def get_all_robots_work_status_endpoint(
     start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
     end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
-    device_code: str = Query(None, description="Filter by specific device code (optional)")
+    device_code: str = Query(None, description="Filter by device code(s) (optional). Có thể truyền nhiều mã, ngăn cách bởi dấu phẩy: AGV_01,AGV_02")
 ):
     """
     Lấy thống kê work status (InTask/Idle) cho TẤT CẢ robots - theo từng robot riêng biệt
@@ -172,7 +172,7 @@ async def get_all_robots_work_status_endpoint(
 async def get_all_robots_work_status_summary_endpoint(
     start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
     end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
-    device_code: str = Query(None, description="Filter by specific device code (optional)")
+    device_code: str = Query(None, description="Filter by device code(s) (optional). Có thể truyền nhiều mã, ngăn cách bởi dấu phẩy: AGV_01,AGV_02")
 ):
     """
     Lấy SUMMARY thống kê work status (InTask/Idle) - TỔNG HỢP TẤT CẢ ROBOTS
@@ -207,7 +207,7 @@ async def get_all_robots_work_status_summary_endpoint(
 async def get_all_robots_payload_statistics_summary_endpoint(
     start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
     end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
-    device_code: str = Query(None, description="Filter by specific device code (optional)")
+    device_code: str = Query(None, description="Filter by device code(s) (optional). Có thể truyền nhiều mã, ngăn cách bởi dấu phẩy: AGV_01,AGV_02")
 ):
     """
     Lấy SUMMARY thống kê payload (có hàng/không hàng) - TỔNG HỢP TẤT CẢ ROBOTS
