@@ -6,7 +6,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen">
       <div className="flex flex-row h-[calc(100vh-4rem)]">
-        <div className="w-[25%] p-6 ">
+        <div className="w-[25%] p-6">
             <StatisticsLeftSide />
         </div>
         {/* Main map area - 75% */}

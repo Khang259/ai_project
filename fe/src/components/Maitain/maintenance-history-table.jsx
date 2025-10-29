@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
+import { getCheckLogs, getMaintenanceLogsChanges } from "@/services/maintenance_history"
+import { formatDateToDDMMYYYY } from "@/utils/dateFormatter"
 
 export default function MaintenanceHistoryTable() {
   const [checkLogs, setCheckLogs] = useState({ success: true, total_logs: 0, logs: [] })
@@ -22,13 +24,10 @@ export default function MaintenanceHistoryTable() {
     const fetchAll = async () => {
       try {
         setLoading(true)
-        const [resCheck, resChanges] = await Promise.all([
-          fetch("/api/check-logs"),
-          fetch("/api/maintenance-logs/changes"),
+        const [dataCheck, dataChanges] = await Promise.all([
+          getCheckLogs(),
+          getMaintenanceLogsChanges()
         ])
-        if (!resCheck.ok) throw new Error(`check-logs error ${resCheck.status}`)
-        if (!resChanges.ok) throw new Error(`changes error ${resChanges.status}`)
-        const [dataCheck, dataChanges] = await Promise.all([resCheck.json(), resChanges.json()])
         setCheckLogs(dataCheck)
         setChangesLogs(dataChanges)
       } catch (e) {
@@ -311,5 +310,8 @@ function renderValue(value) {
       return String(value)
     }
   }
-  return String(value)
+  
+  // Check if value is a date string and format it
+  const dateValue = formatDateToDDMMYYYY(value)
+  return dateValue
 }

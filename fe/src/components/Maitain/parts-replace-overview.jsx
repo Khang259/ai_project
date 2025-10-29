@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertCircle, Package, Truck, Search, ArrowUpDown, ArrowUp, ArrowDown, Edit3, Save, X } from "lucide-react"
+import { getSumPartsReplaceAll, updateAMRName } from "@/services/amr_parts_replace"
 
 export function PartsReplaceOverview({ onAMRClick }) {
   const [data, setData] = useState(null)
@@ -24,13 +25,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const response = await fetch("/api/sum-parts-replace-all")
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const result = await response.json()
+        const result = await getSumPartsReplaceAll()
         setData(result)
       } catch (err) {
         console.error("Error fetching parts replace data:", err)
@@ -117,38 +112,11 @@ export function PartsReplaceOverview({ onAMRClick }) {
     try {
       setUpdating(true)
       
-      const response = await fetch('/api/amr/update-name', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          old_amr_id: editingAMR,
-          new_amr_id: newAMRName.trim()
-        })
-      })
+      await updateAMRName(editingAMR, newAMRName.trim())
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Lỗi khi cập nhật tên AMR')
-      }
-
-      // Cập nhật dữ liệu local
-      setData(prevData => {
-        if (!prevData?.chi_tiet_theo_amr) return prevData
-        
-        const updatedAMRs = prevData.chi_tiet_theo_amr.map(amr => 
-          amr.amr_id === editingAMR 
-            ? { ...amr, amr_id: newAMRName.trim() }
-            : amr
-        )
-        
-        return {
-          ...prevData,
-          chi_tiet_theo_amr: updatedAMRs
-        }
-      })
+      // Reload data từ backend để có dữ liệu mới nhất
+      const reloadData = await getSumPartsReplaceAll()
+      setData(reloadData)
 
       alert(`Đã cập nhật thành công tên AMR từ "${editingAMR}" thành "${newAMRName.trim()}"`)
       handleCloseEditModal()
@@ -197,19 +165,19 @@ export function PartsReplaceOverview({ onAMRClick }) {
   }
 
   return (
-    <div className="w-full h-screen flex flex-col bg-background">
+    <div className="w-full h-screen flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
+        <div className="max-w-7xl mx-auto p-6 pb-40 space-y-6 glass">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-l-4 border-l-primary">
+            <Card className="border-l-4 border-l-blue-500">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-primary/10 rounded-lg">
                     <Truck className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground font-medium">Tổng số AMR</p>
-                    <p className="text-3xl font-bold text-foreground">{data.sum_amr || 0}</p>
+                    <p className="text-sm text-white font-semibold">Tổng số AMR</p>
+                    <p className="text-3xl font-bold text-white">{data.sum_amr || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -222,8 +190,8 @@ export function PartsReplaceOverview({ onAMRClick }) {
                     <Package className="h-6 w-6 text-yellow-500" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground font-medium">Linh kiện cần kiểm tra</p>
-                    <p className="text-3xl font-bold text-foreground">{data.sum_parts_one || 0}</p>
+                    <p className="text-sm text-white font-semibold">Linh kiện cần kiểm tra</p>
+                    <p className="text-3xl font-bold text-white">{data.sum_parts_one || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -235,8 +203,8 @@ export function PartsReplaceOverview({ onAMRClick }) {
                     <Package className="h-6 w-6 text-destructive" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground font-medium">Linh kiện cần thay thế</p>
-                    <p className="text-3xl font-bold text-foreground">{data.sum_parts_two || 0}</p>
+                    <p className="text-sm text-white font-semibold">Linh kiện cần thay thế</p>
+                    <p className="text-3xl font-bold text-white">{data.sum_parts_two || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -244,7 +212,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-foreground mb-4">Chi tiết theo từng AMR</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">Chi tiết theo từng AMR</h2>
 
             {/* Thanh tìm kiếm và sắp xếp */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -324,7 +292,15 @@ export function PartsReplaceOverview({ onAMRClick }) {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div 
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4"
+                style={{ 
+                  backgroundColor: 'rgba(139,92,246,0.25)',
+                  border: 'rgba(255,255,255,0.25)',
+                  borderRadius: '16px',
+                  color: 'white',
+                }}
+              >
                 {getFilteredAndSortedAMRs().map((amr, index) => (
                   <Card
                     key={amr.amr_id || index}
@@ -341,16 +317,16 @@ export function PartsReplaceOverview({ onAMRClick }) {
                           size="sm"
                           variant="ghost"
                           onClick={(e) => handleEditAMR(amr.amr_id, e)}
-                          className="h-6 w-6 p-0 hover:bg-primary/10 flex-shrink-0"
+                          className="h-6 w-6 p-0 hover:bg-primary/10 flex-shrink-0 text-white"
                           title="Sửa tên AMR"
                         >
-                          <Edit3 className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                          <Edit3 className="h-3 w-3 text-white hover:text-primary" />
                         </Button>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground font-medium">Kiểm tra:</span>
+                        <span className="text-xs text-white font-medium">Kiểm tra:</span>
                         <Badge
                           variant="secondary"
                           className={`font-semibold ${
@@ -361,7 +337,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                         >
                           {amr.sumPartsOne || 0}
                         </Badge>
-                        <span className="text-xs text-muted-foreground font-medium">Thay thế:</span>
+                        <span className="text-xs text-white font-medium">Thay thế:</span>
                         <Badge
                           variant={amr.sumPartsTwo > 0 ? "destructive" : "secondary"}
                           className="font-semibold"

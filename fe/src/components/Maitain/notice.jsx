@@ -64,7 +64,7 @@ export function Notice() {
   return (
     <>
       {/* Icon thông báo cố định */}
-      <div className="fixed top-4 right-4 z-40">
+      <div className="fixed bottom-4 left-4 z-40">
         <button
           onClick={handleIconClick}
           className="relative p-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg transition-all hover:scale-110"
@@ -211,4 +211,3 @@ export function Notice() {
     </>
   )
 }
-

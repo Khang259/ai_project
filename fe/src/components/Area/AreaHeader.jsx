@@ -9,7 +9,7 @@ const AreaHeader = ({ onAdd }) => {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-semibold text-gray-900">{t('area.areaManagement')}</h1>
+        <h1 className="text-2xl font-semibold text-white">{t('area.areaManagement')}</h1>
       </div>
       
       <div className="flex items-center gap-3">

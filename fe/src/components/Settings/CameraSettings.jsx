@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Plus, Trash2, Video, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash2, Video, Loader2 } from 'lucide-react';
 import { getCamerasByArea, addCamera, updateCamera, deleteCamera } from '@/services/camera-settings';
 import { useArea } from '@/contexts/AreaContext';
-import CameraViewer from '../Overview/map/camera/CameraViewer';
 import CameraViewerModal from '../Overview/map/camera/CameraViewerModal';
 import { useTranslation } from 'react-i18next';
 
@@ -202,16 +210,14 @@ const CameraSettings = () => {
   return (
     <div className="space-y-6">
       {/* Camera Configuration */}
-      <Card className="border-2">
+      <Card className="border-2 glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Video className="h-5 w-5 text-primary" />
+            <Video className="h-5 w-5" />
             {t('settings.cameraManagement')}
           </CardTitle>
           <CardDescription>
-            Thêm và quản lý camera từ database
-            <br />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-white">
               Định dạng yêu cầu: rtsp://ip:port/path (ví dụ: rtsp://192.168.1.100:554/stream) | Bounding box: x,y,w,h (ví dụ: 0,0,100,100)
             </span>
           </CardDescription>
@@ -221,7 +227,12 @@ const CameraSettings = () => {
             {cameras.map((camera, index) => {
               const isValidRTSP = camera.camera_path ? validateRTSPUrl(camera.camera_path) : true;
               return (
-                <div key={camera.id} className="flex gap-2 items-start p-3 border rounded-lg">
+                <div key={camera.id} className="flex gap-2 items-start p-3 rounded-lg "
+                  style={{ 
+                    backgroundColor:"rgba(139,92,246,0.25)",
+                    border: "1px solid rgba(255,255,255,0.25)"
+                  }}
+                >
                   <div className="flex-1 space-y-2">
                     <div className="grid grid-cols-3 gap-2">
                       <div>
@@ -241,7 +252,7 @@ const CameraSettings = () => {
                             type="button"
                             onClick={() => selectCameraForViewing(camera)}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80"
-                            title="Xem stream + bounding box"
+                            title="Xem stream + vẽ bounding box"
                           >
                             <Video className="h-4 w-4" />
                           </button>
@@ -308,15 +319,6 @@ const CameraSettings = () => {
                             )}
                           </div>
                         ))}
-                        <Button
-                          onClick={() => addBoundingBox(camera.id)}
-                          variant="outline"
-                          size="sm"
-                          className="mt-1 w-full border-dashed"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          {t('settings.addBoundingBox')}
-                        </Button>
                         {camera.b_box.some(bbox => bbox && !validateBBox(bbox)) && (
                           <p className="text-xs text-red-500 mt-1">
                             {t('settings.invalidBBoxFormat')}
@@ -342,7 +344,7 @@ const CameraSettings = () => {
           <Button
             onClick={addNewCamera}
             variant="outline"
-            className="w-full border-dashed border-2 hover:border-primary hover:bg-primary/5 bg-transparent"
+            className="w-full border-dashed border-2 hover:bg-red-50 bg-transparent"
           >
             <Plus className="h-4 w-4 mr-2" />
             {t('settings.addCamera')}
@@ -371,42 +373,75 @@ const CameraSettings = () => {
       </Card>
 
       {/* Camera Status & Information */}
-      <Card className="border-2">
+      {/* Camera Status & Information - Bảng */}
+      <Card className="border-2 glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5 text-primary" />
             {t('settings.cameraInformationFromDatabase')}
           </CardTitle>
-          <CardDescription>
-            {t('settings.cameraInformationFromDatabaseDescription')}
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {cameras.map((camera, index) => (
-              <div key={camera.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <div>
-                    <p className="font-medium">{camera.camera_name || `Camera ${index + 1}`}</p>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {camera.camera_path || t('settings.notConfigured')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('settings.area')}: {camera.area} | {t('settings.id')}: {camera.id}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">{t('settings.status')}</p>
-                  <p className="text-sm font-medium text-green-600">{t('settings.active')}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {camera.created_at ? new Date(camera.created_at).toLocaleDateString('vi-VN') : t('settings.new')}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          {cameras.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              {t('settings.noCamerasConfigured')}
+            </p>
+          ) : (
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-8 text-center text-white">ID</TableHead>
+                    <TableHead className="text-white">{t('settings.cameraName')}</TableHead>
+                    <TableHead className="text-white">{t('settings.rtspUrl')}</TableHead>
+                    <TableHead className="text-white">{t('settings.area')}</TableHead>
+                    <TableHead className="text-white">{t('settings.status')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {cameras.map((camera, index) => {
+                    const isConnected = !!camera.camera_path && validateRTSPUrl(camera.camera_path);
+                    return (
+                      <TableRow key={camera.id} className="text-sm">
+                        <TableCell className="text-center font-medium">{index + 1}</TableCell>
+                        <TableCell className="font-medium">
+                          {camera.camera_name || `${t('settings.camera')} ${index + 1}`}
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs font-mono px-1 py-0.5 rounded">
+                            {camera.camera_path || (
+                              <span className="text-muted-foreground italic">
+                                {t('settings.notConfigured')}
+                              </span>
+                            )}
+                          </code>
+                        </TableCell>
+                        <TableCell>{camera.area}</TableCell>
+
+                        {/* Check online status */}
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className={`w-2.5 h-2.5 rounded-full ${
+                                isConnected ? 'bg-green-500' : 'bg-red-500'
+                              }`}
+                            />
+                            <span
+                              className={`text-xs font-medium ${
+                                isConnected ? 'text-green-600' : 'text-red-600'
+                              }`}
+                            >
+                              {isConnected ? t('settings.active') : t('settings.inactive')}
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 

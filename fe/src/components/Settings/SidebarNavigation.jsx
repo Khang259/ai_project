@@ -22,7 +22,7 @@ const SidebarNavigation = ({ activeTab, onTabChange }) => {
   ];
 
   return (
-    <Card className="w-80 h-fit">
+    <Card className="w-80 glass">
       <CardContent className="p-4">
         <div className="space-y-2">
           <div className="flex items-center gap-2 mb-4">
@@ -40,7 +40,7 @@ const SidebarNavigation = ({ activeTab, onTabChange }) => {
                 variant={isActive ? "default" : "ghost"}
                 className={`w-full justify-start h-auto p-4 ${
                   isActive 
-                    ? 'bg-primary text-primary-foreground shadow-md' 
+                    ? 'bg-primary text-white shadow-md' 
                     : 'hover:bg-muted'
                 }`}
                 onClick={() => onTabChange(tab.id)}

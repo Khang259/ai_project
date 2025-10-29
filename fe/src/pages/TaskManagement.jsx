@@ -87,15 +87,11 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-3xl font-semibold">Trang quản lý nhiệm vụ</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TaskTable tasks={tasks} onTasksChange={handleTasksChange} />
-        </CardContent>
-      </Card>
+    <div className="mx-auto py-8 px-4 m-4">
+      <div>
+        <h1 className="text-4xl font-semibold text-white">Trang quản lý nhiệm vụ</h1>
+        <TaskTable tasks={tasks} onTasksChange={handleTasksChange} />
+      </div>
     </div>
   )
 }

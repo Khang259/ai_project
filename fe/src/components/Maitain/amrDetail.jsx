@@ -5,6 +5,7 @@ import { X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { formatDateToDDMMYYYY } from "@/utils/dateFormatter"
 
 export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehicleComponentClick }) {
   const [vehicles, setVehicles] = useState([])
@@ -22,18 +23,11 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
     const fetchVehicleData = async () => {
       try {
         setLoading(true)
-        const url = `/api/part/${encodeURIComponent(maLinhKien)}/amr`
-        console.log('VehicleDetailsModal: Fetching URL:', url)
         console.log('VehicleDetailsModal: maLinhKien:', maLinhKien)
         
-        const response = await fetch(url)
+        const { getPartDetailByAMR } = await import("@/services/part_detail")
+        const data = await getPartDetailByAMR(maLinhKien)
         
-        if (!response.ok) {
-          console.error('VehicleDetailsModal: API response not ok:', response.status, response.statusText)
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const data = await response.json()
         console.log('VehicleDetailsModal: API response data:', data)
         
         // Map dữ liệu từ API response
@@ -99,49 +93,22 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
     try {
       setUpdating(prev => ({ ...prev, [amrId]: true }))
       
-      const requestBody = {
-        "amr_id": amrId,
-        "Mã linh kiện": maLinhKien,
-        "Ngày update": newDate
-      }
+      console.log('Updating date with payload:', { amr_id: amrId, maLinhKien, newDate })
 
-      console.log('Updating date with payload:', requestBody)
-
-      const response = await fetch('/api/part/update-date', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.text()
-        throw new Error(`HTTP error! status: ${response.status} - ${errorData}`)
-      }
-
-      const result = await response.json()
+      const { updatePartDate, getPartDetailByAMR } = await import("@/services/part_detail")
+      const result = await updatePartDate(amrId, maLinhKien, newDate)
+      
       console.log('Update successful:', result)
       
       // Refresh data after successful update
-      const refreshData = async () => {
-        try {
-          const response = await fetch(`/api/part/${encodeURIComponent(maLinhKien)}/amr`)
-          if (response.ok) {
-            const data = await response.json()
-            const mappedData = data["Danh sách"].map((item) => ({
-              amrId: item.amr_id || "",
-              lastReplacement: item["Ngày thay gần nhất"] || "",
-              daysRemaining: item["Số ngày còn lại"] || 0,
-              maintenanceDate: item.ngay_bao_tri || ""
-            }))
-            setVehicles(mappedData)
-          }
-        } catch (error) {
-          console.error('Error refreshing data:', error)
-        }
-      }
-      await refreshData()
+      const refreshData = await getPartDetailByAMR(maLinhKien)
+      const mappedData = refreshData["Danh sách"].map((item) => ({
+        amrId: item.amr_id || "",
+        lastReplacement: item["Ngày thay gần nhất"] || "",
+        daysRemaining: item["Số ngày còn lại"] || 0,
+        maintenanceDate: item.ngay_bao_tri || ""
+      }))
+      setVehicles(mappedData)
       
       alert('Cập nhật ngày bảo trì thành công!')
       
@@ -239,7 +206,7 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
                     onClick={() => onVehicleComponentClick && onVehicleComponentClick(vehicle.amrId)}
                   >
                     <span className="text-sm text-muted-foreground">
-                      {vehicle.lastReplacement || "Chưa cập nhật"}
+                      {vehicle.lastReplacement ? formatDateToDDMMYYYY(vehicle.lastReplacement) : "Chưa cập nhật"}
                     </span>
                   </td>
                   <td 
@@ -247,7 +214,7 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
                     onClick={() => onVehicleComponentClick && onVehicleComponentClick(vehicle.amrId)}
                   >
                     <span className="text-sm text-muted-foreground">
-                      {vehicle.maintenanceDate || "Chưa có"}
+                      {vehicle.maintenanceDate ? formatDateToDDMMYYYY(vehicle.maintenanceDate) : "Chưa có"}
                     </span>
                   </td>
                   <td 
@@ -290,5 +257,4 @@ export function VehicleDetailsModal({ maLinhKien, componentType, onClose, onVehi
     </div>
   )
 }
-
 

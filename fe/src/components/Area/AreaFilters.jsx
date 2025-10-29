@@ -9,13 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const AreaFilters = ({ search, onSearchChange, areaFilter, onAreaChange, areas }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-4 p-4 rounded-lg border border-gray-200">
+    <div className="flex items-center gap-4 p-4 text-white">
       {/* Area Filter Dropdown */}
       <div className="flex items-center gap-2">
         <Select value={areaFilter} onValueChange={onAreaChange}>
@@ -35,16 +35,14 @@ const AreaFilters = ({ search, onSearchChange, areaFilter, onAreaChange, areas }
       </div>
 
       {/* Search Input */}
-      <div className="flex-1 relative">
+      {/* <div className="flex-1 relative">
         <Input
-          type="text"
-          placeholder={t('area.enterAreaName')}
+          placeholder={t('users.searchByName')}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 pr-4 py-2 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          className="w-[200px] rounded-lg text-white"
         />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-      </div>
+      </div> */}
     </div>
   );
 };

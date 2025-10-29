@@ -18,7 +18,6 @@ export default function UserDashboard() {
   const { currAreaName, currAreaId } = useArea();
   const { t } = useTranslation();  
   const {
-    users,
     search,
     setSearch,
     roleFilter,
@@ -78,7 +77,6 @@ export default function UserDashboard() {
           name: <Username name={u.username} />,
           role: u.roles && u.roles.length > 0 ? u.roles[0].charAt(0).toUpperCase() + u.roles[0].slice(1) : t('users.user'),
           status: u.is_active ? "Active" : "Inactive",
-          email: "-"  // API không có email field
         }))}
         onDelete={handleDelete}
         onEdit={handleEdit}

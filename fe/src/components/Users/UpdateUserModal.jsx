@@ -101,7 +101,7 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
 
   return (
     <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4 bg-gray-300" style={{ borderRadius: "30px" }}>
+      <Card className="w-full max-w-md mx-4 bg-gray-400" style={{ borderRadius: "30px" }}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
             <CardTitle>{t('users.updateUser')}</CardTitle>

@@ -7,9 +7,8 @@ import { useTranslation } from "react-i18next";
 export default function UsersTable({ users, onDelete, onEdit }) {
   const {t} = useTranslation();
   return (
-    <div className="rounded-lg border border-gray-200 overflow-hidden border border-gray-200 shadow-md">
+    <div className="glass rounded-lg border border-gray-200 overflow-hidden shadow-md text-white">
       <Table>
-        <TableCaption>{t('users.userList')}</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>
@@ -24,14 +23,25 @@ export default function UsersTable({ users, onDelete, onEdit }) {
           {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{user.id}</TableCell>
-              <TableCell>{user.created_at}</TableCell>
+              <TableCell>{new Date(user.created_at).toLocaleString('vi-VN')}</TableCell>
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.is_active ? t('users.active') : t('users.inactive')}</TableCell>
               <TableCell>
-                <Badge variant="secondary">{user.roles.join(", ")}</Badge>
+                {user.roles.map(role => (
+                  <Badge
+                    key={role}
+                    variant={role === "admin" ? "destructive" : 
+                      role === "user" ? "ghost" :
+                      role === "viewer" ? "primary" : "secondary"
+                    }
+                    className="mr-1"
+                  >
+                    {role}
+                  </Badge>
+                ))}
               </TableCell>
               <TableCell className="space-x-2">
-                <Button variant="outline" size="sm" onClick={() => onEdit(user.id, user)}>
+                <Button variant="default" size="sm" onClick={() => onEdit(user.id, user)}>
                   {t('users.edit')}
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => onDelete(user.id)}>

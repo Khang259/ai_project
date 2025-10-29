@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { FileText, Calendar, Clock, CheckCircle, AlertCircle, Edit3, Download, X } from "lucide-react"
-import { getMaintenanceCheck, updateMaintenanceStatus } from "../../services/maintenance_check.js"
+import { getMaintenanceCheck, updateMaintenanceStatus, checkMaintenanceWithNotes } from "../../services/maintenance_check.js"
+import { formatDateToDDMMYYYY } from "@/utils/dateFormatter"
 
 export function MaintenanceChecklist() {
   const [maintenanceData, setMaintenanceData] = useState([])
@@ -106,23 +107,7 @@ export function MaintenanceChecklist() {
     try {
       setUpdating(prev => ({ ...prev, [idThietBi]: true }))
       
-      const response = await fetch('/api/maintenance-check/check-with-notes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id_thietBi: idThietBi,
-          ghi_chu: notes,
-          ngay_check: new Date().toISOString().split('T')[0]
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await checkMaintenanceWithNotes(idThietBi, notes)
 
       // Update local state
       setMaintenanceData(prevData => {
@@ -235,16 +220,16 @@ export function MaintenanceChecklist() {
 
   return (
     <div className="h-full flex flex-col">
-      <Card className="bg-card border-border h-full flex flex-col">
+      <Card className="bg-card border-border h-full flex flex-col glass">
         {/* Header */}
-        <div className="border-b border-border px-6 py-4 bg-muted/30">
-          <div className="flex items-center justify-between">
+        <div className="border-b border-border px-6 py-4" style={{ backgroundColor: "" }}>
+          <div className="flex items-center justify-between" >
             <div className="flex items-center gap-3">
-              <div className="bg-primary/20 p-2 rounded-lg">
+              <div className="bg-primary/20 p-2 rounded-lg" style={{ backgroundColor: "rgba(255, 255, 255, 1)" }}>
                 <FileText className="w-6 h-6 text-primary" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">Nội dung bảo trì</h2>
+              <div className="text-white">
+                <h2 className="text-xl font-bold text-white">Nội dung bảo trì</h2>
                 <p className="text-sm text-muted-foreground">Danh sách thiết bị cần kiểm tra định kỳ</p>
               </div>
             </div>
@@ -306,7 +291,7 @@ export function MaintenanceChecklist() {
                         
                         {/* Ngày kiểm tra */}
                         <span className="text-sm text-muted-foreground min-w-[100px] text-center">
-                          {item.ngay_check || 'Chưa có'}
+                          {item.ngay_check ? formatDateToDDMMYYYY(item.ngay_check) : 'Chưa có'}
                         </span>
                         
                         {/* Ghi chú */}
@@ -519,4 +504,3 @@ function PdfViewerModal({ pdfName, onClose }) {
     </div>
   )
 }
-

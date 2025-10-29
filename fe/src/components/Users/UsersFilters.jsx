@@ -26,15 +26,15 @@ export default function UsersFilters({ search, onSearchChange, roleFilter, onRol
   }, []);
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4 mt-4">
       <Input
         placeholder={t('users.searchByName')}
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="max-w-xs"
+        className="w-[200px] rounded-lg text-white"
       />
       <Select value={roleFilter} onValueChange={onRoleChange} disabled={rolesLoading}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[140px]" >
           <SelectValue placeholder={rolesLoading ? t('users.loadingRoles') : t('users.filterByRole')} />
         </SelectTrigger>
         <SelectContent>

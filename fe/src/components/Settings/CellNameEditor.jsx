@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
-import { Button } from '../ui/button';
 import { 
   Table, 
   TableHeader, 
@@ -9,8 +8,10 @@ import {
   TableRow, 
   TableCell 
 } from '../ui/table';
+import { useTranslation } from 'react-i18next';
 
 const CellNameEditor = ({ cells, handleUpdateBatch }) => {
+  const { t } = useTranslation();
   const [editedById, setEditedById] = useState({}); //Các thay đổi 
   const [selectedNodeTypes, setSelectedNodeTypes] = useState('');
   useEffect(() => {
@@ -68,13 +69,13 @@ const CellNameEditor = ({ cells, handleUpdateBatch }) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[150px] font-semibold">Node Name</TableHead>
-            <TableHead className="w-[120px] font-semibold">Start</TableHead>
-            <TableHead className="w-[120px] font-semibold">End</TableHead>
+            <TableHead className="w-[150px] font-semibold text-white">{t('settings.nodeName')}</TableHead>
+            <TableHead className="w-[120px] font-semibold text-white">{t('settings.start')}</TableHead>
+            <TableHead className="w-[120px] font-semibold text-white">{t('settings.end')}</TableHead>
             {selectedNodeTypes === 'both' && (
               <>
-                <TableHead className="w-[120px] font-semibold">Next Start</TableHead>
-                <TableHead className="w-[120px] font-semibold">Next End</TableHead>
+                <TableHead className="w-[120px] font-semibold text-white">{t('settings.nextStart')}</TableHead>
+                <TableHead className="w-[120px] font-semibold text-white">{t('settings.nextEnd')}</TableHead>
               </>
             )}
           </TableRow>

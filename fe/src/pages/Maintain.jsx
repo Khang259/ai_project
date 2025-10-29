@@ -13,21 +13,32 @@ export default function Home() {
   const [selectedComponent, setSelectedComponent] = useState(null)
   const [selectedVehicleComponent, setSelectedVehicleComponent] = useState(null)
   const [selectedAMR, setSelectedAMR] = useState(null)
-  const [activeTab, setActiveTab] = useState("") // "list", "checklist", "overview", hoặc "history"
+  
+  // Load activeTab từ localStorage, mặc định là "overview"
+  const [activeTab, setActiveTabState] = useState(() => {
+    const savedTab = localStorage.getItem('maintainActiveTab')
+    return savedTab || "overview"
+  })
+
+  // Lưu activeTab vào localStorage mỗi khi thay đổi
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab)
+    localStorage.setItem('maintainActiveTab', tab)
+  }
 
   return (
-    <main className="min-h-screen h-screen bg-background p-3 flex flex-col">
+    <main className="min-h-screen h-screen p-3 flex flex-col overflow-hidden">
       {/* Thông báo nhắc nhở */}
       <Notice />
 
-      <header className="mb-3">
-        <h1 className="text-2xl font-bold text-foreground mb-1">QUẢN LÝ BẢO TRÌ LINH KIỆN AMR</h1>
+      <header className="m-4">
+        <h1 className="text-2xl font-bold text-white mb-1">QUẢN LÝ BẢO TRÌ LINH KIỆN AMR</h1>
         
         {/* Tab Navigation */}
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`glass flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
               activeTab === "overview"
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -38,7 +49,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab("checklist")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`glass flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
               activeTab === "checklist"
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -60,7 +71,7 @@ export default function Home() {
           </button> */}
           <button
             onClick={() => setActiveTab("history")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`glass flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
               activeTab === "history"
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -118,4 +129,3 @@ export default function Home() {
     </main>
   )
 }
-

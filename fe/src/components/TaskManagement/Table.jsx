@@ -9,9 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MoreHorizontal, Search, Calendar, Filter } from "lucide-react"
 import { Calendar24 } from "./Calendar24"
 
-// Định nghĩa các giá trị cho status, priority, label
-const TASK_STATUS = ["Todo", "In Progress", "Done", "Canceled", "Backlog"]
-const TASK_PRIORITY = ["Low", "Medium", "High"]
+// // Định nghĩa các giá trị cho status, priority, label
+// const TASK_STATUS = ["Todo", "In Progress", "Done", "Canceled", "Backlog"]
+// const TASK_PRIORITY = ["Low", "Medium", "High"]
 
 function getStatusColor(status) {
   switch (status) {
@@ -111,7 +111,7 @@ export default function TaskTable({ tasks, onTasksChange }) {
 
   return (
     <>
-      <div className="flex flex-col gap-4 mb-6">
+      <div className="flex flex-col gap-4 mb-6 mt-6 text-white">
         {/* Search Row 1 */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="flex flex-1 items-center space-x-2">
@@ -140,7 +140,7 @@ export default function TaskTable({ tasks, onTasksChange }) {
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="flex flex-1 items-center space-x-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[140px] glass">
                 <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>
               <SelectContent>
@@ -153,7 +153,7 @@ export default function TaskTable({ tasks, onTasksChange }) {
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[140px] glass">
                 <SelectValue placeholder="Độ ưu tiên" />
               </SelectTrigger>
               <SelectContent>
@@ -179,7 +179,7 @@ export default function TaskTable({ tasks, onTasksChange }) {
         </div>
       )}
 
-      <div className="rounded-md border">
+      <div className="rounded-md border glass text-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -191,12 +191,11 @@ export default function TaskTable({ tasks, onTasksChange }) {
                   {...(isIndeterminate && { "data-state": "indeterminate" })}
                 />
               </TableHead>
-              <TableHead>Công việc</TableHead>
-              <TableHead>Tiêu đề</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Ưu tiên</TableHead>
-              <TableHead>Ngày tạo</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
+              <TableHead className="text-white">Mã nhiệm vụ</TableHead>
+              <TableHead className="text-white">Tiêu đề</TableHead>
+              <TableHead className="text-white">Trạng thái</TableHead>
+              <TableHead className="text-white">Ưu tiên</TableHead>
+              <TableHead className="text-white">Ngày tạo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -211,11 +210,11 @@ export default function TaskTable({ tasks, onTasksChange }) {
                 </TableCell>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{task.id}</span>
+                    <span className="text-sm text-white">{task.id}</span>
                   </div>
                 </TableCell>
                 <TableCell className="max-w-[500px]">
-                  <div className="truncate" title={task.title}>
+                  <div className="truncate text-white" title={task.title}>
                     {task.title}
                   </div>
                 </TableCell>
@@ -256,8 +255,8 @@ export default function TaskTable({ tasks, onTasksChange }) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between space-x-2 py-4 text-white">
+        <div className="text-sm text-white">
           {filteredTasks.length} / {tasks.length} công việc được hiển thị.
         </div>
         <div className="flex items-center space-x-2">

@@ -144,4 +144,3 @@ export function ComponentsTable({ onComponentClick }) {
     </>
   )
 }
-

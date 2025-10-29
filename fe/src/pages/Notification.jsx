@@ -112,9 +112,9 @@ export default function AlertTable() {
   const [endTime, setEndTime] = useState("");
   
   return (
-    <div className="p-6 ml-6 mr-6 border border-gray-200 rounded-xl shadow-md">
+    <div className="glass rounded-lg border border-gray-200 overflow-hidden text-white p-4 m-4 mt-16">
       <div>
-        <h1 className="text-4xl font-semibold text-gray-900 ">Trang thông báo</h1>
+        <h1 className="text-4xl font-semibold text-white ">Trang thông báo</h1>
       </div>
       {/* Tất cả các bộ lọc */}
       <div className="flex flex-wrap gap-4 mt-4">
@@ -128,7 +128,7 @@ export default function AlertTable() {
           />
         </div>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[160px] glass">
             <SelectValue placeholder="Mức độ cảnh báo" />
           </SelectTrigger>
           <SelectContent>
@@ -139,30 +139,30 @@ export default function AlertTable() {
           </SelectContent>
         </Select>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Từ giờ:</label>
+          <label className="text-sm font-medium text-white">Từ giờ:</label>
           <Input
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="w-[120px]"
+            className="w-[120px] glass"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Đến giờ:</label>
+          <label className="text-sm font-medium text-white">Đến giờ:</label>
           <Input
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="w-[120px]"
+            className="w-[120px] glass"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Từ ngày:</label>
+          <label className="text-sm font-medium text-white">Từ ngày:</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-[200px] justify-start text-left font-normal"
+                className="w-[200px] justify-start text-left font-normal glass"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {startDate ? format(startDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
@@ -179,15 +179,15 @@ export default function AlertTable() {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Đến ngày:</label>
-          <Popover>
+        <div className="flex items-center gap-2 ">
+          <label className="text-sm font-medium text-white">Đến ngày:</label>
+          <Popover className="glass">
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-[200px] justify-start text-left font-normal"
+                className="w-[200px] justify-start text-left font-normal glass"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-4 w-4 text-white" />
                 {endDate ? format(endDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
               </Button>
             </PopoverTrigger>
@@ -202,7 +202,8 @@ export default function AlertTable() {
             </PopoverContent>
           </Popover>
         </div>
-        <Button 
+        <Button
+          className="glass" 
           variant="outline" 
           onClick={() => {
             setStartDate(null);
@@ -217,21 +218,20 @@ export default function AlertTable() {
         </Button>
       </div>
       <Table>
-        <TableCaption>Danh sách cảnh báo hệ thống</TableCaption>
         <TableHeader>
-          <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Alarm Level</TableHead>
-            <TableHead>Device No.</TableHead>
-            <TableHead>Device Serial No.</TableHead>
-            <TableHead>Abnormal Reason</TableHead>
-            <TableHead>Alarm Time</TableHead>
-            <TableHead>Operation</TableHead>
+          <TableRow >
+            <TableHead className="font-semibold text-white">Type</TableHead>
+            <TableHead className="font-semibold text-white">Alarm Level</TableHead>
+            <TableHead className="font-semibold text-white">Device No.</TableHead>
+            <TableHead className="font-semibold text-white">Device Serial No.</TableHead>
+            <TableHead className="font-semibold text-white">Abnormal Reason</TableHead>
+            <TableHead className="font-semibold text-white">Alarm Time</TableHead>
+            <TableHead className="font-semibold text-white">Operation</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {alerts.map((alert) => (
-            <TableRow key={alert.id}>
+            <TableRow key={alert.id} className="text-white">
               <TableCell>
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-500"></span>
@@ -246,7 +246,7 @@ export default function AlertTable() {
               <TableCell>{alert.abnormalReason}</TableCell>
               <TableCell>{alert.alarmTime}</TableCell>
               <TableCell>
-                <Button variant="outline" size="sm">
+                <Button variant="ghost"size="sm" >
                   Details
                 </Button>
               </TableCell>

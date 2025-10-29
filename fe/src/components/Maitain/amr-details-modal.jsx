@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getSumPartsReplaceByAMR, updatePartWithLog } from "@/services/amr_detail"
+import { formatDateToDDMMYYYY } from "@/utils/dateFormatter"
 
 export function AMRDetailsModal({ amrId, onClose }) {
   const [data, setData] = useState(null)
@@ -26,13 +28,7 @@ export function AMRDetailsModal({ amrId, onClose }) {
     const fetchAMRDetails = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/sum-parts-replace/${encodeURIComponent(amrId)}`)
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const result = await response.json()
+        const result = await getSumPartsReplaceByAMR(amrId)
         setData(result)
       } catch (err) {
         console.error("Error fetching AMR details:", err)
@@ -120,23 +116,12 @@ export function AMRDetailsModal({ amrId, onClose }) {
     try {
       setSaving(true)
 
-      const response = await fetch("/api/part/update-with-log", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amr_id: amrId,
-          ma_linh_kien: editData.maLinhKien,
-          ngay_thay_the: editData.ngayThayThe,
-          ghi_chu: editData.ghiChu,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Lỗi khi lưu dữ liệu")
-      }
-
-      const result = await response.json()
+      const result = await updatePartWithLog(
+        amrId,
+        editData.maLinhKien,
+        editData.ngayThayThe,
+        editData.ghiChu
+      )
 
       const updatedData = { ...data }
       updatedData.chi_tiet_linh_kien[index] = {
@@ -409,7 +394,7 @@ export function AMRDetailsModal({ amrId, onClose }) {
                               className="w-full text-xs h-8"
                             />
                           ) : (
-                            <span className="whitespace-nowrap">{part["Ngày update"] || "N/A"}</span>
+                            <span className="whitespace-nowrap">{part["Ngày update"] ? formatDateToDDMMYYYY(part["Ngày update"]) : "N/A"}</span>
                           )}
                         </TableCell>
 

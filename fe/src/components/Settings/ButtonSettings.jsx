@@ -378,13 +378,10 @@ const ButtonSettings = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  // ===========================================
-  // 8. GIAO DIỆN NGƯỜI DÙNG (UI)
-  // ===========================================
   return (
     <div className="space-y-6">
       {/* Grid Configuration */}
-      <Card className="border-2">
+      <Card className="border-2 glass">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
@@ -398,17 +395,23 @@ const ButtonSettings = () => {
               <div className="flex items-center gap-2">
               <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
+                <Button variant="outline" size="sm" className="flex items-center gap-2 glass">
+                  <User className="h-4 w-4 glass" />
                   {selectedUser?.username || 'User'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+              <DropdownMenuContent align="end" 
+                className="w-64 glass" 
+                style={{ 
+                  backgroundColor: "rgba(139,92,246,0.25)", 
+                  border: "1px solid rgba(255,255,255,0.25)" 
+                  }}
+                >
+                <div className="px-2 py-1.5 text-sm font-semibold text-white">
                   {t('settings.selectUser')}
                 </div>
                 {usersLoading ? (
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                  <div className="px-2 py-1.5 text-sm text-white">
                     {t('settings.loadingUserList')}
                   </div>
                 ) : usersError ? (
@@ -420,6 +423,9 @@ const ButtonSettings = () => {
                     style={{
                       maxHeight: users.length > 4 ? "200px" : "auto",
                       overflowY: users.length > 4 ? "auto" : "visible",
+                      color: "white",
+                      backgroundColor: "rgba(255,255,255,0.25)",
+                      borderRadius: "8px"
                     }}
                   >
                     {users.map((user) => (
@@ -429,7 +435,7 @@ const ButtonSettings = () => {
                         className="flex justify-between items-center"
                       >
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
+                          <User className="h-4 w-4 text-white" />
                           <div>
                             <div className="font-medium">{user.username}</div>
                             <div className="text-xs text-muted-foreground">
@@ -444,38 +450,11 @@ const ButtonSettings = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             </div>
-            {/* Settings Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  {t('settings.settings')}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  {t('settings.displaySettings')}
-                </div>
-                <div className="px-2 py-1.5">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs">{t('settings.numberOfCellsPerRow')}:</Label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={columnsWantToShow}
-                      onChange={(e) => setColumnsWantToShow(parseInt(e.target.value) || 5)}
-                      className="w-16 px-1 py-0.5 text-xs border rounded text-center"
-                    />
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
             </div>
-            </div>
+          </div>
         </CardHeader>
 
-
+        {/* Chu trình */}
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="nodeType" className="text-sm font-medium">
@@ -487,7 +466,12 @@ const ButtonSettings = () => {
                   {selectedNodeType ? nodeTypeMapping[selectedNodeType] || selectedNodeType : "Chọn chế độ"}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent 
+                className="glass" 
+                style={{ 
+                backgroundColor: "rgba(139,92,246,0.25)", 
+                // border: "1px solid rgba(255,255,255,0.25)" 
+                }}>
                 {Object.keys(nodeTypes).map((nodeType) => (
                   <SelectItem key={nodeType} value={nodeType}>
                     {nodeTypeMapping[nodeType] }
@@ -500,11 +484,11 @@ const ButtonSettings = () => {
           <div className="flex items-center justify-between">
             <div className="flex gap-3 flex-col">
               <Label className="text-sm font-medium">{t('settings.totalCells')}:</Label>
-              <div className="text-4xl font-bold font-mono text-primary">{totalCellsSelectedType}</div>
+              <div className="text-4xl font-bold font-mono text-white">{totalCellsSelectedType}</div>
             </div>
             <div className="flex items-center gap-3 flex-col">
               <Label className="text-sm font-medium">{t('settings.createNew')}:</Label>
-              <Button variant="outline" size="icon" onClick={increaseCells}>
+              <Button variant="ghost" size="icon" onClick={increaseCells}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -645,13 +629,12 @@ const ButtonSettings = () => {
           </div>
         </CardContent>
       </Card>
-{/*   Cell Name Configuration */}
-      <Card className="border-2">
+      {/*Cell Name Configuration */}
+      <Card className="border-2 glass">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>{t('settings.cellNameEditor')}</CardTitle>
-              <CardDescription>{t('settings.cellNameEditorDescription')}</CardDescription>
             </div>
             <div className="flex flex-col items-end gap-2">
               <input
@@ -664,12 +647,12 @@ const ButtonSettings = () => {
               <div className="flex flex-row items-end gap-2">
               {/* Nút Export Excel */}
               <Button
-                variant="outline"
+              className="glass"
                 onClick={handleExportData}
                 size="sm"
                 title={data && data.length > 0 ? t('settings.exportCurrentData') : t('settings.downloadTemplate')}
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4 mr-2 glass" />
                 {data && data.length > 0 ? t('settings.exportExcel') : t('settings.downloadExcelTemplate')}
               </Button>
 
@@ -679,7 +662,7 @@ const ButtonSettings = () => {
                   return (
                     <div className="relative inline-block group">
                       <Button
-                        variant="outline"
+                        className="glass"
                         disabled
                         onClick={() => {}}
                         size="sm"
@@ -695,7 +678,7 @@ const ButtonSettings = () => {
                 }
                 return (
                   <Button
-                    variant="outline"
+                    className="glass"
                     onClick={() => document.getElementById('excel-import').click()}
                     size="sm"
                   >
@@ -705,13 +688,13 @@ const ButtonSettings = () => {
                 );
               })()}
               </div>
-              <div className="text-xs text-muted-foreground text-right">
+              <div className="text-xs text-white text-right">
                 {t('settings.format')}
               </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="text-white">
           <CellNameEditor 
             cells={dataFilteredByNodes} 
             handleUpdateBatch={handleUpdateBatch} 

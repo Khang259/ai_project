@@ -38,3 +38,22 @@ export async function updateMaintenanceStatus(idThietBi, newStatus, ngayCheck = 
     throw new Error(`Failed to update maintenance status: ${error.message}`)
   }
 }
+
+export async function checkMaintenanceWithNotes(idThietBi, notes) {
+  try {
+    const response = await api.post('/api/maintenance-check/check-with-notes', {
+      id_thietBi: idThietBi,
+      ghi_chu: notes,
+      ngay_check: new Date().toISOString().split('T')[0]
+    })
+    
+    if (!response.data) {
+      throw new Error(`Backend API error: ${response.status}`)
+    }
+    
+    return response.data
+  } catch (error) {
+    console.error('Error checking maintenance with notes:', error)
+    throw new Error(`Failed to check maintenance with notes: ${error.message}`)
+  }
+}

@@ -23,23 +23,23 @@ const Settings = () => {
   };
 
   return (
-    <main className="min-h-screen w-screen bg-background">
-      <div className="container mx-auto p-6 max-w-screen">
+    <main className="min-h-screen w-screen ">
+      <div className="container mx-auto p-6 max-w-screen text-white">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-3">
+          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
             <Settings2 className="h-8 w-8 text-primary" />
             {t('settings.systemSettings')}
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-white text-lg">
             {t('settings.systemSettingsDescription')}
           </p>
         </div>
 
         {/* Main Content with Sidebar */}
-        <div className="flex gap-6">
+        <div className="flex gap-6 text-white">
           {/* Sidebar Navigation */}
-          <div className="flex-shrink-1">
+          <div className="">
             <SidebarNavigation activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
 
