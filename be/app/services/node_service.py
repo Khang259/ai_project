@@ -226,6 +226,56 @@ async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOu
     
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
+def _get_caller_type_from_node_name(node_name: str) -> int:
+    """Xác định type từ node_name
+    Returns:
+        0: PT - nếu phần cuối sau dấu - chỉ là số hoặc rỗng
+        1: VL PHP - nếu phần cuối sau dấu - có chứa chữ cái
+    """
+    parts = node_name.split('-')
+    last_part = parts[-1] if parts else ""
+    
+    # Kiểm tra xem phần cuối có chứa chữ cái không
+    if last_part and any(c.isalpha() for c in last_part):
+        return 1  # VL - có chữ cái
+    else:
+        return 0  # PT - chỉ số hoặc rỗng
+
+async def get_nodes_advanced(owner: str) -> dict:
+    """Lấy danh sách nodes theo owner và phân loại thành PT/VL, đồng thời nhóm theo node_type và line."""
+    nodes = get_collection("nodes")
+    cursor = nodes.find({"owner": owner})
+    node_list = await cursor.to_list(length=None)
+    
+    # Phân loại nodes thành 2 loại: PT và VL, và nhóm theo node_type và line
+    pt_nodes = {}  # type = 0 -> { node_type: { line: [NodeOut, ...] } }
+    vl_nodes = {}  # type = 1 -> { node_type: { line: [NodeOut, ...] } }
+    
+    for node in node_list:
+        node_out = NodeOut(**node, id=str(node["_id"]))
+        caller_type = _get_caller_type_from_node_name(node_out.node_name)
+        
+        node_type_key = node_out.node_type
+        line_key = node_out.line
+        
+        if caller_type == 0:
+            if node_type_key not in pt_nodes:
+                pt_nodes[node_type_key] = {}
+            if line_key not in pt_nodes[node_type_key]:
+                pt_nodes[node_type_key][line_key] = []
+            pt_nodes[node_type_key][line_key].append(node_out)
+        else:
+            if node_type_key not in vl_nodes:
+                vl_nodes[node_type_key] = {}
+            if line_key not in vl_nodes[node_type_key]:
+                vl_nodes[node_type_key][line_key] = []
+            vl_nodes[node_type_key][line_key].append(node_out)
+    
+    return {
+        "pt_nodes": pt_nodes,  # type = 0 -> { node_type: { line: [...] } }
+        "vl_nodes": vl_nodes,  # type = 1 -> { node_type: { line: [...] } }
+    }
+
 
 async def process_caller(node: ProcessCaller, priority: int) -> str:
     """Gọi process caller"""
@@ -234,14 +284,8 @@ async def process_caller(node: ProcessCaller, priority: int) -> str:
     # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
     order_id = f"{node.owner}_{timestamp}_{str(uuid.uuid4())[:8]}"
 
-    parts = node.node_name.split('-')
-    last_part = parts[-1] if parts else ""
-    
-    # Kiểm tra xem phần cuối có chứa chữ cái không
-    if last_part and any(c.isalpha() for c in last_part):
-        type = 1  # VL - có chữ cái
-    else:
-        type = 0  # PT - chỉ số hoặc rỗng
+    # Xác định type từ node_name
+    type = _get_caller_type_from_node_name(node.node_name)
 
     if type == 0:
         if node.node_type == "supply" or node.node_type == "returns":

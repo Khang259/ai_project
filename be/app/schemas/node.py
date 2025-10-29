@@ -73,3 +73,8 @@ class NodeBatchUpdateResponse(BaseModel):
     created: int
     errors: List[dict] = []
     message: str
+
+class NodesAdvancedResponse(BaseModel):
+    """Response cho get_nodes_advanced - phân loại nodes theo PT/VL, node_type và line"""
+    pt_nodes: dict = Field(..., description="Nodes loại PT, nhóm theo node_type -> line -> [nodes]")
+    vl_nodes: dict = Field(..., description="Nodes loại VL, nhóm theo node_type -> line -> [nodes]")
