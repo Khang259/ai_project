@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateFilter } from "@/components/Analytics/DateFilter";
+import { AMRFilter } from "@/components/Analytics/AMRFilter";
 
 
 export default function AnalyticsPage() {
@@ -30,6 +31,7 @@ export default function AnalyticsPage() {
   const [workStatusSummary, setWorkStatusSummary] = useState(null)
   const [payloadSummary, setPayloadSummary] = useState(null)
   const { currAreaName, currAreaId } = useArea()
+  const [selectedDeviceCodes, setSelectedDeviceCodes] = useState([])
 
   // Helper: Date -> YYYY-MM-DD (tránh lệch múi giờ/locale)
   const toYMD = (d) => {
@@ -93,13 +95,13 @@ export default function AnalyticsPage() {
       const endDate = toYMD(dateFilter.endDate)
 
       // Lấy dữ liệu work status và payload statistics theo khoảng ngày
-      const workStatusResponse = await getStatistics(startDate, endDate)
-      const payloadResponse = await getPayloadStatistics(startDate, endDate)
+      const workStatusResponse = await getStatistics(startDate, endDate, selectedDeviceCodes)
+      const payloadResponse = await getPayloadStatistics(startDate, endDate, selectedDeviceCodes)
       
-      const workStatusSummaryResponse = await getWorkStatusSummary(startDate, endDate)
+      const workStatusSummaryResponse = await getWorkStatusSummary(startDate, endDate, selectedDeviceCodes)
       setWorkStatusSummary(workStatusSummaryResponse.summary)
       
-      const payloadSummaryResponse = await getPayloadStatisticsSummary(startDate, endDate)
+      const payloadSummaryResponse = await getPayloadStatisticsSummary(startDate, endDate, selectedDeviceCodes)
       setPayloadSummary(payloadSummaryResponse.summary)
       
       // Chuyển đổi sang format cho charts
@@ -124,7 +126,7 @@ export default function AnalyticsPage() {
     return () => {
       clearInterval(interval)
     }
-  }, [dateFilter]) // Re-run khi dateFilter thay đổi
+  }, [dateFilter, selectedDeviceCodes]) // Re-run khi filter thay đổi
 
   return (
       <div className="space-y-8">
@@ -136,6 +138,11 @@ export default function AnalyticsPage() {
           {/* Filter */}
           <div className="flex items-center gap-3">
             <DateFilter onFilterChange={handleFilterChange} />
+            <AMRFilter
+              deviceList={workStatusChartData.map(d => ({ deviceCode: d.deviceCode, deviceName: d.deviceName }))}
+              selectedDevices={selectedDeviceCodes}
+              onFilterChange={setSelectedDeviceCodes}
+            />
             <Button variant="outline" className="gap-2 bg-transparent">
               <Download className="w-4 h-4" />
               Export

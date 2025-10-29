@@ -1,12 +1,12 @@
 import api from "./api";
 
 // Work status (InTask/Idle) theo khoảng ngày
-export const getStatistics = async (startDate, endDate, deviceCode) => {
+export const getStatistics = async (startDate, endDate, deviceCodes = []) => {
     try {
         const qs = new URLSearchParams({
             start_date: startDate,
             end_date: endDate,
-            ...(deviceCode ? { device_code: deviceCode } : {})
+            ...(Array.isArray(deviceCodes) && deviceCodes.length > 0 ? { device_code: deviceCodes.join(',') } : {})
         }).toString();
         const response = await api.get(`/all-robots-work-status?${qs}`);
         return response.data;
@@ -41,12 +41,12 @@ export const convertWorkStatusToChartData = (workStatusData) => {
 }
 
 
-export const getPayloadStatistics = async (startDate, endDate, deviceCode) => {
+export const getPayloadStatistics = async (startDate, endDate, deviceCodes = []) => {
     try {
         const qs = new URLSearchParams({
             start_date: startDate,
             end_date: endDate,
-            ...(deviceCode ? { device_code: deviceCode } : {})
+            ...(Array.isArray(deviceCodes) && deviceCodes.length > 0 ? { device_code: deviceCodes.join(',') } : {})
         }).toString();
         const response = await api.get(`/all-robots-payload-statistics?${qs}`);
         return response.data;
@@ -82,12 +82,12 @@ export const convertPayloadStatisticsToChartData = (payloadStatisticsData) => {
 }
 
 // Lấy SUMMARY work status - tổng hợp tất cả robots
-export const getWorkStatusSummary = async (startDate, endDate, deviceCode) => {
+export const getWorkStatusSummary = async (startDate, endDate, deviceCodes = []) => {
     try {
         const qs = new URLSearchParams({
             start_date: startDate,
             end_date: endDate,
-            ...(deviceCode ? { device_code: deviceCode } : {})
+            ...(Array.isArray(deviceCodes) && deviceCodes.length > 0 ? { device_code: deviceCodes.join(',') } : {})
         }).toString();
         const response = await api.get(`/all-robots-work-status-summary?${qs}`);
         return response.data;
@@ -98,12 +98,12 @@ export const getWorkStatusSummary = async (startDate, endDate, deviceCode) => {
 }
 
 // Lấy SUMMARY payload statistics - tổng hợp tất cả robots
-export const getPayloadStatisticsSummary = async (startDate, endDate, deviceCode) => {
+export const getPayloadStatisticsSummary = async (startDate, endDate, deviceCodes = []) => {
     try {
         const qs = new URLSearchParams({
             start_date: startDate,
             end_date: endDate,
-            ...(deviceCode ? { device_code: deviceCode } : {})
+            ...(Array.isArray(deviceCodes) && deviceCodes.length > 0 ? { device_code: deviceCodes.join(',') } : {})
         }).toString();
         const response = await api.get(`/all-robots-payload-statistics-summary?${qs}`);
         return response.data;
