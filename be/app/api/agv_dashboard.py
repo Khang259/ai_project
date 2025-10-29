@@ -5,16 +5,19 @@ from app.services.agv_dashboard_service import (
     get_agv_position,
     get_all_robots_payload_data,
     get_all_robots_work_status,
-    reverse_dashboard_data
+    get_all_robots_work_status_summary,
+    get_all_robots_payload_statistics_summary
 )
 from app.api.agv_websocket import manager
-from datetime import datetime
 import json
 
 router = APIRouter()
 
 @router.post("/robot-data")
 async def receive_robot_data(request: Request):
+    """
+    Nhận dữ liệu từ robot và broadcast qua WebSocket
+    """
     payload = await request.json()
     # nhận dữ liệu từ robot
     #result = await save_agv_data(payload)
@@ -48,8 +51,7 @@ async def get_payload_statistics(
     try:
         result = await get_data_by_time(
             time_filter=time_filter,
-            device_code=device_code,
-            state=state
+            device_code=device_code
         )
         
         if result["status"] == "error":
@@ -99,27 +101,25 @@ async def get_work_status(
 
 @router.get("/all-robots-payload-statistics")
 async def get_all_robots_payload_statistics(
-    time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
+    start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
+    end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
     device_code: str = Query(None, description="Filter by specific device code (optional)")
 ):
     """
-    Get payload statistics (loaded/unloaded) for ALL robots
-    
-    This endpoint returns payload data for all robots in the system, with optional filtering
-    by device_code or device_name. Data is broken down by time unit (day/week/month).
+    Lấy thống kê payload (có hàng/không hàng) cho TẤT CẢ robots - theo từng robot riêng biệt
     
     Args:
-        time_filter: Time range filter ("d"=7 days, "w"=7 weeks, "m"=7 months)
-        state: AGV state to filter by ("InTask", "Idle", etc.)
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
         device_code: Optional filter by specific device code
-        device_name: Optional filter by specific device name
     
     Returns:
         dict: Payload statistics for each robot separately, with time series data
     """
     try:
         result = await get_all_robots_payload_data(
-            time_filter=time_filter,
+            start_date=start_date,
+            end_date=end_date,
             device_code=device_code
         )
         
@@ -135,26 +135,95 @@ async def get_all_robots_payload_statistics(
 
 @router.get("/all-robots-work-status")
 async def get_all_robots_work_status_endpoint(
-    time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
+    start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
+    end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
     device_code: str = Query(None, description="Filter by specific device code (optional)")
 ):
     """
-    Get work status statistics (InTask/Idle) for ALL robots
-    
-    This endpoint returns work status data for all robots in the system, with optional filtering
-    by device_code or device_name. Data is broken down by time unit (day/week/month).
+    Lấy thống kê work status (InTask/Idle) cho TẤT CẢ robots - theo từng robot riêng biệt
     
     Args:
-        time_filter: Time range filter ("d"=7 days, "w"=7 weeks, "m"=7 months)
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
         device_code: Optional filter by specific device code
-        device_name: Optional filter by specific device name
     
     Returns:
         dict: Work status statistics for each robot separately, with time series data
     """
     try:
         result = await get_all_robots_work_status(
-            time_filter=time_filter,
+            start_date=start_date,
+            end_date=end_date,
+            device_code=device_code
+        )
+        
+        if result["status"] == "error":
+            raise HTTPException(status_code=500, detail=result["message"])
+        
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/all-robots-work-status-summary")
+async def get_all_robots_work_status_summary_endpoint(
+    start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
+    end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
+    device_code: str = Query(None, description="Filter by specific device code (optional)")
+):
+    """
+    Lấy SUMMARY thống kê work status (InTask/Idle) - TỔNG HỢP TẤT CẢ ROBOTS
+    
+    Args:
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
+        device_code: Optional filter by specific device code
+    
+    Returns:
+        dict: Summary statistics aggregated across all robots
+    """
+    try:
+        result = await get_all_robots_work_status_summary(
+            start_date=start_date,
+            end_date=end_date,
+            device_code=device_code
+        )
+        
+        if result["status"] == "error":
+            raise HTTPException(status_code=500, detail=result["message"])
+        
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/all-robots-payload-statistics-summary")
+async def get_all_robots_payload_statistics_summary_endpoint(
+    start_date: str = Query(..., description="Start date: 'YYYY-MM-DD'"),
+    end_date: str = Query(..., description="End date: 'YYYY-MM-DD'"),
+    device_code: str = Query(None, description="Filter by specific device code (optional)")
+):
+    """
+    Lấy SUMMARY thống kê payload (có hàng/không hàng) - TỔNG HỢP TẤT CẢ ROBOTS
+    
+    Args:
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
+        device_code: Optional filter by specific device code
+    
+    Returns:
+        dict: Summary payload statistics aggregated across all robots
+    """
+    try:
+        result = await get_all_robots_payload_statistics_summary(
+            start_date=start_date,
+            end_date=end_date,
             device_code=device_code
         )
         
