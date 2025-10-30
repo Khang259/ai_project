@@ -42,6 +42,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         "camera_name": camera_in.camera_name,
         "camera_path": camera_in.camera_path,
         "area": camera_in.area,
+        "roi": camera_in.roi,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
