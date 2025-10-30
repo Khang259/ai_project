@@ -101,20 +101,35 @@ class ROIVisualizer:
             confidence = detection.get("confidence", 1.0)
             slot_number = detection.get("slot_number", 0)
             
+            # if class_name == "empty":
+            #     if slot_number in blocked_rois:
+            #         color = self.COLOR_ROI_BLOCKED
+            #         label = "EMPTY [BLOCKED]"
+            #     else:
+            #         color = self.COLOR_EMPTY
+            #         label = "EMPTY [ROI]"
+            # else:
+            #     if slot_number in blocked_rois:
+            #         color = self.COLOR_ROI_BLOCKED
+            #         label = f"{class_name}: {confidence:.2f} [BLOCKED]"
+            #     else:
+            #         color = self.COLOR_SHELF_IN_ROI
+            #         label = f"{class_name}: {confidence:.2f}"
+
             if class_name == "empty":
                 if slot_number in blocked_rois:
                     color = self.COLOR_ROI_BLOCKED
-                    label = "EMPTY [BLOCKED]"
+                    label = f"Slot{slot_number}  Blocked"
                 else:
                     color = self.COLOR_EMPTY
-                    label = "EMPTY [ROI]"
+                    label = f"Slot{slot_number}  Empty"
             else:
                 if slot_number in blocked_rois:
                     color = self.COLOR_ROI_BLOCKED
-                    label = f"{class_name}: {confidence:.2f} [BLOCKED]"
+                    label = f"Slot{slot_number}  Blocked"
                 else:
                     color = self.COLOR_SHELF_IN_ROI
-                    label = f"{class_name}: {confidence:.2f}"
+                    label = f"Slot{slot_number}  Shelf"
             
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
             cv2.putText(frame, label, (x1, y1 - 5), 
@@ -178,7 +193,7 @@ class CameraDisplayThread(threading.Thread):
         self.last_frame_time = 0
         
         # Window name
-        self.window_name = f"ROI Detection - {camera_id}"
+        self.window_name = f"Camera - {camera_id}"
     
     def _try_connect_camera(self, timeout: float = 5.0) -> Optional[cv2.VideoCapture]:
         """Thử kết nối camera với timeout (giống camera_thread.py)"""

@@ -108,7 +108,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 10.0, cooldown_seconds: float = 8.0) -> None:
+                 stable_seconds: float = 15.0, cooldown_seconds: float = 10.0) -> None:
         print(f"Khởi tạo StablePairProcessor - DB: {db_path}, Config: {config_path}, Stable: {stable_seconds}s, Cooldown: {cooldown_seconds}s")
         
         # Thiết lập loggers
@@ -410,7 +410,7 @@ class StablePairProcessor:
                 "state": "empty",  # Bắt đầu với empty
                 "since": time.time(),
                 "dual_id": dual_id,
-                "stable_time": 10.0  # Cần stable 20s
+                "stable_time": 15.0  # Cần stable 15s
             }
         
         log_msg = f"[DUAL_BLOCK] Đã block start_qr={start_qr} cho dual {dual_id}, monitoring end_qrs={end_qrs}"
@@ -572,7 +572,7 @@ class StablePairProcessor:
                         }
                         print(f"[END_SLOT_CANCEL] Đã hủy end_qr={end_qr} → shelf")
                 
-                time.sleep(0.5)
+                time.sleep(0.2)
                 
             except Exception as e:
                 print(f"Lỗi khi subscribe end_slot_request: {e}")
@@ -621,7 +621,7 @@ class StablePairProcessor:
                         print(f"Nhận dual_unblock_trigger cho {dual_id}")
                         self._unblock_dual_start(dual_id)
                 
-                time.sleep(0.5)
+                time.sleep(0.2)
                 
             except Exception as e:
                 print(f"Lỗi khi subscribe dual_unblock_trigger: {e}")
@@ -786,7 +786,7 @@ class StablePairProcessor:
 
                 # read new roi_detection per camera
                 for cam, last_id in list(last_roi_det_id.items()):
-                    rows = self.queue.get_after_id("roi_detection", cam, last_id, limit=5)
+                    rows = self.queue.get_after_id("roi_detection", cam, last_id, limit=10)
                     for r in rows:
                         payload = r["payload"]
                         last_roi_det_id[cam] = r["id"]
@@ -854,7 +854,7 @@ class StablePairProcessor:
                 # Note: Dual end state monitoring is now handled by roi_processor
                 # via dual_unblock_trigger subscription thread
 
-                time.sleep(0.5)
+                time.sleep(0.2) 
 
             except KeyboardInterrupt:
                 stop_msg = "Stopping StablePairProcessor..."

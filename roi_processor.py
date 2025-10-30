@@ -101,7 +101,7 @@ class ROIProcessor:
         # Trạng thái shelf của end slots: {(camera_id, slot_number): {'state': 'empty'|'shelf', 'first_shelf_time': timestamp}}
         self.end_slot_states: Dict[Tuple[str, int], Dict[str, Any]] = {}
         # Thời gian cần giữ shelf để unlock (giây)
-        self.shelf_stable_time: float = 20.0
+        self.shelf_stable_time: float = 10.0
         
         # Dual blocking system
         self.dual_blocked_pairs: Dict[str, Dict[str, int]] = {}  # dual_id -> {start_qr, end_qrs}
