@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera, task_status
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.scheduler import start_scheduler, shutdown_scheduler
+from app.services.role_service import initialize_default_permissions, initialize_default_roles
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -24,6 +25,18 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting CameraAI Backend...")
     await connect_to_mongo(settings.mongo_url, settings.mongo_db)
+    
+    # Khởi tạo default permissions và roles (nếu chưa có)
+    try:
+        logger.info("Initializing default permissions...")
+        await initialize_default_permissions()
+        logger.info("Default permissions initialized")
+        
+        logger.info("Initializing default roles...")
+        await initialize_default_roles()
+        logger.info("Default roles initialized")
+    except Exception as e:
+        logger.error(f"Error initializing default permissions/roles: {e}")
     
     # Khởi động scheduler
     start_scheduler()
