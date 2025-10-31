@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     hashing_rounds: int = 12
     
     # CORS
-    cors_origins: str = "*"
+    cors_origins: str = "http://localhost:3000"
     
     # Environment
     app_env: str = "development"

@@ -44,6 +44,7 @@ async def register_user(user_in: UserCreate):
         "hashed_password": user_in.password,
         "is_active": True,
         "is_superuser": False,
+        "group_id": int(user_in.group_id) if getattr(user_in, "group_id", None) is not None else 0,
         "roles": role_object_ids,  # Store as ObjectIds
         "permissions": [],
         "created_at": datetime.utcnow(),
@@ -144,6 +145,7 @@ async def get_current_user_info(user_id: str) -> Optional[UserOut]:
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
+        group_id=user.get("group_id", 0),
         roles=role_names,
         permissions=permissions,
         created_at=user.get("created_at", datetime.utcnow()),

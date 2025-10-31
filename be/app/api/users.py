@@ -35,6 +35,7 @@ async def get_users(
             username=user["username"],
             is_active=user.get("is_active", True),
             is_superuser=user.get("is_superuser", False),
+            group_id=user.get("group_id", 0),
             roles=role_names,
             permissions=user.get("permissions", []),
             created_at=user.get("created_at"),
@@ -68,6 +69,7 @@ async def get_user(
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
+        group_id=user.get("group_id", 0),
         roles=role_names,
         permissions=user.get("permissions", []),
         created_at=user.get("created_at"),
@@ -111,6 +113,11 @@ async def update_user(
                 logger.warning(f"Invalid role ID format: {role_id}")
                 raise HTTPException(status_code=400, detail=f"Invalid role ID format: {role_id}")
         update_data["roles"] = role_object_ids
+    if user_update.group_id is not None:
+        try:
+            update_data["group_id"] = int(user_update.group_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="group_id must be an integer")
     
     update_data["updated_at"] = datetime.utcnow()
     
@@ -137,6 +144,7 @@ async def update_user(
         username=updated_user["username"],
         is_active=updated_user.get("is_active", True),
         is_superuser=updated_user.get("is_superuser", False),
+        group_id=updated_user.get("group_id", 0),
         roles=role_names,
         permissions=updated_user.get("permissions", []),
         created_at=updated_user.get("created_at"),

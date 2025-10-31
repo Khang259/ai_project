@@ -42,6 +42,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         "camera_name": camera_in.camera_name,
         "camera_path": camera_in.camera_path,
         "area": camera_in.area,
+        "roi": camera_in.roi,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -235,3 +236,4 @@ def generate_frames_from_rtsp(rtsp_url: str):
     finally:
         cap.release()
         logger.info(f"Camera stream closed: {rtsp_url}")
+
