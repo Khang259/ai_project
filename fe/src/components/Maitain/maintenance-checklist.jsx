@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FileText, Calendar, Clock, CheckCircle, AlertCircle, Edit3, Download, X } from "lucide-react"
 import { getMaintenanceCheck, updateMaintenanceStatus, checkMaintenanceWithNotes } from "../../services/maintenance_check.js"
 import { formatDateToDDMMYYYY } from "@/utils/dateFormatter"
+import api from "@/services/api"
 
 export function MaintenanceChecklist() {
   const [maintenanceData, setMaintenanceData] = useState([])
@@ -262,40 +263,40 @@ export function MaintenanceChecklist() {
             {Object.entries(maintenanceData).map(([chuKy, items], sectionIndex) => {
               const config = chuKyConfig[chuKy] || chuKyConfig['khác']
               return (
-                <div key={chuKy} className="space-y-3">
+                <div key={chuKy} className="space-y-4">
                   {/* Section Header */}
                   <div className="px-4 py-3 bg-muted/30 border border-border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-base text-foreground">
+                    <div className="flex items-center gap-3 ">
+                      <h3 className="font-semibold text-base text-white">
                         {sectionIndex + 1}. {config.period}
                       </h3>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-white">
                         ({items.length} thiết bị)
                       </span>
                     </div>
                   </div>
 
                   {/* Items List - Vertical */}
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {items.map((item, itemIndex) => (
-                      <div key={itemIndex} className="flex items-center gap-3 p-3 bg-card border border-border rounded">
+                      <div key={itemIndex} className="flex items-center gap-3 p-3 ml-6 mr-6 glass">
                         {/* Index Number */}
                         <span className="flex-shrink-0 w-6 h-6 bg-muted rounded-full flex items-center justify-center text-xs font-medium text-muted-foreground">
                           {itemIndex + 1}
                         </span>
                         
                         {/* Device Name */}
-                        <span className="flex-1 text-foreground font-medium">
+                        <span className="flex-1 text-white font-medium">
                           {item.ten_thietBi}
                         </span>
                         
                         {/* Ngày kiểm tra */}
-                        <span className="text-sm text-muted-foreground min-w-[100px] text-center">
+                        <span className="text-sm text-white min-w-[100px] text-center">
                           {item.ngay_check ? formatDateToDDMMYYYY(item.ngay_check) : 'Chưa có'}
                         </span>
                         
                         {/* Ghi chú */}
-                        <span className="text-sm text-muted-foreground min-w-[150px] truncate">
+                        <span className="text-sm text-white min-w-[150px] truncate">
                           {item.ghi_chu || 'Chưa có'}
                         </span>
                         
@@ -314,14 +315,14 @@ export function MaintenanceChecklist() {
                           
                           {/* Status Icon - Clickable */}
                           <div 
-                            className="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                            className="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform hover:text-green-500 hover:bg-green-500/10 rounded-full p-2"
                             onClick={() => !updating[item.id_thietBi] && handleIconClick(item)}
                             title={item.trang_thai === 'done' ? 'Click để reset trạng thái' : 'Click để xác nhận đã kiểm tra'}
                           >
                             {updating[item.id_thietBi] ? (
                               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                             ) : item.trang_thai === 'done' ? (
-                              <CheckCircle className="w-4 h-4 text-green-600 hover:text-green-700" />
+                              <CheckCircle className="w-5 h-5 text-green-500 hover:text-green-700" />
                             ) : (
                               <AlertCircle className="w-4 h-4 text-orange-600 hover:text-orange-700" />
                             )}
@@ -334,8 +335,8 @@ export function MaintenanceChecklist() {
               )
             })}
           </div>
-          <div className="mt-8 p-4 rounded bg-muted/30 text-center text-base font-medium" style={{ color: "#1e40af" }}>
-            Xem hướng dẫn bảo trì chi tiết trong file <b style={{ color: "#1e40af" }}>Hướng dẫn bảo trì AMR</b> (chương IV).
+          <div className="mt-8 p-4 rounded bg-muted/30 text-center text-base font-bold text-white">
+            Xem hướng dẫn bảo trì chi tiết trong file Hướng dẫn bảo trì AMR (chương IV).
           </div>
         </div>
       </Card>
@@ -413,7 +414,9 @@ function PdfViewerModal({ pdfName, onClose }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const pdfUrl = `/api/pdf/${pdfName}`
+  // Sử dụng base URL từ API config
+  const baseURL = api.defaults.baseURL || "http://192.168.1.6:8001"
+  const pdfUrl = `${baseURL}/api/pdf/${pdfName}`
 
   const handleLoad = () => {
     setLoading(false)

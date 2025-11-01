@@ -79,7 +79,7 @@ async def get_parts_summary():
                 ngay_da_su_dung = (datetime.today() - ngay_update).days
                 so_ngay_con_lai = (tuoi_tho_years * 365) - ngay_da_su_dung
 
-                if so_ngay_con_lai < 700:
+                if so_ngay_con_lai < 30:
                     count_expiring += 1
             except Exception as e:
                 # Debug: in ra lỗi để kiểm tra (có thể bỏ comment này sau khi fix)

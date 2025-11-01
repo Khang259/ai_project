@@ -111,30 +111,35 @@ export default function MaintenanceHistoryTable() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div className="glass">
         <Card className="p-4 border-l-4 border-l-blue-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground font-medium">Lịch sử kiểm tra định kỳ</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{checkLogs.total_logs}</p>
+              <p className="text-sm text-white font-medium">Lịch sử kiểm tra định kỳ</p>
+              <p className="text-2xl font-bold text-white mt-1">{checkLogs.total_logs}</p>
             </div>
-            <CheckCircle2 className="h-8 w-8 text-blue-500 opacity-20" />
+            <CheckCircle2 className="h-8 w-8 text-blue-500 opacity-100" />
           </div>
         </Card>
-
+        </div>
+  
+        <div className="glass">
         <Card className="p-4 border-l-4 border-l-orange-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground font-medium">Lịch sử thay thế linh kiện</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{changesLogs.total_logs}</p>
+              <p className="text-sm text-white font-medium">Lịch sử thay thế linh kiện</p>
+              <p className="text-2xl font-bold text-white mt-1">{changesLogs.total_logs}</p>
             </div>
-            <AlertCircle className="h-8 w-8 text-orange-500 opacity-20" />
-          </div>
+            <AlertCircle className="h-8 w-8 text-orange-500 opacity-100" />
+            </div>
         </Card>
+        </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 glass">
         <Tabs defaultValue="check" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6 glass">
             <TabsTrigger value="check" className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               Kiểm tra định kỳ
@@ -147,12 +152,12 @@ export default function MaintenanceHistoryTable() {
 
           <TabsContent value="check" className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white" />
               <Input
                 placeholder="Tìm kiếm trong lịch sử kiểm tra..."
                 value={searchCheck}
                 onChange={(e) => setSearchCheck(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-white"
               />
             </div>
 
@@ -163,27 +168,27 @@ export default function MaintenanceHistoryTable() {
               </div>
             ) : (
               <div className="border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Tên thiết bị</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Hành động</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Chu kỳ</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Ngày kiểm tra</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Timestamp</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Tên thiết bị</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Hành động</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Chu kỳ</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Ngày kiểm tra</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Ghi chú</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Timestamp</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredCheckLogs.map((row, idx) => (
                         <TableRow key={idx} className="hover:bg-muted/30">
-                          <TableCell className="text-sm py-3">{renderValue(row?.ten_thietBi)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.action)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.chu_ky)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.new_data?.ngay_check)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.new_data?.ghi_chu)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.created_at)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.ten_thietBi)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.action)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.chu_ky)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.new_data?.ngay_check)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.new_data?.ghi_chu)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.created_at)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -192,54 +197,54 @@ export default function MaintenanceHistoryTable() {
               </div>
             )}
 
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-white">
               Hiển thị {filteredCheckLogs.length} / {checkLogs.total_logs} bản ghi
             </div>
           </TabsContent>
 
           <TabsContent value="changes" className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white" />
               <Input
                 placeholder="Tìm kiếm trong lịch sử thay thế..."
                 value={searchChanges}
                 onChange={(e) => setSearchChanges(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-white"
               />
             </div>
 
             {filteredChangesLogs.length === 0 ? (
               <div className="text-center py-8">
-                <Search className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-muted-foreground">{searchChanges ? "Không tìm thấy kết quả" : "Chưa có dữ liệu"}</p>
+                <Search className="h-8 w-8 text-white mx-auto mb-2" />
+                <p className="text-white">{searchChanges ? "Không tìm thấy kết quả" : "Chưa có dữ liệu"}</p>
               </div>
             ) : (
               <div className="border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Tên AMR</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Mã linh kiện</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Loại linh kiện</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Hành động</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Ngày thay thế</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú cũ</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Ghi chú mới</TableHead>
-                        <TableHead className="font-semibold text-xs whitespace-nowrap">Timestamp</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Tên AMR</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Mã linh kiện</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Loại linh kiện</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Hành động</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Ngày thay thế</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Ghi chú cũ</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Ghi chú mới</TableHead>
+                        <TableHead className="font-semibold text-xs whitespace-nowrap text-white">Timestamp</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredChangesLogs.map((row, idx) => (
                         <TableRow key={idx} className="hover:bg-muted/30">
-                          <TableCell className="text-sm py-3">{renderValue(row?.amr_id)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.amr_id)}</TableCell>
                           <TableCell className="text-sm py-3">{renderValue(row?.new_data?.["Mã linh kiện"])}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.new_data?.["Loại linh kiện"])}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.action)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.new_data?.["Ngày update"])}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.changes?.["Ghi chú"]?.old)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.changes?.["Ghi chú"]?.new)}</TableCell>
-                          <TableCell className="text-sm py-3">{renderValue(row?.timestamp)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.new_data?.["Loại linh kiện"])}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.action)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.new_data?.["Ngày update"])}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.changes?.["Ghi chú"]?.old)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.changes?.["Ghi chú"]?.new)}</TableCell>
+                          <TableCell className="text-sm py-3 text-white">{renderValue(row?.timestamp)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -248,7 +253,7 @@ export default function MaintenanceHistoryTable() {
               </div>
             )}
 
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-white">
               Hiển thị {filteredChangesLogs.length} / {changesLogs.total_logs} bản ghi
             </div>
           </TabsContent>

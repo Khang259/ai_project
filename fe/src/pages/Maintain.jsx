@@ -40,7 +40,7 @@ export default function Home() {
             onClick={() => setActiveTab("overview")}
             className={`glass flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
               activeTab === "overview"
-                ? "bg-primary text-primary-foreground shadow-md"
+                ? "glass-primary text-primary-foreground shadow-md"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >

@@ -22,7 +22,7 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
   
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-foreground">{t('settings.gridPreview')}</h3>
+      <h3 className="text-sm font-medium text-white">{t('settings.gridPreview')}</h3>
       <div
         className="grid gap-2 p-4 bg-muted/30 rounded-lg border"
         style={{

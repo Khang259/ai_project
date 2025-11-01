@@ -172,8 +172,8 @@ export function PartsReplaceOverview({ onAMRClick }) {
             <Card className="border-l-4 border-l-blue-500">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <Truck className="h-6 w-6 text-primary" />
+                  <div className="p-3 bg-blue-500/10 rounded-lg">
+                    <Truck className="h-6 w-6 text-blue-500" />
                   </div>
                   <div>
                     <p className="text-sm text-white font-semibold">Tổng số AMR</p>
@@ -222,7 +222,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                   placeholder="Tìm kiếm theo tên AMR (ví dụ: amr001)..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-white"
                 />
               </div>
               <Button

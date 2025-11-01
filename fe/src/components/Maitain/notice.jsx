@@ -185,7 +185,7 @@ export function Notice() {
               <div className="mt-6 p-4 bg-muted rounded-lg">
                 <p className="text-sm ">
                   <span className="font-semibold text-red-600">Ghi chú:</span> Xem hướng dẫn chi tiết cách kiểm tra định kỳ hằng
-                  trong file  <span className="font-semibold ">"Hướng dẫn kiểm tra định kỳ"</span>, mục 4.2
+                  ngày trong file  <span className="font-semibold ">"Hướng dẫn kiểm tra định kỳ"</span>, mục 4.2
                 </p>
               </div>
             </div>

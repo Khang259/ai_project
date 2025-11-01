@@ -22,6 +22,7 @@ from app.routers.sum_parts_replace import router as sum_parts_router
 from app.routers.update_part_with_log import router as update_part_log_router
 from app.routers.maintenance_check import router as maintenance_check_router
 from app.routers.update_amr_name import router as update_amr_name_router
+from app.routers.pdf import router as pdf_router
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -82,6 +83,7 @@ app.include_router(sum_parts_router, prefix="/api", tags=["Sum Parts Replace"])
 app.include_router(update_part_log_router, prefix="/api", tags=["Update Part With Log"])
 app.include_router(maintenance_check_router, prefix="/api", tags=["Maintenance Check"])
 app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name"])
+app.include_router(pdf_router, tags=["PDF"])
 
 @app.get("/")
 async def root():

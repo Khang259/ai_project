@@ -386,7 +386,7 @@ const ButtonSettings = () => {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Grid3x3 className="h-5 w-5 text-primary" />
+                <Grid3x3 className="h-5 w-5 text-white" />
                 {t('settings.buttonSettings')}
               </CardTitle>
             </div>
@@ -624,7 +624,7 @@ const ButtonSettings = () => {
             </div>
           )}
           
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t text-white">
             <GridPreview columns={columnsWantToShow} cells={dataFilteredByNodes} onDeleteCell={handleDeleteCell} selectedNodeType={selectedNodeType} />
           </div>
         </CardContent>

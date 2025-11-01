@@ -229,14 +229,14 @@ const CameraSettings = () => {
               return (
                 <div key={camera.id} className="flex gap-2 items-start p-3 rounded-lg "
                   style={{ 
-                    backgroundColor:"rgba(139,92,246,0.25)",
+                    backgroundColor:"rgba(255,255,255,0.7)",
                     border: "1px solid rgba(255,255,255,0.25)"
                   }}
                 >
                   <div className="flex-1 space-y-2">
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <Label htmlFor={`name-${camera.id}`} className="text-xs text-muted-foreground">
+                        <Label htmlFor={`name-${camera.id}`} className="text-xs text-black">
                           {t('settings.cameraName')}
                         </Label>
                         <div className="relative">
@@ -246,13 +246,13 @@ const CameraSettings = () => {
                             placeholder={t('settings.cameraName')}
                             value={camera.camera_name}
                             onChange={(e) => updateCameraField(camera.id, 'camera_name', e.target.value)}
-                            className="text-sm pr-10"
+                            className="text-sm pr-10 border border-gray-500 rounded-md text-black"
                           />
                           <button
                             type="button"
                             onClick={() => selectCameraForViewing(camera)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80"
-                            title="Xem stream + vẽ bounding box"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-blue-500 hover:bg-blue-200 rounded-md p-2"
+                            // title="Xem stream + vẽ bounding box"
                           >
                             <Video className="h-4 w-4" />
                           </button>
@@ -261,7 +261,7 @@ const CameraSettings = () => {
 
                       {/* RTSP url settings */}
                       <div>
-                        <Label htmlFor={`path-${camera.id}`} className="text-xs text-muted-foreground">
+                        <Label htmlFor={`path-${camera.id}`} className="text-xs text-black">
                           {t('settings.rtspUrl')}
                         </Label>
                         <Input
@@ -270,7 +270,7 @@ const CameraSettings = () => {
                           placeholder="rtsp://192.168.1.100:554/stream"
                           value={camera.camera_path}
                           onChange={(e) => updateCameraField(camera.id, 'camera_path', e.target.value)}
-                          className={`font-mono text-sm ${
+                          className={`font-mono text-sm border border-gray-500 rounded-md text-black ${
                             camera.camera_path && !isValidRTSP
                               ? 'border-red-500 focus:border-red-500'
                               : ''
@@ -285,7 +285,7 @@ const CameraSettings = () => {
 
                       {/* BBox settings */}
                       <div>
-                        <Label className="text-xs text-muted-foreground">
+                        <Label className="text-xs text-black">
                           {t('settings.bBoxSettings')}
                         </Label>
                         {camera.b_box.map((bbox, bboxIndex) => (
@@ -301,7 +301,7 @@ const CameraSettings = () => {
                                   updateCameraField(camera.id, 'b_box', value, bboxIndex);
                                 }
                               }}
-                              className={`font-mono text-sm ${
+                              className={`text-black font-mono text-sm border border-gray-500 rounded-md ${
                                 bbox && !/^\d+,\d+,\d+,\d+$/.test(bbox)
                                   ? 'border-red-500 focus:border-red-500'
                                   : ''
@@ -373,11 +373,10 @@ const CameraSettings = () => {
       </Card>
 
       {/* Camera Status & Information */}
-      {/* Camera Status & Information - Bảng */}
       <Card className="border-2 glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Video className="h-5 w-5 text-primary" />
+            <Video className="h-5 w-5 text-white" />
             {t('settings.cameraInformationFromDatabase')}
           </CardTitle>
         </CardHeader>

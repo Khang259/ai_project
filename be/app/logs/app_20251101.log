@@ -1,0 +1,47 @@
+2025-11-01 13:26:21,921 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-01 13:26:21,922 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-01 13:26:27,261 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-01 13:26:27,322 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-01 13:26:27,323 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-01 23:00:00+07:00
+2025-11-01 13:26:27,323 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-01 13:26:51,559 - camera_ai_app - WARNING - Login failed: invalid password or username
+2025-11-01 13:26:51,560 - camera_ai_app - ERROR - Login attempt with invalid username='khang-admin'
+2025-11-01 13:26:58,617 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-01 13:26:58,802 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-01 13:27:00,525 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-01 13:28:00,039 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-01 13:28:18,114 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-01 13:28:18,283 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-01 13:28:19,555 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-01 13:28:56,933 - camera_ai_app - ERROR - Cannot open camera stream for streaming: rtsp://127.0.0.1:8554/cam2
+2025-11-01 13:29:24,656 - camera_ai_app - ERROR - Cannot open camera stream for streaming: Chưa được cấu hình
+2025-11-01 13:29:26,686 - camera_ai_app - ERROR - Cannot open camera stream for streaming: rtsp://127.0.0.1:8554/cam4
+2025-11-01 13:30:22,996 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-01 13:30:23,520 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-01 13:30:33,910 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-01 13:30:34,439 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-01 14:10:55,273 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-01 14:10:55,273 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-01 14:10:59,947 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-01 14:10:59,950 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-01 14:10:59,950 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-01 23:00:00+07:00
+2025-11-01 14:10:59,951 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-01 14:11:00,596 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-01 14:13:37,682 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-01 14:13:37,683 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-01 14:13:42,286 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-01 14:13:42,290 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-01 14:13:42,290 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-01 23:00:00+07:00
+2025-11-01 14:13:42,290 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-01 14:13:42,667 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-01 14:23:56,471 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-01 15:14:26,182 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-01 15:14:26,183 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-01 15:14:30,821 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-01 15:14:30,823 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-01 15:14:30,824 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-01 23:00:00+07:00
+2025-11-01 15:14:30,824 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-01 15:16:52,193 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-01 15:16:52,194 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-01 15:16:52,194 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-01 15:16:52,226 - camera_ai_app - INFO - Disconnected from MongoDB
