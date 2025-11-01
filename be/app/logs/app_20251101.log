@@ -45,3 +45,33 @@
 2025-11-01 15:16:52,194 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
 2025-11-01 15:16:52,194 - camera_ai_app - INFO - AGV Scheduler stopped
 2025-11-01 15:16:52,226 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-01 15:18:38,311 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-01 15:18:38,311 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-01 15:18:43,017 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-01 15:18:43,019 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-01 15:18:43,020 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-01 23:00:00+07:00
+2025-11-01 15:18:43,020 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-01 15:23:02,978 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-01 15:23:07,727 - camera_ai_app - ERROR - Cannot open camera stream for streaming: Chưa được cấu hình
+2025-11-01 15:23:59,362 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-01 15:44:38,662 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
+2025-11-01 16:03:03,847 - camera_ai_app - INFO - WebSocket connected. Total connections: 4
+2025-11-01 16:09:12,993 - camera_ai_app - INFO - WebSocket connected. Total connections: 5
+2025-11-01 16:09:17,066 - camera_ai_app - INFO - WebSocket connected. Total connections: 6
+2025-11-01 16:14:03,846 - camera_ai_app - INFO - WebSocket connected. Total connections: 7
+2025-11-01 16:14:13,504 - camera_ai_app - INFO - WebSocket connected. Total connections: 8
+2025-11-01 16:14:21,796 - camera_ai_app - INFO - WebSocket connected. Total connections: 9
+2025-11-01 16:15:01,208 - camera_ai_app - INFO - WebSocket connected. Total connections: 10
+2025-11-01 16:15:07,599 - camera_ai_app - INFO - WebSocket connected. Total connections: 11
+2025-11-01 16:17:19,648 - camera_ai_app - INFO - WebSocket connected. Total connections: 12
+2025-11-01 16:17:51,655 - camera_ai_app - INFO - WebSocket connected. Total connections: 13
+2025-11-01 16:29:56,269 - camera_ai_app - INFO - WebSocket connected. Total connections: 14
+2025-11-01 16:30:09,519 - camera_ai_app - INFO - WebSocket connected. Total connections: 15
+2025-11-01 16:30:54,553 - camera_ai_app - INFO - WebSocket connected. Total connections: 16
+2025-11-01 16:32:12,796 - camera_ai_app - INFO - WebSocket connected. Total connections: 17
+2025-11-01 16:32:20,203 - camera_ai_app - INFO - WebSocket connected. Total connections: 18
+2025-11-01 16:35:23,390 - camera_ai_app - INFO - WebSocket connected. Total connections: 19
+2025-11-01 16:44:40,838 - camera_ai_app - INFO - WebSocket connected. Total connections: 20
+2025-11-01 16:45:21,682 - camera_ai_app - ERROR - Cannot open camera stream for streaming: rtsp://127.0.0.1:8554/cam2
+2025-11-01 16:51:28,061 - camera_ai_app - INFO - WebSocket connected. Total connections: 21
+2025-11-01 16:51:52,816 - camera_ai_app - WARNING - Map not found for area_id: 5

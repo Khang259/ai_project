@@ -64,25 +64,39 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
   });
 
   return (
-    <div className="min-h-screen pt-3 ">
-      <div className="glass"> 
-        <header className="h-16 px-6 flex items-center justify-between " >
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <img src="/src/assets/logo_cty.png" alt="Company Logo" className="max-w-55" />
+    <div className="min-h-screen pt-3">
+      <div className="mx-4 mb-4">
+        <header className="header-glassmorphism h-20 px-8 flex items-center justify-between rounded-2xl">
+          {/* Left Section - Logo & Area Selector */}
+          <div className="flex items-center gap-6">
+            {/* Logo - Minimal Design */}
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img 
+                  src="/src/assets/logo_cty.png" 
+                  alt="Company Logo" 
+                  className="h-12 w-auto object-contain filter drop-shadow-lg" 
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            {/* Area Selector - Neumorphism Style */}
+            <div className="hidden md:flex items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2" disabled={areaLoading}>
-                    <span className="font-medium">
+                  <Button 
+                    variant="outline" 
+                    className="header-button-neumorphism flex items-center gap-2 border-none text-white h-10 px-4 rounded-xl font-medium bg-transparent" 
+                    disabled={areaLoading}
+                  >
+                    <span className="text-sm">
                       {areaLoading ? t('area.loading') : areaError ? t('area.errorLoading') : currAreaName || t('area.notSelected')}
                     </span>
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4 opacity-70" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuLabel>{t('area.selectArea')}</DropdownMenuLabel>
+                <DropdownMenuContent align="start" className="w-48 backdrop-blur-xl bg-white/90 border border-white/20 shadow-xl">
+                  <DropdownMenuLabel className="text-gray-700">{t('area.selectArea')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {areaLoading ? (
                     <DropdownMenuItem disabled>
@@ -114,51 +128,69 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
               </DropdownMenu>
             </div>
             
-            {/* Navigation trong header */}
-            <nav className="flex items-center space-x-1 px-8">
+            {/* Navigation - Minimal & Clean */}
+            <nav className="hidden lg:flex items-center gap-2 ml-4">
               {filteredNavigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.nameKey}
                     to={item.href}
-                    className={`flex items-center px-3 py-2 rounded-md text-sm font-roboto text-white transition-colors ${
+                    className={`header-nav-item flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
                       isActive
-                        ? "bg-[rgb(34,189,189)/.1] text-[rgb(34,189,189)] hover:bg-[rgb(34,189,189)/.2]"
-                        : "text-gray-600 hover:shadow-[0_4px_24px_0_rgb(34,189,189,0.5)] "
+                        ? "active text-[rgb(34,189,189)]"
+                        : "text-gray-300 hover:text-white"
                     }`}
                   >
-                    <item.icon className="w-7 h-7 mr-2" />
-                    {t(item.nameKey)}
+                    <item.icon className={`w-4 h-4 ${isActive ? 'text-[rgb(34,189,189)]' : ''}`} />
+                    <span className="hidden xl:inline">{t(item.nameKey)}</span>
                   </Link>
                 );
               })}
             </nav>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Right Section - Language & User */}
+          <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                    <AvatarFallback>Info</AvatarFallback>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="header-button-neumorphism border-none rounded-full w-10 h-10 bg-transparent hover:bg-transparent"
+                >
+                  <Avatar className="w-10 h-10 border-2 border-white/30 shadow-lg">
+                    <AvatarImage src="/placeholder.svg?height=40&width=40" />
+                    <AvatarFallback className="bg-gradient-to-br from-[rgb(34,189,189)] to-[rgb(20,140,140)] text-white font-semibold">
+                      {auth.user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>{auth.user?.username || t('user.user')}</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 backdrop-blur-xl bg-white/90 border border-white/20 shadow-xl">
+                <DropdownMenuLabel className="text-gray-700">
+                  <div className="flex flex-col">
+                    <span className="font-semibold">{auth.user?.username || t('user.user')}</span>
+                    <span className="text-xs text-gray-500 font-normal mt-0.5">
+                      {auth.user?.roles?.join(', ') || ''}
+                    </span>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>{t('user.logout')}</DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                >
+                  {t('user.logout')}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
       </div>
       {/* Main Content */}
-      <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-
+      <main className="min-h-[calc(100vh-5rem)] px-4">{children}</main>
     </div>
   );
 }
