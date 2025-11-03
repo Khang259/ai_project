@@ -6,6 +6,7 @@ load_dotenv()
 class Settings(BaseSettings):
     # Database
     mongo_url: str = "mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/"
+    # mongo_url: str = "mongodb://localhost:27017"
     mongo_db: str = "CamAI_Honda"
     
     # JWT

@@ -1,9 +1,9 @@
 from app.core.database import get_collection
-from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_refresh_token
 from app.schemas.user import UserCreate, UserOut
 from app.services.role_service import get_user_permissions
 from shared.logging import get_logger
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime
 from bson import ObjectId
 
@@ -44,11 +44,9 @@ async def register_user(user_in: UserCreate):
         "hashed_password": user_in.password,
         "is_active": True,
         "is_superuser": False,
+        "group_id": int(user_in.group_id) if getattr(user_in, "group_id", None) is not None else 0,
         "roles": role_object_ids,  # Store as ObjectIds
         "permissions": [],
-        "supply": user_in.supply,
-        "returns": user_in.returns,
-        "both": user_in.both,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
         "last_login": None
@@ -79,12 +77,50 @@ def create_user_token(user):
     logger.debug(f"Creating token for user '{user['username']}'")
     # Convert role ObjectIds to strings for token
     role_ids = [str(role_id) for role_id in user.get("roles", [])]
-    return create_access_token(data={
+    token_data = {
         "sub": user["username"],
         "user_id": str(user["_id"]),
         "roles": role_ids,
         "permissions": user.get("permissions", [])
-    })
+    }
+    access_token = create_access_token(data=token_data)
+    refresh_token = create_refresh_token(data=token_data)
+    return access_token, refresh_token
+
+async def refresh_access_token(refresh_token: str) -> Optional[Dict]:
+    """Refresh access token using refresh token"""
+    payload = verify_refresh_token(refresh_token)
+    if not payload:
+        logger.warning("Invalid refresh token")
+        return None
+    
+    username = payload.get("sub")
+    if not username:
+        logger.warning("Refresh token missing username")
+        return None
+    
+    # Get user from database
+    users = get_collection("users")
+    user = await users.find_one({"username": username, "is_active": True})
+    if not user:
+        logger.warning(f"User '{username}' not found or inactive")
+        return None
+    
+    # Create new tokens
+    role_ids = [str(role_id) for role_id in user.get("roles", [])]
+    token_data = {
+        "sub": user["username"],
+        "user_id": str(user["_id"]),
+        "roles": role_ids,
+        "permissions": user.get("permissions", [])
+    }
+    access_token = create_access_token(data=token_data)
+    new_refresh_token = create_refresh_token(data=token_data)
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": new_refresh_token
+    }
 
 async def get_current_user_info(user_id: str) -> Optional[UserOut]:
     """Get current user information with permissions"""
@@ -109,11 +145,9 @@ async def get_current_user_info(user_id: str) -> Optional[UserOut]:
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
+        group_id=user.get("group_id", 0),
         roles=role_names,
         permissions=permissions,
-        supply=user.get("supply"),
-        returns=user.get("returns"),
-        both=user.get("both"),
         created_at=user.get("created_at", datetime.utcnow()),
         last_login=user.get("last_login")
     )

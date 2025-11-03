@@ -35,11 +35,9 @@ async def get_users(
             username=user["username"],
             is_active=user.get("is_active", True),
             is_superuser=user.get("is_superuser", False),
+            group_id=user.get("group_id", 0),
             roles=role_names,
             permissions=user.get("permissions", []),
-            supply=user.get("supply"),
-            returns=user.get("returns"),
-            both=user.get("both"),
             created_at=user.get("created_at"),
             last_login=user.get("last_login")
         ))
@@ -71,11 +69,9 @@ async def get_user(
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
+        group_id=user.get("group_id", 0),
         roles=role_names,
         permissions=user.get("permissions", []),
-        supply=user.get("supply"),
-        returns=user.get("returns"),
-        both=user.get("both"),
         created_at=user.get("created_at"),
         last_login=user.get("last_login")
     )
@@ -117,12 +113,11 @@ async def update_user(
                 logger.warning(f"Invalid role ID format: {role_id}")
                 raise HTTPException(status_code=400, detail=f"Invalid role ID format: {role_id}")
         update_data["roles"] = role_object_ids
-    if user_update.supply is not None:
-        update_data["supply"] = user_update.supply
-    if user_update.returns is not None:
-        update_data["returns"] = user_update.returns
-    if user_update.both is not None:
-        update_data["both"] = user_update.both
+    if user_update.group_id is not None:
+        try:
+            update_data["group_id"] = int(user_update.group_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="group_id must be an integer")
     
     update_data["updated_at"] = datetime.utcnow()
     
@@ -149,11 +144,9 @@ async def update_user(
         username=updated_user["username"],
         is_active=updated_user.get("is_active", True),
         is_superuser=updated_user.get("is_superuser", False),
+        group_id=updated_user.get("group_id", 0),
         roles=role_names,
         permissions=updated_user.get("permissions", []),
-        supply=updated_user.get("supply"),
-        returns=updated_user.get("returns"),
-        both=updated_user.get("both"),
         created_at=updated_user.get("created_at"),
         last_login=updated_user.get("last_login")
     )

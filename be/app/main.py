@@ -23,6 +23,7 @@ from app.routers.update_part_with_log import router as update_part_log_router
 from app.routers.maintenance_check import router as maintenance_check_router
 from app.routers.update_amr_name import router as update_amr_name_router
 from app.routers.pdf import router as pdf_router
+from app.services.role_service import initialize_default_permissions, initialize_default_roles
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -32,6 +33,18 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting CameraAI Backend...")
     await connect_to_mongo(settings.mongo_url, settings.mongo_db)
+    
+    # Khởi tạo default permissions và roles (nếu chưa có)
+    try:
+        logger.info("Initializing default permissions...")
+        await initialize_default_permissions()
+        logger.info("Default permissions initialized")
+        
+        logger.info("Initializing default roles...")
+        await initialize_default_roles()
+        logger.info("Default roles initialized")
+    except Exception as e:
+        logger.error(f"Error initializing default permissions/roles: {e}")
     
     # Khởi động scheduler
     start_scheduler()
@@ -101,7 +114,3 @@ if __name__ == "__main__":
         port=8001,
         reload=settings.app_debug
     )
-
-
-
-

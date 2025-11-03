@@ -24,11 +24,9 @@ class User(BaseModel):
     hashed_password: str
     is_active: bool = True
     is_superuser: bool = False
+    group_id: int = 0
     roles: List[str] = Field(default_factory=list)
     permissions: List[str] = Field(default_factory=list)
-    supply: Optional[str] = None
-    returns: Optional[str] = None
-    both: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None

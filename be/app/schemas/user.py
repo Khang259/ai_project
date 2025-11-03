@@ -8,9 +8,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     roles: Optional[List[str]] = []
-    supply: Optional[str] = None
-    returns: Optional[str] = None
-    both: Optional[str] = None  
+    group_id: Optional[int] = 0
 
 class UserLogin(BaseModel):
     username: str
@@ -22,9 +20,7 @@ class UserOut(UserBase):
     is_superuser: bool
     permissions: List[str] = []  # Thêm field permissions
     roles: List[str] = []
-    supply: Optional[str] = None
-    returns: Optional[str] = None
-    both: Optional[str] = None
+    group_id: Optional[int] = 0
     created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
 
@@ -32,9 +28,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     is_active: Optional[bool] = None
     roles: Optional[List[str]] = None
-    supply: Optional[str] = None
-    returns: Optional[str] = None
-    both: Optional[str] = None
+    group_id: Optional[int] = None
 
 class RoleCreate(BaseModel):
     name: str
@@ -73,9 +67,13 @@ class PermissionOut(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user: Optional[UserOut] = None  # Thêm thông tin user vào token
 
 class TokenData(BaseModel):
     username: str | None = None
     permissions: List[str] = []  # Thêm permissions vào token data
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
