@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertCircle, Package, Truck, Search, ArrowUpDown, ArrowUp, ArrowDown, Edit3, Save, X } from "lucide-react"
 import { getSumPartsReplaceAll, updateAMRName } from "@/services/amr_parts_replace"
+import Loader from "@/components/Loading"
 
 export function PartsReplaceOverview({ onAMRClick }) {
   const [data, setData] = useState(null)
@@ -130,14 +131,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-muted-foreground">Đang tải dữ liệu...</p>
-        </div>
-      </div>
-    )
+    return <Loader />
   }
 
   if (error) {

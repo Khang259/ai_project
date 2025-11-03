@@ -23,6 +23,36 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle expired/invalid access token
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const detail = error?.response?.data?.detail;
+
+    // Nếu access token hết hạn/không hợp lệ → thông báo và đăng xuất
+    if (status === 401 || status === 403 || detail === "Could not validate credentials") {
+      try {
+        // Tránh lặp vô hạn
+        if (!error?.config?._handledAuthError) {
+          error.config._handledAuthError = true;
+          // Xóa phiên hiện tại
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          // Thông báo cho người dùng
+          // eslint-disable-next-line no-alert
+          alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          // Chuyển hướng về trang login
+          window.location.replace("/login");
+        }
+      } catch (_) {
+        // noop
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
 
 // Send payload to a list of servers/endpoints.
