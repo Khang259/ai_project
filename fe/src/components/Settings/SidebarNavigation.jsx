@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Settings2, Grid3x3, Video, ChevronRight } from 'lucide-react';
+import { Settings2, Grid3x3, Video, ChevronRight, Monitor } from 'lucide-react';
 
 const SidebarNavigation = ({ activeTab, onTabChange }) => {
   const tabs = [
@@ -16,7 +16,14 @@ const SidebarNavigation = ({ activeTab, onTabChange }) => {
       label: 'Cấu Hình Camera',
       icon: Video,
       description: 'Quản lý địa chỉ IP camera'
+    },
+    {
+      id: 'monitor',
+      label: 'Cấu Hình Monitor',
+      icon: Monitor,
+      description: 'Đặt model và số lượng trên monitor'
     }
+
   ];
 
   return (

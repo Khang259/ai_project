@@ -8,6 +8,7 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 import LoginPage from './pages/Login';
 import MobileGridDisplay from './pages/MobileGridDisplay';
+import MonitorPage from './pages/Monitor';
 import Area from './pages/Area';
 import PrivateRoute from './components/PrivateRoute';
 import { AreaProvider } from './contexts/AreaContext';
@@ -27,6 +28,16 @@ function App() {
           <PrivateRoute>
             <MobileGridDisplay />
           </PrivateRoute>
+        }
+      />
+
+      {/* User routes - Production Monitor (read-only) */}
+      <Route
+        path="/monitor"
+        element={
+          // <PrivateRoute requiredRole="viewer">
+            <MonitorPage />
+          // </PrivateRoute>
         }
       />
 
