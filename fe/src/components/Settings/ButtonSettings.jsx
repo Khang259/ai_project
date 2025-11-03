@@ -624,7 +624,7 @@ const ButtonSettings = () => {
             </div>
           )}
           
-          <div className="pt-4 border-t text-white">
+          <div className="pt-4 border-t">
             <GridPreview columns={columnsWantToShow} cells={dataFilteredByNodes} onDeleteCell={handleDeleteCell} selectedNodeType={selectedNodeType} />
           </div>
         </CardContent>

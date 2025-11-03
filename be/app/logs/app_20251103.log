@@ -1,0 +1,28 @@
+2025-11-03 08:39:20,995 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-03 08:39:20,996 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-03 08:39:26,754 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-03 08:39:26,779 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-03 08:39:26,779 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-03 23:00:00+07:00
+2025-11-03 08:39:26,780 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-03 08:39:34,366 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-03 08:39:34,576 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-03 08:39:35,904 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-03 08:40:07,741 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-03 08:40:08,295 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-03 08:40:17,711 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-03 08:40:52,327 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
+2025-11-03 08:48:24,058 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-11-03 08:48:24,059 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-11-03 08:48:24,059 - camera_ai_app - ERROR - Error broadcasting message: 
+2025-11-03 08:48:24,059 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 2
+2025-11-03 08:48:24,059 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 1
+2025-11-03 08:48:24,059 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 0
+2025-11-03 08:48:29,814 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-03 08:49:58,082 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-03 08:50:53,103 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-03 08:50:53,564 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-03 08:50:53,628 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-03 08:50:53,672 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-03 08:51:04,621 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-03 08:51:05,198 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-03 09:08:46,918 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
