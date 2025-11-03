@@ -67,7 +67,7 @@ async def get_sum_parts_replace_amr(amr_id: str):
                 
                 # Tính sumPartsReplaceDoc
                 sum_one = 0
-                if 30 <= days_left < 1000:
+                if 30 <= days_left < 700:
                     sum_one = so_luong_amr
                 
                 # Cộng vào tổng
@@ -160,7 +160,7 @@ async def get_sum_parts_replace_all():
                     ngay_da_su_dung = (today - ngay_update).days
                     days_left = (tuoi_tho_years * 365) - ngay_da_su_dung
                     
-                    if 30 <= days_left < 1000:
+                    if 30 <= days_left < 700:
                         sum_parts_one += so_luong_amr
                     if 0 <= days_left < 30:
                         sum_parts_two += so_luong_amr
