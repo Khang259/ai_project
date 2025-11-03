@@ -1,0 +1,502 @@
+/* Bootstrap CSS scoped cho MobileGridDisplay và GridManagement components */
+.mobile-grid-bootstrap {
+  /* Import Bootstrap CSS với scope */
+}
+
+/* Bootstrap Grid System */
+.mobile-grid-bootstrap .container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.mobile-grid-bootstrap .container-fluid {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.mobile-grid-bootstrap .row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+/* Bootstrap Flexbox */
+.mobile-grid-bootstrap .d-flex {
+  display: flex !important;
+}
+
+.mobile-grid-bootstrap .flex-column {
+  flex-direction: column !important;
+}
+
+.mobile-grid-bootstrap .flex-grow-1 {
+  flex-grow: 1 !important;
+}
+
+.mobile-grid-bootstrap .min-vh-100 {
+  min-height: 100vh !important;
+}
+
+.mobile-grid-bootstrap .w-100 {
+  width: 100% !important;
+}
+
+/* Bootstrap Spacing */
+.mobile-grid-bootstrap .py-3 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.mobile-grid-bootstrap .mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.mobile-grid-bootstrap .mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+.mobile-grid-bootstrap .p-3 {
+  padding: 1rem !important;
+}
+
+/* Bootstrap Background */
+.mobile-grid-bootstrap .bg-light {
+  background-color: #f8f9fa !important;
+}
+
+/* Bootstrap Border Radius */
+.mobile-grid-bootstrap .rounded {
+  border-radius: 0.25rem !important;
+}
+
+/* Bootstrap Card */
+.mobile-grid-bootstrap .card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.25rem;
+}
+
+.mobile-grid-bootstrap .card-header {
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 0;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.mobile-grid-bootstrap .card-body {
+  flex: 1 1 auto;
+  padding: 1.25rem;
+}
+
+/* Bootstrap Text */
+.mobile-grid-bootstrap h5 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-grid-bootstrap h4 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+/* Bootstrap Columns */
+.mobile-grid-bootstrap .col-4 {
+  flex: 0 0 33.333333%;
+  max-width: 33.333333%;
+}
+
+.mobile-grid-bootstrap .col-sm-3 {
+  flex: 0 0 25%;
+  max-width: 25%;
+}
+
+/* Bootstrap Badges */
+.mobile-grid-bootstrap .badge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.375rem;
+}
+
+.mobile-grid-bootstrap .bg-info {
+  background-color: #0dcaf0 !important;
+  color: #000;
+}
+
+.mobile-grid-bootstrap .bg-danger {
+  background-color: #dc3545 !important;
+  color: #fff;
+}
+
+.mobile-grid-bootstrap .bg-warning {
+  background-color: #ffc107 !important;
+  color: #000;
+}
+
+.mobile-grid-bootstrap .bg-success {
+  background-color: #198754 !important;
+  color: #fff;
+}
+
+.mobile-grid-bootstrap .bg-primary {
+  background-color: #0d6efd !important;
+  color: #fff;
+}
+
+/* Bootstrap Spacing */
+.mobile-grid-bootstrap .ms-2 {
+  margin-left: 0.5rem !important;
+}
+
+.mobile-grid-bootstrap .me-2 {
+  margin-right: 0.5rem !important;
+}
+
+.mobile-grid-bootstrap .me-1 {
+  margin-right: 0.25rem !important;
+}
+
+.mobile-grid-bootstrap .mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+.mobile-grid-bootstrap .mt-3 {
+  margin-top: 1rem !important;
+}
+
+.mobile-grid-bootstrap .mb-2 {
+  margin-bottom: 0.5rem !important;
+}
+
+.mobile-grid-bootstrap .mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+.mobile-grid-bootstrap .mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.mobile-grid-bootstrap .mb-0 {
+  margin-bottom: 0 !important;
+}
+
+/* Bootstrap Text Colors */
+.mobile-grid-bootstrap .text-black {
+  color: #000 !important;
+}
+
+.mobile-grid-bootstrap .text-muted {
+  color: #6c757d !important;
+}
+
+.mobile-grid-bootstrap .text-dark {
+  color: #212529 !important;
+}
+
+.mobile-grid-bootstrap .text-center {
+  text-align: center !important;
+}
+
+/* Bootstrap Font Sizes */
+.mobile-grid-bootstrap .fs-1 {
+  font-size: calc(1.375rem + 1.5vw) !important;
+}
+
+.mobile-grid-bootstrap .small {
+  font-size: 0.875em;
+}
+
+/* Bootstrap Flexbox Utilities */
+.mobile-grid-bootstrap .justify-content-between {
+  justify-content: space-between !important;
+}
+
+.mobile-grid-bootstrap .align-items-center {
+  align-items: center !important;
+}
+
+.mobile-grid-bootstrap .flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+/* Bootstrap Gap */
+.mobile-grid-bootstrap .gap-4 {
+  gap: 1.5rem !important;
+}
+
+/* Bootstrap Buttons */
+.mobile-grid-bootstrap .btn {
+  display: inline-block;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.375rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mobile-grid-bootstrap .btn-primary {
+  color: #fff;
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.mobile-grid-bootstrap .btn-secondary {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.mobile-grid-bootstrap .btn-success {
+  color: #fff;
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.mobile-grid-bootstrap .btn-danger {
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.mobile-grid-bootstrap .btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.mobile-grid-bootstrap .btn-lg {
+  padding: 0.5rem 1rem;
+  font-size: 1.25rem;
+  border-radius: 0.5rem;
+}
+
+.mobile-grid-bootstrap .btn:disabled {
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.mobile-grid-bootstrap .w-100 {
+  width: 100% !important;
+}
+
+/* Bootstrap Alerts */
+.mobile-grid-bootstrap .alert {
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+
+.mobile-grid-bootstrap .alert-success {
+  color: #0f5132;
+  background-color: #d1e7dd;
+  border-color: #badbcc;
+}
+
+.mobile-grid-bootstrap .alert-danger {
+  color: #842029;
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+}
+
+.mobile-grid-bootstrap .alert-warning {
+  color: #664d03;
+  background-color: #fff3cd;
+  border-color: #ffecb5;
+}
+
+/* Bootstrap Spinner */
+.mobile-grid-bootstrap .spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+  to { transform: rotate(360deg); }
+}
+
+/* Bootstrap Dropdown */
+.mobile-grid-bootstrap .dropdown {
+  position: relative;
+}
+
+.mobile-grid-bootstrap .dropdown-toggle {
+  white-space: nowrap;
+}
+
+.mobile-grid-bootstrap .dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 10rem;
+  padding: 0.5rem 0;
+  margin: 0;
+  font-size: 1rem;
+  color: #212529;
+  text-align: left;
+  list-style: none;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.375rem;
+}
+
+.mobile-grid-bootstrap .dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.25rem 1rem;
+  clear: both;
+  font-weight: 400;
+  color: #212529;
+  text-align: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+}
+
+.mobile-grid-bootstrap .dropdown-item:hover {
+  color: #1e2125;
+  background-color: #e9ecef;
+}
+
+/* Bootstrap Form */
+.mobile-grid-bootstrap .form-label {
+  margin-bottom: 0.5rem;
+}
+
+/* Bootstrap Modal */
+.mobile-grid-bootstrap .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1055;
+  display: none;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
+}
+
+.mobile-grid-bootstrap .modal.show {
+  display: block !important;
+}
+
+.mobile-grid-bootstrap .modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 0.5rem;
+  pointer-events: none;
+}
+
+.mobile-grid-bootstrap .modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  pointer-events: auto;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  outline: 0;
+}
+
+.mobile-grid-bootstrap .modal-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+  border-top-left-radius: calc(0.5rem - 1px);
+  border-top-right-radius: calc(0.5rem - 1px);
+}
+
+.mobile-grid-bootstrap .modal-title {
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.mobile-grid-bootstrap .modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  padding: 1rem;
+}
+
+.mobile-grid-bootstrap .modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.75rem;
+  border-top: 1px solid #dee2e6;
+  border-bottom-right-radius: calc(0.5rem - 1px);
+  border-bottom-left-radius: calc(0.5rem - 1px);
+}
+
+.mobile-grid-bootstrap .btn-close {
+  box-sizing: content-box;
+  width: 1em;
+  height: 1em;
+  padding: 0.25em 0.25em;
+  color: #000;
+  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='m.5 3.5 6 6m0-6-6 6'/%3e%3c/svg%3e") center/1em auto no-repeat;
+  border: 0;
+  border-radius: 0.375rem;
+  opacity: 0.5;
+}
+
+.mobile-grid-bootstrap .btn-close:hover {
+  color: #000;
+  text-decoration: none;
+  opacity: 0.75;
+}
+
+/* Bootstrap Icons */
+.mobile-grid-bootstrap .bi {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  fill: currentcolor;
+}

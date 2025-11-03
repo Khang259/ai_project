@@ -22,6 +22,12 @@ async def create_node(node_in: NodeCreate) -> NodeOut:
         logger.warning(f"Node creation failed: owner '{node_in.owner}' does not exist or is inactive")
         raise ValueError("Owner does not exist or is inactive")
     
+    # Kiểm tra xem node_name đã tồn tại chưa (trong cùng owner)
+    existing = await nodes.find_one({"node_name": node_in.node_name, "owner": node_in.owner, "node_type": node_in.node_type})
+    if existing:
+        logger.warning(f"Node creation failed: node_name '{node_in.node_name}' already exists for owner '{node_in.owner}'")
+        raise ValueError("Node name already exists for this owner")
+    
     
     node_data = {
         "node_name": node_in.node_name,

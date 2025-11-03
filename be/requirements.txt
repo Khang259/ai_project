@@ -16,6 +16,7 @@ python-multipart==0.0.9            # Hỗ trợ upload form/file
 # --- Config & Logging ---
 pydantic-settings==2.4.0
 loguru==0.7.2
+apscheduler==3.10.4
 
 # --- Development & Testing ---
 pytest==8.3.3
@@ -25,4 +26,7 @@ httpx[http2]==0.27.0
 # --- Video ---
 opencv-python==4.11.0.86
 numpy==1.26.4
+
+# --- Date utilities ---
+python-dateutil==2.8.2
 

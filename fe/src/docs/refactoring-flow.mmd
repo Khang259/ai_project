@@ -1,0 +1,82 @@
+graph TD
+    A[MobileGridDisplay.jsx<br/>603 dòng code] --> B[PHASE 1: Tạo Custom Hooks]
+    A --> C[PHASE 2: Tạo UI Components]
+    A --> D[PHASE 3: Tạo Auth Components]
+    A --> E[PHASE 4: Refactor Main Component]
+    A --> F[PHASE 5: Tạo Index Files]
+    A --> G[PHASE 6: Sửa Lỗi Import]
+
+    B --> B1[useGridConfig.js<br/>Quản lý cấu hình grid]
+    B --> B2[useTaskData.js<br/>Quản lý dữ liệu task]
+    B --> B3[useTaskManagement.js<br/>Quản lý gửi task]
+    B --> B4[useAuth.js<br/>Quản lý authentication]
+
+    C --> C1[GridCell.jsx<br/>Hiển thị một ô]
+    C --> C2[GridArea.jsx<br/>Hiển thị khu vực]
+    C --> C3[TaskSelector.jsx<br/>Chọn task]
+    C --> C4[DropdownMenu.jsx<br/>Menu dropdown]
+    C --> C5[ConfirmationModal.jsx<br/>Modal xác nhận]
+    C --> C6[KhuAreaSelector.jsx<br/>Chọn khu vực]
+    C --> C7[ServerInfo.jsx<br/>Thông tin server]
+
+    D --> D1[LogoutButton.jsx<br/>Nút logout]
+    D --> D2[LogoutModal.jsx<br/>Modal logout]
+    D --> D3[LoginPrompt.jsx<br/>Prompt đăng nhập]
+
+    E --> E1[Import hooks & components]
+    E --> E2[Thay thế stub functions]
+    E --> E3[Tách logic thành handlers]
+    E --> E4[Conditional rendering]
+    E --> E5[Clean structure]
+
+    F --> F1[components/index.js<br/>Export components]
+    F --> F2[hooks/index.js<br/>Export hooks]
+
+    G --> G1[Phát hiện lỗi import]
+    G --> G2[Tạo src/utils/]
+    G --> G3[Di chuyển format.js]
+    G --> G4[Cập nhật imports]
+    G --> G5[Dọn dẹp files cũ]
+
+    H[KẾT QUẢ CUỐI CÙNG] --> H1[11 Components]
+    H --> H2[4 Custom Hooks]
+    H --> H3[1 Main Component]
+    H --> H4[Clean Code Architecture]
+    H --> H5[Logout Functionality]
+    H --> H6[Error-free Imports]
+
+    B1 --> H
+    B2 --> H
+    B3 --> H
+    B4 --> H
+    C1 --> H
+    C2 --> H
+    C3 --> H
+    C4 --> H
+    C5 --> H
+    C6 --> H
+    C7 --> H
+    D1 --> H
+    D2 --> H
+    D3 --> H
+    E1 --> H
+    E2 --> H
+    E3 --> H
+    E4 --> H
+    E5 --> H
+    F1 --> H
+    F2 --> H
+    G1 --> H
+    G2 --> H
+    G3 --> H
+    G4 --> H
+    G5 --> H
+
+    style A fill:#ff6b6b,stroke:#333,stroke-width:3px,color:#fff
+    style H fill:#4ecdc4,stroke:#333,stroke-width:3px,color:#fff
+    style B fill:#45b7d1,stroke:#333,stroke-width:2px,color:#fff
+    style C fill:#96ceb4,stroke:#333,stroke-width:2px,color:#fff
+    style D fill:#feca57,stroke:#333,stroke-width:2px,color:#fff
+    style E fill:#ff9ff3,stroke:#333,stroke-width:2px,color:#fff
+    style F fill:#54a0ff,stroke:#333,stroke-width:2px,color:#fff
+    style G fill:#5f27cd,stroke:#333,stroke-width:2px,color:#fff
