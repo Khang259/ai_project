@@ -3,11 +3,11 @@ import { X, Loader2, Save, Trash2 } from 'lucide-react';
 import { getStreamCamera } from '@/services/infocamera-dashboard';
 import StreamWithBoundingBox from './StreamWithBoundingBox';
 
-const CameraViewerModal = ({ cameraData, onClose, onSaveBBoxes }) => {
+const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
   const [streamUrl, setStreamUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [bBoxes, setBBoxes] = useState(cameraData.b_box || []);
+  const [ROIs, setROIs] = useState(cameraData.roi || []);
 
   useEffect(() => {
     const fetchStream = async () => {
@@ -33,18 +33,18 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveBBoxes }) => {
   }, [cameraData]);
 
   const handleSave = () => {
-    // Chuyển đổi từ x,y,w,h → x1,y1,x2,y2
-    const convertedBBoxes = bBoxes.map(bbox => {
-      const [x, y, w, h] = bbox.split(',').map(Number);
-      return `${x},${y},${x + w},${y + h}`;
+    // Format là x,y,w,h để đồng bộ backend
+    const convertedROIs = ROIs.map(roi => {
+      const { x, y, width, height, label } = roi;
+      return { x, y, width, height, label };
     });
 
-    onSaveBBoxes?.(convertedBBoxes);
+    onSaveROIs?.(convertedROIs);
     onClose();
   };
 
   const handleDeleteZone = (index) => {
-    setBBoxes(prev => prev.filter((_, i) => i !== index));
+    setROIs(prev => prev.filter((_, i) => i !== index));
   };
 
   if (!cameraData) return null;
@@ -68,7 +68,7 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveBBoxes }) => {
               onClick={onClose}
               className="p-1 hover:bg-gray-100 rounded-full transition"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 text-black" />
             </button>
           </div>
         </div>
@@ -91,18 +91,18 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveBBoxes }) => {
           {streamUrl && !loading && (
             <StreamWithBoundingBox
               streamUrl={streamUrl}
-              initialBBoxes={bBoxes}
-              onBBoxesChange={setBBoxes}
+              initialROIs={ROIs}
+              onROIsChange={setROIs}
               cameraName={cameraData.cameraName}
             />
           )}
 
           {/* Bảng tọa độ */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-hidden text-black">
             <div className="bg-gray-50 px-4 py-2 font-medium text-sm border-b">
-              Tọa độ các vùng (x1, y1, x2, y2)
+              Tọa độ các vùng (x, y, w, h)
             </div>
-            {bBoxes.length === 0 ? (
+            {ROIs.length === 0 ? (
               <div className="p-4 text-center text-gray-500 text-sm">
                 Chưa có vùng nào. Kéo chuột trên ảnh để vẽ.
               </div>
@@ -110,28 +110,24 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveBBoxes }) => {
               <table className="w-full text-sm">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-3 py-2 text-left">Zone</th>
+                    <th className="px-3 py-2 text-left">ROI</th>
                     <th className="px-3 py-2 text-center">x1</th>
                     <th className="px-3 py-2 text-center">y1</th>
-                    <th className="px-3 py-2 text-center">x2</th>
-                    <th className="px-3 py-2 text-center">y2</th>
+                    <th className="px-3 py-2 text-center">w</th>
+                    <th className="px-3 py-2 text-center">h</th>
                     <th className="px-3 py-2 text-center">Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {bBoxes.map((bbox, i) => {
-                    const [x, y, w, h] = bbox.split(',').map(Number);
-                    const x1 = x;
-                    const y1 = y;
-                    const x2 = x + w;
-                    const y2 = y + h;
+                  {ROIs.map((roi, i) => {
+                    const { x, y, width, height } = roi;
                     return (
                       <tr key={i} className="border-t hover:bg-gray-50">
-                        <td className="px-3 py-2 font-medium">Zone {i + 1}</td>
-                        <td className="px-3 py-2 text-center">{Math.round(x1)}</td>
-                        <td className="px-3 py-2 text-center">{Math.round(y1)}</td>
-                        <td className="px-3 py-2 text-center">{Math.round(x2)}</td>
-                        <td className="px-3 py-2 text-center">{Math.round(y2)}</td>
+                        <td className="px-3 py-2 font-medium">ROI {i + 1}</td>
+                        <td className="px-3 py-2 text-center">{Math.round(x)}</td>
+                        <td className="px-3 py-2 text-center">{Math.round(y)}</td>
+                        <td className="px-3 py-2 text-center">{Math.round(width)}</td>
+                        <td className="px-3 py-2 text-center">{Math.round(height)}</td>
                         <td className="px-3 py-2 text-center">
                           <button
                             onClick={() => handleDeleteZone(i)}

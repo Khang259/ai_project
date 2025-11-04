@@ -26,7 +26,7 @@ const CameraSettings = () => {
   const { currAreaId, currAreaName } = useArea();
 
   const [selectedCamera, setSelectedCamera] = useState(null);
-  // Load cameras from database on component mount
+
   useEffect(() => {
     loadCamerasFromDatabase();
   }, [currAreaId]);
@@ -35,11 +35,27 @@ const CameraSettings = () => {
     try {
       setLoading(true);
       const camerasData = await getCamerasByArea(currAreaId);
-      // Ensure b_box is an array
       const formattedCameras = camerasData.map(cam => ({
         ...cam,
-        b_box: cam.b_box ? (Array.isArray(cam.b_box) ? cam.b_box : [cam.b_box]) : [''],
-        showPath: false
+        roi: cam.roi && Array.isArray(cam.roi) && cam.roi.length > 0
+          ? cam.roi.map((r, i) => {
+              // Hỗ trợ string cũ: "100,200,300,400"
+              if (typeof r === 'string') {
+                const [x, y, w, h] = r.split(',').map(Number);
+                if (!isNaN(x) && !isNaN(y) && !isNaN(w) && !isNaN(h)) {
+                  return { x, y, width: w, height: h, label: `ROI ${i + 1}` };
+                }
+              }
+              // Hỗ trợ object: { x, y, w, h } hoặc { x, y, width, height }
+              return {
+                x: r.x || 0,
+                y: r.y || 0,
+                width: r.width || r.w || 0,
+                height: r.height || r.h || 0,
+                label: r.label || `ROI ${i + 1}`
+              };
+            }).filter(roi => roi.width > 0 && roi.height > 0)
+          : [] // Không để mảng rỗng có phần tử lỗi
       }));
       setCameras(formattedCameras);
     } catch (error) {
@@ -50,35 +66,33 @@ const CameraSettings = () => {
     }
   };
 
-
   const selectCameraForViewing = (camera) => {
     if (!camera.camera_path) {
       alert(t('settings.noRtspPath'));
       return;
     }
-  
+
     setSelectedCamera({
       id: camera.id,
       cameraName: camera.camera_name || `Camera ${camera.camera_id}`,
       cameraPath: camera.camera_path,
-      b_box: camera.b_box || [],
+      roi: camera.roi || []
     });
   };
 
-  const handleSaveBBoxes = (newBBoxes) => {
+  const handleSaveROIs = (newROIs) => {
     if (!selectedCamera) return;
-  
+
     setCameras(prev =>
       prev.map(cam =>
         cam.id === selectedCamera.id
-          ? { ...cam, b_box: newBBoxes } // Lưu dạng x1,y1,x2,y2
+          ? { ...cam, roi: newROIs }
           : cam
       )
     );
-  
+
     setSelectedCamera(null);
   };
-  
 
   const addNewCamera = () => {
     setCameras([...cameras, {
@@ -86,28 +100,10 @@ const CameraSettings = () => {
       camera_id: Date.now(),
       camera_name: '',
       camera_path: '',
-      b_box: [''],
+      roi: [],
       area: currAreaId,
       isNew: true
     }]);
-  };
-
-  const addBoundingBox = (cameraId) => {
-    setCameras(cameras.map(cam =>
-      cam.id === cameraId ? { ...cam, b_box: [...cam.b_box, ''] } : cam
-    ));
-  };
-
-  const removeBoundingBox = (cameraId, bboxIndex) => {
-    setCameras(cameras.map(cam => {
-      if (cam.id === cameraId && cam.b_box.length > 1) {
-        return {
-          ...cam,
-          b_box: cam.b_box.filter((_, index) => index !== bboxIndex)
-        };
-      }
-      return cam;
-    }));
   };
 
   const removeCamera = async (cameraId) => {
@@ -128,14 +124,9 @@ const CameraSettings = () => {
     }
   };
 
-  const updateCameraField = (cameraId, field, value, bboxIndex = null) => {
+  const updateCameraField = (cameraId, field, value) => {
     setCameras(cameras.map(cam => {
       if (cam.id === cameraId) {
-        if (field === 'b_box' && bboxIndex !== null) {
-          const newBbox = [...cam.b_box];
-          newBbox[bboxIndex] = value;
-          return { ...cam, b_box: newBbox };
-        }
         return { ...cam, [field]: value };
       }
       return cam;
@@ -147,19 +138,24 @@ const CameraSettings = () => {
     return rtspRegex.test(url);
   };
 
-  const validateBBox = (bbox) => {
-    const bboxRegex = /^\d+,\d+,\d+,\d+$/;
-    return bboxRegex.test(bbox);
+  const validateROI = (roi) => {
+    return (
+      roi &&
+      typeof roi === 'object' &&
+      typeof roi.x === 'number' && roi.x >= 0 &&
+      typeof roi.y === 'number' && roi.y >= 0 &&
+      typeof roi.width === 'number' && roi.width > 0 &&
+      typeof roi.height === 'number' && roi.height > 0
+    );
   };
 
   const handleSaveCameras = async () => {
     try {
       setSaving(true);
 
-      // Validate all cameras
       const invalidCameras = cameras.filter(camera =>
         (camera.camera_path && !validateRTSPUrl(camera.camera_path)) ||
-        camera.b_box.some(bbox => bbox && !validateBBox(bbox))
+        camera.roi.some(roi => !validateROI(roi))
       );
 
       if (invalidCameras.length > 0) {
@@ -167,13 +163,12 @@ const CameraSettings = () => {
         return;
       }
 
-      // Process each camera
       for (const camera of cameras) {
         const cameraData = {
           camera_id: camera.camera_id,
           camera_name: camera.camera_name,
           camera_path: camera.camera_path,
-          b_box: camera.b_box.filter(bbox => bbox !== ''), // Remove empty bboxes
+          roi: camera.roi.filter(validateROI), // Chỉ gửi ROI hợp lệ
           area: camera.area
         };
 
@@ -182,9 +177,7 @@ const CameraSettings = () => {
             await addCamera(cameraData);
           }
         } else {
-          if (camera.camera_name || camera.camera_path || camera.b_box.length > 0) {
-            await updateCamera({ ...cameraData, id: camera.id });
-          }
+          await updateCamera({ ...cameraData, id: camera.id });
         }
       }
 
@@ -218,121 +211,107 @@ const CameraSettings = () => {
           </CardTitle>
           <CardDescription>
             <span className="text-xs text-white">
-              Định dạng yêu cầu: rtsp://ip:port/path (ví dụ: rtsp://192.168.1.100:554/stream) | Bounding box: x,y,w,h (ví dụ: 0,0,100,100)
+              Định dạng yêu cầu: rtsp://ip:port/path | Vùng ROI được vẽ trực tiếp trên stream
             </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-            {cameras.map((camera, index) => {
+          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+            {cameras.map((camera) => {
               const isValidRTSP = camera.camera_path ? validateRTSPUrl(camera.camera_path) : true;
               return (
-                <div key={camera.id} className="flex gap-2 items-start p-3 rounded-lg "
-                  style={{ 
-                    backgroundColor:"rgba(255,255,255,0.7)",
+                <div
+                  key={camera.id}
+                  className="flex gap-3 items-start p-4 rounded-lg"
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.7)",
                     border: "1px solid rgba(255,255,255,0.25)"
                   }}
                 >
-                  <div className="flex-1 space-y-2">
-                    <div className="grid grid-cols-3 gap-2">
+                  <div className="flex-1 space-y-4">
+                    {/* Tên & RTSP */}
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor={`name-${camera.id}`} className="text-xs text-black">
-                          {t('settings.cameraName')}
-                        </Label>
+                        <Label className="text-xs text-black">{t('settings.cameraName')}</Label>
                         <div className="relative">
                           <Input
-                            id={`name-${camera.id}`}
-                            type="text"
                             placeholder={t('settings.cameraName')}
-                            value={camera.camera_name}
+                            value={camera.camera_name || ''}
                             onChange={(e) => updateCameraField(camera.id, 'camera_name', e.target.value)}
                             className="text-sm pr-10 border border-gray-500 rounded-md text-black"
                           />
                           <button
                             type="button"
                             onClick={() => selectCameraForViewing(camera)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-blue-500 hover:bg-blue-200 rounded-md p-2"
-                            // title="Xem stream + vẽ bounding box"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-blue-600 p-1 rounded"
+                            title="Vẽ vùng ROI"
                           >
                             <Video className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
 
-                      {/* RTSP url settings */}
                       <div>
-                        <Label htmlFor={`path-${camera.id}`} className="text-xs text-black">
-                          {t('settings.rtspUrl')}
-                        </Label>
+                        <Label className="text-xs text-black">{t('settings.rtspUrl')}</Label>
                         <Input
-                          id={`path-${camera.id}`}
-                          type="text"
                           placeholder="rtsp://192.168.1.100:554/stream"
-                          value={camera.camera_path}
+                          value={camera.camera_path || ''}
                           onChange={(e) => updateCameraField(camera.id, 'camera_path', e.target.value)}
                           className={`font-mono text-sm border border-gray-500 rounded-md text-black ${
-                            camera.camera_path && !isValidRTSP
-                              ? 'border-red-500 focus:border-red-500'
-                              : ''
+                            camera.camera_path && !isValidRTSP ? 'border-red-500' : ''
                           }`}
                         />
                         {camera.camera_path && !isValidRTSP && (
                           <p className="text-xs text-red-500 mt-1">
-                            URL phải có định dạng RTSP (ví dụ: rtsp://192.168.1.100:554/stream)
-                          </p>
-                        )}
-                      </div>
-
-                      {/* BBox settings */}
-                      <div>
-                        <Label className="text-xs text-black">
-                          {t('settings.bBoxSettings')}
-                        </Label>
-                        {camera.b_box.map((bbox, bboxIndex) => (
-                          <div key={`${camera.id}-bbox-${bboxIndex}`} className="flex items-center gap-2 mb-2">
-                            <Input
-                              id={`bbox-${camera.id}-${bboxIndex}`}
-                              type="text"
-                              placeholder="0,0,0,0"
-                              value={bbox}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                if (/^\d*,\d*,\d*,\d*$/.test(value)) {
-                                  updateCameraField(camera.id, 'b_box', value, bboxIndex);
-                                }
-                              }}
-                              className={`text-black font-mono text-sm border border-gray-500 rounded-md ${
-                                bbox && !/^\d+,\d+,\d+,\d+$/.test(bbox)
-                                  ? 'border-red-500 focus:border-red-500'
-                                  : ''
-                              }`}
-                            />
-                            {camera.b_box.length > 1 && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeBoundingBox(camera.id, bboxIndex)}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                        {camera.b_box.some(bbox => bbox && !validateBBox(bbox)) && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {t('settings.invalidBBoxFormat')}
+                            URL phải có định dạng RTSP
                           </p>
                         )}
                       </div>
                     </div>
+
+                    {/* BẢNG ROI*/}
+                    <div>
+                      <Label className="text-xs text-black">Vùng ROI</Label>
+                      {camera.roi && camera.roi.length > 0 ? (
+                        <div className="mt-2 border rounded overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-xs">ROI</TableHead>
+                                <TableHead className="text-xs text-center">x</TableHead>
+                                <TableHead className="text-xs text-center">y</TableHead>
+                                <TableHead className="text-xs text-center">w</TableHead>
+                                <TableHead className="text-xs text-center">h</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {camera.roi.map((roi, i) => (
+                                <TableRow key={i} className="text-xs text-black">
+                                  <TableCell className="font-medium">{roi.label}</TableCell>
+                                  <TableCell className="text-center">{roi.x}</TableCell>
+                                  <TableCell className="text-center">{roi.y}</TableCell>
+                                  <TableCell className="text-center">{roi.width}</TableCell>
+                                  <TableCell className="text-center">{roi.height}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500 mt-1 italic">
+                          Chưa có vùng ROI. Nhấn biểu tượng video để vẽ.
+                        </p>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Xóa camera */}
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => removeCamera(camera.id)}
                     disabled={cameras.length === 1}
-                    className="mt-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="mt-6 text-red-600 hover:text-red-800 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -341,15 +320,17 @@ const CameraSettings = () => {
             })}
           </div>
 
+          {/* Thêm camera */}
           <Button
             onClick={addNewCamera}
-            variant="outline"
-            className="w-full border-dashed border-2 hover:bg-red-50 bg-transparent"
+            // variant="outline"
+            className="w-full border-dashed border-2"
           >
             <Plus className="h-4 w-4 mr-2" />
             {t('settings.addCamera')}
           </Button>
 
+          {/* Lưu */}
           <div className="mt-4 pt-4 border-t">
             <Button
               onClick={handleSaveCameras}
@@ -371,6 +352,7 @@ const CameraSettings = () => {
           </div>
         </CardContent>
       </Card>
+
 
       {/* Camera Status & Information */}
       <Card className="border-2 glass">
@@ -444,12 +426,12 @@ const CameraSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Nhận props từ CameraViewer */}
+      {/* Modal vẽ ROI */}
       {selectedCamera && (
         <CameraViewerModal
           cameraData={selectedCamera}
           onClose={() => setSelectedCamera(null)}
-          onSaveBBoxes={handleSaveBBoxes}
+          onSaveROIs={handleSaveROIs}
         />
       )}
     </div>
