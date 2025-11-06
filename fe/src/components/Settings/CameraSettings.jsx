@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -17,6 +16,7 @@ import { getCamerasByArea, addCamera, updateCamera, deleteCamera } from '@/servi
 import { useArea } from '@/contexts/AreaContext';
 import CameraViewerModal from '../Overview/map/camera/CameraViewerModal';
 import { useTranslation } from 'react-i18next';
+import { healthCheckCamera } from '@/services/health-check-camera';
 
 const CameraSettings = () => {
   const { t } = useTranslation();
@@ -24,12 +24,21 @@ const CameraSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { currAreaId, currAreaName } = useArea();
-
+  const [healthCheckStatus, setHealthCheckStatus] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
 
   useEffect(() => {
     loadCamerasFromDatabase();
   }, [currAreaId]);
+
+  useEffect(() => {
+    const fetchHealthCheckStatus = async () => {
+      const status = await healthCheckCamera();
+      setHealthCheckStatus(status);
+      console.log('Health check status:', status);
+    };
+    fetchHealthCheckStatus();
+  }, []);
 
   const loadCamerasFromDatabase = async () => {
     try {
@@ -404,15 +413,15 @@ const CameraSettings = () => {
                           <div className="flex items-center gap-1.5">
                             <div
                               className={`w-2.5 h-2.5 rounded-full ${
-                                isConnected ? 'bg-green-500' : 'bg-red-500'
+                                healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? 'bg-green-500' : 'bg-red-500'
                               }`}
                             />
                             <span
                               className={`text-xs font-medium ${
-                                isConnected ? 'text-green-600' : 'text-red-600'
+                                healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? 'text-green-600' : 'text-red-600'
                               }`}
                             >
-                              {isConnected ? t('settings.active') : t('settings.inactive')}
+                              {healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? t('settings.active') : t('settings.inactive')}
                             </span>
                           </div>
                         </TableCell>
