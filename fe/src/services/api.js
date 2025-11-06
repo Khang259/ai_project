@@ -9,7 +9,7 @@ export const defaultServers = [
 ];
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://192.168.1.6:8001",
+  baseURL: import.meta.env.VITE_API_URL || "http://192.168.1.184:8001",
   headers: {
     "Content-Type": "application/json",
   },

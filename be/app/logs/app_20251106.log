@@ -1,0 +1,20 @@
+2025-11-06 15:16:05,015 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-06 15:16:05,015 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-06 15:16:09,958 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-06 15:16:09,959 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-06 15:16:10,679 - camera_ai_app - INFO - Default permissions initialized
+2025-11-06 15:16:10,679 - camera_ai_app - INFO - Initializing default roles...
+2025-11-06 15:16:10,823 - camera_ai_app - INFO - Default roles initialized
+2025-11-06 15:16:10,828 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-06 15:16:10,828 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-06 23:00:00+07:00
+2025-11-06 15:16:10,829 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-06 15:31:20,692 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-06 15:31:20,801 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-06 15:31:37,587 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-06 15:31:37,911 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-06 15:31:38,663 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-06 15:31:38,983 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-06 15:32:04,852 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-06 15:32:05,173 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-06 15:32:05,212 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-06 15:32:05,289 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
