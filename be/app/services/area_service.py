@@ -26,6 +26,7 @@ async def create_area(area_in: AreaCreate, created_by: str) -> AreaOut:
     area_data = {
         "area_id": area_in.area_id,
         "area_name": area_in.area_name,
+        "robot_list": area_in.robot_list or [],
         "created_by": created_by,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
