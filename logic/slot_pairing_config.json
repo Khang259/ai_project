@@ -1,0 +1,57 @@
+{
+  "points": [
+    {
+    "slot_id": 1,
+     "camera_id": "cam-1",
+     "qr": "000"
+    },
+    {
+      "slot_id": 2,
+      "camera_id": "cam-1",
+      "qr": "111"
+    },
+    {
+      "slot_id": 3,
+      "camera_id": "cam-1",
+      "qr": "222"
+    },
+    {
+      "slot_id": 4,
+      "camera_id": "cam-1",
+      "qr": "333"
+    },
+    {
+      "slot_id": 1,
+      "camera_id": "cam-2",
+      "qr": "444"
+    },
+    {
+      "slot_id": 2,
+      "camera_id": "cam-2",
+      "qr": "555"
+    },
+    {
+      "slot_id": 1,
+      "camera_id": "cam-3",
+      "qr": "666"
+    }
+  ],
+
+  "pairs": [
+    {
+      "s1": "000",
+      "e1": "111",
+      "e2": "222"
+    }
+  ],
+  "dual": [
+    {
+      "s1": "333",
+      "e1": "444",
+      "s2": "555",
+      "e2": "666"
+    }
+  ]
+}
+
+
