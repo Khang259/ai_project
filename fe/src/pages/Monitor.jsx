@@ -56,15 +56,23 @@ const MonitorPage = () => {
   const getStatusColor = (status) => {
     if (status === 'completed') return 'bg-green-500';
     if (status === 'in_progress') return 'bg-yellow-400';
-    return 'bg-red-400';
+    return 'bg-gray-300';
   };
 
   return (
     <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-center gap-4 text-[3rem] font-bold text-slate-800 mb-4">
-            <span className="text-[4rem] font-extrabold uppercase italic tracking-widest text-amber-700 drop-shadow-lg skew-y-1 -rotate-1 animate-bounce">
-              Monitor
+            <span className="text-[4rem] font-extrabold uppercase italic tracking-widest drop-shadow-lg skew-y-1 -rotate-1">
+              {"Monitor".split("").map((ch, idx) => {
+                const rainbow = ["#E40303", "#FF8C00", "#FFED00", "#008026", "#24408E", "#732982"];
+                const color = rainbow[idx % rainbow.length];
+                return (
+                  <span key={idx} style={{ color }} className="inline-block">
+                    {ch}
+                  </span>
+                );
+              })}
             </span>
           </CardTitle>
         </CardHeader>
