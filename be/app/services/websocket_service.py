@@ -11,8 +11,9 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
         self.device_connections: Dict[str, List[WebSocket]] = {}
+        self.group_connections: Dict[str, List[WebSocket]] = {}
 
-    async def connect(self, websocket: WebSocket, device_code: str = None):
+    async def connect(self, websocket: WebSocket, device_code: str = None, group_id: str = None):
         await websocket.accept()
         
         if device_code:
@@ -20,20 +21,25 @@ class ConnectionManager:
                 self.device_connections[device_code] = []
             self.device_connections[device_code].append(websocket)
             logger.info(f"WebSocket connected to device {device_code}. Total connections: {len(self.device_connections[device_code])}")
+        elif group_id:
+            if group_id not in self.group_connections:
+                self.group_connections[group_id] = []
+            self.group_connections[group_id].append(websocket)
+            logger.info(f"WebSocket connected to group {group_id}. Total connections: {len(self.group_connections[group_id])}")
         else:
             self.active_connections.append(websocket)
             logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
 
-        logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
-
-    def disconnect(self, websocket: WebSocket, device_code: str = None):
+    def disconnect(self, websocket: WebSocket, device_code: str = None, group_id: str = None):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
             
         if device_code and device_code in self.device_connections:
             if websocket in self.device_connections[device_code]:
                 self.device_connections[device_code].remove(websocket)
-                
+        elif group_id and group_id in self.group_connections:
+            if websocket in self.group_connections[group_id]:
+                self.group_connections[group_id].remove(websocket)
         logger.info(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
@@ -66,7 +72,20 @@ class ConnectionManager:
                     logger.error(f"Error broadcasting to device {device_code}: {e}")
                     
             for conn in disconnected:
-                self.disconnect(conn, device_code)
+                self.disconnect(conn, device_code=device_code)
+
+    async def broadcast_to_group(self, group_id: str, message: str):
+        if group_id in self.group_connections:
+            disconnected = []
+            for connection in self.group_connections[group_id]:
+                try:
+                    await connection.send_text(message)
+                except Exception as e:
+                    disconnected.append(connection)
+                    logger.error(f"Error broadcasting to group {group_id}: {e}")
+                    
+            for conn in disconnected:
+                self.disconnect(conn, group_id=group_id)
 
 manager = ConnectionManager()
 

@@ -16,7 +16,6 @@ async def receive_task_status(request: Request):
     if data["status"] == "success":
         for group in data["data"]:
             message = json.dumps(group["tasks"])
-            print(message)
             await manager.broadcast_to_device(group["group_id"], message)
         return {"status": "success", "message": f"Task successfully updated to {len(data["data"])} groups"}
     else:

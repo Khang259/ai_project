@@ -24,10 +24,9 @@ from app.routers.maintenance_check import router as maintenance_check_router
 from app.routers.update_amr_name import router as update_amr_name_router
 from app.routers.pdf import router as pdf_router
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
-from app.services.notification_service import NotificationService
+from app.services.notification_service import notification_service
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
-notification_service = NotificationService()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,6 +50,8 @@ async def lifespan(app: FastAPI):
     # Khởi động scheduler
     start_scheduler()
     logger.info("AGV Scheduler started")
+    await notification_service.start()
+    logger.info("Notification service started")
     
     yield
     
@@ -58,6 +59,8 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down CameraAI Backend...")
     shutdown_scheduler()
     logger.info("AGV Scheduler stopped")
+    await notification_service.stop()
+    logger.info("Notification service stopped")
     await close_mongo_connection()
 
 # Create FastAPI app
@@ -101,14 +104,6 @@ app.include_router(maintenance_check_router, prefix="/api", tags=["Maintenance C
 app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name"])
 
 app.include_router(pdf_router, tags=["PDF"])
-
-@app.on_event("startup")
-async def on_startup():
-    await notification_service.start()
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    await notification_service.stop()
 
 @app.get("/")
 async def root():
