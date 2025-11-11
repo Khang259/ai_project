@@ -108,7 +108,8 @@ const MobileGridDisplay = () => {
       node_name: selectedNode.node_name,
       node_type: selectedNode.node_type,
       owner: currentUser?.username,
-      line: selectedNode.line,  // ← BẮT BUỘC: Field line cho backend
+      process_code: selectedNode.process_code,
+      line: selectedNode.line,
       start: selectedNode.start,
       end: selectedNode.end,
       next_start: selectedNode.next_start || 0,
