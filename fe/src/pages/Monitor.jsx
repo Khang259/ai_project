@@ -65,45 +65,55 @@ const MonitorPage = () => {
     <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-center gap-4 text-[3rem] font-bold text-slate-800 mb-4">
-            <Monitor className="h-14 w-14 text-primary" />
-            Monitor Sản Xuất
+            <span className="text-[4rem] font-extrabold uppercase italic tracking-widest text-amber-700 drop-shadow-lg skew-y-1 -rotate-1 animate-bounce">
+              Monitor
+            </span>
           </CardTitle>
         </CardHeader>
 
         <CardContent>
-          {/* ========== FRAME SECTION ========== */}
-          <div className="mb-12">
-            <h4 className="text-2xl font-semibold mb-3 text-slate-700">Frame</h4>
-            <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-slate-200">
-              {frameRows.map((item, index) => (
-                <div
-                  key={item.key || index}
-                  className={`${getStatusColor(
-                    item.status
-                  )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all hover:scale-[1.02]`}
-                  title={`${item.product_name} - ${item.status}`}
-                >
-                  {item.product_name}
+          {/* ========== BARS WRAPPER ========== */}
+          <div className="rounded-xl p-[3px] bg-gradient-to-r from-sky-400 via-purple-500 to-pink-500 shadow-lg mb-12 shadow-fuchsia-700">
+            <div className="rounded-lg bg-white p-4">
+              {/* ========== FRAME SECTION ========== */}
+              <div className="mb-8">
+                <h4 className="text-2xl font-semibold mb-3 text-sky-600">
+                  Frame
+                </h4>
+                <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-gradient-to-r from-slate-100 to-slate-300">
+                  {frameRows.map((item, index) => (
+                    <div
+                      key={item.key || index}
+                      className={`${getStatusColor(
+                        item.status
+                      )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all hover:scale-[1.02]`}
+                      title={`${item.product_name} - ${item.status}`}
+                    >
+                      {item.product_name}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* ========== TANK SECTION ========== */}
-          <div className="mb-12">
-            <h4 className="text-2xl font-semibold mb-3 text-slate-700">Tank</h4>
-            <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-slate-200">
-              {tankRows.map((item, index) => (
-                <div
-                  key={item.key || index}
-                  className={`${getStatusColor(
-                    item.status
-                  )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all hover:scale-[1.02]`}
-                  title={`${item.product_name} - ${item.status}`}
-                >
-                  {item.product_name}
+              {/* ========== TANK SECTION ========== */}
+              <div className="mb-2">
+                <h4 className="text-2xl font-semibold mb-3 text-emerald-600">
+                  Tank
+                </h4>
+                <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-gradient-to-r from-slate-100 to-slate-300">
+                  {tankRows.map((item, index) => (
+                    <div
+                      key={item.key || index}
+                      className={`${getStatusColor(
+                        item.status
+                      )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all hover:scale-[1.02]`}
+                      title={`${item.product_name} - ${item.status}`}
+                    >
+                      {item.product_name}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
 
@@ -111,39 +121,39 @@ const MonitorPage = () => {
           <div className="flex flex-wrap gap-8">
             {/* FRAME TABLE */}
             <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md ">
-              <h5 className="text-xl font-semibold mb-3 text-slate-700 ">Danh sách Frame</h5>
+              <h5 className="text-xl font-semibold mb-3 text-center text-sky-600">Model Frame</h5>
               <Table
                 size="large"
                 bordered
                 columns={columns}
                 dataSource={frameRows.filter((x) => x.status !== 'completed')}
                 pagination={false}
+                showHeader={false}
                 className="rounded-lg"
                 rowClassName={(record) =>
                   record.status === 'in_progress'
                     ? 'bg-yellow-300 text-7xl font-bold'
                     : 'text-2xl'
                 }
-                onHeaderRow={() => ({ className: 'text-xl bg-slate-100 text-slate-700' })}
               />
             </div>
 
             {/* TANK TABLE */}
             <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md">
-              <h5 className="text-xl font-semibold mb-3 text-slate-700">Danh sách Tank</h5>
+              <h5 className="text-xl font-semibold mb-3 text-center text-emerald-600">Model Tank</h5>
               <Table
                 size="large"
                 bordered
                 columns={columns}
                 dataSource={tankRows.filter((x) => x.status !== 'completed')}
                 pagination={false}
+                showHeader={false}
                 className="rounded-lg"
                 rowClassName={(record) =>
                   record.status === 'in_progress'
                     ? 'bg-yellow-300 text-7xl font-bold'
                     : 'text-2xl'
                 }
-                onHeaderRow={() => ({ className: 'text-xl bg-slate-400 text-slate-700' })}
               />
             </div>
           </div>
