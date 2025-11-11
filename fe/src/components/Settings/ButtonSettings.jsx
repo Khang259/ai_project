@@ -191,7 +191,6 @@ const ButtonSettings = () => {
     }
     
     await fetchData();
-    
     // Đóng form và reset dữ liệu
     setShowAddForm(false);
     setNewNodeData({
@@ -222,9 +221,7 @@ const ButtonSettings = () => {
     if (!nodeToDelete) return;
     if (confirm(`Bạn có chắc chắn muốn xóa ô ${nodeToDelete.node_name}?`)) {
       const res = await deleteNode(cellId);
-      if (res?.success) {
-        fetchData();
-      }
+      await fetchData();
     }
   };
 
