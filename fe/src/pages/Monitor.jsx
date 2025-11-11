@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Monitor } from 'lucide-react';
 import { Table } from 'antd';
 import useMonitor from '../hooks/Setting/useMonitor';
@@ -8,145 +8,148 @@ const MonitorPage = () => {
   const { data, fetchData } = useMonitor();
 
   useEffect(() => {
-    fetchData(); 
+    fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetchData();
+    }, 3000); // 3s, có thể chỉnh 1000-5000ms
+    return () => clearInterval(id);
+  }, [fetchData]);
+  
   const columns = [
-    { title: 'Tên sản phẩm', dataIndex: 'product_name', key: 'product_name', align: 'center' },  
-    { 
-      title: 'Kế hoạch', 
-      key: 'plan', 
+    { title: 'Tên sản phẩm', dataIndex: 'product_name', key: 'product_name', align: 'center' },
+    {
+      title: 'Kế hoạch',
+      key: 'plan',
       align: 'center',
       render: (_, record) => {
-        const value = record.status === 'in_progress' 
-          ? `${record.produced_quantity}/${record.target_quantity}`
-          : record.target_quantity;
+        const value =
+          record.status === 'in_progress'
+            ? `${record.produced_quantity}/${record.target_quantity}`
+            : record.target_quantity;
         return <span className="align-middle">{value}</span>;
-      }
+      },
     },
   ];
 
   const frameRows = useMemo(() =>
     (data || []).filter(x => x.category_name === 'frame').map((x, i) => ({
-      key: x.id || i,
-      product_name: x.product_name,
-      produced_quantity: Number(x.produced_quantity ?? 0),
-      target_quantity: Number(x.target_quantity ?? 0),
-      status: x.status,
+          key: x.id || i,
+          product_name: x.product_name,
+          produced_quantity: Number(x.produced_quantity ?? 0),
+          target_quantity: Number(x.target_quantity ?? 0),
+          status: x.status,
     })), [data]
   );
 
   const tankRows = useMemo(() =>
     (data || []).filter(x => x.category_name === 'tank').map((x, i) => ({
-      key: x.id || i,
-      product_name: x.product_name,
-      produced_quantity: Number(x.produced_quantity ?? 0),
-      target_quantity: Number(x.target_quantity ?? 0),
-      status: x.status,
+          key: x.id || i,
+          product_name: x.product_name,
+          produced_quantity: Number(x.produced_quantity ?? 0),
+          target_quantity: Number(x.target_quantity ?? 0),
+          status: x.status,
     })), [data]
   );
 
+  // Status colors for progress segments
+  const getStatusColor = (status) => {
+    if (status === 'completed') return 'bg-green-500';
+    if (status === 'in_progress') return 'bg-yellow-400';
+    return 'bg-red-400';
+  };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-6 mb-2 text-[4rem] justify-center">
-          <Monitor className="h-12 w-12 text-primary" />
-          Monitor Sản Xuất
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-      <div className="mb-6">
-        
-        {/* Frame Progress Bar */}
-        <div className="mb-4">
-          <h4 className="text-xl mb-2 font-semibold">Frame</h4>
-          <div className="flex gap-0.5 h-8 rounded-lg ">
-            {frameRows.map((item, index) => {
-              let bgColor = 'bg-red-500'; // pending
-              if (item.status === 'completed') bgColor = 'bg-green-500';
-              else if (item.status === 'in_progress') bgColor = 'bg-yellow-500';
-              
-              return (
-               
-                <div
-                  key={item.key || index}
-                  className={`${bgColor} flex-1 relative`}
-                >
-                  <div className='absolute top-10 w-full flex items-center justify-center' >
-                    <span className={`text-2xl text-black`}>{item.product_name}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-center gap-4 text-[3rem] font-bold text-slate-800 mb-4">
+            <Monitor className="h-14 w-14 text-primary" />
+            Monitor Sản Xuất
+          </CardTitle>
+        </CardHeader>
 
-        {/* Tank Progress Bar */}
-        <div className="mt-15 mb-10">
-          <h4 className="text-xl mb-2 font-semibold mt-10">Tank</h4>
-          <div className="flex gap-0.5 h-8 rounded-lg ">
-            {tankRows.map((item, index) => {
-              let bgColor = 'bg-red-500'; // pending
-              if (item.status === 'completed') bgColor = 'bg-green-500';
-              else if (item.status === 'in_progress') bgColor = 'bg-yellow-500';
-              
-              return (
+        <CardContent>
+          {/* ========== FRAME SECTION ========== */}
+          <div className="mb-12">
+            <h4 className="text-2xl font-semibold mb-3 text-slate-700">Frame</h4>
+            <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-slate-200">
+              {frameRows.map((item, index) => (
                 <div
                   key={item.key || index}
-                  className={`${bgColor} flex-1 relative  `}
+                  className={`${getStatusColor(
+                    item.status
+                  )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all hover:scale-[1.02]`}
                   title={`${item.product_name} - ${item.status}`}
                 >
-                  <div className='absolute top-10 w-full flex items-center justify-center' >
-                    <span className={`text-2xl text-black`}>{item.product_name}</span>
-                  </div>
+                  {item.product_name}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-        {/* Two tables side-by-side */}
-        <div className="mt-15 flex gap-6">
-          {/* Models Table */}
-          <div className="flex-1 rounded-lg border border-slate-200 bg-white p-3 text-2xl">
-            <Table
-              className="no-hover-table"
-              size="large"
-              bordered
-              columns={columns}
-              dataSource={frameRows.filter(x => x.status !== 'completed')}
-              pagination={false}
-              rowClassName={(record) => {
-                let className = 'text-5xl';
-                if (record.status === 'in_progress') className += ' bg-yellow-500 text-bold text-9xl ';
-                return className;
-              }}
-              onHeaderRow={() => ({ className: 'text-3xl' })}
-            />
+              ))}
+            </div>
           </div>
 
-          {/* Tanks Table */}
-          <div className="flex-1 rounded-lg border border-slate-200 bg-white p-3 text-2xl">
-            <Table
-              size="large"
-              bordered
-              columns={columns}
-              dataSource={tankRows.filter(x => x.status !== 'completed')}
-              pagination={false}
-              rowClassName={(record) => {
-                let className = 'text-5xl';
-                if (record.status === 'in_progress') className += ' bg-yellow-500 text-bold text-9xl ';
-                return className;
-              }}
-              onHeaderRow={() => ({ className: 'text-3xl' })}
-            />
+          {/* ========== TANK SECTION ========== */}
+          <div className="mb-12">
+            <h4 className="text-2xl font-semibold mb-3 text-slate-700">Tank</h4>
+            <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-slate-200">
+              {tankRows.map((item, index) => (
+                <div
+                  key={item.key || index}
+                  className={`${getStatusColor(
+                    item.status
+                  )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all hover:scale-[1.02]`}
+                  title={`${item.product_name} - ${item.status}`}
+                >
+                  {item.product_name}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+
+          {/* ========== TABLES SECTION ========== */}
+          <div className="flex flex-wrap gap-8">
+            {/* FRAME TABLE */}
+            <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md ">
+              <h5 className="text-xl font-semibold mb-3 text-slate-700 ">Danh sách Frame</h5>
+              <Table
+                size="large"
+                bordered
+                columns={columns}
+                dataSource={frameRows.filter((x) => x.status !== 'completed')}
+                pagination={false}
+                className="rounded-lg"
+                rowClassName={(record) =>
+                  record.status === 'in_progress'
+                    ? 'bg-yellow-300 text-7xl font-bold'
+                    : 'text-2xl'
+                }
+                onHeaderRow={() => ({ className: 'text-xl bg-slate-100 text-slate-700' })}
+              />
+            </div>
+
+            {/* TANK TABLE */}
+            <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md">
+              <h5 className="text-xl font-semibold mb-3 text-slate-700">Danh sách Tank</h5>
+              <Table
+                size="large"
+                bordered
+                columns={columns}
+                dataSource={tankRows.filter((x) => x.status !== 'completed')}
+                pagination={false}
+                className="rounded-lg"
+                rowClassName={(record) =>
+                  record.status === 'in_progress'
+                    ? 'bg-yellow-300 text-7xl font-bold'
+                    : 'text-2xl'
+                }
+                onHeaderRow={() => ({ className: 'text-xl bg-slate-400 text-slate-700' })}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
   );
 };
 
 export default MonitorPage;
-
-
