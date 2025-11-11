@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Query
 from typing import Optional
 from app.services.node_service import process_caller
+from app.services.monitor_service import increment_produced_quantity_by_node_end
 from app.schemas.node import ProcessCaller
 import httpx
 from shared.logging import get_logger
@@ -15,6 +16,10 @@ async def manual_caller(node: ProcessCaller, priority: Optional[int] = Query(Non
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post('http://192.168.1.169:7000/ics/taskOrder/addTask', json=payload)
+        
+        if response.status_code == 200:
+            result = await increment_produced_quantity_by_node_end(node.end)
+           
         return {"status": response.status_code, "payload": payload}
     except Exception as e:
         logger.error(f"Error calling process caller: {str(e)}")
