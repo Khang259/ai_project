@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera, task_status
+from app.api import auth, users, permissions, agv_dashboard, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, route
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.scheduler import start_scheduler, shutdown_scheduler
 from app.routers.parts_summary import router as parts_router
@@ -24,8 +24,10 @@ from app.routers.maintenance_check import router as maintenance_check_router
 from app.routers.update_amr_name import router as update_amr_name_router
 from app.routers.pdf import router as pdf_router
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
+from app.services.notification_service import NotificationService
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
+notification_service = NotificationService()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -81,10 +83,11 @@ app.include_router(users.router, prefix="/users", tags=["User Management"])
 app.include_router(permissions.router, prefix="/permissions", tags=["Permission Management"])
 app.include_router(roles.router, prefix="/roles", tags=["Role Management"])
 app.include_router(area.router, prefix="/areas", tags=["Area Management"])
+app.include_router(route.router, prefix="/routes", tags=["Route Management"])
 app.include_router(node.router, prefix="/nodes", tags=["Node Management"])
 app.include_router(camera.router, prefix="/cameras", tags=["Camera Management"])
 app.include_router(agv_dashboard.router, tags=["AGV Dashboard"])
-app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
+app.include_router(websocket_api.router, tags=["WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
 app.include_router(notification.router, tags=["Notification"])
 app.include_router(task_status.router, tags=["Task Status"])
@@ -96,7 +99,16 @@ app.include_router(sum_parts_router, prefix="/api", tags=["Sum Parts Replace"])
 app.include_router(update_part_log_router, prefix="/api", tags=["Update Part With Log"])
 app.include_router(maintenance_check_router, prefix="/api", tags=["Maintenance Check"])
 app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name"])
+
 app.include_router(pdf_router, tags=["PDF"])
+
+@app.on_event("startup")
+async def on_startup():
+    await notification_service.start()
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await notification_service.stop()
 
 @app.get("/")
 async def root():

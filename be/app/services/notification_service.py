@@ -1,28 +1,70 @@
-# backend/app/services/notification_service.py - Phiên bản cải tiến
+import asyncio
+import contextlib
+import json
+from typing import Any, Dict, Optional
 
-from datetime import datetime
-from app.core.database import get_collection
-from shared.logging import get_logger
+from .websocket_service import manager
 
-logger = get_logger("camera_ai_app")
+class NotificationService:
+    def __init__(self) -> None:
+        self._queue: asyncio.Queue[Dict[str, Any]] = asyncio.Queue()
+        self._consumer_task: Optional[asyncio.Task] = None
 
-async def filter_notification(payload: list):
-    alarm_collection = get_collection("alarm")
-    count = 0
-    alarms = []
+    async def start(self) -> None:
+        if self._consumer_task is None:
+            self._consumer_task = asyncio.create_task(self._consumer_loop())
+
+    async def stop(self) -> None:
+        if self._consumer_task:
+            self._consumer_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._consumer_task
+            self._consumer_task = None
+
+    async def publish(self, payload: Dict[str, Any]) -> None:
+        await self._queue.put(payload)
+
+    async def publish_to_device(self, device_code: str, payload: Dict[str, Any]) -> None:
+        await self._queue.put({"device_code": device_code, **payload})
+
+    async def _consumer_loop(self) -> None:
+        while True:
+            event = await self._queue.get()
+            device = event.pop("device_code", None)
+            try:
+                message = json.dumps(event)
+                if device:
+                    await manager.broadcast_to_device(device, message)
+                else:
+                    await manager.broadcast(message)
+            finally:
+                self._queue.task_done()
+
+notification_service = NotificationService()
+
+async def filter_notification(payload):
+    if isinstance(payload, dict):
+        payload = [payload]
+
+    grouped = {}
     for record in payload:
-        alarm_date = datetime.now()
-        alarm_data = {
-            "device_code": record.get("deviceNum"),
-            "device_name": record.get("deviceName"),
-            "alarm_type": record.get("alarmType"),
-            "area_id": record.get("areaId"),
-            "channel_name": record.get("channelName"),
-            "alarm_date": alarm_date,
-            "alarm_grade": record.get("alarmGrade"),
+        task_data = {
+            "order_id": record.get("orderId"),
+            "device_code": record.get("deviceCode"),
+            "model_process_code": record.get("modelProcessCode"),
+            "device_num": record.get("deviceNum"),
+            "qr_code": record.get("qrCode"),
+            "shelf_number": record.get("shelfNumber"),
+            "status": record.get("status"),
+            "updated_at": datetime.now().isoformat(),
         }
-        alarms.append(alarm_data)
-        count += 1
-    if len(alarms) > 0:
-        await alarm_collection.insert_many(alarms)
-    return {"status": "success", "data": f"Saved {count} alarm records"}
+        await extract_task_by_group_id(task_data)
+        group_id = task_data["group_id"]
+        if group_id not in grouped:
+            grouped[group_id] = []
+        grouped[group_id].append(task_data)
+    
+    # 👇 Chuyển dict thành list để frontend dễ dùng
+    grouped_list = [{"group_id": gid, "tasks": tasks} for gid, tasks in grouped.items()]
+
+    return {"status": "success", "data": grouped_list}

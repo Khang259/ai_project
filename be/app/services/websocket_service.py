@@ -1,8 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import List, Dict, Any
 import asyncio
-import json
-import datetime
 from shared.logging import get_logger
 
 logger = get_logger("camera_ai_app")
@@ -16,13 +14,16 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, device_code: str = None):
         await websocket.accept()
-        self.active_connections.append(websocket)
         
         if device_code:
             if device_code not in self.device_connections:
                 self.device_connections[device_code] = []
             self.device_connections[device_code].append(websocket)
-            
+            logger.info(f"WebSocket connected to device {device_code}. Total connections: {len(self.device_connections[device_code])}")
+        else:
+            self.active_connections.append(websocket)
+            logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
+
         logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
 
     def disconnect(self, websocket: WebSocket, device_code: str = None):
@@ -61,21 +62,11 @@ class ConnectionManager:
                 try:
                     await connection.send_text(message)
                 except Exception as e:
-                    logger.error(f"Error broadcasting to device {device_code}: {e}")
                     disconnected.append(connection)
-            
-            # Remove disconnected connections
+                    logger.error(f"Error broadcasting to device {device_code}: {e}")
+                    
             for conn in disconnected:
                 self.disconnect(conn, device_code)
 
 manager = ConnectionManager()
 
-@router.websocket("/ws/full-agv-data")
-async def websocket_agv_data_all(websocket: WebSocket):
-    await manager.connect(websocket)
-    
-    try:
-        while True:
-            await asyncio.sleep(1)  # Chỉ chờ nhận broadcast
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)

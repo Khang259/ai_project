@@ -6,7 +6,7 @@ from app.services.agv_dashboard_service import (
     get_all_robots_payload_data,
     get_all_robots_work_status,
 )
-from app.api.agv_websocket import manager
+from app.services.websocket_service import manager
 from datetime import datetime
 import json
 
