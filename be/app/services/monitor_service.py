@@ -5,79 +5,51 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo import UpdateOne
 
+# ===== CONSTANTS - Business rules cho mapping node_end -> category =====
+FRAME_NODES = {56789,789} 
+TANK_NODES = {6789}   
+
 
 async def save_monitors_with_bulk(items: List[MonitorRequest]) -> dict:
-    """
-    Upsert danh sách monitors trong 1 lần gọi database duy nhất:
-    - Filter: date (chuẩn hóa 00:00:00) + product_name
-    - $set: production_order, target_quantity, category_name, updated_at
-    - $setOnInsert: produced_quantity=0, status='pending', created_at, date
-    - upsert=True
-    - Không ghi đè produced_quantity, status khi record đã tồn tại
-    """
     col = get_collection("monitor")
     if not items:
-        return {"total": 0, "matched": 0, "inserted": 0, "message": "No data"}
+        return {"total": 0, "deleted": 0, "inserted": 0, "message": "No data"}
 
-    ops = []
     now = datetime.utcnow()
 
+    # Gom các ngày chuẩn hóa (00:00:00) xuất hiện trong batch
+    date_set = set()
+    docs = []
     for it in items:
         normalized_date = datetime(it.date.year, it.date.month, it.date.day, 0, 0, 0, 0)
-        filter_query = {
+        date_set.add(normalized_date)
+
+        docs.append({
             "date": normalized_date,
+            "category_name": it.category_name,
             "product_name": it.product_name,
-        }
+            "production_order": it.production_order,
+            "target_quantity": it.target_quantity,
+            "produced_quantity": 0,
+            "status": "in_progress" if it.production_order == 1 else "pending",
+            "created_at": now,
+        })
 
-        # Update pipeline: chỉ cập nhật target_quantity & updated_at khi thay đổi
-        update_pipeline = [
-            {
-                "$set": {
-                    # luôn đồng bộ các trường không ảnh hưởng sản xuất hiện tại
-                    "production_order": it.production_order,
-                    "category_name": it.category_name,
+    # Xóa tất cả record của các ngày có trong batch
+    deleted_total = 0
+    for d in date_set:
+        res = await col.delete_many({"date": d})
+        deleted_total += res.deleted_count or 0
 
-                    # target_quantity: chỉ thay đổi khi khác
-                    "target_quantity": {
-                        "$cond": [
-                            {"$ne": ["$target_quantity", it.target_quantity]},
-                            it.target_quantity,
-                            "$target_quantity",
-                        ]
-                    },
-
-                    # updated_at: chỉ đổi khi target_quantity thay đổi
-                    "updated_at": {
-                        "$cond": [
-                            {"$ne": ["$target_quantity", it.target_quantity]},
-                            now,
-                            "$updated_at",
-                        ]
-                    },
-
-                    # các giá trị mặc định khi insert (hoặc khi trường đang null)
-                    "produced_quantity": {"$ifNull": ["$produced_quantity", 0]},
-                    "status": {"$ifNull": ["$status", "pending"]},
-                    "created_at": {"$ifNull": ["$created_at", now]},
-                    "date": {"$ifNull": ["$date", normalized_date]},
-                }
-            }
-        ]
-
-        ops.append(UpdateOne(filter=filter_query, update=update_pipeline, upsert=True))
-
-    result = await col.bulk_write(ops, ordered=False)
-
-    inserted_count = getattr(result, "upserted_count", None)
-    if inserted_count is None:
-        upserted_ids = getattr(result, "upserted_ids", {}) or {}
-        inserted_count = len(upserted_ids)
+    # Thêm mới toàn bộ batch
+    result = await col.insert_many(docs, ordered=False)
+    inserted = len(result.inserted_ids)
 
     return {
         "total": len(items),
-        "matched": result.matched_count,
-        "inserted": inserted_count,
-        "message": f"Processed {len(items)} items: {result.matched_count} updated, {inserted_count} inserted",
+        "deleted": deleted_total,
+        "inserted": inserted,
+        "message": f"Replaced {deleted_total} old docs; inserted {inserted} new docs for {len(date_set)} day(s).",
     }
 
 
@@ -91,5 +63,65 @@ async def get_monitor(date: datetime) -> List[MonitorOut]:
     cursor = col.find({"date": start_of_day}).sort("production_order", 1)
     docs = await cursor.to_list(length=None)
     return [MonitorOut(**d, id=str(d["_id"])) for d in docs]
+
+
+async def increment_produced_quantity_by_node_end(node_end: int) -> None:
+    if node_end in FRAME_NODES:
+        category_name = "frame"
+    elif node_end in TANK_NODES:
+        category_name = "tank"
+    else:
+        return
+    
+    col = get_collection("monitor")
+    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    current_doc = await col.find_one(
+        {
+            "date": today,
+            "category_name": category_name,
+            "status": "in_progress"
+        }
+    )
+    
+    if not current_doc:
+        return
+    
+    current_produced = current_doc.get("produced_quantity", 0)
+    new_produced_quantity = current_produced + 1
+    target_quantity = current_doc.get("target_quantity", 0)
+    production_order = current_doc.get("production_order", 0)
+    
+    if new_produced_quantity >= target_quantity:
+        await col.update_one(
+            {"_id": current_doc["_id"]},
+            {
+                "$inc": {"produced_quantity": 1},
+                "$set": {"status": "completed"}
+            }
+        )
+        
+        # Tìm document có production_order + 1 (cùng date, category_name)
+        next_production_order = production_order + 1
+        next_doc = await col.find_one(
+            {
+                "date": today,
+                "category_name": category_name,
+                "production_order": next_production_order
+            }
+        )
+        
+        if next_doc:
+            # Chuyển status của document tiếp theo thành "in_progress"
+            await col.update_one(
+                {"_id": next_doc["_id"]},
+                {"$set": {"status": "in_progress"}}
+            )
+    else:
+        # Chưa đạt target -> chỉ tăng produced_quantity
+        await col.update_one(
+            {"_id": current_doc["_id"]},
+            {"$inc": {"produced_quantity": 1}}
+        )
 
 
