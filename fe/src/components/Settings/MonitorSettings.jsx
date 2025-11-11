@@ -5,6 +5,7 @@ import { Table, Button, Space } from 'antd';
 import useMonitor from '../../hooks/Setting/useMonitor';
 import ExcelJS from 'exceljs';
 import { message } from 'antd';
+import useMonitorWS from './useMonitorWS';
 
 const MonitorSettings = () => {
   const { data, fetchData, saveDailyPlan } = useMonitor();
@@ -12,6 +13,10 @@ const MonitorSettings = () => {
   useEffect(() => {
     fetchData(); // mặc định hôm nay
   }, [fetchData]);
+
+  useMonitorWS(() => {
+    fetchData(); // mỗi lần có message thì refetch
+  });
 
   const handleExcelImport = async (e) => {
     const file = e.target.files?.[0];

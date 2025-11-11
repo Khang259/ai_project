@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Monitor } from 'lucide-react';
 import { Table } from 'antd';
 import useMonitor from '../hooks/Setting/useMonitor';
+import useMonitorWS from '../components/Settings/useMonitorWS';
 
 const MonitorPage = () => {
   const { data, fetchData } = useMonitor();
@@ -11,12 +12,9 @@ const MonitorPage = () => {
     fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      fetchData();
-    }, 3000); // 3s, có thể chỉnh 1000-5000ms
-    return () => clearInterval(id);
-  }, [fetchData]);
+  useMonitorWS(() => {
+    fetchData(); // mỗi lần có message thì refetch
+  });
   
   const columns = [
     { title: 'Tên sản phẩm', dataIndex: 'product_name', key: 'product_name', align: 'center' },

@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime
 from bson import ObjectId
 from pymongo import UpdateOne
-
+from app.api.agv_websocket import broadcast_monitor_data
 # ===== CONSTANTS - Business rules cho mapping node_end -> category =====
 FRAME_NODES = {56789,789} 
 TANK_NODES = {6789}   
@@ -92,6 +92,8 @@ async def increment_produced_quantity_by_node_end(node_end: int) -> None:
     target_quantity = current_doc.get("target_quantity", 0)
     production_order = current_doc.get("production_order", 0)
     
+    broadcast_needed = False
+
     if new_produced_quantity >= target_quantity:
         await col.update_one(
             {"_id": current_doc["_id"]},
@@ -100,6 +102,7 @@ async def increment_produced_quantity_by_node_end(node_end: int) -> None:
                 "$set": {"status": "completed"}
             }
         )
+        broadcast_needed = True
         
         # Tìm document có production_order + 1 (cùng date, category_name)
         next_production_order = production_order + 1
@@ -123,5 +126,8 @@ async def increment_produced_quantity_by_node_end(node_end: int) -> None:
             {"_id": current_doc["_id"]},
             {"$inc": {"produced_quantity": 1}}
         )
+        broadcast_needed = True
 
+    if broadcast_needed:
+        await broadcast_monitor_data()
 

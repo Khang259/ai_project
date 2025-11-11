@@ -69,6 +69,7 @@ class ConnectionManager:
                 self.disconnect(conn, device_code)
 
 manager = ConnectionManager()
+monitor_manager = ConnectionManager()
 
 @router.websocket("/ws/full-agv-data")
 async def websocket_agv_data_all(websocket: WebSocket):
@@ -79,3 +80,16 @@ async def websocket_agv_data_all(websocket: WebSocket):
             await asyncio.sleep(1)  # Chỉ chờ nhận broadcast
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+@router.websocket("/ws/monitor-data")
+async def websocket_monitor_data(websocket: WebSocket):
+    await monitor_manager.connect(websocket)
+    
+    try:
+        while True:
+            await asyncio.sleep(1)  # Chỉ chờ nhận broadcast
+    except WebSocketDisconnect:
+        monitor_manager.disconnect(websocket)
+
+async def broadcast_monitor_data():
+    await monitor_manager.broadcast(json.dumps({"changed": True}))
