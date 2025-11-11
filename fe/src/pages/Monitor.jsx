@@ -1,130 +1,126 @@
+import { useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Monitor } from 'lucide-react';
 import { Table } from 'antd';
+import useMonitor from '../hooks/Setting/useMonitor';
 
 const MonitorPage = () => {
-  const modelColumns = [
-    { title: 'STT', dataIndex: 'order', key: 'order', width: 100, align: 'center' },
-    { title: 'Tên Model', dataIndex: 'modelName', key: 'modelName' },
-    { title: 'Yêu cầu', dataIndex: 'required', key: 'required', width: 120, align: 'center' },
-    { title: 'Đã cấp', dataIndex: 'supplied', key: 'supplied', width: 120, align: 'center' },
+  const { data, fetchData } = useMonitor();
+
+  useEffect(() => {
+    fetchData(); 
+  }, [fetchData]);
+
+  const columns = [
+    { title: 'Tên sản phẩm', dataIndex: 'product_name', key: 'product_name', align: 'center' },  
+    { 
+      title: 'Kế hoạch', 
+      key: 'plan', 
+      align: 'center',
+      render: (_, record) => {
+        const value = record.status === 'in_progress' 
+          ? `${record.produced_quantity}/${record.target_quantity}`
+          : record.target_quantity;
+        return <span className="align-middle">{value}</span>;
+      }
+    },
   ];
 
-  const tankColumns = [
-    { title: 'STT', dataIndex: 'order', key: 'order', width: 100, align: 'center' },
-    { title: 'Tên Tank', dataIndex: 'tankName', key: 'tankName' },
-    { title: 'Yêu cầu', dataIndex: 'required', key: 'required', width: 120, align: 'center' },
-    { title: 'Đã cấp', dataIndex: 'supplied', key: 'supplied', width: 120, align: 'center' },
-  ];
+  const frameRows = useMemo(() =>
+    (data || []).filter(x => x.category_name === 'frame').map((x, i) => ({
+      key: x.id || i,
+      product_name: x.product_name,
+      produced_quantity: Number(x.produced_quantity ?? 0),
+      target_quantity: Number(x.target_quantity ?? 0),
+      status: x.status,
+    })), [data]
+  );
 
-  const dataModel = [
-    { key: 'm1', order: 1, status: 'active', modelName: 'M-A001', required: 150, supplied: 25 },
-    { key: 'm2', order: 2, status: 'pending', modelName: 'M-A007', required: 200, supplied: 0 },
-    { key: 'm3', order: 3, status: 'pending', modelName: 'M-B003', required: 50, supplied: 0 },
-  ];
-
-  const tankFrame = [
-    { key: 't1', order: 1, status: 'completed', tankName: 'TANK-01', required: '500L', supplied: '500L' },
-    { key: 't2', order: 2, status: 'active', tankName: 'TANK-02', required: '300L', supplied: 100 },
-    { key: 't3', order: 3, status: 'pending', tankName: 'TANK-01', required: '150L', supplied: 0 },
-    { key: 't4', order: 4, status: 'pending', tankName: 'TANK-03', required: '200L', supplied: 0 },
-  ];
+  const tankRows = useMemo(() =>
+    (data || []).filter(x => x.category_name === 'tank').map((x, i) => ({
+      key: x.id || i,
+      product_name: x.product_name,
+      produced_quantity: Number(x.produced_quantity ?? 0),
+      target_quantity: Number(x.target_quantity ?? 0),
+      status: x.status,
+    })), [data]
+  );
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-5 mb-2 text-6xl">
-          <Monitor className="h-7 w-7 text-primary" />
+        <CardTitle className="flex items-center gap-6 mb-2 text-[4rem] justify-center">
+          <Monitor className="h-12 w-12 text-primary" />
           Monitor Sản Xuất
         </CardTitle>
-        <CardDescription className="text-xl">
-          Màn hình hiển thị kế hoạch sản xuất — chỉ xem
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Horizontal Segmented Bar (Likert-style, uses dataFrame) */}
-        <div className="mb-6">
-          {(() => {
-            const total = Math.max(1, dataModel.length);
-            const idx = dataModel.findIndex((i) => i.status === 'active');
-            const activeIndex = idx === -1 ? 0 : idx;
-
-            return (
-              <div className="w-full">
-                {/* Labels above each segment */}
-                <div className="mb-2 grid" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}>
-                  {dataModel.map((item, i) => (
-                    <div key={item.key || i} className="text-center text-slate-700 text-base font-medium">
-                      {item.modelName}
-                    </div>
-                  ))}
+      <div className="mb-6">
+        
+        {/* Frame Progress Bar */}
+        <div className="mb-4">
+          <h4 className="text-xl mb-2 font-semibold">Frame</h4>
+          <div className="flex gap-0.5 h-8 rounded-lg ">
+            {frameRows.map((item, index) => {
+              let bgColor = 'bg-red-500'; // pending
+              if (item.status === 'completed') bgColor = 'bg-green-500';
+              else if (item.status === 'in_progress') bgColor = 'bg-yellow-500';
+              
+              return (
+               
+                <div
+                  key={item.key || index}
+                  className={`${bgColor} flex-1 relative`}
+                >
+                  <div className='absolute top-10 w-full flex items-center justify-center' >
+                    <span className={`text-2xl text-black`}>{item.product_name}</span>
+                  </div>
                 </div>
-
-                {/* Segmented bar */}
-                <div className="flex w-full h-4 rounded-full overflow-hidden">
-                  {dataModel.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-full ${i <= activeIndex ? 'bg-green-500' : 'bg-slate-300'}`}
-                      style={{
-                        width: `${100 / total}%`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
+              );
+            })}
+          </div>
         </div>
 
-        {/* Horizontal Segmented Bar (Likert-style, uses tankFrame) */}
-        <div className="mb-6">
-          {(() => {
-            const total = Math.max(1, tankFrame.length);
-            const idx = tankFrame.findIndex((i) => i.status === 'active');
-            const activeIndex = idx === -1 ? 0 : idx;
-
-            return (
-              <div className="w-full">
-                {/* Labels above each segment */}
-                <div className="mb-2 grid" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}>
-                  {tankFrame.map((item, i) => (
-                    <div key={item.key || i} className="text-center text-slate-700 text-base font-medium">
-                      {item.tankName}
-                    </div>
-                  ))}
+        {/* Tank Progress Bar */}
+        <div className="mt-15 mb-10">
+          <h4 className="text-xl mb-2 font-semibold mt-10">Tank</h4>
+          <div className="flex gap-0.5 h-8 rounded-lg ">
+            {tankRows.map((item, index) => {
+              let bgColor = 'bg-red-500'; // pending
+              if (item.status === 'completed') bgColor = 'bg-green-500';
+              else if (item.status === 'in_progress') bgColor = 'bg-yellow-500';
+              
+              return (
+                <div
+                  key={item.key || index}
+                  className={`${bgColor} flex-1 relative  `}
+                  title={`${item.product_name} - ${item.status}`}
+                >
+                  <div className='absolute top-10 w-full flex items-center justify-center' >
+                    <span className={`text-2xl text-black`}>{item.product_name}</span>
+                  </div>
                 </div>
-
-                {/* Segmented bar */}
-                <div className="flex w-full h-4 rounded-full overflow-hidden">
-                  {tankFrame.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-full ${i <= activeIndex ? 'bg-green-500' : 'bg-slate-300'}`}
-                      style={{
-                        width: `${100 / total}%`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
+              );
+            })}
+          </div>
         </div>
-
+      </div>
         {/* Two tables side-by-side */}
         <div className="mt-15 flex gap-6">
           {/* Models Table */}
           <div className="flex-1 rounded-lg border border-slate-200 bg-white p-3 text-2xl">
             <Table
+              className="no-hover-table"
               size="large"
               bordered
-              columns={modelColumns}
-              dataSource={dataModel}
+              columns={columns}
+              dataSource={frameRows.filter(x => x.status !== 'completed')}
               pagination={false}
-              rowClassName={(record) =>
-                record.status === 'active' ? 'text-5xl bg-green-500' : 'text-5xl'
-              }
+              rowClassName={(record) => {
+                let className = 'text-5xl';
+                if (record.status === 'in_progress') className += ' bg-yellow-500 text-bold text-9xl ';
+                return className;
+              }}
               onHeaderRow={() => ({ className: 'text-3xl' })}
             />
           </div>
@@ -134,12 +130,14 @@ const MonitorPage = () => {
             <Table
               size="large"
               bordered
-              columns={tankColumns}
-              dataSource={tankFrame}
+              columns={columns}
+              dataSource={tankRows.filter(x => x.status !== 'completed')}
               pagination={false}
-              rowClassName={(record) =>
-                record.status === 'active' ? 'text-5xl bg-green-500' : 'text-5xl'
-              }
+              rowClassName={(record) => {
+                let className = 'text-5xl';
+                if (record.status === 'in_progress') className += ' bg-yellow-500 text-bold text-9xl ';
+                return className;
+              }}
               onHeaderRow={() => ({ className: 'text-3xl' })}
             />
           </div>
