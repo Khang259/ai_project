@@ -161,26 +161,33 @@ class ROIVisualizer:
         # Vẽ ROI rectangle
         cv2.rectangle(frame, (x, y), (x + w, y + h), color, thickness)
         
-        # Vẽ label: Chỉ slot_id + class (shelf/empty)
+        # Vẽ label: slot_id + class (shelf/empty) + confidence
         if match_info:
             obj_type = match_info.get('object_type', 'empty')
             # Nếu class khác 0 (shelf), mặc định là "empty"
             if obj_type not in ['shelf', 'empty']:
                 obj_type = 'empty'
-            label = f"{slot_id} | {obj_type}"
+            confidence = match_info.get('confidence', 0.0)
+            label = f"{slot_id}|{obj_type}|{confidence:.2f}"
         else:
             label = slot_id
         
+        # Điều chỉnh font size dựa trên kích thước frame
+        # Với frame 640x360, dùng font size nhỏ hơn
+        font_scale = 0.35
+        font_thickness = 1
+        
         # Background cho text
         (text_w, text_h), baseline = cv2.getTextSize(
-            label, cv2.FONT_HERSHEY_SIMPLEX, 0.3, 1
+            label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_thickness
         )
         
-        # Vẽ background
+        # Vẽ background với padding nhỏ hơn
+        padding = 2
         cv2.rectangle(
             frame,
-            (x, y - text_h - baseline - 5),
-            (x + text_w + 5, y),
+            (x, y - text_h - baseline - padding - 2),
+            (x + text_w + padding * 2, y),
             self.colors['bg'],
             -1
         )
@@ -189,11 +196,11 @@ class ROIVisualizer:
         cv2.putText(
             frame,
             label,
-            (x + 2, y - 5),
+            (x + padding, y - padding - 2),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
+            font_scale,
             self.colors['text'],
-            1
+            font_thickness
         )
         
         return frame
@@ -445,7 +452,7 @@ def roi_visualizer_worker(
                     vis_frame = cv2.resize(vis_frame, (window_width, window_height))
                     
                     # Hiển thị
-                    window_name = f"ROI Visualizer - {cam_name}"
+                    window_name = f"{cam_name}"
                     cv2.imshow(window_name, vis_frame)
                     
                 except Exception:
@@ -475,73 +482,73 @@ def roi_visualizer_worker(
         cv2.destroyAllWindows()
 
 
-# Test standalone
-if __name__ == "__main__":
-    """Test ROI Visualizer với video file"""
-    import sys
+# # Test standalone
+# if __name__ == "__main__":
+#     """Test ROI Visualizer với video file"""
+#     import sys
     
-    print("=" * 60)
-    print("Testing ROI Visualizer")
-    print("=" * 60)
+#     print("=" * 60)
+#     print("Testing ROI Visualizer")
+#     print("=" * 60)
     
-    # Load một frame test
-    video_path = input("Nhập đường dẫn video (hoặc RTSP URL): ").strip()
+#     # Load một frame test
+#     video_path = input("Nhập đường dẫn video (hoặc RTSP URL): ").strip()
     
-    if not video_path:
-        video_path = "rtsp://192.168.1.202:8554/live/cam6"
-        print(f"Sử dụng mặc định: {video_path}")
+#     if not video_path:
+#         video_path = "rtsp://192.168.1.202:8554/live/cam6"
+#         print(f"Sử dụng mặc định: {video_path}")
     
-    camera_id = "cam-88"
+#     camera_id = "cam-88"
     
-    # Tạo visualizer
-    visualizer = ROIVisualizer("../logic/roi_config.json")
+#     # Tạo visualizer
+#     visualizer = ROIVisualizer("../logic/roi_config.json")
     
-    # Mô phỏng ROI match
-    test_match = {
-        'camera_id': camera_id,
-        'slot_id': 'ROI_3',
-        'object_type': 'shelf',
-        'confidence': 0.92,
-        'iou': 0.85,
-        'bbox': [710, 118, 928, 335],
-        'timestamp': time.time()
-    }
-    visualizer.update_roi_match(test_match)
+#     # Mô phỏng ROI match
+#     test_match = {
+#         'camera_id': camera_id,
+#         'slot_id': 'ROI_3',
+#         'object_type': 'shelf',
+#         'confidence': 0.92,
+#         'iou': 0.85,
+#         'bbox': [710, 118, 928, 335],
+#         'timestamp': time.time()
+#     }
+#     visualizer.update_roi_match(test_match)
     
-    # Mở video
-    cap = cv2.VideoCapture(video_path)
+#     # Mở video
+#     cap = cv2.VideoCapture(video_path)
     
-    if not cap.isOpened():
-        print(f"Không mở được video: {video_path}")
-        sys.exit(1)
+#     if not cap.isOpened():
+#         print(f"Không mở được video: {video_path}")
+#         sys.exit(1)
     
-    print("\nĐang hiển thị video...")
-    print("Nhấn 'q' hoặc ESC để thoát")
-    print("Nhấn 'r' để reload ROI config")
+#     print("\nĐang hiển thị video...")
+#     print("Nhấn 'q' hoặc ESC để thoát")
+#     print("Nhấn 'r' để reload ROI config")
     
-    while True:
-        ret, frame = cap.read()
+#     while True:
+#         ret, frame = cap.read()
         
-        if not ret:
-            # Loop video
-            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-            continue
+#         if not ret:
+#             # Loop video
+#             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+#             continue
         
-        # Visualize
-        vis_frame = visualizer.visualize_frame(frame, camera_id)
+#         # Visualize
+#         vis_frame = visualizer.visualize_frame(frame, camera_id)
         
-        if vis_frame is not None:
-            cv2.imshow(f"ROI Visualizer - {camera_id}", vis_frame)
+#         if vis_frame is not None:
+#             cv2.imshow(f"ROI Visualizer - {camera_id}", vis_frame)
         
-        # Keyboard
-        key = cv2.waitKey(30) & 0xFF
-        if key == 27 or key == ord('q'):
-            break
-        elif key == ord('r'):
-            print("Reloading ROI config...")
-            visualizer.load_roi_config()
+#         # Keyboard
+#         key = cv2.waitKey(30) & 0xFF
+#         if key == 27 or key == ord('q'):
+#             break
+#         elif key == ord('r'):
+#             print("Reloading ROI config...")
+#             visualizer.load_roi_config()
     
-    cap.release()
-    cv2.destroyAllWindows()
-    print("\nĐã thoát!")
+#     cap.release()
+#     cv2.destroyAllWindows()
+#     print("\nĐã thoát!")
 

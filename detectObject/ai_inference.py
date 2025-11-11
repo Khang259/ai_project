@@ -325,9 +325,7 @@ def ai_inference_worker(shared_dict: Dict[str, Any],
                 except Exception:
                     perf_monitor.stop()  # Reset timer nếu có lỗi
                     torch.cuda.empty_cache()  # Xóa cache nếu lỗi
-            
-            # Bước 4: (Bỏ ghi result_dict/no_signal). Ở chế độ này chỉ in & gửi vào queue.
-            
+                    
     except KeyboardInterrupt:
         pass
     except Exception:

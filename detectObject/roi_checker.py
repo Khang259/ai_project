@@ -113,43 +113,46 @@ def calculate_iou(bbox: List[float], roi_rect: List[int]) -> float:
     Returns:
         IoU value (0.0 - 1.0)
     """
-    # Chuyển roi_rect [x, y, w, h] sang [x1, y1, x2, y2]
-    roi_x1 = roi_rect[0]
-    roi_y1 = roi_rect[1]
-    roi_x2 = roi_rect[0] + roi_rect[2]
-    roi_y2 = roi_rect[1] + roi_rect[3]
+    # Chuyển bbox và roi_rect sang dict format để tính toán rõ ràng hơn
+    bbox_dict = {
+        "x1": bbox[0],
+        "y1": bbox[1],
+        "x2": bbox[2],
+        "y2": bbox[3]
+    }
     
-    # Detection bbox đã là [x1, y1, x2, y2]
-    det_x1, det_y1, det_x2, det_y2 = bbox
+    # Chuyển roi_rect [x, y, w, h] sang dict [x1, y1, x2, y2]
+    roi_dict = {
+        "x1": roi_rect[0],
+        "y1": roi_rect[1],
+        "x2": roi_rect[0] + roi_rect[2],
+        "y2": roi_rect[1] + roi_rect[3]
+    }
     
-    # Tính vùng giao nhau (intersection)
-    inter_x1 = max(det_x1, roi_x1)
-    inter_y1 = max(det_y1, roi_y1)
-    inter_x2 = min(det_x2, roi_x2)
-    inter_y2 = min(det_y2, roi_y2)
+    # Tính intersection
+    x1 = max(bbox_dict["x1"], roi_dict["x1"])
+    y1 = max(bbox_dict["y1"], roi_dict["y1"])
+    x2 = min(bbox_dict["x2"], roi_dict["x2"])
+    y2 = min(bbox_dict["y2"], roi_dict["y2"])
     
     # Kiểm tra có giao nhau không
-    if inter_x1 >= inter_x2 or inter_y1 >= inter_y2:
+    if x2 <= x1 or y2 <= y1:
         return 0.0
     
-    # Diện tích giao nhau
-    inter_area = (inter_x2 - inter_x1) * (inter_y2 - inter_y1)
+    # Tính diện tích intersection
+    intersection = (x2 - x1) * (y2 - y1)
     
-    # Diện tích bbox detection
-    det_area = (det_x2 - det_x1) * (det_y2 - det_y1)
+    # Tính area của mỗi bbox
+    area_bbox = (bbox_dict["x2"] - bbox_dict["x1"]) * (bbox_dict["y2"] - bbox_dict["y1"])
+    area_roi = (roi_dict["x2"] - roi_dict["x1"]) * (roi_dict["y2"] - roi_dict["y1"])
     
-    # Diện tích ROI
-    roi_area = roi_rect[2] * roi_rect[3]
+    # Tính union
+    union = area_bbox + area_roi - intersection
     
-    # Diện tích hợp (union)
-    union_area = det_area + roi_area - inter_area
-    
-    # Tính IoU
-    if union_area == 0:
+    if union <= 0:
         return 0.0
     
-    iou = inter_area / union_area
-    return iou
+    return intersection / union
 
 
 def classify_object(class_id: int, confidence: float, conf_threshold: float = 0.6) -> str:
@@ -310,7 +313,7 @@ def roi_checker_worker(
     result_queue: Queue,
     roi_config_path: str = "logic/roi_config.json",
     iou_threshold: float = 0.3,
-    conf_threshold: float = 0.6
+    conf_threshold: float = 0.5
 ):
     """
     Worker process để xử lý ROI checking
@@ -383,6 +386,3 @@ def roi_result_consumer(result_queue: Queue):
         pass
     except Exception:
         pass
-
-
-

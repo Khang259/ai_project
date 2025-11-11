@@ -1,190 +1,20 @@
 {
   "cameras": [
     {
-      "name": "cam-99",
-      "url": "rtsp://localhost:8554/mystream",
-      "enabled": true
-    },
-    {
       "name": "cam-1",
-      "url": "rtsp://192.168.1.202:8554/live/cam1",
+      "url": "rtsp://localhost:8554/cam2",
       "enabled": true
     },
     {
       "name": "cam-2",
-      "url": "rtsp://192.168.1.202:8554/live/cam2",
-      "enabled": true
-    },
-    {
-      "name": "cam-3",
-      "url": "rtsp://192.168.1.202:8554/live/cam3",
-      "enabled": true
-    },
-    {
-      "name": "cam-4",
-      "url": "rtsp://192.168.1.202:8554/live/cam4",
-      "enabled": true
-    },
-    {
-      "name": "cam-5",
-      "url": "rtsp://192.168.1.202:8554/live/cam5",
-      "enabled": true
-    },
-    {
-      "name": "cam-6",
-      "url": "rtsp://192.168.1.202:8554/live/cam6",
-      "enabled": true
-    },
-    {
-      "name": "cam-7",
-      "url": "rtsp://192.168.1.202:8554/live/cam7",
-      "enabled": true
-    },
-    {
-      "name": "cam-8",
-      "url": "rtsp://192.168.1.202:8554/live/cam8",
-      "enabled": true
-    },
-    {
-      "name": "cam-9",
-      "url": "rtsp://192.168.1.202:8554/live/cam9",
-      "enabled": true
-    },
-    {
-      "name": "cam-10",
-      "url": "rtsp://192.168.1.202:8554/live/cam10",
-      "enabled": true
-    },
-    {
-      "name": "cam-11",
-      "url": "rtsp://192.168.1.202:8554/live/cam11",
-      "enabled": true
-    },
-    {
-      "name": "cam-12",
-      "url": "rtsp://192.168.1.202:8554/live/cam12",
-      "enabled": true
-    },
-    {
-      "name": "cam-13",
-      "url": "rtsp://192.168.1.202:8554/live/cam13",
-      "enabled": true
-    },
-    {
-      "name": "cam-14",
-      "url": "rtsp://192.168.1.202:8554/live/cam14",
-      "enabled": true
-    },
-    {
-      "name": "cam-15",
-      "url": "rtsp://192.168.1.202:8554/live/cam15",
-      "enabled": true
-    },
-    {
-      "name": "cam-16",
-      "url": "rtsp://192.168.1.202:8554/live/cam16",
-      "enabled": true
-    },
-    {
-      "name": "cam-17",
-      "url": "rtsp://192.168.1.202:8554/live/cam17",
-      "enabled": true
-    },
-    {
-      "name": "cam-18",
-      "url": "rtsp://192.168.1.202:8554/live/cam18",
-      "enabled": true
-    },
-    {
-      "name": "cam-19",
-      "url": "rtsp://192.168.1.202:8554/live/cam19",
-      "enabled": true
-    },
-    {
-      "name": "cam-20",
-      "url": "rtsp://192.168.1.202:8554/live/cam20",
-      "enabled": true
-    },
-    {
-      "name": "cam-21",
-      "url": "rtsp://192.168.1.202:8554/live/cam21",
-      "enabled": true
-    },
-    {
-      "name": "cam-22",
-      "url": "rtsp://192.168.1.202:8554/live/cam22",
-      "enabled": true
-    },
-    {
-      "name": "cam-23",
-      "url": "rtsp://192.168.1.202:8554/live/cam23",
-      "enabled": true
-    },
-    {
-      "name": "cam-24",
-      "url": "rtsp://192.168.1.202:8554/live/cam24",
-      "enabled": true
-    },
-    {
-      "name": "cam-25",
-      "url": "rtsp://192.168.1.202:8554/live/cam25",
-      "enabled": true
-    },
-    {
-      "name": "cam-26",
-      "url": "rtsp://192.168.1.202:8554/live/cam26",
-      "enabled": true
-    },
-    {
-      "name": "cam-27",
-      "url": "rtsp://192.168.1.202:8554/live/cam27",
-      "enabled": true
-    },
-    {
-      "name": "cam-28",
-      "url": "rtsp://192.168.1.202:8554/live/cam28",
-      "enabled": true
-    },
-    {
-      "name": "cam-29",
-      "url": "rtsp://192.168.1.202:8554/live/cam29",
-      "enabled": true
-    },
-    {
-      "name": "cam-30",
-      "url": "rtsp://192.168.1.202:8554/live/cam30",
-      "enabled": true
-    },
-    {
-      "name": "cam-31",
-      "url": "rtsp://192.168.1.202:8554/live/cam31",
-      "enabled": true
-    },
-    {
-      "name": "cam-32",
-      "url": "rtsp://192.168.1.202:8554/live/cam32",
-      "enabled": true
-    },
-    {
-      "name": "cam-33",
-      "url": "rtsp://192.168.1.202:8554/live/cam33",
-      "enabled": true
-    },
-    {
-      "name": "cam-34",
-      "url": "rtsp://192.168.1.202:8554/live/cam34",
-      "enabled": true
-    },
-    {
-      "name": "cam-35",
-      "url": "rtsp://192.168.1.202:8554/live/cam35",
+      "url": "rtsp://localhost:8554/cam1",
       "enabled": true
     }
   ],
   "system": {
     "num_processes": 5,
     "use_ai": true,
-    "model_path": "weights/model-hanam_0506.pt"
+    "model_path": "weights/yolov8boxdetect.pt"
   },
   "camera_settings": {
     "target_fps": 1.0,

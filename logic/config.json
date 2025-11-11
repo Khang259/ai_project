@@ -1,0 +1,40 @@
+{
+  "points": {
+    "000": { "camera_id": "cam-1", "slot_id": 1 },
+    "111": { "camera_id": "cam-1", "slot_id": 2 },
+    "222": { "camera_id": "cam-1", "slot_id": 3 },
+    "333": { "camera_id": "cam-1", "slot_id": 4 },
+    "444": { "camera_id": "cam-2", "slot_id": 1 },
+    "555": { "camera_id": "cam-2", "slot_id": 2 },
+    "666": { "camera_id": "cam-2", "slot_id": 3 }
+  },
+  "rules": [
+    {
+      "rule_name": "logic_3diem",
+      "logic_type": "Pairs",
+      "config": {
+        "s1": "000",
+        "e1": "444",
+        "e2": "555"
+      },
+      "params": {
+        "stability_time_sec": 10,
+        "output_queue": "Queue_A"
+      }
+    },
+    {
+      "rule_name": "logic_4diem",
+      "logic_type": "Dual",
+      "config": {
+        "s1": "111",
+        "e1": "444",
+        "s2": "222",
+        "e2": "555"
+      },
+      "params": {
+        "stability_time_sec": 5,
+        "output_queue": "Queue_B"
+      }
+    }
+  ]
+}
