@@ -80,7 +80,7 @@ app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
 app.include_router(notification.router, tags=["Notification"])
 app.include_router(task_status.router, tags=["Task Status"])
-app.include_router(monitor.router, prefix="/tasks", tags=["Monitor Management"])
+app.include_router(monitor.router, prefix="/monitor", tags=["Monitor Management"])
 
 @app.get("/")
 async def root():

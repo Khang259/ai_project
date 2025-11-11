@@ -2,7 +2,7 @@ import api from './api';
 
 // GET /tasks?date=YYYY-MM-DD
 export async function getTasksByDate(dateYMD) {
-  const res = await api.get('/tasks', { params: { date: dateYMD } });
+  const res = await api.get('/monitor', { params: { date: dateYMD } });
   return Array.isArray(res.data) ? res.data : [];
 }
 
