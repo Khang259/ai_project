@@ -38,7 +38,6 @@ class LogicProcessor:
         self.config_path = config_path
         
         # Khởi tạo Hash Tables (4 Hash Tables trong RAM)
-        print("🔧 Đang khởi tạo Hash Tables...")
         self.hash_tables = HashTables(config_path)
         
         # Danh sách các logic rules đã load
@@ -53,10 +52,7 @@ class LogicProcessor:
         }
         
         # Load rules từ config
-        print("Đang load Logic Rules...")
         self._load_logic_rules()
-        
-        print("Logic Processor đã sẵn sàng!")
     
     def _load_logic_rules(self):
         """
@@ -78,7 +74,6 @@ class LogicProcessor:
             rules = config.get("rules", [])
             
             if not rules:
-                print(" Không có rules nào trong config")
                 return
             
             for rule_config in rules:
@@ -100,17 +95,11 @@ class LogicProcessor:
                     
                     # Đăng ký vào trigger_map (Hash Table 3)
                     self._register_rule_triggers(logic_rule)
-                    
-                    print(f"Loaded: {logic_rule.get_rule_description()}")
-                else:
-                    print(f"Unknown logic type: {logic_type}")
-            
-            print(f"Đã load {len(self.logic_rules)} logic rules")
             
         except Exception as e:
-            print(f"Lỗi khi load logic rules: {e}")
-            import traceback
-            traceback.print_exc()
+            import logging
+            logger = logging.getLogger('LogicProcessor')
+            logger.error(f"Error loading logic rules: {e}")
     
     def _create_logic_rule(
         self,
@@ -186,6 +175,12 @@ class LogicProcessor:
         
         camera_id = event.get("camera_id")
         slot_id = event.get("slot_id")
+        object_type = event.get("object_type")
+        
+        # DEBUG: Log mỗi event nhận được
+        import logging
+        logger = logging.getLogger('LogicProcessor')
+        logger.debug(f"Event: {camera_id}/{slot_id} = {object_type}")
         
         # Tra cứu qr_code từ Hash Table 1
         qr_code = self.hash_tables.get_qr_code(camera_id, slot_id)
@@ -193,7 +188,10 @@ class LogicProcessor:
         if not qr_code:
             # Không có mapping cho camera_id/slot_id này
             # Bỏ qua event (không liên quan đến bất kỳ rule nào)
+            logger.debug(f"No QR code mapping for {camera_id}/{slot_id}")
             return outputs
+        
+        logger.debug(f"QR code: {qr_code}")
         
         # Tra cứu các rules liên quan từ Hash Table 3 (trigger_map)
         related_rules = self.hash_tables.get_triggered_rules(qr_code)
@@ -210,9 +208,9 @@ class LogicProcessor:
                     outputs.append(result)
                     self.stats["total_outputs_generated"] += 1
             except Exception as e:
-                print(f"Lỗi khi rule '{rule.rule_name}' xử lý event: {e}")
-                import traceback
-                traceback.print_exc()
+                import logging
+                logger = logging.getLogger('LogicProcessor')
+                logger.error(f"Error in rule '{rule.rule_name}': {e}")
         
         return outputs
     
@@ -278,9 +276,11 @@ class LogicProcessor:
         Lưu ý: Chỉ reload Hash Tables, không reload rules
         (reload rules cần restart process)
         """
-        print("Đang reload config...")
+        import logging
+        logger = logging.getLogger('LogicProcessor')
+        logger.info("Reloading config...")
         self.hash_tables.reload_config()
-        print("Reload thành công!")
+        logger.info("Reload completed")
 
 
 # ============================================================================
@@ -290,7 +290,8 @@ class LogicProcessor:
 def logic_processor_worker(
     input_queue: Queue,
     output_queue: Queue,
-    config_path: str = "config.json"
+    config_path: str = "config.json",
+    log_file: Optional[str] = None
 ):
     """
     Worker process - "Trái tim" của hệ thống
@@ -303,19 +304,31 @@ def logic_processor_worker(
         output_queue: Queue 2 - Gửi kết quả ra ngoài
         config_path: Đường dẫn file config.json
     """
-    print("\n" + "="*60)
-    print("LOGIC PROCESSOR WORKER STARTING")
-    print("="*60)
+    import logging
+    # Thiết lập logging trong process nếu có log_file được truyền vào
+    if log_file:
+        root_logger = logging.getLogger()
+        if not root_logger.handlers:
+            logging.basicConfig(
+                level=logging.INFO,
+                format='%(asctime)s | %(levelname)s | %(processName)s | %(message)s',
+                handlers=[logging.FileHandler(log_file, encoding='utf-8')]
+            )
+    logger = logging.getLogger('LogicProcessor')
+    
+    logger.info("=" * 60)
+    logger.info("LOGIC PROCESSOR WORKER STARTING")
+    logger.info("=" * 60)
     
     # Khởi tạo Logic Processor
     processor = LogicProcessor(config_path)
     
-    print(f"\nConfiguration:")
-    print(f"   - Config path: {config_path}")
-    print(f"   - Hash Tables: {len(processor.hash_tables.key_to_qr_map)} points")
-    print(f"   - Logic Rules: {len(processor.logic_rules)} rules")
-    print(f"\nStarting event processing loop...")
-    print("="*60 + "\n")
+    logger.info(f"Configuration:")
+    logger.info(f"  - Config path: {config_path}")
+    logger.info(f"  - Hash Tables: {len(processor.hash_tables.key_to_qr_map)} points")
+    logger.info(f"  - Logic Rules: {len(processor.logic_rules)} rules")
+    logger.info(f"Starting event processing loop...")
+    logger.info("=" * 60)
     
     event_count = 0
     output_count = 0
@@ -367,56 +380,25 @@ def logic_processor_worker(
                             "timestamp": output.get('timestamp', 0.0)
                         }
                         
-                        # Log trước khi put vào queue
-                        queue_name = output.get('output_queue', 'default_queue')
-                        rule_name = output.get('rule_name', 'unknown')
-                        stable_duration = output.get('stable_duration', 0.0)
-                        timestamp = output.get('timestamp', 0.0)
-                        
-                        print(f"\n{'='*60}")
-                        print(f"PUTTING INTO QUEUE B (logic_output_queue)")
-                        print(f"{'='*60}")
-                        print(f"Rule: {rule_name} ({rule_type})")
-                        print(f"QR Codes: {qr_codes}")
-                        print(f"Output Queue: {queue_name}")
-                        print(f"Timestamp: {timestamp}")
-                        print(f"Stable Duration: {stable_duration:.2f}s")
-                        print(f"Queue Size: {output_queue.qsize()}/{output_queue._maxsize if hasattr(output_queue, '_maxsize') else 'N/A'}")
-                        print(f"{'='*60}\n")
-                        
                         # Put vào queue (chỉ QR codes)
                         output_queue.put(queue_item, block=False)
                         output_count += 1
                         
-                        # Log thành công
-                        print(f"Successfully put into Queue B | QR Codes: {qr_codes} | Total outputs: {output_count}")
+                        # Log ngắn gọn: Time - Put (QR1, QR2, ...)
+                        qr_codes_str = ", ".join(qr_codes) if qr_codes else "N/A"
+                        logger.info(f"Put ({qr_codes_str})")
                         
                     except Exception as e:
-                        print(f"ERROR putting into Queue B: {e}")
-                        import traceback
-                        traceback.print_exc()
-                
-                # In statistics định kỳ
-                current_time = time.time()
-                if current_time - last_stats_time >= stats_interval:
-                    processor.print_statistics()
-                    last_stats_time = current_time
+                        logger.error(f"ERROR putting into Queue B: {e}")
                 
             except Exception:
                 # Queue timeout hoặc lỗi khác
                 time.sleep(0.01)
                 
     except KeyboardInterrupt:
-        print("\n\nReceived KeyboardInterrupt, shutting down...")
-        processor.print_statistics()
-        
-        print(f"\nFinal Summary:")
-        print(f"   - Events processed: {event_count}")
-        print(f"   - Outputs generated: {output_count}")
-        print(f"\nLogic Processor Worker stopped.\n")
+        logger.info("Received KeyboardInterrupt, shutting down...")
+        logger.info(f"Final Summary - Events: {event_count}, Outputs: {output_count}")
         
     except Exception as e:
-        print(f"\nFatal error in Logic Processor Worker: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Fatal error in Logic Processor Worker: {e}")
 

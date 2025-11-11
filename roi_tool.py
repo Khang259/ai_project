@@ -1,10 +1,20 @@
 import argparse
 import json
 import os
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import List, Tuple, Dict, Any
 import cv2
 Point = Tuple[int, int]
+
+try:
+    from detectObject.config import camera_config  # type: ignore
+except ImportError:
+    DETECT_OBJECT_DIR = Path(__file__).resolve().parent / "detectObject"
+    if str(DETECT_OBJECT_DIR) not in sys.path:
+        sys.path.insert(0, str(DETECT_OBJECT_DIR))
+    from config import camera_config  # type: ignore
 
 class RoiDrawer:
     def __init__(self, image, window_name: str = "ROI Tool") -> None:
@@ -21,7 +31,7 @@ class RoiDrawer:
 
     def _install_callbacks(self) -> None:
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.window_name, 640, 360)
+        cv2.resizeWindow(self.window_name, 1280, 720)
         cv2.setMouseCallback(self.window_name, self._mouse_cb)
 
     def _mouse_cb(self, event, x, y, flags, param) -> None:
@@ -217,8 +227,15 @@ def load_roi_config(roi_config_path: str) -> Dict[str, List[Dict[str, Any]]]:
     if not os.path.exists(roi_config_path):
         return {}
     
-    with open(roi_config_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    try:
+        with open(roi_config_path, 'r', encoding='utf-8') as f:
+            content = f.read().strip()
+            if not content:
+                return {}
+            return json.loads(content)
+    except json.JSONDecodeError as exc:
+        print(f"[WARNING] Không đọc được JSON từ {roi_config_path}: {exc}. Sử dụng dữ liệu rỗng.")
+        return {}
 
 
 def save_config(config: Dict[str, Any], config_path: str) -> None:
@@ -245,16 +262,70 @@ def save_roi_config(roi_config: Dict[str, List[Dict[str, Any]]], roi_config_path
         json.dump(roi_config, f, indent=2, ensure_ascii=False)
 
 
+def parse_target_size(value: str | None, default: Tuple[int, int]) -> Tuple[int, int]:
+    """
+    Parse target size string (vd: "1280x720" hoặc "1280,720") thành tuple (width, height)
+    """
+    if not value:
+        return default
+    
+    normalized = value.replace(" ", "").lower().replace("x", ",")
+    parts = [p for p in normalized.split(",") if p]
+    if len(parts) != 2:
+        raise ValueError(f"Giá trị target size không hợp lệ: '{value}'. Ví dụ hợp lệ: 1280x720")
+    
+    try:
+        width, height = int(parts[0]), int(parts[1])
+    except ValueError as exc:
+        raise ValueError(f"Giá trị target size phải là số nguyên: '{value}'") from exc
+    
+    if width <= 0 or height <= 0:
+        raise ValueError("target size phải > 0")
+    
+    return (width, height)
+
+
+def resolve_path(path_str: str) -> Path:
+    """
+    Chuyển đường dẫn (có thể tương đối) về absolute path dựa trên thư mục của script
+    """
+    path = Path(path_str)
+    if not path.is_absolute():
+        path = Path(__file__).resolve().parent / path
+    return path.resolve()
+
+
+def clamp_rect_to_bounds(rect: List[int], target_size: Tuple[int, int]) -> Tuple[List[int], bool]:
+    """
+    Clamp rect để chắc chắn nằm trong target_size. Trả về (rect_mới, đã chỉnh_sửa?)
+    """
+    x, y, w, h = rect
+    target_w, target_h = target_size
+    
+    clamped_x = max(0, min(x, target_w - 1))
+    clamped_y = max(0, min(y, target_h - 1))
+    
+    max_w = max(1, target_w - clamped_x)
+    max_h = max(1, target_h - clamped_y)
+    
+    clamped_w = max(1, min(w, max_w))
+    clamped_h = max(1, min(h, max_h))
+    
+    adjusted = (clamped_x != x) or (clamped_y != y) or (clamped_w != w) or (clamped_h != h)
+    
+    return [clamped_x, clamped_y, clamped_w, clamped_h], adjusted
+
+
 def polygon_to_rect(polygon: List[Point], 
                     original_size: Tuple[int, int] = None,
-                    target_size: Tuple[int, int] = (640, 360)) -> List[int]:
+                    target_size: Tuple[int, int] = (1280, 720)) -> List[int]:
     """
     Chuyển đổi polygon thành rect format [x, y, w, h] và scale về kích thước target
     
     Args:
         polygon: Danh sách các điểm của polygon
         original_size: Kích thước frame gốc (width, height). Nếu None, không scale
-        target_size: Kích thước đích để scale tọa độ (width, height). Mặc định: (640, 360)
+        target_size: Kích thước đích để scale tọa độ (width, height). Mặc định: (1280, 720)
         
     Returns:
         Rect dạng [x, y, w, h] với x,y là góc trên trái, w,h là width và height (đã scale)
@@ -340,15 +411,36 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Lưu ROI vào logic/roi_config.json (mặc định)",
     )
+    parser.add_argument(
+        "--roi-config-path",
+        type=str,
+        default="logic/roi_config.json",
+        help="Đường dẫn file roi_config.json để đọc/ghi (mặc định: logic/roi_config.json)",
+    )
+    parser.add_argument(
+        "--target-size",
+        type=str,
+        default=None,
+        help="Target size để scale ROI (vd: 1280x720). Mặc định lấy từ camera_config.FRAME_SIZE",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
 
+    try:
+        target_size = parse_target_size(args.target_size, camera_config.FRAME_SIZE)
+    except ValueError as exc:
+        print(f"[ERROR] {exc}")
+        return
+
+    cam_config_path = resolve_path(args.cam_config_path)
+    roi_config_path = resolve_path(args.roi_config_path)
+
     # Xử lý list cameras
     if args.list_cameras:
-        list_available_cameras(args.cam_config_path)
+        list_available_cameras(str(cam_config_path))
         return
 
     # Xác định video source (RTSP) và camera_id
@@ -358,7 +450,7 @@ def main() -> None:
     if args.cam:
         # Sử dụng camera từ RTSP config
         try:
-            cam_config = load_cam_config(args.cam_config_path)
+            cam_config = load_cam_config(str(cam_config_path))
             camera_id = args.cam
             
             if camera_id not in cam_config:
@@ -388,14 +480,12 @@ def main() -> None:
     # Lấy kích thước frame gốc
     frame_h, frame_w = frame.shape[:2]
     original_size = (frame_w, frame_h)
-    target_size = (640, 360)  # Kích thước AI input
     
     print(f"\nKích thước frame gốc: {frame_w}x{frame_h}")
     print(f"Kích thước target (AI input): {target_size[0]}x{target_size[1]}")
     
     # Đọc ROI config hiện tại
-    roi_config_path = "logic/roi_config.json"
-    roi_config = load_roi_config(roi_config_path)
+    roi_config = load_roi_config(str(roi_config_path))
     
     # Chuẩn hoá ROI data theo format mới (scale về target size)
     roi_list = []
@@ -405,6 +495,9 @@ def main() -> None:
         
         # Scale về target size
         rect_scaled = polygon_to_rect(poly, original_size=original_size, target_size=target_size)
+        rect_scaled, adjusted = clamp_rect_to_bounds(rect_scaled, target_size)
+        if adjusted:
+            print(f"  ⚠ ROI đã được clamp để nằm trong {target_size[0]}x{target_size[1]}")
         
         roi_list.append({
             "slot_id": f"{idx+1}",
@@ -420,11 +513,11 @@ def main() -> None:
     
     # Lưu ROI config nếu có cờ --save
     if args.save:
-        save_roi_config(roi_config, roi_config_path)
+        save_roi_config(roi_config, str(roi_config_path))
 
     if args.save:
         print(f"\n{'='*60}")
-        print(f"✓ Đã lưu roi_config của {camera_id} với {len(roi_list)} ROI")
+        print(f"Đã lưu roi_config của {camera_id} với {len(roi_list)} ROI")
         print(f"✓ File: {roi_config_path}")
         print(f"✓ Tọa độ đã được scale về {target_size[0]}x{target_size[1]} (AI input size)")
         print(f"{'='*60}")

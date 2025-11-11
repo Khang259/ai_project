@@ -10,7 +10,7 @@ from typing import Tuple
 class CameraConfig:
     """Cấu hình cho camera processing"""
     # Kích thước frame sau khi resize (width, height)
-    FRAME_SIZE: Tuple[int, int] = (640, 360)
+    FRAME_SIZE: Tuple[int, int] = (1280, 720)
     
     # Chất lượng JPEG compression (0-100)
     JPEG_QUALITY: int = 85
@@ -38,7 +38,7 @@ class CameraConfig:
 class AIConfig:
     """Cấu hình cho AI inference"""
     # Kích thước frame input cho model YOLO (width, height)
-    INPUT_SIZE: Tuple[int, int] = (640, 360)
+    INPUT_SIZE: Tuple[int, int] = (1280, 720)
     
     # Target FPS cho AI inference (frames per second)
     TARGET_FPS: float = 2.0

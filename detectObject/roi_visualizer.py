@@ -92,16 +92,18 @@ class ROIVisualizer:
     def update_roi_match(self, match_result: Dict[str, Any]):
         """
         Cập nhật kết quả ROI matching
+        Lưu tất cả kết quả bao gồm cả "empty" để hiển thị đầy đủ
         
         Args:
             match_result: Kết quả match từ ROI Checker
         """
         camera_id = match_result.get('camera_id', 'unknown')
         slot_id = match_result.get('slot_id', 'unknown')
+        object_type = match_result.get('object_type', 'unknown')
         
         with self.lock:
             self.roi_matches[camera_id][slot_id] = {
-                'object_type': match_result.get('object_type', 'unknown'),
+                'object_type': object_type,
                 'confidence': match_result.get('confidence', 0.0),
                 'iou': match_result.get('iou', 0.0),
                 'bbox': match_result.get('bbox', []),
@@ -114,8 +116,8 @@ class ROIVisualizer:
         Vẽ ROI rectangle lên frame
         
         Args:
-            frame: OpenCV frame
-            roi: ROI config {"slot_id": "ROI_1", "rect": [x, y, w, h]} - tọa độ ở 640x360
+            frame: OpenCV frame (có thể là 1280x720 hoặc đã resize)
+            roi: ROI config {"slot_id": "ROI_1", "rect": [x, y, w, h]} - tọa độ ở 1280x720
             match_info: Thông tin match (nếu có)
             
         Returns:
@@ -125,12 +127,13 @@ class ROIVisualizer:
         if len(rect) != 4:
             return frame
         
-        # ROI rect được lưu ở 640x360, cần scale lại về kích thước frame hiện tại
+        # ROI rect được lưu ở 1280x720 (cùng với detection bbox)
+        # Cần scale về kích thước frame hiện tại để vẽ
         frame_h, frame_w = frame.shape[:2]
-        target_w, target_h = 640, 360
+        roi_base_w, roi_base_h = 1280, 720  # Độ phân giải gốc của ROI config
         
-        scale_x = frame_w / target_w
-        scale_y = frame_h / target_h
+        scale_x = frame_w / roi_base_w
+        scale_y = frame_h / roi_base_h
         
         x = int(rect[0] * scale_x)
         y = int(rect[1] * scale_y)
@@ -148,7 +151,7 @@ class ROIVisualizer:
             # Vẽ bbox detection nếu có (scale về kích thước frame)
             bbox = match_info.get('bbox', [])
             if len(bbox) == 4:
-                # Detection bbox ở 640x360, scale về kích thước frame
+                # Detection bbox ở 1280x720 (cùng với ROI), scale về kích thước frame hiện tại
                 x1 = int(bbox[0] * scale_x)
                 y1 = int(bbox[1] * scale_y)
                 x2 = int(bbox[2] * scale_x)
@@ -164,13 +167,14 @@ class ROIVisualizer:
         # Vẽ label: slot_id + class (shelf/empty) + confidence
         if match_info:
             obj_type = match_info.get('object_type', 'empty')
-            # Nếu class khác 0 (shelf), mặc định là "empty"
+            # Đảm bảo chỉ hiển thị shelf hoặc empty
             if obj_type not in ['shelf', 'empty']:
                 obj_type = 'empty'
             confidence = match_info.get('confidence', 0.0)
             label = f"{slot_id}|{obj_type}|{confidence:.2f}"
         else:
-            label = slot_id
+            # Nếu chưa có match_info, hiển thị empty mặc định
+            label = f"{slot_id}|empty|0.00"
         
         # Điều chỉnh font size dựa trên kích thước frame
         # Với frame 640x360, dùng font size nhỏ hơn
@@ -341,9 +345,14 @@ class ROIVisualizer:
                 slot_id = roi.get('slot_id', 'unknown')
                 match_info = camera_matches.get(slot_id)
                 
-                # Lọc match info cũ (> 2 giây)
-                if match_info and (time.time() - match_info.get('timestamp', 0)) > 2.0:
-                    match_info = None
+                # Lọc match info cũ (> 5 giây) - tăng timeout
+                # Luôn hiển thị "empty" ngay cả khi cũ
+                if match_info:
+                    age = time.time() - match_info.get('timestamp', 0)
+                    if age > 5.0:
+                        # Nếu quá cũ, vẫn giữ nhưng đánh dấu là empty nếu chưa có update
+                        if match_info.get('object_type') != 'empty':
+                            match_info = None
                 
                 frame = self.draw_roi_rect(frame, roi, match_info)
         
@@ -391,10 +400,19 @@ def roi_visualizer_worker(
     # Thread để đọc ROI matches từ queue
     def roi_match_reader():
         """Thread để đọc ROI match results từ queue"""
+        update_count = 0
         while True:
             try:
                 match_result = roi_result_queue.get(timeout=0.1)
                 visualizer.update_roi_match(match_result)
+                update_count += 1
+                
+                # Debug: Log mỗi 10 updates
+                if update_count % 10 == 0:
+                    cam_id = match_result.get('camera_id', '?')
+                    slot_id = match_result.get('slot_id', '?')
+                    obj_type = match_result.get('object_type', '?')
+                    print(f"[Visualizer] Updated {update_count}: {cam_id}/{slot_id} = {obj_type}")
             except:
                 pass
     

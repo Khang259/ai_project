@@ -16,19 +16,46 @@ import json
 from pathlib import Path
 import argparse
 import sys
+import logging
+from datetime import datetime
 
 from camera_process import camera_process_worker
 from ai_inference import ai_inference_worker
 from roi_checker import roi_checker_worker, roi_result_consumer
 from roi_visualizer import roi_visualizer_worker
-from config import camera_config, ai_config, system_config, validate_config, print_config
+from config import camera_config, ai_config, system_config, validate_config
 
 # Import Logic Processor
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from logic import logic_processor_worker
 
 
-def output_handler_worker(output_queue: Queue):
+# Setup logging
+def setup_logging(log_file: str = None):
+    """
+    Cấu hình logging cho hệ thống
+    
+    Args:
+        log_file: Đường dẫn file log. Nếu None, sử dụng logs/system_{timestamp}.log
+    """
+    if log_file is None:
+        log_dir = Path(__file__).parent / "logs"
+        log_dir.mkdir(exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_file = log_dir / f"system_{timestamp}.log"
+    
+    logging.basicConfig(
+        level=logging.DEBUG,  # Tăng lên DEBUG để xem chi tiết
+        format='%(asctime)s | %(levelname)s | %(processName)s | %(message)s',
+        handlers=[
+            logging.FileHandler(log_file, encoding='utf-8'),
+        ]
+    )
+    
+    return str(log_file)
+
+
+def output_handler_worker(output_queue: Queue, log_file: Optional[str] = None):
     """
     Worker xử lý output từ Logic Processor (Queue B - logic_output_queue)
     Đây là nơi bạn có thể:
@@ -37,62 +64,40 @@ def output_handler_worker(output_queue: Queue):
     - Gửi notifications
     - Trigger actions khác
     """
-    print("📥 Output Handler Worker started (Reading from Queue B)\n")
+    # Thiết lập logging trong process nếu có log_file được truyền vào
+    if log_file:
+        root_logger = logging.getLogger()
+        if not root_logger.handlers:
+            logging.basicConfig(
+                level=logging.INFO,
+                format='%(asctime)s | %(levelname)s | %(processName)s | %(message)s',
+                handlers=[logging.FileHandler(log_file, encoding='utf-8')]
+            )
+    logger = logging.getLogger('OutputHandler')
+    logger.info("Output Handler Worker started")
     
     trigger_count = 0
     
     try:
         while True:
             try:
-                # Log trước khi get từ queue
-                queue_size_before = output_queue.qsize()
-                
                 # Get từ Queue B
                 output = output_queue.get(timeout=1.0)
                 trigger_count += 1
                 
-                queue_size_after = output_queue.qsize()
+                # Log ngắn gọn: Get (QR1, QR2, ...)
+                qr_codes = output.get('qr_codes', [])
+                qr_codes_str = ", ".join(qr_codes) if qr_codes else "N/A"
+                logger.info(f"Get ({qr_codes_str})")
                 
-                # Log khi nhận được từ Queue B
-                print(f"\n{'='*60}")
-                print(f"📥 RECEIVED FROM QUEUE B (logic_output_queue)")
-                print(f"{'='*60}")
-                print(f"Queue Size: {queue_size_before} → {queue_size_after} (after get)")
-                print(f"Trigger #: {trigger_count}")
-                print(f"Rule: {output.get('rule_name', 'unknown')} ({output.get('rule_type', 'unknown')})")
-                print(f"Timestamp: {output.get('timestamp', 0)}")
-                print(f"Stable Duration: {output.get('stable_duration', 0):.2f}s")
-                print(f"Output Queue: {output.get('output_queue', 'N/A')}")
-                
-                # Xử lý theo loại rule
-                if output['rule_type'] == 'Pairs':
-                    print(f"\n📍 3-Point Status:")
-                    print(f"   s1 ({output['s1']['qr_code']}): {output['s1']['state']} "
-                          f"[conf: {output['s1']['confidence']:.2f}]")
-                    print(f"   e1 ({output['e1']['qr_code']}): {output['e1']['state']} "
-                          f"[conf: {output['e1']['confidence']:.2f}]")
-                    print(f"   e2 ({output['e2']['qr_code']}): {output['e2']['state']} "
-                          f"[conf: {output['e2']['confidence']:.2f}]")
-                    
-                    # TODO: Gửi API request, lưu DB, etc.
-                    # api_response = send_to_external_api(output)
-                    
-                elif output['rule_type'] == 'Dual':
-                    print(f"\n📍 Pair Status: {output.get('pair', 'N/A')}")
-                    print(f"   s ({output['s']['qr_code']}): {output['s']['state']} "
-                          f"[conf: {output['s']['confidence']:.2f}]")
-                    print(f"   e ({output['e']['qr_code']}): {output['e']['state']} "
-                          f"[conf: {output['e']['confidence']:.2f}]")
-                
-                print(f"{'='*60}")
-                print(f"✅ Processing trigger #{trigger_count} from Queue B")
-                print(f"{'='*60}\n")
+                # TODO: Gửi API request, lưu DB, etc.
+                # api_response = send_to_external_api(output)
                 
             except:
                 time.sleep(0.01)
                 
     except KeyboardInterrupt:
-        print(f"\n\n👋 Output Handler stopped. Total triggers processed: {trigger_count}")
+        logger.info(f"Output Handler stopped. Total: {trigger_count}")
 
 
 class CameraOrchestrator:
@@ -153,11 +158,24 @@ class CameraOrchestrator:
     
     def start(self):
         """Khởi động hệ thống"""
-        # In cấu hình
-        print_config()
+        logger = logging.getLogger('CameraOrchestrator')
+        
+        # Log cấu hình
+        logger.info("=" * 60)
+        logger.info("SYSTEM CONFIGURATION")
+        logger.info("=" * 60)
+        logger.info(f"Camera Frame Size: {camera_config.FRAME_SIZE}")
+        logger.info(f"Camera Target FPS: {camera_config.TARGET_FPS}")
+        logger.info(f"AI Input Size: {ai_config.INPUT_SIZE}")
+        logger.info(f"AI Target FPS: {ai_config.TARGET_FPS}")
+        logger.info(f"Model Path: {ai_config.DEFAULT_MODEL_PATH}")
+        logger.info(f"Num Camera Processes: {system_config.NUM_CAMERA_PROCESSES}")
+        logger.info(f"Use AI: {system_config.USE_AI}")
+        logger.info("=" * 60)
         
         # Chia nhóm camera
         camera_groups = self._divide_cameras()
+        logger.info(f"Starting {len(camera_groups)} camera process groups")
         
         # Tạo và spawn các process camera
         for i, camera_group in enumerate(camera_groups):
@@ -167,6 +185,7 @@ class CameraOrchestrator:
             )
             self.processes.append(process)
             process.start()
+            logger.info(f"Camera process {i} started with {len(camera_group)} cameras")
         
         if self.use_ai:
             # AI Inference Worker
@@ -176,34 +195,36 @@ class CameraOrchestrator:
             )
             self.processes.append(ai_process)
             ai_process.start()
+            logger.info("AI Inference Worker started")
             
             # ROI Checker Worker
+            # Thông số: iou_threshold=0.5 (tăng từ 0.3), conf_threshold=0.4 (giảm từ 0.6)
             roi_checker_process = Process(
                 target=roi_checker_worker,
-                args=(self.detection_queue, self.roi_result_queue, "../logic/roi_config.json", 0.3, 0.6)
+                args=(self.detection_queue, self.roi_result_queue, "../logic/roi_config.json", 0.5, 0.4)
             )
             self.processes.append(roi_checker_process)
             roi_checker_process.start()
+            logger.info("ROI Checker Worker started (IoU: 0.5, Conf: 0.4)")
             
-            # Logic Processor Worker (MỚI THÊM)
+            # Logic Processor Worker
             if self.enable_logic_processor:
-                print("\n Starting Logic Processor...")
                 logic_processor_process = Process(
                     target=logic_processor_worker,
-                    args=(self.roi_result_queue, self.logic_output_queue, "../logic/config.json")
+                    args=(self.roi_result_queue, self.logic_output_queue, "../logic/config.json", logging.getLogger().handlers[0].baseFilename if logging.getLogger().handlers else None)
                 )
                 self.processes.append(logic_processor_process)
                 logic_processor_process.start()
-                print(" Logic Processor started\n")
+                logger.info("Logic Processor Worker started")
                 
-                # Output Handler Worker (MỚI THÊM)
+                # Output Handler Worker
                 output_handler_process = Process(
                     target=output_handler_worker,
-                    args=(self.logic_output_queue,)
+                    args=(self.logic_output_queue, logging.getLogger().handlers[0].baseFilename if logging.getLogger().handlers else None)
                 )
                 self.processes.append(output_handler_process)
                 output_handler_process.start()
-                print(" Output Handler started\n")
+                logger.info("Output Handler Worker started")
             
             # ROI Result Consumer (chỉ khi không dùng visualizer và không dùng logic processor)
             if not self.enable_visualization and not self.enable_logic_processor:
@@ -213,30 +234,44 @@ class CameraOrchestrator:
                 )
                 self.processes.append(roi_consumer_process)
                 roi_consumer_process.start()
+                logger.info("ROI Result Consumer started")
             
             # ROI Visualizer (nếu được bật)
             if self.enable_visualization:
                 visualizer_process = Process(
                     target=roi_visualizer_worker,
-                    args=(self.shared_dict, self.roi_result_queue, "../logic/roi_config.json", 640, 360, 15.0)
+                    args=(self.shared_dict, self.roi_result_queue, "../logic/roi_config.json", 1280, 720, 15.0)
                 )
                 self.processes.append(visualizer_process)
                 visualizer_process.start()
+                logger.info("ROI Visualizer Worker started")
+        
+        logger.info("All workers started successfully")
     
     def run_lifecycle(self):
         """Chạy vòng đời hệ thống"""
+        logger = logging.getLogger('CameraOrchestrator')
+        
         try:
+            logger.info("System lifecycle started")
+            last_log_time = time.time()
+            log_interval = 10.0  # Log status mỗi 10 giây
+            
             while True:
                 time.sleep(system_config.STATUS_DISPLAY_INTERVAL)
                 
-                # Hiển thị thống kê
-                active_cameras = len(self.shared_dict)
-                ok_cameras = sum(1 for cam_data in self.shared_dict.values() 
-                               if cam_data.get('status') == 'ok')
-                
-                print(f"Camera: {ok_cameras}/{active_cameras} OK | Logic: {'ON' if self.enable_logic_processor else 'OFF'}", end='\r')
+                # Log thống kê định kỳ
+                current_time = time.time()
+                if current_time - last_log_time >= log_interval:
+                    active_cameras = len(self.shared_dict)
+                    ok_cameras = sum(1 for cam_data in self.shared_dict.values() 
+                                   if cam_data.get('status') == 'ok')
+                    
+                    logger.info(f"Status: {ok_cameras}/{active_cameras} cameras OK | Logic: {'ON' if self.enable_logic_processor else 'OFF'}")
+                    last_log_time = current_time
                 
         except KeyboardInterrupt:
+            logger.info("Keyboard interrupt received, stopping system...")
             self._stop()
     
     def _stop(self):
@@ -280,6 +315,7 @@ Ví dụ sử dụng:
   python main_with_logic.py --no-ai            # Tắt AI detection
   python main_with_logic.py --model custom.pt  # Sử dụng model tùy chỉnh
   python main_with_logic.py --fps 3.0          # Đặt FPS cho AI inference
+  python main_with_logic.py --log-file logs/custom.log  # Chỉ định file log
         """
     )
     
@@ -297,8 +333,18 @@ Ví dụ sử dụng:
                        help='Số lượng camera process')
     parser.add_argument('--config', type=str, default='camera_config.json',
                        help='Đường dẫn file cấu hình camera')
+    parser.add_argument('--log-file', type=str, default=None,
+                       help='Đường dẫn file log (mặc định: logs/system_{timestamp}.log)')
     
     args = parser.parse_args()
+    
+    # Setup logging
+    log_file_path = setup_logging(args.log_file)
+    logger = logging.getLogger('Main')
+    logger.info("="*60)
+    logger.info("SYSTEM STARTING")
+    logger.info("="*60)
+    logger.info(f"Log file: {log_file_path}")
 
     # Load camera config từ file
     config = load_camera_config(args.config)
@@ -311,7 +357,10 @@ Ví dụ sử dụng:
     ]
     
     if not camera_urls:
+        logger.error("No cameras configured")
         return
+    
+    logger.info(f"Loaded {len(camera_urls)} cameras from config")
 
     # Lấy system settings
     system_settings = config.get('system', {})

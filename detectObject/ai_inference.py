@@ -278,8 +278,9 @@ def ai_inference_worker(shared_dict: Dict[str, Any],
                     if frame is None:
                         continue
                     
-                    # Resize frame về kích thước AI input
-                    frame = resize_frame(frame, ai_config.INPUT_SIZE)
+                    # Frame đã được resize về 1280x720 từ camera thread
+                    # Không cần resize lại vì ai_config.INPUT_SIZE = (1280, 720) giống camera_config.FRAME_SIZE
+                    # Xóa dòng resize dư thừa: frame = resize_frame(frame, ai_config.INPUT_SIZE)
                     
                     if frame is not None:
                         valid_frames[cam_name] = {

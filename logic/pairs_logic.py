@@ -99,6 +99,17 @@ class PairsLogic(LogicRule):
         
         stability_time = self.params.get("stability_time_sec", 10)
         
+        # DEBUG: Log stability check
+        import logging
+        logger = logging.getLogger('LogicProcessor')
+        s1_state = self.hash_tables.get_state(s1_qr)
+        e1_state = self.hash_tables.get_state(e1_qr)
+        e2_state = self.hash_tables.get_state(e2_qr)
+        logger.debug(f"[{self.rule_name}] s1({s1_qr})={s1_state.get('object_type') if s1_state else 'None'}, "
+                    f"e1({e1_qr})={e1_state.get('object_type') if e1_state else 'None'}, "
+                    f"e2({e2_qr})={e2_state.get('object_type') if e2_state else 'None'} | "
+                    f"Match={condition_met}, Stable={stable_duration:.1f}s/{stability_time}s")
+        
         # Cập nhật internal state để tracking
         if condition_met:
             if not self.internal_state["condition_met"]:
