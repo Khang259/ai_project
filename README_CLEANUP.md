@@ -174,7 +174,7 @@ Test script sẽ:
 2024-01-15 23:30:01 - daily_cleanup - INFO - === HOÀN THÀNH DAILY CLEANUP ===
 ```
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Cleanup không chạy tự động
 1. Kiểm tra cleanup service có được khởi động không

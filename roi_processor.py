@@ -403,21 +403,32 @@ class ROIProcessor:
 
         filtered_detections = []
         roi_has_shelf = [False] * len(roi_slots)  # Track xem ROI nào có shelf (không tính ROI bị block)
+        roi_detections = [[] for _ in roi_slots]  # Track tất cả detections trong mỗi ROI (để lấy confidence)
         
-        # Lọc detections có trong ROI và là shelf với confidence >= 0.5
+        # Bước 1: Lưu TẤT CẢ detections vào roi_detections để lấy confidence (không chỉ shelf)
         for detection in detections:
-            if detection.get("class_name") == "shelf" and detection.get("confidence", 0) >= 0.5:
+            for i, slot in enumerate(roi_slots):
+                if self.is_detection_in_roi(detection, [slot]):
+                    # Lưu tất cả detections trong ROI (kể cả không phải shelf) để lấy confidence
+                    roi_detections[i].append(detection)
+                    break  # Mỗi detection chỉ thuộc 1 ROI
+        
+        # Bước 2: Lọc detections có trong ROI và là shelf với confidence >= 0.5
+        for detection in detections:
+            if detection.get("class_name") == "hang":
                 for i, slot in enumerate(roi_slots):
                     if self.is_detection_in_roi(detection, [slot]):
-                        # Nếu slot này đang bị block thì bỏ qua shelf này (để cuối cùng sẽ thêm empty)
-                        if self.blocked_slots.get(camera_id, {}).get(i + 1):
-                            # Bị block: không đánh dấu roi_has_shelf -> sẽ tạo empty
-                            continue
-                        # Gắn slot_number cho detection thuộc ROI i
-                        detection_with_slot = dict(detection)
-                        detection_with_slot["slot_number"] = i + 1
-                        filtered_detections.append(detection_with_slot)
-                        roi_has_shelf[i] = True
+                        # Chỉ thêm vào filtered nếu confidence >= 0.5 và không bị block
+                        if detection.get("confidence", 0) >= 0.5:
+                            # Nếu slot này đang bị block thì bỏ qua shelf này (để cuối cùng sẽ thêm empty)
+                            if self.blocked_slots.get(camera_id, {}).get(i + 1):
+                                # Bị block: không đánh dấu roi_has_shelf -> sẽ tạo empty
+                                continue
+                            # Gắn slot_number cho detection thuộc ROI i
+                            detection_with_slot = dict(detection)
+                            detection_with_slot["slot_number"] = i + 1
+                            filtered_detections.append(detection_with_slot)
+                            roi_has_shelf[i] = True
                         break
         
         # Thêm "empty" cho các ROI không có shelf hoặc confidence < 0.5
@@ -425,10 +436,20 @@ class ROIProcessor:
             slot_number = i + 1
             # Nếu bị block hoặc không có shelf -> tạo empty
             if (slot_number) in self.blocked_slots.get(camera_id, {}) or not roi_has_shelf[i]:
-                # Tạo detection "empty" cho ROI này và gắn slot_number
+                # Lấy confidence từ YOLO detection có confidence < 0.5 trong ROI
+                # (vì nếu >= 0.5 thì đã được coi là shelf rồi)
+                max_confidence = 0.0
+                if roi_detections[i]:
+                    # Chỉ lấy confidence từ detections có confidence < 0.5
+                    low_conf_detections = [d for d in roi_detections[i] if d.get("confidence", 0.0) < 0.5]
+                    if low_conf_detections:
+                        max_confidence = max(d.get("confidence", 0.0) for d in low_conf_detections)
+                    # Nếu không có detection nào có confidence < 0.5, giữ max_confidence = 0.0
+                
+                # Tạo detection "empty" cho ROI này và gắn slot_number với confidence từ YOLO
                 empty_detection = {
                     "class_name": "empty",
-                    "confidence": 1.0,
+                    "confidence": max_confidence,  # Lấy confidence từ YOLO detection thực tế
                     "class_id": -1,
                     "bbox": {
                         "x1": min(point[0] for point in slot["points"]),

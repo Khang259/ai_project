@@ -119,17 +119,17 @@ class ROIVisualizer:
             if class_name == "empty":
                 if slot_number in blocked_rois:
                     color = self.COLOR_ROI_BLOCKED
-                    label = f"Slot{slot_number}  Blocked"
+                    label = f"Slot{slot_number}  Blocked ({confidence:.2f})"
                 else:
                     color = self.COLOR_EMPTY
-                    label = f"Slot{slot_number}  Empty"
+                    label = f"Slot{slot_number}  Empty ({confidence:.2f})"
             else:
                 if slot_number in blocked_rois:
                     color = self.COLOR_ROI_BLOCKED
-                    label = f"Slot{slot_number}  Blocked"
+                    label = f"Slot{slot_number}  Blocked ({confidence:.2f})"
                 else:
                     color = self.COLOR_SHELF_IN_ROI
-                    label = f"Slot{slot_number}  Shelf"
+                    label = f"Slot{slot_number}  Shelf ({confidence:.2f})"
             
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
             cv2.putText(frame, label, (x1, y1 - 5), 

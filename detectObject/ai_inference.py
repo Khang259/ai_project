@@ -121,7 +121,7 @@ class YOLOInference:
             "objects": objects
         }
 
-def ai_inference_worker(shared_dict, result_dict, model_path="weights/model-hanam_0506.pt", target_fps=2.0):
+def ai_inference_worker(shared_dict, result_dict, model_path="weights/yolov8boxdetectV2run2.pt", target_fps=2.0):
     """
 AI Inference worker process
     

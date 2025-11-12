@@ -130,3 +130,74 @@
 2025-10-29 13:15:19 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761718517268b53e, modelProcessCode=lenhDon
 2025-10-29 13:15:19 - fastapi_server - INFO - TASK_PATHS: ['10000679,10000035']
 2025-10-29 13:15:19 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761718517268b53e
+
+==========================
+
+Kịch bản test trên hondaVP Thứ 7
+
+2025-10-29 14:14:15 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617220538564ee7, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+THỪA        2025-10-29 14:14:15 - fastapi_server - INFO - TASK_PATHS: ['10000642,10000286', '10000300,10000124']
+2025-10-29 14:14:16 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617220538564ee7, taskCount=2
+2025-10-29 14:15:48 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617221460491599, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:15:48 - fastapi_server - INFO - TASK_PATHS: ['10000681,10000038', '10000037,10000126']
+2025-10-29 14:15:48 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617221460491599, taskCount=2
+2025-10-29 14:15:50 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761722148212ca2c, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:15:50 - fastapi_server - INFO - TASK_PATHS: ['10000685,10000074', '10000073,10000127']
+2025-10-29 14:15:50 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761722148212ca2c, taskCount=2
+2025-10-29 14:19:43 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617223816931e48, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-10-29 14:19:43 - fastapi_server - INFO - TASK_PATHS: ['10000689,10000068']
+2025-10-29 14:19:43 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617223816931e48, taskCount=1
+2025-10-29 14:19:55 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617223931168fcd, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-10-29 14:19:55 - fastapi_server - INFO - TASK_PATHS: ['10000640,10000289']
+2025-10-29 14:19:55 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617223931168fcd, taskCount=1
+2025-10-29 14:20:48 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617224464680383, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:20:48 - fastapi_server - INFO - TASK_PATHS: ['10000659,10000079', '10000067,10000127']
+2025-10-29 14:20:48 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617224464680383, taskCount=2
+2025-10-29 14:21:50 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761722508583c8cc, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-10-29 14:21:50 - fastapi_server - INFO - TASK_PATHS: ['10000689,10000068']
+2025-10-29 14:21:50 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761722508583c8cc, taskCount=1
+2025-10-29 14:22:10 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761722528363cbd4, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:22:10 - fastapi_server - INFO - TASK_PATHS: ['10000683,10000041', '10000040,10000126']
+2025-10-29 14:22:10 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761722528363cbd4, taskCount=2
+2025-10-29 14:22:44 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761722562029b02f, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-10-29 14:22:44 - fastapi_server - INFO - TASK_PATHS: ['10000632,10000375']
+2025-10-29 14:22:44 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761722562029b02f, taskCount=1
+2025-10-29 14:25:32 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617227301654985, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:25:32 - fastapi_server - INFO - TASK_PATHS: ['10000681,10000038', '10000037,10000126']
+2025-10-29 14:25:32 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617227301654985, taskCount=2
+2025-10-29 14:26:44 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=176172280225287f3, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+THIẾU ------2025-10-29 14:26:44 - fastapi_server - INFO - TASK_PATHS: ['10000685,10000074', '10000073,10000127']
+2025-10-29 14:26:44 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=176172280225287f3, taskCount=2
+2025-10-29 14:28:34 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=176172291245901d3, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:28:34 - fastapi_server - INFO - TASK_PATHS: ['10000679,10000035', '10000049,10000126']
+2025-10-29 14:28:34 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=176172291245901d3, taskCount=2
+2025-10-29 14:30:24 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761723022261669e, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:30:24 - fastapi_server - INFO - TASK_PATHS: ['10000685,10000074', '10000073,10000127']
+2025-10-29 14:30:24 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761723022261669e, taskCount=2
+2025-10-29 14:31:34 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=176172309255936d4, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:31:34 - fastapi_server - INFO - TASK_PATHS: ['10000659,10000079', '10000067,10000127']
+2025-10-29 14:31:34 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=176172309255936d4, taskCount=2
+2025-10-29 14:32:02 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761723120739ef9c, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:32:02 - fastapi_server - INFO - TASK_PATHS: ['10000687,10000071', '10000070,10000127']
+2025-10-29 14:32:02 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761723120739ef9c, taskCount=2
+2025-10-29 14:33:11 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761723189388db64, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:33:11 - fastapi_server - INFO - TASK_PATHS: ['10000677,10000046', '10000034,10000126']
+2025-10-29 14:33:11 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761723189388db64, taskCount=2
+2025-10-29 14:39:34 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761723572069d3e2, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:39:34 - fastapi_server - INFO - TASK_PATHS: ['10000659,10000079', '10000067,10000127']
+2025-10-29 14:39:34 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761723572069d3e2, taskCount=2
+2025-10-29 14:39:53 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617235913101410, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-10-29 14:39:53 - fastapi_server - INFO - TASK_PATHS: ['10000683,10000041']
+2025-10-29 14:39:53 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617235913101410, taskCount=1
+2025-10-29 14:44:04 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761723842509721e, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:44:04 - fastapi_server - INFO - TASK_PATHS: ['10000679,10000035', '10000049,10000126']
+2025-10-29 14:44:04 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761723842509721e, taskCount=2
+2025-10-29 14:44:07 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=1761723845262c282, modelProcessCode=lenhDooi, taskCount=2, client_ip=127.0.0.1
+2025-10-29 14:44:07 - fastapi_server - INFO - TASK_PATHS: ['10000638,10000292', '10000291,10000124']
+2025-10-29 14:44:07 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=1761723845262c282, taskCount=2
+2025-10-29 14:44:27 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=176172386515595fb, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-10-29 14:44:27 - fastapi_server - INFO - TASK_PATHS: ['10000677,10000046']
+2025-10-29 14:44:27 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=176172386515595fb, taskCount=1
+2025-10-29 14:46:34 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=17617239928491555, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-10-29 14:46:34 - fastapi_server - INFO - TASK_PATHS: ['10000687,10000071']
+2025-10-29 14:46:35 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=17617239928491555, taskCount=1

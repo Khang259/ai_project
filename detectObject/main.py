@@ -125,41 +125,44 @@ class CameraOrchestrator:
 def main():
 
     camera_urls = [
-          ("cam-1","rtsp://192.168.1.202:8554/live/cam1"),
-#     #   ("cam-2","rtsp://192.168.1.168:8554/live/cam2"),
-#     #   ("cam-3","rtsp://192.168.1.168:8554/live/cam3"),
-#     #   ("cam-4","rtsp://192.168.1.168:8554/live/cam4"),
-#     #   ("cam-5","rtsp://192.168.1.168:8554/live/cam5"),
-         ("cam-6","rtsp://192.168.1.202:8554/live/cam6")
-#     #   ("cam-7","rtsp://192.168.1.168:8554/live/cam7"),
-#     #   ("cam-8","rtsp://192.168.1.168:8554/live/cam8"),
-#     #   ("cam-9","rtsp://192.168.1.168:8554/live/cam9"),
-#     #   ("cam_10","rtsp://192.168.1.168:8554/live/cam10"),
-#     #   ("cam_11","rtsp://192.168.1.168:8554/live/cam11"),
-#     #   ("cam_12","rtsp://192.168.1.168:8554/live/cam12"),
-#     #   ("cam-13","rtsp://192.168.1.168:8554/live/cam13"),
-#     #   ("cam-14","rtsp://192.168.1.168:8554/live/cam14"),
-#     #   ("cam-15","rtsp://192.168.1.168:8554/live/cam15"),
-#     #   ("cam-16","rtsp://192.168.1.168:8554/live/cam16"),
-#     #   ("cam-17","rtsp://192.168.1.168:8554/live/cam17"),
-#     #   ("cam-18","rtsp://192.168.1.168:8554/live/cam18"),
-#     #   ("cam-19","rtsp://192.168.1.168:8554/live/cam19"),
-#     #   ("cam-20","rtsp://192.168.1.168:8554/live/cam20"),
-#     #   ("cam-21","rtsp://192.168.1.168:8554/live/cam21"),
-#     #   ("cam-22","rtsp://192.168.1.168:8554/live/cam22"),
-#     #   ("cam-23","rtsp://192.168.1.168:8554/live/cam23"),
-#     #   ("cam-24","rtsp://192.168.1.168:8554/live/cam24"),
-#     #   ("cam-25","rtsp://192.168.1.168:8554/live/cam25"),
-#     #   ("cam-26","rtsp://192.168.1.168:8554/live/cam26"),
-#     #   ("cam-27","rtsp://192.168.1.168:8554/live/cam27"),
-#     #   ("cam-28","rtsp://192.168.1.168:8554/live/cam28"),
-#     #   ("cam-29","rtsp://192.168.1.168:8554/live/cam29"),
-#     #   ("cam-30","rtsp://192.168.1.168:8554/live/cam30"),
-#     #   ("cam-31","rtsp://192.168.1.168:8554/live/cam31"),
-#     #   ("cam-32","rtsp://192.168.1.168:8554/live/cam32"),
-#     #   ("cam-33","rtsp://192.168.1.168:8554/live/cam33"),
-#     #   ("cam-34","rtsp://192.168.1.168:8554/live/cam34"),
-#     #   ("cam-35","rtsp://192.168.1.168:8554/live/cam35")
+        ("cam-1","rtsp://localhost:8554/cam33"),
+        ("cam-2","rtsp://localhost:8554/cam34"),
+        ("cam-3","rtsp://localhost:8554/cam1")
+        #   ("cam-1","rtsp://192.168.1.202:8554/live/cam1"),
+        #   ("cam-2","rtsp://192.168.1.202:8554/live/cam2"),
+        #   ("cam-3","rtsp://192.168.1.202:8554/live/cam3"),
+        #   ("cam-4","rtsp://192.168.1.202:8554/live/cam4"),
+        #   ("cam-5","rtsp://192.168.1.202:8554/live/cam5"),
+        #   ("cam-6","rtsp://192.168.1.202:8554/live/cam6"),
+        #   ("cam-7","rtsp://192.168.1.202:8554/live/cam7"),
+        #   ("cam-8","rtsp://192.202.1.202:8554/live/cam8"),
+        #   ("cam-9","rtsp://192.168.1.202:8554/live/cam9"),
+        #   ("cam_10","rtsp://192.168.1.202:8554/live/cam10"),
+        #   ("cam_11","rtsp://192.168.1.202:8554/live/cam11"),
+        #   ("cam_12","rtsp://192.168.1.202:8554/live/cam12"),
+        #   ("cam-13","rtsp://192.168.1.202:8554/live/cam13"),
+        #   ("cam-14","rtsp://192.202.1.202:8554/live/cam14"),
+        #   ("cam-15","rtsp://192.168.1.202:8554/live/cam15"),
+        #   ("cam-16","rtsp://192.202.1.202:8554/live/cam16"),
+        #   ("cam-17","rtsp://192.168.1.202:8554/live/cam17"),
+        #   ("cam-18","rtsp://192.168.1.202:8554/live/cam18"),
+        #   ("cam-19","rtsp://192.168.1.202:8554/live/cam19"),
+        #   ("cam-20","rtsp://192.202.1.202:8554/live/cam20"),
+        #   ("cam-21","rtsp://192.168.1.202:8554/live/cam21"),
+        #   ("cam-22","rtsp://192.168.1.202:8554/live/cam22"),
+        #   ("cam-23","rtsp://192.168.1.202:8554/live/cam23"),
+        #   ("cam-24","rtsp://192.168.1.202:8554/live/cam24"),
+        #   ("cam-25","rtsp://192.202.1.202:8554/live/cam25"),
+        #   ("cam-26","rtsp://192.168.1.202:8554/live/cam26"),
+        #   ("cam-27","rtsp://192.202.1.202:8554/live/cam27"),
+        #   ("cam-28","rtsp://192.168.1.202:8554/live/cam28"),
+        #   ("cam-29","rtsp://192.168.1.202:8554/live/cam29"),
+        #   ("cam-30","rtsp://192.168.1.202:8554/live/cam30"),
+        #   ("cam-31","rtsp://192.168.1.202:8554/live/cam31"),
+        #   ("cam-32","rtsp://192.168.1.202:8554/live/cam32"),
+        #   ("cam-33","rtsp://192.168.1.202:8554/live/cam33"),
+        #   ("cam-34","rtsp://192.168.1.202:8554/live/cam34"),
+        #   ("cam-35","rtsp://192.168.1.202:8554/live/cam35")
      ]
     
 
@@ -206,7 +209,7 @@ def main():
     NUM_PROCESSES = 5  # Có thể thay đổi số này
     MAX_RETRY_ATTEMPTS = 5  # Số lần thử kết nối lại tối đa
     USE_AI = True  # Bật/tắt AI detection
-    MODEL_PATH = "weights/model-hanam_0506.pt"  # Đường dẫn model YOLO
+    MODEL_PATH = "weights/yolov8boxdetectV2run2.pt"  # Đường dẫn model YOLO
     
     # Cấu hình FPS - có thể thay đổi ở đây
     FPS_PRESET = "low"  # Chọn preset: "very_low", "low", "normal", "high", "very_high"
