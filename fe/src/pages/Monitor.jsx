@@ -4,6 +4,7 @@ import { Monitor } from 'lucide-react';
 import { Table } from 'antd';
 import useMonitor from '../hooks/Setting/useMonitor';
 import useMonitorWS from '../components/Settings/useMonitorWS';
+import thadorobotLogo from '../assets/thadorobot_logo.png';
 
 const MonitorPage = () => {
   const { data, fetchData } = useMonitor();
@@ -55,14 +56,18 @@ const MonitorPage = () => {
   // Status colors for progress segments
   const getStatusColor = (status) => {
     if (status === 'completed') return 'bg-green-500';
-    if (status === 'in_progress') return 'bg-yellow-400';
+    if (status === 'in_progress') return 'bg-yellow-300';
     return 'bg-gray-300';
   };
 
   return (
     <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-center gap-4 text-[3rem] font-bold text-slate-800 mb-4">
+          <div className="flex w-100px items-center justify-start gap-4 ">
+            <img src={thadorobotLogo} alt="Thado Robot" className="w-15 h-15" />
+            <div className="text-4xl font-bold text-[#1C9B9B]">THADOROBOT</div>
+          </div>
+          <CardTitle className="flex top-0 absolute left-1/2 -translate-x-1/2 transform items-center justify-center gap-4 text-[3rem] font-bold text-slate-800 mb-4">
             <span className="text-[4rem] font-extrabold uppercase italic tracking-widest drop-shadow-lg skew-y-1 -rotate-1">
               {"Monitor".split("").map((ch, idx) => {
                 const rainbow = ["#E40303", "#FF8C00", "#FFED00", "#008026", "#24408E", "#732982"];
@@ -76,10 +81,10 @@ const MonitorPage = () => {
             </span>
           </CardTitle>
         </CardHeader>
-
         <CardContent>
           {/* ========== BARS WRAPPER ========== */}
-          <div className="rounded-xl p-[3px] bg-gradient-to-r from-sky-400 via-purple-500 to-pink-500 shadow-lg mb-12 shadow-fuchsia-700">
+          <div className="relative rounded-xl p-2 bg-gradient-to-br from-white-600 to-yellow-300 shadow-[0_0_25px_#000000] mb-12 mt-10">
+             <div className="w-[10px] aspect-square absolute bg-blue-600 rounded-full shadow-[0_0_10px_#ffffff] z-[1] right-[1%] top-[1%] animate-[moveDot_15s_linear_infinite]"></div>
             <div className="rounded-lg bg-white p-4">
               {/* ========== FRAME SECTION ========== */}
               <div className="mb-8">
@@ -92,7 +97,7 @@ const MonitorPage = () => {
                       key={item.key || index}
                       className={`${getStatusColor(
                         item.status
-                      )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all hover:scale-[1.02]`}
+                      )} flex-1 relative flex items-center justify-center text-black font-semibold text-lg transition-all`}
                       title={`${item.product_name} - ${item.status}`}
                     >
                       {item.product_name}
@@ -126,7 +131,7 @@ const MonitorPage = () => {
           {/* ========== TABLES SECTION ========== */}
           <div className="flex flex-wrap gap-8">
             {/* FRAME TABLE */}
-            <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md ">
+            <div className="flex-1 min-w-[400px] bg-gradient-to-br from-black-600 to-blue-400 shadow-[-10px_10px_25px_#000000] mb-12 rounded-xl border border-slate-300 p-4">
               <h5 className="text-5xl font-semibold mb-3 text-center text-sky-600">Model Frame</h5>
               <Table
                 size="large"
@@ -145,7 +150,7 @@ const MonitorPage = () => {
             </div>
 
             {/* TANK TABLE */}
-            <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md">
+            <div className="flex-1 min-w-[400px] bg-gradient-to-br from-white-600 to-green-400 shadow-[10px_10px_25px_#000000] mb-12 rounded-xl border border-slate-300 p-4">
               <h5 className="text-5xl font-semibold mb-3 text-center text-emerald-600">Model Tank</h5>
               <Table
                 size="large"
