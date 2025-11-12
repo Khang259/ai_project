@@ -127,7 +127,7 @@ const MonitorPage = () => {
           <div className="flex flex-wrap gap-8">
             {/* FRAME TABLE */}
             <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md ">
-              <h5 className="text-xl font-semibold mb-3 text-center text-sky-600">Model Frame</h5>
+              <h5 className="text-5xl font-semibold mb-3 text-center text-sky-600">Model Frame</h5>
               <Table
                 size="large"
                 bordered
@@ -146,7 +146,7 @@ const MonitorPage = () => {
 
             {/* TANK TABLE */}
             <div className="flex-1 min-w-[400px] bg-white rounded-xl border border-slate-300 p-4 shadow-md">
-              <h5 className="text-xl font-semibold mb-3 text-center text-emerald-600">Model Tank</h5>
+              <h5 className="text-5xl font-semibold mb-3 text-center text-emerald-600">Model Tank</h5>
               <Table
                 size="large"
                 bordered

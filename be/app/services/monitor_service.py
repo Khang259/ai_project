@@ -18,12 +18,16 @@ async def save_monitors_with_bulk(items: List[MonitorRequest]) -> dict:
     now = datetime.utcnow()
 
     # Gom các ngày chuẩn hóa (00:00:00) xuất hiện trong batch
-    date_set = set()
+    normalized_date = datetime(now.year, now.month, now.day, 0, 0, 0, 0)
+    
+    min_order_by_category={
+        "frame": float('inf'),
+        "tank": float('inf'),
+    }
+    for it in items:
+        min_order_by_category[it.category_name] = min(min_order_by_category[it.category_name], it.production_order)
     docs = []
     for it in items:
-        normalized_date = datetime(it.date.year, it.date.month, it.date.day, 0, 0, 0, 0)
-        date_set.add(normalized_date)
-
         docs.append({
             "date": normalized_date,
             "category_name": it.category_name,
@@ -31,15 +35,14 @@ async def save_monitors_with_bulk(items: List[MonitorRequest]) -> dict:
             "production_order": it.production_order,
             "target_quantity": it.target_quantity,
             "produced_quantity": 0,
-            "status": "in_progress" if it.production_order == 1 else "pending",
+            "status": "in_progress" if it.production_order == min_order_by_category[it.category_name] else "pending",
             "created_at": now,
         })
 
     # Xóa tất cả record của các ngày có trong batch
     deleted_total = 0
-    for d in date_set:
-        res = await col.delete_many({"date": d})
-        deleted_total += res.deleted_count or 0
+    res = await col.delete_many({"date": normalized_date, "status": {"$ne": "completed"}})
+    deleted_total += res.deleted_count or 0
 
     # Thêm mới toàn bộ batch
     result = await col.insert_many(docs, ordered=False)
@@ -49,7 +52,7 @@ async def save_monitors_with_bulk(items: List[MonitorRequest]) -> dict:
         "total": len(items),
         "deleted": deleted_total,
         "inserted": inserted,
-        "message": f"Replaced {deleted_total} old docs; inserted {inserted} new docs for {len(date_set)} day(s).",
+        "message": f"Replaced {deleted_total} old docs; inserted {inserted} new docs for today.",
     }
 
 

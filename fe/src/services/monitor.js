@@ -8,7 +8,7 @@ export async function getTasksByDate(dateYMD) {
 
 // POST /tasks/sync-plan: upsert kế hoạch trong ngày
 export async function upsertDailyPlan(tasks) {
-  const res = await api.post('/tasks/sync-plan', tasks || []);
+  const res = await api.post('/monitor/sync-plan', tasks || []);
   return res.data;
 }
 

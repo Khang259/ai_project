@@ -12,7 +12,7 @@ class MonitorRequest(BaseModel):
 
 class MonitorResponse(BaseModel):
     total: int
-    matched: int
+    matched: int | None = None
     inserted: int
     message: str
 

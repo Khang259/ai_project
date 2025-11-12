@@ -42,15 +42,26 @@ const MonitorSettings = () => {
       });
       jsonData.push(rowData);
     });
+    
 
+    let indexFrame = 1;
+    let indexTank = 1;
+    data.forEach((item) => {
+      if (item.category_name === "frame" && item.status === "completed") {
+        indexFrame++;
+      }
+      if (item.category_name === "tank" && item.status === "completed") {
+        indexTank++;
+      }
+    });
     const transformedData = [];
-    jsonData.forEach((row, index) => {
+    jsonData.forEach((row) => {
       if (row["Name Frame"]) {
         transformedData.push({
           category_name: "frame",
           product_name: row["Name Frame"],
           target_quantity: row["Quantity Frame"],
-          production_order: index + 1
+          production_order: indexFrame ++
         });
       }
       if (row["Name Tank"]) {  
@@ -58,7 +69,7 @@ const MonitorSettings = () => {
           category_name: "tank",
           product_name: row["Name Tank"],
           target_quantity: row["Quantity Tank"],
-          production_order: index + 1
+          production_order: indexTank ++
         });
       }
     });
@@ -112,7 +123,7 @@ const MonitorSettings = () => {
 
     // Data Validation cho cột A và C
     const lastRow = 100;
-    const listFormula = `List!$A$2:$A$${listNames.length + 1}`;
+    const listFormula = `List!$A$2:$A$25`;
 
     for (let i = 2; i <= lastRow; i++) {
       wsModel.getCell(`A${i}`).dataValidation = {
