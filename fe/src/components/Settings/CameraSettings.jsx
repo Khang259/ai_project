@@ -291,6 +291,7 @@ const CameraSettings = () => {
                                 <TableHead className="text-xs text-center">y</TableHead>
                                 <TableHead className="text-xs text-center">w</TableHead>
                                 <TableHead className="text-xs text-center">h</TableHead>
+                                <TableHead className="text-xs text-center">TaskPath</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -301,6 +302,7 @@ const CameraSettings = () => {
                                   <TableCell className="text-center">{roi.y}</TableCell>
                                   <TableCell className="text-center">{roi.width}</TableCell>
                                   <TableCell className="text-center">{roi.height}</TableCell>
+                                  <TableCell className="text-center">{roi.task_path}</TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>

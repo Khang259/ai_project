@@ -36,7 +36,7 @@ function App() {
             className="fixed top-0 left-0 w-full h-full object-cover -z-10 opacity-0 transition-opacity duration-700"
             onCanPlay={(e) => (e.target.style.opacity = 1)} // fade-in khi sẵn sàng
           >
-            <source src="/src/assets/vid_bg_3_flip.mp4" type="video/mp4" />
+            <source src="/src/assets/vid_bg.mp4" type="video/mp4" />
           </video>
         )}
         <Routes>

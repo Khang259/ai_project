@@ -64,24 +64,140 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
   });
 
   return (
-    <div className="min-h-screen pt-3">
-      <div className="mx-4 mb-4">
-        <header className="header-glassmorphism h-20 px-8 flex items-center justify-between rounded-2xl">
+    <div className="bg-gray-900 ">
+      <div className="relative w-full">
+        {/* SVG frame bao quanh header */}
+        <svg
+          className="pointer-events-none absolute inset-0 w-full h-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* 1. Đường nền (toàn bộ, màu gốc, mờ) */}
+          <path
+            d="M 0 100 L 14 100 L 16.5 100 L 20 70 L 23 70 L 80 70 L 83 40 L 83 0"
+            stroke="rgb(34,189,189)"
+            strokeWidth="4"
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+            filter="url(#glowBlur)"
+          />
+
+          <path
+            d="M 0 100 L 14 100"
+            stroke="rgb(34,189,189)"
+            strokeWidth="6"
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+          />
+
+
+          {/* 2. Gradient 1: Xanh Cyan → Lục Neon (16.5,100 → 20,70) */}
+          <defs>
+            {/* Blur filter for glow effect */}
+            <filter id="glowBlur" x="-100%" y="-100%" width="700%" height="700%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <linearGradient id="cyanToGreen" x1="100%" y1="0%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#9B59B6" />
+              <stop offset="100%" stopColor="#A930FF" />
+            </linearGradient>
+          </defs>
+
+          <path
+            d="M 14 100 L 16.5 100"
+            stroke="url(#cyanToGreen)"
+            strokeWidth="6"
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          <path
+            d="M 14 100 L 16.5 100 L 20 70 L 23 70 "
+            stroke="url(#cyanToGreen)"
+            strokeWidth="4"
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+        <header className="relative flex items-center justify-between rounded-2xl px-4 py-3">
           {/* Left Section - Logo & Area Selector */}
-          <div className="flex items-center gap-6">
+          <div className="relative flex items-center z-1" 
+            // style={{ 
+            //   borderBottom: '1px solid rgb(34,189,189)' 
+            //   }}
+          >
             {/* Logo - Minimal Design */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
+            <div className="w-1/5 flex items-center gap-3">
+              <div className="">
                 <img 
                   src="/src/assets/logo_cty.png" 
                   alt="Company Logo" 
-                  className="h-12 w-auto object-contain filter drop-shadow-lg" 
+                  className="h-14 object-contain filter drop-shadow-lg" 
                 />
               </div>
             </div>
 
-            {/* Area Selector - Neumorphism Style */}
-            <div className="hidden md:flex items-center">
+            {/* Navigation*/}
+            <div className="row-2">
+              <div className="relative">
+                <nav className="hidden lg:flex items-center gap-2 ml-4">
+                  {filteredNavigation.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.nameKey}
+                        to={item.href}
+                        className={`header-nav-item flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                          isActive
+                            ? "active text-[rgb(34,189,189)]"
+                            : "text-gray-300 hover:text-white"
+                        }`}
+                      >
+                        <item.icon className={`w-4 h-4 ${isActive ? 'text-[rgb(34,189,189)]' : ''}`} />
+                        <span className="hidden xl:inline">{t(item.nameKey)}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+
+                {/* Trapezoid: width = 100% navigation, height = phần còn lại */}
+                <div className="relative bottom-0 left-0 w-full h-10 overflow-visible pointer-events-none">
+                  {/* <svg
+                    width="100%"
+                    height="30"
+                    viewBox="0 0 100 30"
+                    preserveAspectRatio="none"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-full h-full"
+                  >
+                    <path
+                      d="M 0 30 L 10 0 L 100 0"
+                      stroke="rgb(34,189,189)"
+                      strokeWidth="1"
+                      fill="none"
+                    />
+
+                    <path
+                      d="M 100 0 L 100 30 L 0 30 Z"
+                      stroke="none"
+                      fill="none"
+                    />
+                  </svg> */}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section - Language & User */}
+          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -127,31 +243,6 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            
-            {/* Navigation - Minimal & Clean */}
-            <nav className="hidden lg:flex items-center gap-2 ml-4">
-              {filteredNavigation.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.nameKey}
-                    to={item.href}
-                    className={`header-nav-item flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
-                      isActive
-                        ? "active text-[rgb(34,189,189)]"
-                        : "text-gray-300 hover:text-white"
-                    }`}
-                  >
-                    <item.icon className={`w-4 h-4 ${isActive ? 'text-[rgb(34,189,189)]' : ''}`} />
-                    <span className="hidden xl:inline">{t(item.nameKey)}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Right Section - Language & User */}
-          <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -190,7 +281,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
         </header>
       </div>
       {/* Main Content */}
-      <main className="min-h-[calc(100vh-5rem)] px-4">{children}</main>
+      <main className="px-4">{children}</main>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import loginVideo from "@/assets/vid_landingpage.mp4"
+import loginVideo from "@/assets/vid_landingpages.mp4"
 import { useEffect, useRef } from "react"
 import { LoginForm } from "@/components/Login-form/login-form"
 

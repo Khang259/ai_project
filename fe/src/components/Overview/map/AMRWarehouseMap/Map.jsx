@@ -312,9 +312,9 @@ const LeafletMap = ({
             
             // Màu path
             const path = L.polyline(smoothPath, {
-              color: 'rgb(17, 113, 223)',
+              color: 'rgb(17, 223, 223)',
               weight: 3,
-              opacity: 0.8,
+              opacity: 1,
               lineCap: 'round',
               lineJoin: 'round',
               smoothFactor: 1,
@@ -623,11 +623,11 @@ const LeafletMap = ({
         `}
       </style>
         <div 
-          className='glass map-wrapper'
+          className='map-wrapper'
           ref={mapRef} 
           style={{
             width: '100%',
-            height: '85vh',
+            height: '40vh',
             position: 'relative'
           }}
         />

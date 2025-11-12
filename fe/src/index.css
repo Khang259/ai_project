@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@/styles/glowing.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -123,7 +124,7 @@
     color: black !important; /* Light mode: chữ đen */
   }
   
-  #background-video {
+  /* #background-video {
     position: fixed;
     top: 0;
     left: 0;
@@ -131,14 +132,13 @@
     height: 100%;
     object-fit: cover;
     z-index: -1;
-    background: url('/src/assets/bg5.jpg') center/cover; /* Fallback image */
+    background: url('/src/assets/bg5.jpg') center/cover;
   }
 
   
-  /* Ensure smooth transitions for theme switching */
   html {
     transition: background-color 1s ease;
-  }
+  } */
 
   .map-wrapper {
     background: transparent !important;

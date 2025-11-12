@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertCircle, Package, Truck, Search, ArrowUpDown, ArrowUp, ArrowDown, Edit3, Save, X } from "lucide-react"
 import { getSumPartsReplaceAll, updateAMRName } from "@/services/amr_parts_replace"
-import Loader from "@/components/Loading"
+// import Loader from "@/components/Loading"
 
 export function PartsReplaceOverview({ onAMRClick }) {
   const [data, setData] = useState(null)
@@ -130,9 +130,9 @@ export function PartsReplaceOverview({ onAMRClick }) {
     }
   }
 
-  if (loading) {
-    return <Loader />
-  }
+  // if (loading) {
+  //   return <Loader />
+  // }
 
   if (error) {
     return (
