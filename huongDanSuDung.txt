@@ -41,3 +41,8 @@ python roi_tool.py --video video/hanam.mp4 --save-coords
 curl -X POST http://localhost:8001/api/request-end-slot -H "Content-Type: application/json" -d "{\"end_qr\": 99, \"reason\": \"ready_to_receive\"}"
 
 
+Chạy file 
+1. /detectObject/main.py
+2. /roi_processor.py
+3. /logic/stable_pair_processor.py
+4. /postRq/postAPI.py
