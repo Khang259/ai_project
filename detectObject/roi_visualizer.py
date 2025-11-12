@@ -39,11 +39,11 @@ class ROIVisualizer:
         # FPS tracking
         self.fps_trackers: Dict[str, deque] = defaultdict(lambda: deque(maxlen=30))
         
-        # Color palette
+        # Color palette (BGR format - Blue, Green, Red)
         self.colors = {
             'shelf': (0, 255, 0),      # Xanh lá - có hàng
             'empty': (0, 0, 255),      # Đỏ - trống
-            'roi_normal': (255, 255, 0),  # Vàng - ROI chưa detect
+            'roi_normal': (0, 255, 255),  # Vàng - ROI chưa detect
             'roi_match': (0, 255, 0),     # Xanh lá - ROI có match
             'text': (255, 255, 255),      # Trắng - text
             'bg': (0, 0, 0)               # Đen - background
@@ -150,7 +150,7 @@ class ROIVisualizer:
             
             # Vẽ bbox detection nếu có (scale về kích thước frame)
             bbox = match_info.get('bbox', [])
-            if len(bbox) == 4:
+            if len(bbox) >= 3:
                 # Detection bbox ở 1280x720 (cùng với ROI), scale về kích thước frame hiện tại
                 x1 = int(bbox[0] * scale_x)
                 y1 = int(bbox[1] * scale_y)
@@ -209,117 +209,6 @@ class ROIVisualizer:
         
         return frame
     
-    # def draw_info_panel(self, frame: np.ndarray, camera_id: str, fps: float) -> np.ndarray:
-        # """
-        # Vẽ panel thông tin lên frame
-        
-        # Args:
-        #     frame: OpenCV frame
-        #     camera_id: ID camera
-        #     fps: FPS hiện tại
-            
-        # Returns:
-        #     Frame đã vẽ
-        # """
-        # h, w = frame.shape[:2]
-        
-        # # Vẽ background cho panel
-        # panel_h = 80
-        # overlay = frame.copy()
-        # cv2.rectangle(overlay, (0, 0), (w, panel_h), self.colors['bg'], -1)
-        # frame = cv2.addWeighted(overlay, 0.7, frame, 0.3, 0)
-        
-        # # Camera ID
-        # cv2.putText(
-        #     frame,
-        #     f"Camera: {camera_id}",
-        #     (10, 25),
-        #     cv2.FONT_HERSHEY_SIMPLEX,
-        #     0.7,
-        #     self.colors['text'],
-        #     2
-        # )
-        
-        # FPS
-        # cv2.putText(
-        #     frame,
-        #     f"FPS: {fps:.1f}",
-        #     (10, 50),
-        #     cv2.FONT_HERSHEY_SIMPLEX,
-        #     0.6,
-        #     self.colors['text'],
-        #     2
-        # )
-        
-        # Số ROI matches
-        # with self.lock:
-        #     match_count = len(self.roi_matches.get(camera_id, {}))
-        
-        # cv2.putText(
-        #     frame,
-        #     f"Matches: {match_count}",
-        #     (150, 50),
-        #     cv2.FONT_HERSHEY_SIMPLEX,
-        #     0.6,
-        #     self.colors['text'],
-        #     2
-        # )
-        
-        # # Timestamp
-        # timestamp_str = time.strftime("%H:%M:%S")
-        # cv2.putText(
-        #     frame,
-        #     timestamp_str,
-        #     (w - 120, 25),
-        #     cv2.FONT_HERSHEY_SIMPLEX,
-        #     0.6,
-        #     self.colors['text'],
-        #     2
-        # )
-        
-        # return frame
-    
-    # def draw_legend(self, frame: np.ndarray) -> np.ndarray:
-    #     """
-    #     Vẽ legend (chú thích) lên frame
-        
-    #     Args:
-    #         frame: OpenCV frame
-            
-    #     Returns:
-    #         Frame đã vẽ
-    #     """
-    #     h, w = frame.shape[:2]
-        
-    #     legend_items = [
-    #         ("Shelf (Co hang)", self.colors['shelf']),
-    #         ("Empty (Trong)", self.colors['empty']),
-    #         ("ROI", self.colors['roi_normal'])
-    #     ]
-        
-    #     y_offset = h - 30
-    #     x_start = 10
-        
-    #     for label, color in legend_items:
-    #         # Vẽ box màu
-    #         cv2.rectangle(frame, (x_start, y_offset), (x_start + 20, y_offset + 15), color, -1)
-    #         cv2.rectangle(frame, (x_start, y_offset), (x_start + 20, y_offset + 15), (255, 255, 255), 1)
-            
-    #         # Vẽ text
-    #         cv2.putText(
-    #             frame,
-    #             label,
-    #             (x_start + 25, y_offset + 12),
-    #             cv2.FONT_HERSHEY_SIMPLEX,
-    #             0.4,
-    #             self.colors['text'],
-    #             1
-    #         )
-            
-    #         x_start += 180
-        
-    #     return frame
-    
     def visualize_frame(self, frame: np.ndarray, camera_id: str) -> np.ndarray:
         """
         Vẽ visualization lên frame
@@ -356,22 +245,6 @@ class ROIVisualizer:
                 
                 frame = self.draw_roi_rect(frame, roi, match_info)
         
-        # # Tính FPS
-        # current_time = time.time()
-        # self.fps_trackers[camera_id].append(current_time)
-        
-        # if len(self.fps_trackers[camera_id]) >= 2:
-        #     time_diff = self.fps_trackers[camera_id][-1] - self.fps_trackers[camera_id][0]
-        #     fps = len(self.fps_trackers[camera_id]) / time_diff if time_diff > 0 else 0
-        # else:
-        #     fps = 0
-        
-        # Vẽ info panel
-        # frame = self.draw_info_panel(frame, camera_id, fps)
-        
-        # # Vẽ legend
-        # frame = self.draw_legend(frame)
-        
         return frame
 
 
@@ -379,8 +252,8 @@ def roi_visualizer_worker(
     shared_dict: Dict[str, Any],
     roi_result_queue: Queue,
     roi_config_path: str = "../logic/roi_config.json",
-    window_width: int = 640,
-    window_height: int = 360,
+    window_width: int = 1280,
+    window_height: int = 720,
     target_fps: float = 15.0
 ):
     """
@@ -407,12 +280,12 @@ def roi_visualizer_worker(
                 visualizer.update_roi_match(match_result)
                 update_count += 1
                 
-                # Debug: Log mỗi 10 updates
-                if update_count % 10 == 0:
-                    cam_id = match_result.get('camera_id', '?')
-                    slot_id = match_result.get('slot_id', '?')
-                    obj_type = match_result.get('object_type', '?')
-                    print(f"[Visualizer] Updated {update_count}: {cam_id}/{slot_id} = {obj_type}")
+                # # Debug: Log mỗi 10 updates
+                # if update_count % 10 == 0:
+                #     cam_id = match_result.get('camera_id', '?')
+                #     slot_id = match_result.get('slot_id', '?')
+                #     obj_type = match_result.get('object_type', '?')
+                #     print(f"[Visualizer] Updated {update_count}: {cam_id}/{slot_id} = {obj_type}")
             except:
                 pass
     
@@ -498,75 +371,3 @@ def roi_visualizer_worker(
         pass
     finally:
         cv2.destroyAllWindows()
-
-
-# # Test standalone
-# if __name__ == "__main__":
-#     """Test ROI Visualizer với video file"""
-#     import sys
-    
-#     print("=" * 60)
-#     print("Testing ROI Visualizer")
-#     print("=" * 60)
-    
-#     # Load một frame test
-#     video_path = input("Nhập đường dẫn video (hoặc RTSP URL): ").strip()
-    
-#     if not video_path:
-#         video_path = "rtsp://192.168.1.202:8554/live/cam6"
-#         print(f"Sử dụng mặc định: {video_path}")
-    
-#     camera_id = "cam-88"
-    
-#     # Tạo visualizer
-#     visualizer = ROIVisualizer("../logic/roi_config.json")
-    
-#     # Mô phỏng ROI match
-#     test_match = {
-#         'camera_id': camera_id,
-#         'slot_id': 'ROI_3',
-#         'object_type': 'shelf',
-#         'confidence': 0.92,
-#         'iou': 0.85,
-#         'bbox': [710, 118, 928, 335],
-#         'timestamp': time.time()
-#     }
-#     visualizer.update_roi_match(test_match)
-    
-#     # Mở video
-#     cap = cv2.VideoCapture(video_path)
-    
-#     if not cap.isOpened():
-#         print(f"Không mở được video: {video_path}")
-#         sys.exit(1)
-    
-#     print("\nĐang hiển thị video...")
-#     print("Nhấn 'q' hoặc ESC để thoát")
-#     print("Nhấn 'r' để reload ROI config")
-    
-#     while True:
-#         ret, frame = cap.read()
-        
-#         if not ret:
-#             # Loop video
-#             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-#             continue
-        
-#         # Visualize
-#         vis_frame = visualizer.visualize_frame(frame, camera_id)
-        
-#         if vis_frame is not None:
-#             cv2.imshow(f"ROI Visualizer - {camera_id}", vis_frame)
-        
-#         # Keyboard
-#         key = cv2.waitKey(30) & 0xFF
-#         if key == 27 or key == ord('q'):
-#             break
-#         elif key == ord('r'):
-#             print("Reloading ROI config...")
-#             visualizer.load_roi_config()
-    
-#     cap.release()
-#     cv2.destroyAllWindows()
-#     print("\nĐã thoát!")
-

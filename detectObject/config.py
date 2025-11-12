@@ -44,8 +44,8 @@ class AIConfig:
     TARGET_FPS: float = 2.0
     
     # Đường dẫn model YOLO mặc định
-    DEFAULT_MODEL_PATH: str = "weights/model-hanam_0506.pt"
-    
+    # DEFAULT_MODEL_PATH: str = "weights/model-hanam_0506.pt"
+    DEFAULT_MODEL_PATH: str = "model/yolov8boxdetectV2.pt"
     # Interpolation method cho resize
     RESIZE_INTERPOLATION: int = 1  # cv2.INTER_LINEAR
     

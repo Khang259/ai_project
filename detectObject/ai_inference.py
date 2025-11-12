@@ -67,7 +67,7 @@ class YOLOInference:
     def _warmup_gpu(self):
         """Warm-up GPU với một vài lần inference để tránh cold start"""
         try:
-            dummy_input = np.zeros((640, 640, 3), dtype=np.uint8)
+            dummy_input = np.zeros((1280, 720, 3), dtype=np.uint8)
             for _ in range(3):
                 _ = self.model(dummy_input, device=self.device, verbose=False, half=self.use_fp16)
             torch.cuda.synchronize()  # Đợi GPU hoàn thành

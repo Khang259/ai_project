@@ -201,11 +201,11 @@ class CameraOrchestrator:
             # Thông số: iou_threshold=0.5 (tăng từ 0.3), conf_threshold=0.4 (giảm từ 0.6)
             roi_checker_process = Process(
                 target=roi_checker_worker,
-                args=(self.detection_queue, self.roi_result_queue, "../logic/roi_config.json", 0.5, 0.4)
+                args=(self.detection_queue, self.roi_result_queue, "../logic/roi_config.json", 0.5)
             )
             self.processes.append(roi_checker_process)
             roi_checker_process.start()
-            logger.info("ROI Checker Worker started (IoU: 0.5, Conf: 0.4)")
+            logger.info("ROI Checker Worker started (Center-in-ROI, Conf: 0.5)")
             
             # Logic Processor Worker
             if self.enable_logic_processor:

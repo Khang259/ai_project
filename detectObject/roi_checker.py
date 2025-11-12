@@ -1,8 +1,8 @@
 """
 ROI Checker - Xử lý kiểm tra ROI với 2 lớp (2-layer check)
 Lấy detection từ Queue, tra cứu ROI theo camera_id, và kiểm tra:
-    - Check 1 (Vị trí): Detection có nằm trong ROI không? (sử dụng IoU)
-    - Check 2 (Đối tượng): Class có phải là shelf/empty dựa trên confidence
+    - Check 1 (Vị trí): Detection có nằm trong ROI không? (center-in-ROI)
+    - Check 2 (Đối tượng): Model detect class "hang" (class_id=0) → shelf, không detect → empty
 """
 
 import time
@@ -180,49 +180,46 @@ def calculate_iou(bbox: List[float], roi_rect: List[int]) -> float:
 
 def classify_object(class_id: int, confidence: float, conf_threshold: float = 0.5) -> str:
     """
-    Phân loại object dựa trên confidence
-    Model chỉ có 1 class duy nhất là "shelf"
+    Phân loại object dựa trên detection của model "hang"
+    
+    Logic:
+    - Có detection (class_id = 0 = "hang", confidence >= threshold) → "shelf" (có hàng)
+    - Confidence thấp → "empty" (không chắc chắn có hàng)
     
     Args:
-        class_id: Class ID từ YOLO (luôn = 0 với model 1 class)
+        class_id: Class ID từ YOLO (0 = "hang")
         confidence: Confidence score của detection
-        conf_threshold: Ngưỡng confidence để phân biệt shelf/empty (mặc định 0.5)
+        conf_threshold: Ngưỡng confidence tối thiểu (mặc định 0.5)
         
     Returns:
-        "shelf" nếu conf > conf_threshold (có hàng)
-        "empty" nếu conf <= conf_threshold (trống)
+        "shelf" nếu detect "hang" với confidence đủ mạnh
+        "empty" nếu confidence thấp (không chắc chắn)
     """
-    # Model chỉ có 1 class (shelf), nên chỉ cần check confidence
-    if confidence > conf_threshold:
-        return "shelf"  # Có hàng
+    # Model detect class "hang" (class_id = 0)
+    if class_id == 0 and confidence >= conf_threshold:
+        return "shelf"  # Có hàng (detection hợp lệ)
     else:
-        return "empty"  # Trống (confidence thấp = không chắc chắn có hàng)
+        return "empty"  # Confidence thấp hoặc class không hợp lệ
 
 
 def check_detection_in_roi(
     detection: Dict[str, Any],
     roi: Dict[str, Any],
-    iou_threshold: float = 0.3,
     conf_threshold: float = 0.5
 ) -> Tuple[bool, str, float]:
     """
-    Kiểm tra 2 lớp (2-layer check) cho detection với phương pháp kết hợp IoU + Center
-    
-    Phương pháp:
-    1. Ưu tiên: Kiểm tra center point có nằm trong ROI không
-    2. Fallback: Nếu center không nằm trong, kiểm tra IoU
+    Kiểm tra detection thuộc ROI bằng phương pháp center-in-ROI
     
     Args:
         detection: Detection object {"class": 0, "bbox": [x1,y1,x2,y2], "confidence": 0.95}
         roi: ROI object {"slot_id": "ROI_1", "rect": [x, y, w, h]}
-        iou_threshold: Ngưỡng IoU để coi là nằm trong ROI (dùng khi center không match)
         conf_threshold: Ngưỡng confidence để phân biệt shelf/empty
         
     Returns:
-        Tuple (is_match, object_type, iou_score)
-        - is_match: True nếu detection nằm trong ROI (bằng center hoặc IoU)
+        Tuple (is_match, object_type, score)
+        - is_match: True nếu detection nằm trong ROI (bằng center)
         - object_type: "shelf" nếu conf > conf_threshold, "empty" nếu conf <= conf_threshold
-        - iou_score: Giá trị IoU (hoặc 1.0 nếu match bằng center)
+        - score: 1.0 nếu center nằm trong ROI, ngược lại 0.0 (giữ trường 'iou' tương thích downstream)
     """
     # Validation: Lấy bbox và roi_rect
     bbox = detection.get("bbox", [])
@@ -236,46 +233,37 @@ def check_detection_in_roi(
     if any(x < 0 for x in bbox) or any(x < 0 for x in roi_rect):
         return False, "invalid", 0.0
     
-    # Check 1: Vị trí - Phương pháp kết hợp Center + IoU
+    # Check vị trí - chỉ dùng center-in-ROI
     is_position_match = False
-    iou_score = 0.0
-    match_method = ""
+    score = 0.0
     
     # Tính center point của bbox
     center_x = (bbox[0] + bbox[2]) / 2
     center_y = (bbox[1] + bbox[3]) / 2
     
-    # Ưu tiên 1: Kiểm tra center point trong ROI
+    # Kiểm tra center point trong ROI
     if point_in_roi(center_x, center_y, roi_rect):
         is_position_match = True
-        iou_score = 1.0  # Đánh dấu match hoàn hảo bằng center
-        match_method = "center"
-    else:
-        # Ưu tiên 2: Fallback sang IoU nếu center không match
-        iou_score = calculate_iou(bbox, roi_rect)
-        if iou_score >= iou_threshold:
-            is_position_match = True
-            match_method = "iou"
+        score = 1.0  # dùng làm 'iou' tương thích downstream
     
-    # Check 2: Đối tượng - Phân loại shelf/empty
+    # Phân loại shelf/empty theo confidence
     class_id = detection.get("class", -1)
     confidence = detection.get("confidence", 0.0)
     object_type = classify_object(class_id, confidence, conf_threshold)
     
-    return is_position_match, object_type, iou_score
+    return is_position_match, object_type, score
 
 
 def process_detection_result(
     result: Dict[str, Any],
     roi_hash_table: ROIHashTable,
-    iou_threshold: float = 0.3,
     conf_threshold: float = 0.5
 ) -> List[Dict[str, Any]]:
     """
     Xử lý kết quả detection từ Queue
-    Model chỉ có 1 class "shelf", logic:
-    - Có detection với conf > threshold trong ROI → "shelf"
-    - Không có detection hoặc conf <= threshold → "empty"
+    Model có 1 class "hang" (class_id = 0), logic:
+    - Có detection "hang" với conf >= threshold trong ROI → "shelf" (có hàng)
+    - Không có detection hoặc conf < threshold → "empty" (trống)
     
     Args:
         result: Detection result từ Queue
@@ -287,7 +275,6 @@ def process_detection_result(
                   ]
                 }
         roi_hash_table: ROI Hash Table
-        iou_threshold: Ngưỡng IoU để match detection với ROI
         conf_threshold: Ngưỡng confidence để phân biệt shelf/empty
         
     Returns:
@@ -299,7 +286,7 @@ def process_detection_result(
             "slot_id": "ROI_1",
             "object_type": "shelf",  # hoặc "empty"
             "confidence": 0.95,
-            "iou": 0.85,
+            "iou": 1.0,  # 1.0 nếu center match, 0.0 nếu không
             "bbox": [10, 15, 50, 60]
           }
         ]
@@ -317,14 +304,13 @@ def process_detection_result(
     matched_results = []
     roi_detection_map = {}  # Map ROI -> detection với confidence cao nhất
     
-    # Bước 1: Tìm detection tốt nhất cho mỗi ROI
+    # Bước 1: Tìm detection tốt nhất cho mỗi ROI bằng center-in-ROI
     for detection in detections:
-        # Chỉ xét detection có confidence > conf_threshold
         det_confidence = detection.get("confidence", 0.0)
         
         for roi in rois:
-            is_match, object_type, iou_score = check_detection_in_roi(
-                detection, roi, iou_threshold, conf_threshold
+            is_match, object_type, score = check_detection_in_roi(
+                detection, roi, conf_threshold
             )
             
             if is_match:
@@ -336,7 +322,7 @@ def process_detection_result(
                         "detection": detection,
                         "object_type": object_type,
                         "confidence": det_confidence,
-                        "iou": iou_score
+                        "iou": score
                     }
     
     # Bước 2: Tạo kết quả cho tất cả ROI
@@ -352,7 +338,7 @@ def process_detection_result(
                 "slot_id": slot_id,
                 "object_type": det_info["object_type"],
                 "confidence": det_info["confidence"],
-                "iou": det_info["iou"],
+                "iou": det_info["iou"],  # 1.0 nếu center match
                 "bbox": det_info["detection"].get("bbox", [])
             }
         else:
@@ -376,7 +362,6 @@ def roi_checker_worker(
     detection_queue: Queue,
     result_queue: Queue,
     roi_config_path: str = "logic/roi_config.json",
-    iou_threshold: float = 0.3,
     conf_threshold: float = 0.5
 ):
     """
@@ -386,7 +371,6 @@ def roi_checker_worker(
         detection_queue: Queue nhận detection results từ AI inference
         result_queue: Queue gửi matched results đi
         roi_config_path: Đường dẫn đến file ROI config
-        iou_threshold: Ngưỡng IoU để coi là match
         conf_threshold: Ngưỡng confidence để phân biệt shelf/empty
     """
     # Khởi tạo ROI Hash Table
@@ -406,7 +390,6 @@ def roi_checker_worker(
                 matched_results = process_detection_result(
                     result,
                     roi_hash_table,
-                    iou_threshold,
                     conf_threshold
                 )
                 
