@@ -9,6 +9,7 @@ class UserCreate(UserBase):
     password: str
     roles: Optional[List[str]] = []
     group_id: Optional[int] = 0
+    route: Optional[List[str]] = []
 
 class UserLogin(BaseModel):
     username: str
@@ -21,6 +22,7 @@ class UserOut(UserBase):
     permissions: List[str] = []  # Thêm field permissions
     roles: List[str] = []
     group_id: Optional[int] = 0
+    route: Optional[List[str]] = []
     created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
 
@@ -29,7 +31,7 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     roles: Optional[List[str]] = None
     group_id: Optional[int] = None
-
+    route: Optional[List[str]] = None
 class RoleCreate(BaseModel):
     name: str
     description: Optional[str] = None
