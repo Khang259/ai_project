@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import logging
 from datetime import datetime
@@ -9,6 +10,10 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import uvicorn
+
+# Thêm path để import queue_store
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from queue_store import SQLiteQueue
 
 
 # Pydantic models cho request/response
@@ -25,6 +30,13 @@ class TaskOrderResponse(BaseModel):
     code: int = Field(default=1000, description="Mã trả về: 1000 = thành công")
     message: str = Field(default="Success", description="Thông báo trả về")
     data: Optional[Dict[str, Any]] = Field(default=None, description="Dữ liệu trả về")
+
+# Models cho Block/Unblock API
+class BlockSlotRequest(BaseModel):
+    qr_code: int = Field(..., description="QR code của slot cần block")
+
+class UnblockSlotRequest(BaseModel):
+    qr_code: int = Field(..., description="QR code của slot cần unblock")
 
 
 def setup_server_logger(log_dir: str = "../logs") -> logging.Logger:
@@ -76,6 +88,10 @@ app = FastAPI(
 
 # Thiết lập logger
 logger = setup_server_logger()
+
+# Khởi tạo queue connection
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "queues.db")
+queue = SQLiteQueue(DB_PATH)
 
 
 @app.get("/")
@@ -213,12 +229,86 @@ async def add_task_raw(request: Request):
         raise HTTPException(status_code=400, detail=f"Lỗi parse JSON: {str(e)}")
 
 
+@app.post("/api/slot/block")
+async def manual_block_slot(request: BlockSlotRequest):
+    """
+    API để block một slot thủ công theo QR code
+    
+    Publish message vào topic "block_slot" để roi_processor xử lý
+    """
+    try:
+        qr_code = request.qr_code
+        
+        # Tạo block payload
+        block_payload = {
+            "qr_code": qr_code,
+            "action": "block",
+            "reason": "manual_api",
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }
+        
+        # Publish vào queue (key là QR code dạng string)
+        queue.publish("block_slot", str(qr_code), block_payload)
+        
+        logger.info(f"MANUAL_BLOCK_SLOT: qr_code={qr_code}")
+        
+        return {
+            "code": 1000,
+            "message": f"Đã gửi block request cho slot QR {qr_code}",
+            "data": {
+                "qr_code": qr_code,
+                "timestamp": datetime.now().isoformat()
+            }
+        }
+    except Exception as e:
+        logger.error(f"MANUAL_BLOCK_SLOT_ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi khi block: {str(e)}")
+
+
+@app.post("/api/slot/unblock")
+async def manual_unblock_slot(request: UnblockSlotRequest):
+    """
+    API để unblock một slot thủ công theo QR code
+    
+    Publish message vào topic "unblock_slot" để roi_processor xử lý
+    """
+    try:
+        qr_code = request.qr_code
+        
+        # Tạo unblock payload
+        unblock_payload = {
+            "qr_code": qr_code,
+            "action": "unblock",
+            "reason": "manual_api",
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }
+        
+        # Publish vào queue (key là QR code dạng string)
+        queue.publish("unblock_slot", str(qr_code), unblock_payload)
+        
+        logger.info(f"MANUAL_UNBLOCK_SLOT: qr_code={qr_code}")
+        
+        return {
+            "code": 1000,
+            "message": f"Đã gửi unblock request cho slot QR {qr_code}",
+            "data": {
+                "qr_code": qr_code,
+                "timestamp": datetime.now().isoformat()
+            }
+        }
+    except Exception as e:
+        logger.error(f"MANUAL_UNBLOCK_SLOT_ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi khi unblock: {str(e)}")
+
+
 if __name__ == "__main__":
     print("Khởi động FastAPI Server...")
     print("Server sẽ chạy tại: http://localhost:7000")
     print("Endpoint chính: http://localhost:7000/ics/taskOrder/addTask")
     print("Health check: http://localhost:7000/health")
     print("Raw endpoint: http://localhost:7000/ics/taskOrder/addTask/raw")
+    print("Block slot: POST http://localhost:7000/api/slot/block")
+    print("Unblock slot: POST http://localhost:7000/api/slot/unblock")
     
     uvicorn.run(
         "fastapi_server:app",
