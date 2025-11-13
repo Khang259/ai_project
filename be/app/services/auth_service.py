@@ -3,7 +3,7 @@ from app.core.security import get_password_hash, verify_password, create_access_
 from app.schemas.user import UserCreate, UserOut
 from app.services.role_service import get_user_permissions
 from shared.logging import get_logger
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from datetime import datetime
 from bson import ObjectId
 
@@ -44,6 +44,7 @@ async def register_user(user_in: UserCreate):
         "hashed_password": user_in.password,
         "is_active": True,
         "is_superuser": False,
+        "area": int(user_in.area) if getattr(user_in, "area", None) is not None else 0,
         "group_id": int(user_in.group_id) if getattr(user_in, "group_id", None) is not None else 0,
         "route": user_in.route,
         "roles": role_object_ids,  # Store as ObjectIds
@@ -146,6 +147,7 @@ async def get_current_user_info(user_id: str) -> Optional[UserOut]:
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
+        area=user.get("area", 0),
         group_id=user.get("group_id", 0),
         route=user.get("route", []),
         roles=role_names,
@@ -153,3 +155,53 @@ async def get_current_user_info(user_id: str) -> Optional[UserOut]:
         created_at=user.get("created_at", datetime.utcnow()),
         last_login=user.get("last_login")
     )
+
+async def get_users_for_operator(group_id: int) -> List[UserOut]:
+    """Lấy tất cả user có group_id và role là 'user'"""
+    users = get_collection("users")
+    roles_collection = get_collection("roles")
+    
+    # Tìm role có name = "user" để lấy ObjectId
+    user_role = await roles_collection.find_one({"name": "user"})
+    if not user_role:
+        logger.warning("Role 'user' not found")
+        return []
+    
+    # Query users với group_id, is_active và role ObjectId
+    users_list = await users.find({
+        "group_id": group_id,
+        "is_active": True,
+        "roles": {"$in": [user_role["_id"]]}
+    }).to_list(length=None)
+    
+    if not users_list:
+        return []
+    
+    # Convert sang UserOut
+    result = []
+    for user in users_list:
+        # Convert role ObjectIds to role names
+        role_names = []
+        for role_id in user.get("roles", []):
+            role = await roles_collection.find_one({"_id": role_id})
+            if role:
+                role_names.append(role["name"])
+        
+        # Get user permissions
+        permissions = await get_user_permissions(str(user["_id"]))
+        
+        result.append(UserOut(
+            id=str(user["_id"]),
+            username=user["username"],
+            is_active=user.get("is_active", True),
+            is_superuser=user.get("is_superuser", False),
+            area=user.get("area", 0),
+            group_id=user.get("group_id", 0),
+            route=user.get("route", []),
+            roles=role_names,
+            permissions=permissions,
+            created_at=user.get("created_at", datetime.utcnow()),
+            last_login=user.get("last_login")
+        ))
+    
+    return result

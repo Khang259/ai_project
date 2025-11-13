@@ -7,6 +7,7 @@ from app.services.route_service import (
     update_route,
     delete_route,
     get_routes_by_creator,
+    get_routes_by_group_id,
 )
 from app.core.permissions import get_current_user
 from shared.logging import get_logger
@@ -146,6 +147,20 @@ async def get_routes_by_creator_endpoint(
         return await get_routes_by_creator(created_by)
     except Exception as e:
         logger.error(f"Error getting routes by creator {created_by}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+@router.get("/group/{group_id}", response_model=List[RouteOut])
+async def get_routes_by_group_id_endpoint(
+    group_id: int,
+):
+    """Lấy danh sách routes theo group_id"""
+    try:
+        return await get_routes_by_group_id(group_id)
+    except Exception as e:
+        logger.error(f"Error getting routes by group_id {group_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

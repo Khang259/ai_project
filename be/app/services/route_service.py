@@ -140,7 +140,6 @@ async def update_route(route_id: str, route_update: RouteUpdate) -> Optional[Rou
 async def delete_route(route_id: str) -> bool:
     """Xóa route và tất cả nodes trong route đó"""
     routes = get_collection("routes")
-    nodes = get_collection("nodes")
     
     if not ObjectId.is_valid(route_id):
         logger.warning(f"Invalid route ID format: {route_id}")
@@ -169,6 +168,15 @@ async def get_routes_by_creator(created_by: str) -> List[RouteOut]:
     routes = get_collection("routes")
     
     cursor = routes.find({"created_by": created_by})
+    route_list = await cursor.to_list(length=None)
+    
+    return [RouteOut(**route, id=str(route["_id"])) for route in route_list]
+
+async def get_routes_by_group_id(group_id: int) -> List[RouteOut]:
+    """Lấy danh sách routes theo group_id"""
+    routes = get_collection("routes")
+    
+    cursor = routes.find({"group_id": group_id})
     route_list = await cursor.to_list(length=None)
     
     return [RouteOut(**route, id=str(route["_id"])) for route in route_list]

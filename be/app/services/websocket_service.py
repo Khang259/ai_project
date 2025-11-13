@@ -2,6 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import List, Dict, Any
 import asyncio
 from shared.logging import get_logger
+import json
 
 logger = get_logger("camera_ai_app")
 router = APIRouter()
