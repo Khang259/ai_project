@@ -241,20 +241,20 @@ class StablePairProcessor:
     def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
         """
         Tính trạng thái slot dựa trên trường slot_number gắn tại roi_processor.
-        Quy ước: mỗi frame có đủ các slot empty nếu không thấy shelf.
-        Ở đây, chúng ta tạo status_by_slot từ các detection hiện có: nếu có shelf ở slot X thì slot X=shelf, các slot khác giữ nguyên theo state cũ hoặc không cập nhật.
+        Quy ước: mỗi frame có đủ các slot empty nếu không thấy hang.
+        Ở đây, chúng ta tạo status_by_slot từ các detection hiện có: nếu có hang ở slot X thì slot X=shelf, các slot khác giữ nguyên theo state cũ hoặc không cập nhật.
         """
         status_by_slot: Dict[int, str] = {}
-        # mark shelf by present detections
+        # mark shelf by present detections (class "hang" = shelf có hàng)
         for det in roi_detections:
             cls = det.get("class_name")
             slot_num = det.get("slot_number")
             if slot_num is None:
                 continue
-            if cls == "shelf":
+            if cls == "hang":
                 status_by_slot[int(slot_num)] = "shelf"
             elif cls == "empty" and int(slot_num) not in status_by_slot:
-                # only mark empty if shelf not seen for that slot in this batch
+                # only mark empty if hang not seen for that slot in this batch
                 status_by_slot[int(slot_num)] = "empty"
         return status_by_slot
 
@@ -876,4 +876,3 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 
-gg

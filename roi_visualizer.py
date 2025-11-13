@@ -160,9 +160,9 @@ class ROIVisualizer:
         roi_count = roi_detection_data.get('roi_detection_count', 0)
         total_count = roi_detection_data.get('original_detection_count', 0)
         
-        # Đếm shelf và empty trong ROI detections
+        # Đếm hang và empty trong ROI detections
         roi_detections = roi_detection_data.get('roi_detections', [])
-        shelf_count = sum(1 for d in roi_detections if d.get('class_name') == 'shelf')
+        shelf_count = sum(1 for d in roi_detections if d.get('class_name') == 'hang')
         empty_count = sum(1 for d in roi_detections if d.get('class_name') == 'empty')
         
         info_text += f" | Shelf: {shelf_count}, Empty: {empty_count}, Total ROI: {roi_count}"

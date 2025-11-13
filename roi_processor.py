@@ -1069,7 +1069,7 @@ class ROIProcessor:
                         self.queue.publish("roi_detection", camera_id, roi_detection_payload)
                         
                         # Đếm số shelf và empty
-                        shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'shelf')
+                        shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'hang')
                         empty_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'empty')
                         
                         # Hiển thị thông tin với video source

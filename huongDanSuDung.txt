@@ -40,6 +40,7 @@ python roi_tool.py --video video/hanam.mp4 --save-coords
 
 curl -X POST http://localhost:8001/api/request-end-slot -H "Content-Type: application/json" -d "{\"end_qr\": 99, \"reason\": \"ready_to_receive\"}"
 
+ffmpeg -re -i video-test-end.mp4 -c copy -f rtsp rtsp://localhost:8554/mystream
 
 Chạy file 
 1. /detectObject/main.py

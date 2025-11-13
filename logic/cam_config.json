@@ -1,8 +1,7 @@
 {
   "cam_urls": [
-   ["cam-1", "rtsp://localhost:8554/cam33"],
-   ["cam-2", "rtsp://localhost:8554/cam34"],
-   ["cam-3", "rtsp://localhost:8554/cam1"]
+   ["cam-1", "rtsp://localhost:8554/cam1"],
+   ["cam-2", "rtsp://localhost:8554/cam2"]
    
   ]
 }   

@@ -325,7 +325,7 @@ class ROIProcessor:
         
         # Lọc detections có trong ROI và là shelf với confidence >= 0.5
         for detection in detections:
-            if detection.get("class_name") == "shelf" and detection.get("confidence", 0) >= 0.5:
+            if detection.get("class_name") == "hang" and detection.get("confidence", 0) >= 0.5:
                 for i, slot in enumerate(roi_slots):
                     if self.is_detection_in_roi(detection, [slot]):
                         # Nếu slot này đang bị block thì bỏ qua shelf này (để cuối cùng sẽ thêm empty)

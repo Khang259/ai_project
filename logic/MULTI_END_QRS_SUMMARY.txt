@@ -26,10 +26,10 @@ BƯỚC 2: Thu thập end_qrs đang empty
 
 BƯỚC 3: Quyết định publish
   ┌─────────────────────────────────────────────────────────────────┐
-  │ Số end_qrs empty │ Hành động                                     │
+  │ Số end_qrs empty │ Hành động                                    │
   ├─────────────────────────────────────────────────────────────────┤
-  │ 0                │ ❌ KHÔNG publish                              │
-  │ 1                │ ✅ Publish cặp đó                             │
+  │ 0                │ ❌ KHÔNG publish                             │
+  │ 1                │ ✅ Publish cặp đó                            │
   │ 2/3 (một số)     │ ✅ Publish end_qr ĐẦU TIÊN trong list empty  │
   │ 2/2 hoặc 3/3     │ ✅ Publish end_qr ĐẦU TIÊN + flag ALL_EMPTY  │
   └─────────────────────────────────────────────────────────────────┘
