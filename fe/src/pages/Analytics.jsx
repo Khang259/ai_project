@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 import { useArea } from "@/contexts/AreaContext";
-import { getStatistics, getPayloadStatistics, convertWorkStatusToChartData, convertPayloadStatisticsToChartData, getWorkStatusSummary, getPayloadStatisticsSummary } from "@/services/statistics";
+import { 
+  getStatistics, 
+  getPayloadStatistics, 
+  formatWorkStatusByDevice, 
+  formatPayloadByDevice, 
+  getWorkStatusSummary, 
+  getPayloadStatisticsSummary,
+  formatWorkStatusSummary,
+  formatPayloadSummary
+} from "@/services/statistics";
 import {
   BarChart,
   Bar,
@@ -14,7 +23,6 @@ import {
   ResponsiveContainer,
   Pie,
 } from "recharts";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateFilter } from "@/components/Analytics/DateFilter";
@@ -30,7 +38,6 @@ export default function AnalyticsPage() {
   const [payloadChartData, setPayloadChartData] = useState([])
   const [workStatusSummary, setWorkStatusSummary] = useState(null)
   const [payloadSummary, setPayloadSummary] = useState(null)
-  const { currAreaName, currAreaId } = useArea()
   const [selectedDeviceCodes, setSelectedDeviceCodes] = useState([])
 
   // Helper: Date -> YYYY-MM-DD (tránh lệch múi giờ/locale)
@@ -99,14 +106,16 @@ export default function AnalyticsPage() {
       const payloadResponse = await getPayloadStatistics(startDate, endDate, selectedDeviceCodes)
       
       const workStatusSummaryResponse = await getWorkStatusSummary(startDate, endDate, selectedDeviceCodes)
-      setWorkStatusSummary(workStatusSummaryResponse.summary)
+      const formattedWorkStatusSummary = formatWorkStatusSummary(workStatusSummaryResponse)
+      setWorkStatusSummary(formattedWorkStatusSummary)
       
       const payloadSummaryResponse = await getPayloadStatisticsSummary(startDate, endDate, selectedDeviceCodes)
-      setPayloadSummary(payloadSummaryResponse.summary)
+      const formattedPayloadSummary = formatPayloadSummary(payloadSummaryResponse)
+      setPayloadSummary(formattedPayloadSummary)
       
       // Chuyển đổi sang format cho charts
-      const workStatusChartData = convertWorkStatusToChartData(workStatusResponse)
-      const payloadChartData = convertPayloadStatisticsToChartData(payloadResponse)
+      const workStatusChartData = formatWorkStatusByDevice(workStatusResponse)
+      const payloadChartData = formatPayloadByDevice(payloadResponse)
       setWorkStatusChartData(workStatusChartData)
       setPayloadChartData(payloadChartData)
 
