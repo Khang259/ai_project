@@ -7,7 +7,7 @@ import { MaintenanceChecklist } from "@/components/Maitain/maintenance-checklist
 import { PartsReplaceOverview } from "@/components/Maitain/parts-replace-overview"
 import { AMRDetailsModal } from "@/components/Maitain/amr-details-modal"
 import MaintenanceHistoryTable from "@/components/Maitain/maintenance-history-table"
-import { ListChecks, ClipboardList, BarChart3, History } from "lucide-react"
+import { ClipboardList, BarChart3, History } from "lucide-react"
 
 export default function Home() {
   const [selectedComponent, setSelectedComponent] = useState(null)
@@ -36,6 +36,7 @@ export default function Home() {
         
         {/* Tab Navigation */}
         <div className="flex gap-2 mt-3">
+          {/* Tổng quan thay thế */}
           <button
             onClick={() => setActiveTab("overview")}
             className={`glass flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
@@ -47,6 +48,8 @@ export default function Home() {
             <BarChart3 className="w-4 h-4" />
             Tổng quan thay thế
           </button>
+
+          {/* Checklist bảo trì */}
           <button
             onClick={() => setActiveTab("checklist")}
             className={`glass flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
@@ -58,17 +61,8 @@ export default function Home() {
             <ClipboardList className="w-4 h-4" />
             Checklist bảo trì
           </button>
-          {/* <button
-            onClick={() => setActiveTab("list")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-              activeTab === "list"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
-            }`}
-          >
-            <ListChecks className="w-4 h-4" />
-            Danh sách bảo trì
-          </button> */}
+
+          {/* Lịch sử thay thế */}
           <button
             onClick={() => setActiveTab("history")}
             className={`glass flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${

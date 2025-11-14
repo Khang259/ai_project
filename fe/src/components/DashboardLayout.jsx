@@ -64,8 +64,8 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
   });
 
   return (
-    <div className="bg-gray-900 ">
-      <div className="relative w-full">
+    <div className="">
+      <div className="relative w-full h-full">
         {/* SVG frame bao quanh header */}
         <svg
           className="pointer-events-none absolute inset-0 w-full h-full"

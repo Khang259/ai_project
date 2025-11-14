@@ -6,6 +6,7 @@ import UsersFilters from "@/components/Users/UsersFilters";
 import UsersTable from "@/components/Users/UsersTable";
 import AddUserModal from "@/components/Users/AddUserModal";
 import UpdateUserModal from "@/components/Users/UpdateUserModal";
+import CreateRouteModal from "@/components/Users/CreateRouteModal";
 import { useUsers } from "@/hooks/Users/useUsers";
 import Username from "@/components/Users/username";
 import { useArea } from "@/contexts/AreaContext";
@@ -14,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 export default function UserDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isCreateRouteModalOpen, setIsCreateRouteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const { currAreaName, currAreaId } = useArea();
   const { t } = useTranslation();  
@@ -60,6 +62,11 @@ export default function UserDashboard() {
     }
   };
 
+  const handleCreateRoute = (id, user) => {
+    setSelectedUser(user);
+    setIsCreateRouteModalOpen(true);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <UsersHeader onAdd={() => setIsAddModalOpen(true)} />
@@ -80,6 +87,7 @@ export default function UserDashboard() {
         }))}
         onDelete={handleDelete}
         onEdit={handleEdit}
+        onCreateRoute={handleCreateRoute}
       />
 
       <AddUserModal
@@ -97,6 +105,13 @@ export default function UserDashboard() {
         userData={selectedUser}
       />
       
+      <CreateRouteModal
+        isOpen={isCreateRouteModalOpen}
+        onClose={() => setIsCreateRouteModalOpen(false)}
+        onSubmit={handleCreateRoute}
+        loading={loading}
+        user={selectedUser}
+      />
     </div>
   );
 }

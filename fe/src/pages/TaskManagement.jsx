@@ -1,6 +1,4 @@
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus } from "lucide-react"
 import TaskTable from "@/components/TaskManagement/Table"
 import { useArea } from "@/contexts/AreaContext"
 

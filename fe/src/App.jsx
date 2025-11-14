@@ -9,6 +9,7 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 import LoginPage from './pages/Login';
 import Maintain from './pages/Maintain';
+import MonitorPackaged from './pages/MonitorPackaged';
 import MobileGridDisplay from './pages/MobileGridDisplay';
 import Area from './pages/Area';
 import PrivateRoute from './components/PrivateRoute'; 
@@ -26,7 +27,7 @@ function App() {
     <LanguageProvider>
       <AreaProvider>
       {/* Background video */}
-      {showVideo && (
+      {/* {showVideo && (
           <video
             id="background-video"
             autoPlay
@@ -38,7 +39,8 @@ function App() {
           >
             <source src="/src/assets/vid_bg.mp4" type="video/mp4" />
           </video>
-        )}
+        )} */}
+        <div className="fixed top-0 left-0 w-full h-full bg-black -z-10"></div>
         <Routes>
       {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -132,6 +134,14 @@ function App() {
                 <DashboardLayout>
                   <Settings />
                 </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/monitor-packaged"
+            element={
+              <PrivateRoute>
+                <MonitorPackaged />
               </PrivateRoute>
             }
           />

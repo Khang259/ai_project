@@ -159,9 +159,9 @@ export function PartsReplaceOverview({ onAMRClick }) {
   }
 
   return (
-    <div className="w-full h-screen flex flex-col">
+    <div className="w-full h-full flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto p-6 pb-40 space-y-6 glass">
+        <div className="max-w-full mx-auto p-6 pb-40 space-y-6 glass">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="border-l-4 border-l-blue-500">
               <CardContent className="p-6">
@@ -223,7 +223,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                 onClick={() => handleSort("kiemTra")}
                 variant="outline"
                 className={`flex items-center gap-2 ${
-                  sortField === "kiemTra" ? "bg-primary/10 border-primary" : ""
+                  sortField === "kiemTra" ? "glass text-white" : "glass text-white"
                 }`}
               >
                 {sortField === "kiemTra" && sortOrder === "desc" ? (
@@ -239,7 +239,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                 onClick={() => handleSort("thayThe")}
                 variant="outline"
                 className={`flex items-center gap-2 ${
-                  sortField === "thayThe" ? "bg-primary/10 border-primary" : ""
+                  sortField === "thayThe" ? "glass text-white" : "glass text-white"
                 }`}
               >
                 {sortField === "thayThe" && sortOrder === "desc" ? (
@@ -255,7 +255,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
 
             {/* Hiển thị kết quả tìm kiếm */}
             {searchTerm.trim() && (
-              <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+              <div className="mb-4  rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   Tìm thấy {getFilteredAndSortedAMRs().length} AMR phù hợp với "{searchTerm}"
                 </p>
@@ -304,7 +304,7 @@ export function PartsReplaceOverview({ onAMRClick }) {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base flex items-center justify-between">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <Truck className="h-4 w-4 text-primary flex-shrink-0" />
+                          <Truck className="h-4 w-4 text-white flex-shrink-0" />
                           <span className="truncate">{amr.amr_id || `AMR ${index + 1}`}</span>
                         </div>
                         <Button

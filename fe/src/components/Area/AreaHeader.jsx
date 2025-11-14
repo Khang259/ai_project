@@ -15,7 +15,7 @@ const AreaHeader = ({ onAdd }) => {
       <div className="flex items-center gap-3">
         <Button
           onClick={onAdd}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          className="glass text-white px-4 py-2 rounded-md flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           {t('area.addArea')}

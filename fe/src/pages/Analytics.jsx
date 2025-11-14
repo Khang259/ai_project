@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-semibold text-gray-900 mt-4 ml-4">{t('analytics.analytics')}</h1>
+            <h1 className="text-4xl font-semibold text-gray-50 mt-4 ml-4">{t('analytics.analytics')}</h1>
           </div>
           {/* Filter */}
           <div className="flex items-center gap-3">

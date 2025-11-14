@@ -4,19 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
 
-export default function UsersTable({ users, onDelete, onEdit }) {
+export default function UsersTable({ users, onDelete, onEdit, onCreateRoute }) {
   const {t} = useTranslation();
   return (
     <div className="glass rounded-lg border border-gray-200 overflow-hidden shadow-md text-white">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>{t('users.createdAt')}</TableHead>
-            <TableHead>{t('users.username')}</TableHead>
-            <TableHead>{t('users.status')}</TableHead>
-            <TableHead>{t('users.role')}</TableHead>
-            <TableHead>{t('users.actions')}</TableHead>
+            <TableHead className="text-white">ID</TableHead>
+            <TableHead className="text-white">{t('users.createdAt')}</TableHead>
+            <TableHead className="text-white">{t('users.username')}</TableHead>
+            <TableHead className="text-white">{t('users.status')}</TableHead>
+            <TableHead className="text-white">{t('users.role')}</TableHead>
+            <TableHead className="text-white">{t('users.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -41,6 +41,9 @@ export default function UsersTable({ users, onDelete, onEdit }) {
                 ))}
               </TableCell>
               <TableCell className="space-x-2">
+                <Button variant="secondary" size="sm" onClick={() => onCreateRoute(user.id, user)}>
+                  {t('users.createRoute')}
+                </Button>
                 <Button variant="default" size="sm" onClick={() => onEdit(user.id, user)}>
                   {t('users.edit')}
                 </Button>
@@ -55,5 +58,3 @@ export default function UsersTable({ users, onDelete, onEdit }) {
     </div>
   );
 }
-
-
