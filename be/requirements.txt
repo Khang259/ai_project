@@ -30,3 +30,6 @@ numpy==1.26.4
 # --- Date utilities ---
 python-dateutil==2.8.2
 
+#Python
+Python = 3.12.8
+
