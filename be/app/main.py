@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera, task_status
+from app.api import auth, users, permissions, agv_dashboard, agv_websocket, node, roles, area, caller, notification, camera, task_status, request_end_slot
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.scheduler import start_scheduler, shutdown_scheduler
 from app.routers.parts_summary import router as parts_router
@@ -88,6 +88,7 @@ app.include_router(agv_websocket.router, tags=["AGV WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
 app.include_router(notification.router, tags=["Notification"])
 app.include_router(task_status.router, tags=["Task Status"])
+
 # Add Maintenance API
 app.include_router(parts_router, prefix="/api", tags=["Parts Summary"])
 app.include_router(part_detail_router, prefix="/api", tags=["Part Detail"])
@@ -97,6 +98,9 @@ app.include_router(update_part_log_router, prefix="/api", tags=["Update Part Wit
 app.include_router(maintenance_check_router, prefix="/api", tags=["Maintenance Check"])
 app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name"])
 app.include_router(pdf_router, tags=["PDF"])
+
+# API AI
+app.include_router(request_end_slot.router, prefix="/api", tags=["End Slot Management"])
 
 @app.get("/")
 async def root():
