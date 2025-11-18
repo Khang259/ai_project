@@ -140,7 +140,7 @@ function App() {
           <Route
             path="/monitor-packaged"
             element={
-              <PrivateRoute>
+              <PrivateRoute requiredRole="admin">
                 <MonitorPackaged />
               </PrivateRoute>
             }

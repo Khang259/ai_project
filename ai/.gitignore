@@ -9,6 +9,8 @@
 *.m4v
 *.3gp
 
+*.log
+
 # Video folders
 video/
 videos/
@@ -49,3 +51,9 @@ ENV/
 # OS files
 .DS_Store
 Thumbs.db
+
+*.tar.gz
+*.zip
+*.7z
+*.tar
+*.bin

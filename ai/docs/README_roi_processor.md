@@ -15,26 +15,26 @@
 │                     ROI Processor                           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌──────────────┐  ┌───────────────┐  ┌─────────────────┐ │
-│  │ ROI Config   │  │ Raw Detection │  │ Stable Pairs    │ │
-│  │ Subscriber   │  │ Subscriber    │  │ Subscriber      │ │
-│  └──────┬───────┘  └───────┬───────┘  └────────┬────────┘ │
+│  ┌──────────────┐  ┌───────────────┐  ┌─────────────────┐   │
+│  │ ROI Config   │  │ Raw Detection │  │ Stable Pairs    │   │
+│  │ Subscriber   │  │ Subscriber    │  │ Subscriber      │   │
+│  └──────┬───────┘  └───────┬───────┘  └────────┬────────┘   │
 │         │                   │                    │          │
 │         ▼                   ▼                    ▼          │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │            ROI Cache & State Manager                 │  │
-│  │  - roi_cache: {camera_id: [slots]}                  │  │
-│  │  - blocked_slots: {camera_id: {slot: expire}}       │  │
-│  │  - end_slot_states: {(cam, slot): {state, time}}    │  │
-│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │            ROI Cache & State Manager                 │   │
+│  │  - roi_cache: {camera_id: [slots]}                  │    │
+│  │  - blocked_slots: {camera_id: {slot: expire}}       │    │
+│  │  - end_slot_states: {(cam, slot): {state, time}}    │    │
+│  └──────────────────────────────────────────────────────┘   │
 │                              │                              │
 │                              ▼                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │           Detection Filter & Publisher               │  │
-│  │  - Filter by ROI                                     │  │
-│  │  - Add "empty" for non-shelf slots                   │  │
-│  │  - Publish to roi_detection queue                    │  │
-│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │           Detection Filter & Publisher               │   │
+│  │  - Filter by ROI                                     │   │
+│  │  - Add "empty" for non-shelf slots                   │   │
+│  │  - Publish to roi_detection queue                    │   │
+│  └──────────────────────────────────────────────────────┘   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```

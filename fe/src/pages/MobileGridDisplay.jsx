@@ -3,21 +3,26 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/GridManagement/useAuth';
 import useNodesBySelectedUser from '@/hooks/Setting/useNodesBySelectedUser';
 import { useCreateTask } from '@/hooks/MobileGrid/useCreateTask';
+import { useRequestEndSlot } from '@/hooks/MobileGrid/useRequestEndSlot';
 
 const MobileGridDisplay = () => {
   const { currentUser, logout } = useAuth();
   const { data: nodesData, fetchData: fetchNodesData } = useNodesBySelectedUser(currentUser);
   const { createTaskHandler } = useCreateTask();
+  const { requestEndSlotHandler } = useRequestEndSlot();
 
   const [selectedNodeType, setSelectedNodeType] = useState('');
   const [filteredNodes, setFilteredNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedEndQr, setSelectedEndQr] = useState(null);
+  const [autoNodes, setAutoNodes] = useState([]);
 
   const nodeTypeMapping = {
     'supply': 'Cấp',
     'returns': 'Trả', 
-    'both': 'Cấp&Trả'
+    'both': 'Cấp&Trả',
+    'auto': 'Lệnh vật liệu'
   };
 
   useEffect(() => {
@@ -26,30 +31,61 @@ const MobileGridDisplay = () => {
     }
   }, [currentUser, fetchNodesData]);
 
+  // Define fixed order of node types
+  const orderedNodeTypes = ['supply', 'returns', 'both', 'auto'];
+
   const nodeTypes = React.useMemo(() => {
-    return (nodesData || []).reduce((acc, node) => {
+    const types = (nodesData || []).reduce((acc, node) => {
       const type = node.node_type || 'unknown';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
+    
+    // Ensure all standard types exist in the correct order
+    const orderedTypes = {};
+    orderedNodeTypes.forEach(type => {
+      orderedTypes[type] = types[type] || 0;
+    });
+    
+    return orderedTypes;
   }, [nodesData]);
 
   useEffect(() => {
     if (!selectedNodeType) {
       setFilteredNodes([]);
+      setAutoNodes([]);
       return;
     }
+    
+    // For 'auto' type, filter auto nodes
+    if (selectedNodeType === 'auto') {
+      const autoFiltered = (nodesData || []).filter(node => node.node_type === 'auto');
+      setAutoNodes(autoFiltered);
+      setFilteredNodes([]);
+      return;
+    }
+    
+    // For other types, filter normally
     const filtered = (nodesData || []).filter(node => node.node_type === selectedNodeType);
     setFilteredNodes(filtered);
+    setAutoNodes([]);
   }, [nodesData, selectedNodeType]);
 
   const handleNodeTypeSelect = (nodeType) => {
     setSelectedNodeType(nodeType);
     setSelectedNode(null);
+    setSelectedEndQr(null);
   };
 
   const handleNodeSelect = (node) => {
     setSelectedNode(node);
+    setShowConfirmModal(true);
+  };
+
+  const handleAutoQrSelect = (autoNode) => {
+    // Store both the node info and end_qr for display and API call
+    setSelectedNode(autoNode);
+    setSelectedEndQr(autoNode.end);
     setShowConfirmModal(true);
   };
 
@@ -61,6 +97,21 @@ const MobileGridDisplay = () => {
   };
 
   const handleConfirmSend = async () => {
+    // Handle Auto QR selection
+    if (selectedEndQr !== null) {
+      const result = await requestEndSlotHandler(selectedEndQr, "manual_request");
+      
+      if (result.success) {
+        alert(`Yêu cầu thành công!`);
+        setShowConfirmModal(false);
+        setSelectedEndQr(null);
+      } else {
+        alert(`Yêu cầu thất bại!\n${result.error || 'Lỗi không xác định'}`);
+      }
+      return;
+    }
+
+    // Handle normal node selection
     if (!selectedNode) return;
     
     const taskData = {
@@ -76,17 +127,18 @@ const MobileGridDisplay = () => {
     const result = await createTaskHandler(taskData);
     
     if (result.success) {
-      alert(`✅ Gửi lệnh thành công!\nNode: ${selectedNode.node_name}\nStart: ${selectedNode.start} → End: ${selectedNode.end}`);
+      alert(` Gửi lệnh thành công!\nNode: ${selectedNode.node_name}\nStart: ${selectedNode.start} → End: ${selectedNode.end}`);
       setShowConfirmModal(false);
       setSelectedNode(null);
     } else {
-      alert(`❌ Gửi lệnh thất bại: ${result.error || 'Lỗi không xác định'}`);
+      alert(` Gửi lệnh thất bại: ${result.error || 'Lỗi không xác định'}`);
     }
   };
 
   const handleCancelSend = () => {
     setShowConfirmModal(false);
     setSelectedNode(null);
+    setSelectedEndQr(null);
   };
   
   return (
@@ -117,24 +169,26 @@ const MobileGridDisplay = () => {
           <div className="p-3 sm:p-6">
             <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
               <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn loại chu trình:</h2>
-              <div className="flex flex-wrap justify-between w-full ">
-                {Object.keys(nodeTypes).map((nodeType) => (
-                  <button
-                    key={nodeType}
-                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base w-2/7 ${
-                      selectedNodeType === nodeType 
-                        ? 'bg-[#016B61] text-white' 
-                        : 'bg-white text-[#016B61] border-2 border-[#016B61] hover:bg-[#016B61] hover:text-white'
-                    }`}
-                    onClick={() => handleNodeTypeSelect(nodeType)}
-                  >
-                    {nodeTypeMapping[nodeType] || nodeType} ({nodeTypes[nodeType]})
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                {Object.keys(nodeTypes)
+                  .filter(nodeType => nodeType === 'auto' || nodeTypes[nodeType] > 0)
+                  .map((nodeType) => (
+                    <button
+                      key={nodeType}
+                      className={`px-3 py-2 sm:px-4 sm:py-2 rounded font-medium transition-colors duration-200 text-sm sm:text-base flex-1 min-w-[100px] ${
+                        selectedNodeType === nodeType 
+                          ? 'bg-[#016B61] text-white' 
+                          : 'bg-white text-[#016B61] border-2 border-[#016B61] hover:bg-[#016B61] hover:text-white'
+                      }`}
+                      onClick={() => handleNodeTypeSelect(nodeType)}
+                    >
+                      {nodeTypeMapping[nodeType] || nodeType} ({nodeTypes[nodeType]})
+                    </button>
+                  ))}
               </div>
             </div>
 
-            {selectedNodeType && (
+            {selectedNodeType && selectedNodeType !== 'auto' && (
               <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                   Danh sách nodes ({filteredNodes.length}):
@@ -171,39 +225,88 @@ const MobileGridDisplay = () => {
                 </div>
               </div>
             )}
+
+            {selectedNodeType === 'auto' && (
+              <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
+                  Danh sách lệnh vật liệu ({autoNodes.length}):
+                </h2>
+                <div className={`grid gap-2 sm:gap-3 ${getGridClasses()}`}>
+                  {autoNodes.map((node, index) => (
+                    <div 
+                      key={node.id || index}
+                      className={`bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer transition-colors duration-200 border-2 ${
+                        selectedEndQr === node.end && selectedNode?.id === node.id
+                          ? 'border-[#016B61] bg-[#016B61]/10' 
+                          : 'border-gray-200 hover:border-[#016B61] hover:bg-gray-100'
+                      }`}
+                      onClick={() => handleAutoQrSelect(node)}
+                    >
+                      <div className="text-center">
+                        <h3 className="font-bold text-gray-800 text-xl sm:text-2xl">
+                          {node.node_name || `Node ${index + 1}`}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          End: {node.end || 0}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {showConfirmModal && selectedNode && (
+      {showConfirmModal && (selectedNode || selectedEndQr !== null) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-[#016B61]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✅</span>
+                <span className="text-2xl"></span>
               </div>
               
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Xác nhận gửi lệnh</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">
+                {selectedEndQr !== null ? 'Xác nhận yêu cầu cấp hàng' : 'Xác nhận gửi lệnh'}
+              </h3>
               
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Node:</span>
-                    <span className="font-bold text-gray-800">{selectedNode.node_name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Loại:</span>
-                    <span className="font-bold text-gray-800">{nodeTypeMapping[selectedNode.node_type] || selectedNode.node_type}</span>
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="font-bold text-[#016B61] text-lg">{selectedNode.start} → {selectedNode.end}</span>
-                  </div>
-                  {selectedNode.next_start > 0 && selectedNode.next_end > 0 && (
-                    <div className="flex justify-center">
-                      <span className="font-bold text-[#016B61] text-lg">{selectedNode.next_start} → {selectedNode.next_end}</span>
+                {selectedEndQr !== null && selectedNode ? (
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Node:</span>
+                      <span className="font-bold text-gray-800">{selectedNode.node_name}</span>
                     </div>
-                  )}
-                </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">End QR:</span>
+                      <span className="font-bold text-gray-800">{selectedEndQr}</span>
+                    </div>
+                    {/* <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Trạng thái:</span>
+                      <span className="font-bold text-green-600">Empty (Sẵn sàng nhận hàng)</span>
+                    </div> */}
+                  </div>
+                ) : selectedNode ? (
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Node:</span>
+                      <span className="font-bold text-gray-800">{selectedNode.node_name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Loại:</span>
+                      <span className="font-bold text-gray-800">{nodeTypeMapping[selectedNode.node_type] || selectedNode.node_type}</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <span className="font-bold text-[#016B61] text-lg">{selectedNode.start} → {selectedNode.end}</span>
+                    </div>
+                    {selectedNode.next_start > 0 && selectedNode.next_end > 0 && (
+                      <div className="flex justify-center">
+                        <span className="font-bold text-[#016B61] text-lg">{selectedNode.next_start} → {selectedNode.next_end}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
 
               <div className="flex gap-3">

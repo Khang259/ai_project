@@ -1,10 +1,7 @@
 {
   "cam_urls": [
-    ["cam-1", "rtsp://192.168.1.168:8554/live/cam1"],
-    ["cam-2", "rtsp://192.168.1.168:8554/live/cam2"],
-    ["cam-3", "rtsp://192.168.1.168:8554/live/cam3"],
-    ["cam-4", "rtsp://192.168.1.168:8554/live/cam4"],
-    ["cam-5", "rtsp://192.168.1.168:8554/live/cam5"],
-    ["cam-6", "rtsp://192.168.1.168:8554/live/cam6"]
+   ["cam-1", "rtsp://localhost:8554/cam1"],
+   ["cam-2", "rtsp://localhost:8554/cam2"]
+   
   ]
 }   

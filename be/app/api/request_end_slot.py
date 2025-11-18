@@ -14,8 +14,9 @@ from shared.logging import get_logger
 router = APIRouter()
 logger = get_logger("camera_ai_app")
 
-# Sử dụng queues.db từ thư mục ai (cùng với stable_pair_processor)
-queue = SQLiteQueue(os.path.join(project_root, "ai", "queues.db"))
+# Sử dụng queues.db từ thư mục ai (cùng cấp với be)
+ai_dir = os.path.join(project_root, "ai")
+queue = SQLiteQueue(os.path.join(ai_dir, "queues.db"))
 
 @router.post("/request-end-slot", response_model=EndSlotResponse)
 async def request_end_slot(request: EndSlotRequest):

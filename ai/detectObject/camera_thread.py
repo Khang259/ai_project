@@ -125,7 +125,7 @@ class CameraThread(threading.Thread):
                 self.last_frame_time = current_time
                 
                 # Resize frame
-                frame = cv2.resize(frame, (640, 360))
+                frame = cv2.resize(frame, (1280, 720))
                 
                 # Encode JPEG để giảm dung lượng
                 _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])

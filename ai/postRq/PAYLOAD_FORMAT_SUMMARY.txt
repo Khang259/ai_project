@@ -1,0 +1,154 @@
+================================================================================
+    PAYLOAD FORMAT MỚI - 2 QR vs 4 QR
+================================================================================
+
+🎯 LOGIC:
+--------
+- 2 QR codes (Pair hoặc Dual 2P) → modelProcessCode = "lenhDon"
+- 4 QR codes (Dual 4P)             → modelProcessCode = "lenhDooi"
+
+================================================================================
+
+📦 FORMAT CHI TIẾT:
+------------------
+
+1. REGULAR PAIR (2 QR):
+   {
+     "modelProcessCode": "lenhDon",
+     "fromSystem": "ICS",
+     "orderId": "1729085400000a1b2",
+     "taskOrderDetail": [
+       {
+         "taskPath": "62,13"  // start_slot,end_slot
+       }
+     ]
+   }
+
+2. DUAL 2P (2 QR):
+   {
+     "modelProcessCode": "lenhDon",  // Giống Regular Pair
+     "fromSystem": "ICS",
+     "orderId": "1729085400001b2c3",
+     "taskOrderDetail": [
+       {
+         "taskPath": "10000628,10000386"  // start_qr,end_qrs
+       }
+     ]
+   }
+
+3. DUAL 4P (4 QR):
+   {
+     "modelProcessCode": "lenhDooi",  // KHÁC! Lệnh đôi
+     "fromSystem": "ICS",
+     "orderId": "1729085400002c3d4",
+     "taskOrderDetail": [
+       {
+         "taskPath": "10000628,10000386"  // Cặp 1: start_qr,end_qrs
+       },
+       {
+         "taskPath": "10000374,10000124"  // Cặp 2: start_qr_2,end_qrs_2
+       }
+     ]
+   }
+
+================================================================================
+
+📊 BẢNG SO SÁNH:
+----------------
+
+┌────────────────┬────────┬─────────────────────┬──────────────────┐
+│ Loại           │ Số QR  │ modelProcessCode    │ taskOrderDetail  │
+├────────────────┼────────┼─────────────────────┼──────────────────┤
+│ Regular Pair   │ 2      │ "lenhDon"           │ 1 object         │
+│ Dual 2P        │ 2      │ "lenhDon"           │ 1 object         │
+│ Dual 4P        │ 4      │ "lenhDooi"          │ 2 objects        │
+└────────────────┴────────┴─────────────────────┴──────────────────┘
+
+================================================================================
+
+🔍 LOGIC KIỂM TRA:
+-----------------
+
+if start_slot_2 and end_slot_2:
+    # Dual 4P: Có cả 2 điểm phụ
+    modelProcessCode = "lenhDooi"
+    taskOrderDetail = [
+        {"taskPath": "start,end"},
+        {"taskPath": "start_2,end_2"}
+    ]
+else:
+    # Dual 2P hoặc Regular Pair
+    modelProcessCode = "lenhDon"
+    taskOrderDetail = [
+        {"taskPath": "start,end"}
+    ]
+
+================================================================================
+
+✅ ƯU ĐIỂM:
+-----------
+
+1. Phân biệt rõ ràng:
+   - "lenhDon" = Lệnh đơn (2 QR)
+   - "lenhDooi" = Lệnh đôi (4 QR)
+
+2. Cấu trúc rõ ràng:
+   - Dual 4P: 2 objects riêng biệt
+   - Không còn "A,B,C,D" trong 1 string
+
+3. Dễ xử lý:
+   - API server dễ parse
+   - Robot/AMR dễ hiểu 2 routes riêng
+
+================================================================================
+
+🎬 VÍ DỤ:
+---------
+
+Input Regular Pair:
+  pair_id: "62 -> 13"
+  start_slot: "62"
+  end_slot: "13"
+
+Output:
+  {
+    "modelProcessCode": "lenhDon",
+    "taskOrderDetail": [{"taskPath": "62,13"}]
+  }
+
+---
+
+Input Dual 4P:
+  dual_id: "10000628-> 10000386-> 10000374-> 10000124"
+  start_slot: "10000628"
+  end_slot: "10000386"
+  start_slot_2: "10000374"
+  end_slot_2: "10000124"
+
+Output:
+  {
+    "modelProcessCode": "lenhDooi",
+    "taskOrderDetail": [
+      {"taskPath": "10000628,10000386"},
+      {"taskPath": "10000374,10000124"}
+    ]
+  }
+
+================================================================================
+
+⚠️  LƯU Ý:
+----------
+
+API Server cần cập nhật để:
+  1. Chấp nhận "lenhDon" và "lenhDooi"
+  2. Xử lý taskOrderDetail với 2 objects (cho Dual 4P)
+
+================================================================================
+
+📚 TÀI LIỆU:
+------------
+
+docs/README_PAYLOAD_UPDATE.md - Tài liệu chi tiết với ví dụ đầy đủ
+
+================================================================================
+

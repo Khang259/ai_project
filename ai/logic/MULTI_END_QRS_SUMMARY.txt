@@ -1,0 +1,115 @@
+================================================================================
+    TỔNG QUAN LOGIC XỬ LÝ MULTIPLE END_QRS
+================================================================================
+
+📋 YÊU CẦU:
+-----------
+Với cấu hình:
+  {
+    "start_qr": 62,
+    "end_qrs": ["13", "32"]  // 2 hoặc 3 end_qrs
+  }
+
+→ CHỈ PUBLISH 1 CẶP DUY NHẤT cho mỗi start_qr, không spam nhiều messages
+
+================================================================================
+
+🎯 LOGIC:
+---------
+
+BƯỚC 1: Kiểm tra start_qr
+  ✅ start_qr phải = shelf (stable ≥5s)
+
+BƯỚC 2: Thu thập end_qrs đang empty
+  - Duyệt tất cả end_qrs trong config
+  - Lưu danh sách các end_qrs = empty (stable ≥5s)
+
+BƯỚC 3: Quyết định publish
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ Số end_qrs empty │ Hành động                                    │
+  ├─────────────────────────────────────────────────────────────────┤
+  │ 0                │ ❌ KHÔNG publish                             │
+  │ 1                │ ✅ Publish cặp đó                            │
+  │ 2/3 (một số)     │ ✅ Publish end_qr ĐẦU TIÊN trong list empty  │
+  │ 2/2 hoặc 3/3     │ ✅ Publish end_qr ĐẦU TIÊN + flag ALL_EMPTY  │
+  └─────────────────────────────────────────────────────────────────┘
+
+================================================================================
+
+📦 PAYLOAD:
+-----------
+
+CASE 1: Chỉ 1 end_qr empty
+  {
+    "pair_id": "62 -> 32",
+    "start_slot": "62",
+    "end_slot": "32",
+    "stable_since": "2024-..."
+  }
+
+CASE 2: TẤT CẢ end_qrs empty
+  {
+    "pair_id": "62 -> 13",
+    "start_slot": "62",
+    "end_slot": "13",                          ← Chọn đầu tiên
+    "all_empty_end_slots": ["13", "32"],       ← Thông tin tất cả
+    "is_all_empty": true,                      ← Flag đặc biệt
+    "stable_since": "2024-..."
+  }
+
+================================================================================
+
+🔥 VÍ DỤ THỰC TẾ:
+-----------------
+
+Config: start_qr=62, end_qrs=[13, 32, 41]
+
+T=0s:   62=empty, 13=shelf, 32=shelf, 41=shelf
+        ➜ Chưa publish (start chưa có hàng)
+
+T=8s:   62=shelf (stable), 13=shelf, 32=shelf, 41=shelf
+        ➜ Chưa publish (không có end nào empty)
+
+T=20s:  62=shelf, 13=shelf, 32=empty (stable), 41=shelf
+        ➜ ✅ PUBLISH "62 -> 32" (chỉ 32 empty)
+
+T=35s:  62=shelf, 13=empty (stable), 32=empty (stable), 41=shelf
+        ➜ ✅ PUBLISH "62 -> 13" (chọn 13 vì đứng đầu)
+
+T=50s:  62=shelf, 13=empty, 32=empty, 41=empty (tất cả stable)
+        ➜ ✅ PUBLISH "62 -> 13" với:
+            - is_all_empty = true
+            - all_empty_end_slots = [13, 32, 41]
+
+================================================================================
+
+⚙️ THAM SỐ:
+-----------
+- stable_seconds: 5.0       (thời gian stable tối thiểu)
+- cooldown_seconds: 10.0    (thời gian cooldown giữa 2 lần publish)
+
+================================================================================
+
+🧪 TEST:
+--------
+Chạy test để kiểm tra:
+
+1. Xem history:
+   python test/test_multi_end_qrs.py view
+
+2. Monitor real-time:
+   python test/test_multi_end_qrs.py monitor
+
+3. Phân tích patterns:
+   python test/test_multi_end_qrs.py analyze
+
+================================================================================
+
+✅ LỢI ÍCH:
+-----------
+✓ Tránh spam: Chỉ 1 message thay vì 2-3 messages
+✓ Thông tin đầy đủ: Payload chứa info về tất cả điểm đến trống
+✓ Ưu tiên thông minh: Chọn theo thứ tự trong config
+
+================================================================================
+

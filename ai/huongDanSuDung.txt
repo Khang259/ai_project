@@ -33,3 +33,19 @@ python roi_tool.py --camera-id cam-2 --save-coords
 
 # Legacy mode (video file)
 python roi_tool.py --video video/hanam.mp4 --save-coords
+
+
+1. Sửa lại orderID: timestamp + random salt
+2. Check lại body json lệnh Đôi
+
+curl -X POST http://localhost:8001/api/request-end-slot -H "Content-Type: application/json" -d "{\"end_qr\": 99, \"reason\": \"ready_to_receive\"}"
+
+ffmpeg -re -i video-test-end.mp4 -c copy -f rtsp rtsp://localhost:8554/mystream
+
+curl -X POST http://localhost:7000/api/slot/block -H "Content-Type: application/json" -d "{ \"qr_code\": 101 }"
+
+Chạy file 
+1. /detectObject/main.py
+2. /roi_processor.py
+3. /logic/stable_pair_processor.py
+4. /postRq/postAPI.py

@@ -1,0 +1,51 @@
+2025-11-18 09:30:30,860 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-18 09:30:30,861 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-18 09:30:36,262 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-18 09:30:36,263 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-18 09:30:36,751 - camera_ai_app - INFO - Default permissions initialized
+2025-11-18 09:30:36,752 - camera_ai_app - INFO - Initializing default roles...
+2025-11-18 09:30:36,863 - camera_ai_app - INFO - Default roles initialized
+2025-11-18 09:30:36,886 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-18 09:30:36,887 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-18 23:00:00+07:00
+2025-11-18 09:30:36,888 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-18 09:33:30,740 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-18 09:34:28,144 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-18 09:37:18,484 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-18 09:37:18,484 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-18 09:37:18,485 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-18 09:37:18,511 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-18 09:37:31,312 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-18 09:37:31,313 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-18 09:37:36,915 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-18 09:37:36,915 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-18 09:37:37,520 - camera_ai_app - INFO - Default permissions initialized
+2025-11-18 09:37:37,520 - camera_ai_app - INFO - Initializing default roles...
+2025-11-18 09:37:37,632 - camera_ai_app - INFO - Default roles initialized
+2025-11-18 09:37:37,636 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-18 09:37:37,637 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-18 23:00:00+07:00
+2025-11-18 09:37:37,637 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-18 09:38:05,430 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-18 09:38:05,610 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-18 09:38:49,714 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-18 10:02:52,301 - camera_ai_app - INFO - End slot 99 marked as empty by user API
+2025-11-18 10:26:08,884 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-18 10:26:08,997 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-18 10:31:42,549 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-18 10:32:23,082 - camera_ai_app - INFO - End slot 99 marked as empty by user API
+2025-11-18 10:32:33,390 - camera_ai_app - INFO - End slot 112 marked as empty by user API
+2025-11-18 10:32:44,072 - camera_ai_app - INFO - End slot 102 marked as empty by user API
+2025-11-18 10:32:58,442 - camera_ai_app - INFO - End slot 98 marked as empty by user API
+2025-11-18 10:33:18,483 - camera_ai_app - INFO - End slot 88 marked as empty by user API
+2025-11-18 10:41:13,144 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-18 10:41:13,260 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-18 10:41:17,283 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-18 10:41:17,579 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-18 10:41:18,642 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-18 10:41:18,645 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-18 10:54:15,689 - camera_ai_app - INFO - End slot 10000299 marked as empty by user API
+2025-11-18 10:54:52,184 - camera_ai_app - INFO - End slot 99 marked as empty by user API
+2025-11-18 10:55:27,024 - camera_ai_app - INFO - End slot 88 marked as empty by user API
+2025-11-18 10:56:04,286 - camera_ai_app - INFO - End slot 88 marked as empty by user API
+2025-11-18 11:01:42,670 - camera_ai_app - INFO - End slot 10000294 marked as empty by user API
+2025-11-18 11:03:34,618 - camera_ai_app - INFO - End slot 10000383 marked as empty by user API
+2025-11-18 11:08:48,055 - camera_ai_app - INFO - Login success for username='hau_admin'

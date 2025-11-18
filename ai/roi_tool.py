@@ -3,14 +3,9 @@ import json
 import os
 from datetime import datetime
 from typing import List, Tuple, Dict, Any
-
 import cv2
-
 from queue_store import SQLiteQueue
-
-
 Point = Tuple[int, int]
-
 
 class RoiDrawer:
     def __init__(self, image, window_name: str = "ROI Tool") -> None:
@@ -90,7 +85,7 @@ class RoiDrawer:
 
     def _put_help(self) -> None:
         lines = [
-            "z: undo ROI | r: reset | s: save | ESC: exit",
+            "z: undo | r: reset | s: save | ESC: exit",
         ]
         y = 25
         for line in lines:
@@ -424,3 +419,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+    
