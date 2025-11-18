@@ -56,6 +56,7 @@ class WebSocketHeartbeatService:
                 for websocket in list(manager.active_connections):
                     try:
                         await websocket.send_text(heartbeat_message)
+                        logger.info(f"Sent heartbeat to connection: {websocket}")
                     except Exception as e:
                         # Nếu gửi lỗi → connection đã dead
                         logger.debug(f"Heartbeat failed for connection: {e}")

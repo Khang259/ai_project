@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Query
-from app.services.task_service import filter_raw_task, get_tasks_from_db, put_to_service
+from app.services.task_service import filter_raw_task, get_tasks_from_db, put_to_service, track_task
 from app.services.websocket_service import manager
 from datetime import datetime
 import json
@@ -37,5 +37,15 @@ async def clear_monitor(request: Request):
     try:
         logger.info(f"Clearing monitor: {payload}")
         return await put_to_service(payload)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/track-task")
+async def tracking_task(request: Request):
+    payload = await request.json()
+    try:
+        logger.info(f"Tracking task: {payload}")
+        return await track_task(payload)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -56,6 +56,9 @@ async def put_to_service(payload: dict):
     #Send initial monitor
     await task_service.publish_to_service(crafted_payload["group_id"], crafted_payload)
 
+    return {"status": "success", "data": "Task added to service successfully"}
+
+async def track_task(payload: dict):
     # Tracking task - Nested structure: {group_id: {order_id: {...}}}
     group_id = payload["group_id"]
     order_id = payload.get("order_id") or payload.get("orderId")
@@ -74,7 +77,7 @@ async def put_to_service(payload: dict):
     }
     
     logger.info(f"Tracking task: group_id={group_id}, order_id={order_id}")
-    return {"status": "success", "data": "Task added to service successfully"}
+    return {"status": "success", "data": "Task tracked successfully"}
 
 async def extract_task_by_group_id(data: dict):
     routes = get_collection("routes")
