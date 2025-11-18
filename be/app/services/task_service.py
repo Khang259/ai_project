@@ -49,6 +49,7 @@ task_service = TaskService()
 
 async def put_to_service(payload: dict):
     #logic clear monitor
+    payload["group_id"] = str(payload.get("group_id"))
     payload["type"] = "Initial"
 
     crafted_payload = payload.copy()
@@ -89,7 +90,6 @@ async def extract_task_by_group_id(data: dict):
         return {"status": "error", "data": "Route not found"}
 
 async def clear_monitor(group_id: str, order_id: str):
-    logger.info(f"Start compare tracking monitor: group_id={group_id}, order_id={order_id}")
     if group_id in task_service._tracking_task:
         tracked_group = task_service._tracking_task[group_id]
         if order_id in tracked_group:
