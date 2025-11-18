@@ -1,7 +1,8 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import List, Dict, Any
+from typing import Dict, Set
 import asyncio
 from shared.logging import get_logger
+
 import json
 
 logger = get_logger("camera_ai_app")
@@ -10,37 +11,41 @@ router = APIRouter()
 # Store active WebSocket connections
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
-        self.device_connections: Dict[str, List[WebSocket]] = {}
-        self.group_connections: Dict[str, List[WebSocket]] = {}
+        self.active_connections: Set[WebSocket] = set()
+        self.device_connections: Dict[str, Set[WebSocket]] = {}
+        self.group_connections: Dict[str, Set[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, device_code: str = None, group_id: str = None):
         await websocket.accept()
+
+        self.active_connections.add(websocket)
         
         if device_code:
             if device_code not in self.device_connections:
-                self.device_connections[device_code] = []
-            self.device_connections[device_code].append(websocket)
-            logger.info(f"WebSocket connected to device {device_code}. Total connections: {len(self.device_connections[device_code])}")
+                self.device_connections[device_code] = set() 
+            self.device_connections[device_code].add(websocket)  
+            logger.info(f"WebSocket connected to device {device_code}. Total: {len(self.device_connections[device_code])}")
         elif group_id:
             if group_id not in self.group_connections:
-                self.group_connections[group_id] = []
-            self.group_connections[group_id].append(websocket)
-            logger.info(f"WebSocket connected to group {group_id}. Total connections: {len(self.group_connections[group_id])}")
+                self.group_connections[group_id] = set()  
+            self.group_connections[group_id].add(websocket)  
+            logger.info(f"WebSocket connected to group {group_id}. Total: {len(self.group_connections[group_id])}")
         else:
-            self.active_connections.append(websocket)
             logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
 
     def disconnect(self, websocket: WebSocket, device_code: str = None, group_id: str = None):
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
+        self.active_connections.discard(websocket)
             
         if device_code and device_code in self.device_connections:
             if websocket in self.device_connections[device_code]:
-                self.device_connections[device_code].remove(websocket)
+                self.device_connections[device_code].discard(websocket)
+                if not self.device_connections[device_code]:
+                    del self.device_connections[device_code]
         elif group_id and group_id in self.group_connections:
             if websocket in self.group_connections[group_id]:
-                self.group_connections[group_id].remove(websocket)
+                self.group_connections[group_id].discard(websocket)
+                if not self.group_connections[group_id]:
+                    del self.group_connections[group_id]
         logger.info(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
 
     async def send_personal_message(self, message: str, websocket: WebSocket):

@@ -25,6 +25,8 @@ from app.routers.update_amr_name import router as update_amr_name_router
 from app.routers.pdf import router as pdf_router
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
 from app.services.notification_service import notification_service
+from app.services.heartbeat_service import websocket_heartbeat_service
+from app.services.task_service import task_service
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -52,6 +54,10 @@ async def lifespan(app: FastAPI):
     logger.info("AGV Scheduler started")
     await notification_service.start()
     logger.info("Notification service started")
+    await task_service.start()
+    logger.info("Task service started")
+    await websocket_heartbeat_service.start()
+    logger.info("Heartbeat service started")
     
     yield
     
@@ -60,7 +66,11 @@ async def lifespan(app: FastAPI):
     shutdown_scheduler()
     logger.info("AGV Scheduler stopped")
     await notification_service.stop()
+    await task_service.stop()
+    logger.info("Task service stopped")
     logger.info("Notification service stopped")
+    await websocket_heartbeat_service.stop()
+    logger.info("Heartbeat service stopped")
     await close_mongo_connection()
 
 # Create FastAPI app

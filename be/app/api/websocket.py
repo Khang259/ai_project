@@ -8,15 +8,8 @@ logger = get_logger("camera_ai_app")
 router = APIRouter()
 
 
-@router.websocket("/ws/tasks/{device_code}")
+@router.websocket("/ws/device/{device_code}")
 async def websocket_device_channel(websocket: WebSocket, device_code: str):
-    """
-    WebSocket channel gắn với từng thiết bị (device_code).
-
-    Frontend kết nối tới ws://<host>/ws/devices/{device_code}. Sau khi kết nối
-    thành công, phía server sẽ sử dụng device_code làm khóa để push dữ liệu
-    realtime (ví dụ các task mới).
-    """
     await manager.connect(websocket, device_code=device_code)
     try:
         while True:
@@ -31,15 +24,8 @@ async def websocket_device_channel(websocket: WebSocket, device_code: str):
         manager.disconnect(websocket, device_code=device_code)
         raise
 
-@router.websocket("/ws/notification/{group_id}")
-async def websocket_notification_channel(websocket: WebSocket, group_id: str):
-    """
-    WebSocket channel gắn với từng nhóm (group_id).
-
-    Frontend kết nối tới ws://<host>/ws/notification/{group_id}. Sau khi kết nối
-    thành công, phía server sẽ sử dụng group_id làm khóa để push dữ liệu
-    realtime (ví dụ các notification mới).
-    """
+@router.websocket("/ws/group/{group_id}")
+async def websocket_group_channel(websocket: WebSocket, group_id: str):
     await manager.connect(websocket, group_id=group_id)
     try:
         while True:
