@@ -17,7 +17,6 @@ export default function UserDashboard() {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isCreateRouteModalOpen, setIsCreateRouteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const { currAreaName, currAreaId } = useArea();
   const { t } = useTranslation();  
   const {
     search,
@@ -82,7 +81,8 @@ export default function UserDashboard() {
         users={filteredUsers.map((u) => ({ 
           ...u, 
           name: <Username name={u.username} />,
-          role: u.roles && u.roles.length > 0 ? u.roles[0].charAt(0).toUpperCase() + u.roles[0].slice(1) : t('users.user'),
+          // Giữ nguyên roles array để UsersTable có thể hiển thị đúng
+          roles: u.roles || [],
           status: u.is_active ? "Active" : "Inactive",
         }))}
         onDelete={handleDelete}

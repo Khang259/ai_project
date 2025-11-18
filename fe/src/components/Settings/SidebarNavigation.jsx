@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
-import { Settings2, Grid3x3, Video, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Settings2, Grid3x3, Video, ChevronRight, ChevronLeft, Route } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const SidebarNavigation = ({ activeTab, onTabChange, isCollapsed, onToggleCollapse }) => {
@@ -20,6 +20,12 @@ const SidebarNavigation = ({ activeTab, onTabChange, isCollapsed, onToggleCollap
       label: t('settings.cameraSettings'),
       icon: Video,
       description: t('settings.cameraSettingsDescription')
+    },
+    {
+      id: 'route',
+      label: t('settings.routeSettings'),
+      icon: Route,
+      description: t('settings.routeSettingsDescription')
     }
   ];
 

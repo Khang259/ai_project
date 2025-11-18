@@ -36,6 +36,9 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
   const { areaData, currAreaName, setCurrAreaName, setCurrAreaId, loading: areaLoading, error: areaError } = useArea();
   const { t } = useTranslation();
 
+  // Kiểm tra quyền admin để hiển thị Area Selector
+  const isAdmin = auth.user?.roles?.includes('admin');
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -197,52 +200,55 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
 
           {/* Right Section - Language & User */}
           <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="header-button-neumorphism flex items-center gap-2 border-none text-white h-10 px-4 rounded-xl font-medium bg-transparent" 
-                    disabled={areaLoading}
-                  >
-                    <span className="text-sm">
-                      {areaLoading ? t('area.loading') : areaError ? t('area.errorLoading') : currAreaName || t('area.notSelected')}
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-70" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 backdrop-blur-xl bg-white/90 border border-white/20 shadow-xl">
-                  <DropdownMenuLabel className="text-gray-700">{t('area.selectArea')}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {areaLoading ? (
-                    <DropdownMenuItem disabled>
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                        {t('area.loadingAreas')}
-                      </div>
-                    </DropdownMenuItem>
-                  ) : areaError ? (
-                    <DropdownMenuItem disabled className="text-red-500">
-                      ❌ {areaError}
-                    </DropdownMenuItem>
-                  ) : areaData.length === 0 ? (
-                    <DropdownMenuItem disabled>
-                      {t('area.noAreas')}
-                    </DropdownMenuItem>
-                  ) : (
-                    areaData.map((area) => (
-                      <DropdownMenuItem
-                        key={area.area_id}
-                        onClick={() => handleAreaSelect(area.area_name)}
-                        className={currAreaName === area.area_name ? "bg-accent" : ""}
-                      >
-                        {area.area_name}
+            {/* Area Selector - Chỉ hiển thị cho admin */}
+            {isAdmin && (
+              <div className="hidden md:flex items-center">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="header-button-neumorphism flex items-center gap-2 border-none text-white h-10 px-4 rounded-xl font-medium bg-transparent" 
+                      disabled={areaLoading}
+                    >
+                      <span className="text-sm">
+                        {areaLoading ? t('area.loading') : areaError ? t('area.errorLoading') : currAreaName || t('area.notSelected')}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-70" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48 backdrop-blur-xl bg-white/90 border border-white/20 shadow-xl">
+                    <DropdownMenuLabel className="text-gray-700">{t('area.selectArea')}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {areaLoading ? (
+                      <DropdownMenuItem disabled>
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          {t('area.loadingAreas')}
+                        </div>
                       </DropdownMenuItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                    ) : areaError ? (
+                      <DropdownMenuItem disabled className="text-red-500">
+                        ❌ {areaError}
+                      </DropdownMenuItem>
+                    ) : areaData.length === 0 ? (
+                      <DropdownMenuItem disabled>
+                        {t('area.noAreas')}
+                      </DropdownMenuItem>
+                    ) : (
+                      areaData.map((area) => (
+                        <DropdownMenuItem
+                          key={area.area_id}
+                          onClick={() => handleAreaSelect(area.area_name)}
+                          className={currAreaName === area.area_name ? "bg-accent" : ""}
+                        >
+                          {area.area_name}
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

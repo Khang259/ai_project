@@ -10,35 +10,43 @@ function PrivateRoute({ children, requiredRole = null }) {
     return <Navigate to="/login" replace />;
   }
 
-  // Nếu chưa có thông tin user, đợi load xong
   if (!user) {
-    return <div style={{ padding: '20px',color: 'black' }}>
-      <h2>Đang tải thông tin user...</h2>
-      <p>Token: {token ? 'Có' : 'Không'}</p>
-      <p>User: {user ? 'Có' : 'Không'}</p>
-    </div>;
+    return (
+      <div style={{ padding: '20px', color: 'black' }}>
+        <h2>Đang tải thông tin user...</h2>
+        <p>Token: {token ? 'Có' : 'Không'}</p>
+        <p>User: {user ? 'Có' : 'Không'}</p>
+      </div>
+    );
   }
 
-  // Nếu có requiredRole, kiểm tra quyền
+  // === KIỂM TRA REQUIRED ROLE (mảng hoặc chuỗi) ===
   if (requiredRole) {
-    if (!user.roles || !user.roles.includes(requiredRole)) {
-      console.log('❌ User does not have required role, redirecting...', {requiredRole});
-      // Nếu không có quyền → redirect về trang phù hợp với role
+    const requiredRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    const hasPermission = user.roles?.some(role => requiredRoles.includes(role));
+
+    if (!hasPermission) {
+      console.log('User does not have required role', { userRoles: user.roles, requiredRoles });
+
       if (user.roles?.includes("user")) {
         return <Navigate to="/mobile-grid-display" replace />;
-      } else{
+      } else {
         return <Navigate to="/dashboard" replace />;
       }
     }
   }
 
-  // Kiểm tra role để redirect phù hợp - CHỈ redirect nếu KHÔNG phải đang ở mobile-grid-display
-  if (user.roles?.includes("user") && !user.roles?.includes("admin") && !user.roles?.includes("superuser")) {
+  // === KIỂM TRA USER THƯỜNG: chỉ được vào /mobile-grid-display ===
+  if (
+    user.roles?.includes("user") &&
+    !user.roles?.includes("admin") &&
+    !user.roles?.includes("superuser")
+  ) {
     if (window.location.pathname !== "/mobile-grid-display") {
-      // Nếu là user thường và KHÔNG phải đang ở mobile-grid-display → redirect về mobile grid display
       return <Navigate to="/mobile-grid-display" replace />;
     }
   }
+
   return children;
 }
 

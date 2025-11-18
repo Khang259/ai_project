@@ -35,7 +35,7 @@ async def register_user(user_in: UserCreate):
                 raise ValueError(f"Invalid role ID format: {role_id}")
     else:
         # Get default "viewer" role
-        default_role = await roles_collection.find_one({"name": "viewer", "is_active": True})
+        default_role = await roles_collection.find_one({"name": "user", "is_active": True})
         if default_role:
             role_object_ids = [default_role["_id"]]
         

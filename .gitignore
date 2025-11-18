@@ -31,7 +31,9 @@ dist-ssr
 .env.*
 
 # Python cache (nếu bạn có backend Python / FastAPI)
-__pycache__/
+be/venv/
+**/__pycache__/
+
 *.py[cod]
 *.pyo
 *.pyd

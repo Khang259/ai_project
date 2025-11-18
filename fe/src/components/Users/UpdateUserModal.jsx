@@ -12,7 +12,8 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
   const [formData, setFormData] = useState({
     username: "",
     roles: [], // Sẽ được set từ API
-    permissions: []
+    permissions: [],
+    groupId: "" //Thêm group ID vào từng đối tượng nếu là opertaor mới xuất hiện trường này 
   });
 
   const [errors, setErrors] = useState({});

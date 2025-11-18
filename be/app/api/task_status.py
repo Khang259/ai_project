@@ -16,7 +16,8 @@ async def receive_task_status(request: Request):
         for group in data["data"]:
             message = json.dumps(group["tasks"])
             await manager.broadcast_to_device(group["group_id"], message)
-        return {"status": "success", "message": f"Task successfully updated to {len(data["data"])} groups"}
+        groups_count = len(data["data"])
+        return {"status": "success", "message": f"Task successfully updated to {groups_count} groups"}
     else:
         return {"status": "error", "message": "Failed to extract data by group id"}
 

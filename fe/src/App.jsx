@@ -60,7 +60,7 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <Dashboard />
                 </DashboardLayout>
@@ -70,7 +70,7 @@ function App() {
           <Route
             path="/maintain"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <Maintain />
                 </DashboardLayout>
@@ -80,7 +80,7 @@ function App() {
           <Route
             path="/analytics"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <Analytics />
                 </DashboardLayout>
@@ -90,7 +90,7 @@ function App() {
           <Route
             path="/task"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <TaskManagement />
                 </DashboardLayout>
@@ -100,7 +100,7 @@ function App() {
           <Route
             path="/notification"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <Notification />
                 </DashboardLayout>
@@ -110,7 +110,7 @@ function App() {
           <Route
             path="/users"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <Users />
                 </DashboardLayout>
@@ -120,7 +120,7 @@ function App() {
           <Route
             path="/area"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <Area />
                 </DashboardLayout>
@@ -130,7 +130,7 @@ function App() {
           <Route
             path="/settings"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>
                   <Settings />
                 </DashboardLayout>
