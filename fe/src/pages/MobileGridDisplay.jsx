@@ -189,7 +189,7 @@ const MobileGridDisplay = () => {
           
           <div className="p-1">
             <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-2 border border-gray-200">
-              <div className="flex flex-wrap justify-between w-full h-[70px]">
+              <div className="flex flex-wrap justify-between w-full ">
                 {Object.keys(nodeTypes).map((nodeType) => (
                   <button
                     key={nodeType}
@@ -247,7 +247,7 @@ const MobileGridDisplay = () => {
 
             {selectedNodeType && selectedLine && (
               <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
-                <div className={`grid gap-1 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10`}>
+                <div className={`grid gap-1 max-sm:grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10`}>
                   {filteredNodes.map((node, index) => {
                     const backgroundcolor = LINE_COLORS[node.line];
                     return (
@@ -257,7 +257,7 @@ const MobileGridDisplay = () => {
                         style={{ backgroundColor: backgroundcolor }}
                         onClick={() => handleNodeSelect(node)}
                     >
-                      <h3 className="font-bold text-white-800 text-xl sm:text-2xl truncate">
+                      <h3 className="font-bold text-white-800 text-lg lg:text-2xl truncate">
                         {node.node_name}
                       </h3>
                     </div>
