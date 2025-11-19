@@ -30,4 +30,3 @@ numpy>=1.26.5
 
 # --- Date utilities ---
 python-dateutil==2.8.2
-

@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from app.core.database import get_collection
 from app.schemas.user import UserOut, UserUpdate
-from app.core.permissions import require_permission
+from app.core.permissions import require_permission, require_role
 from shared.logging import get_logger
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
+from app.services.auth_service import get_users_for_operator
 
 router = APIRouter()
 logger = get_logger("camera_ai_app")
@@ -35,7 +36,9 @@ async def get_users(
             username=user["username"],
             is_active=user.get("is_active", True),
             is_superuser=user.get("is_superuser", False),
+            area=user.get("area", 0),
             group_id=user.get("group_id", 0),
+            route=user.get("route", []),
             roles=role_names,
             permissions=user.get("permissions", []),
             created_at=user.get("created_at"),
@@ -43,6 +46,11 @@ async def get_users(
         ))
     
     return result
+
+@router.get("/operator", response_model=List[UserOut])
+async def get_users_operator(group_id: int):
+    """Get all users for operator"""
+    return await get_users_for_operator(group_id)
 
 @router.get("/{user_id}", response_model=UserOut)
 async def get_user(
@@ -69,7 +77,9 @@ async def get_user(
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
+        area=user.get("area", 0),
         group_id=user.get("group_id", 0),
+        route=user.get("route", []),
         roles=role_names,
         permissions=user.get("permissions", []),
         created_at=user.get("created_at"),
@@ -113,12 +123,19 @@ async def update_user(
                 logger.warning(f"Invalid role ID format: {role_id}")
                 raise HTTPException(status_code=400, detail=f"Invalid role ID format: {role_id}")
         update_data["roles"] = role_object_ids
+
+    if user_update.area is not None:
+        update_data["area"] = int(user_update.area)
+
     if user_update.group_id is not None:
         try:
             update_data["group_id"] = int(user_update.group_id)
         except Exception:
             raise HTTPException(status_code=400, detail="group_id must be an integer")
-    
+
+    if user_update.route is not None:
+        update_data["route"] = user_update.route
+
     update_data["updated_at"] = datetime.utcnow()
     
     # Update user
@@ -144,7 +161,9 @@ async def update_user(
         username=updated_user["username"],
         is_active=updated_user.get("is_active", True),
         is_superuser=updated_user.get("is_superuser", False),
+        area=updated_user.get("area", 0),
         group_id=updated_user.get("group_id", 0),
+        route=updated_user.get("route", []),
         roles=role_names,
         permissions=updated_user.get("permissions", []),
         created_at=updated_user.get("created_at"),
@@ -169,3 +188,5 @@ async def delete_user(
     
     logger.info(f"User {user_id} deleted by {current_user.username}")
     return {"message": "User deleted successfully"}
+
+

@@ -17,7 +17,7 @@ export const useRequestEndSlot = () => {
       const result = await requestEndSlot(endQr, reason);
       return result;
     } catch (err) {
-      console.error('❌ Error in requestEndSlotHandler:', err);
+      console.error(' Error in requestEndSlotHandler:', err);
       return {
         success: false,
         error: err.message || 'Có lỗi xảy ra khi request end slot'

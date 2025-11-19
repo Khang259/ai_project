@@ -42,7 +42,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         "camera_name": camera_in.camera_name,
         "camera_path": camera_in.camera_path,
         "area": camera_in.area,
-        "roi": camera_in.roi,
+        "mapping": [item.dict() for item in camera_in.mapping],
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -237,12 +237,3 @@ def generate_frames_from_rtsp(rtsp_url: str):
         cap.release()
         logger.info(f"Camera stream closed: {rtsp_url}")
 
-async def health_check_camera(camera_id: str) -> bool:
-    """Kiểm tra kết nối của camera"""
-    cameras = get_collection("cameras")
-    
-    camera = await cameras.find_one({"_id": ObjectId(camera_id)})
-    if not camera:
-        logger.warning(f"Camera not found for health check: {camera_id}")
-        return False
-    return True

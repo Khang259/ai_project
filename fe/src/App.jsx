@@ -17,6 +17,11 @@ import { AreaProvider } from './contexts/AreaContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import './i18n';
 
+//######################
+import MonitorWebSocketTest from './pages/MonitorWebSocketTest';
+
+// Thêm route mới
+
 function App() {
   const [showVideo, setShowVideo] = useState(false);
   useEffect(() => {
@@ -140,11 +145,12 @@ function App() {
           <Route
             path="/monitor-packaged"
             element={
-              <PrivateRoute requiredRole="admin">
+              <PrivateRoute>
                 <MonitorPackaged />
               </PrivateRoute>
             }
           />
+          <Route path="/monitor-test" element={<MonitorWebSocketTest />} />
         </Routes>
       </AreaProvider>
     </LanguageProvider>

@@ -188,6 +188,7 @@ api.interceptors.response.use(
         localStorage.removeItem("token");
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("user");
+        localStorage.removeItem("group_id");
         
         // Clear auto refresh timer
         if (refreshTimer) {

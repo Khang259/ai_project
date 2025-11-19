@@ -1,9 +1,10 @@
 // src/pages/MobileGridDisplay.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/GridManagement/useAuth';
 import useNodesBySelectedUser from '@/hooks/Setting/useNodesBySelectedUser';
 import { useCreateTask } from '@/hooks/MobileGrid/useCreateTask';
 import { useRequestEndSlot } from '@/hooks/MobileGrid/useRequestEndSlot';
+import { clearMonitor } from '@/services/taskStatus';
 
 const MobileGridDisplay = () => {
   const { currentUser, logout } = useAuth();
@@ -71,6 +72,44 @@ const MobileGridDisplay = () => {
     setAutoNodes([]);
   }, [nodesData, selectedNodeType]);
 
+  const sendClearMonitor = useCallback(
+    async (nodePayload) => {
+      if (!nodePayload) {
+        console.log("[MobileGridDisplay] sendClearMonitor - nodePayload is empty");
+        return;
+      }
+      
+      const groupId = currentUser?.group_id ?? localStorage.getItem("group_id");
+      console.log("[MobileGridDisplay] sendClearMonitor - group_id:", groupId);
+      
+      if (!groupId) {
+        console.warn("[MobileGridDisplay] Missing group_id, skip clear-monitor");
+        return;
+      }
+      
+      const payload = {
+        group_id: String(groupId),
+        ...nodePayload,
+      };
+      
+      console.log("[MobileGridDisplay] sendClearMonitor - Sending payload:", payload);
+
+      try {
+        const result = await clearMonitor(payload);
+        console.log("[MobileGridDisplay] sendClearMonitor - Result:", result);
+        
+        if (!result.success) {
+          console.error("[MobileGridDisplay] clearMonitor failed", result.error);
+        } else {
+          console.log("[MobileGridDisplay] clearMonitor SUCCESS - WebSocket should broadcast now");
+        }
+      } catch (error) {
+        console.error("[MobileGridDisplay] clearMonitor error", error);
+      }
+    },
+    [currentUser?.group_id]
+  );
+
   const handleNodeTypeSelect = (nodeType) => {
     setSelectedNodeType(nodeType);
     setSelectedNode(null);
@@ -78,15 +117,20 @@ const MobileGridDisplay = () => {
   };
 
   const handleNodeSelect = (node) => {
+    console.log("[MobileGridDisplay] handleNodeSelect - Selected node:", node);
     setSelectedNode(node);
     setShowConfirmModal(true);
+    setSelectedEndQr(null);
+    sendClearMonitor(node);
   };
 
   const handleAutoQrSelect = (autoNode) => {
+    console.log("[MobileGridDisplay] handleAutoQrSelect - Selected auto node:", autoNode);
     // Store both the node info and end_qr for display and API call
     setSelectedNode(autoNode);
     setSelectedEndQr(autoNode.end);
     setShowConfirmModal(true);
+    sendClearMonitor(autoNode);
   };
 
   

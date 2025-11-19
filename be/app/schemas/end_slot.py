@@ -11,4 +11,3 @@ class EndSlotResponse(BaseModel):
     success: bool
     message: str
     data: dict
-

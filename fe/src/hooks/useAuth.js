@@ -17,12 +17,17 @@ export function useAuth() {
   const [auth, setAuth] = useState({
     token: localStorage.getItem("token") || null,
     user: getUserFromStorage(),
+    groupId: localStorage.getItem("group_id") || null,
   });
 
   const login = async (credentials) => {
     try {
       const response = await loginService(credentials);
-      setAuth({ token: response.token, user: response.user });
+      setAuth({
+        token: response.token,
+        user: response.user,
+        groupId: response?.user?.group_id ?? null,
+      });
       return response;
     } catch (error) {
       throw error;
@@ -33,7 +38,8 @@ export function useAuth() {
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
-    setAuth({ token: null, user: null });
+    localStorage.removeItem("group_id");
+    setAuth({ token: null, user: null, groupId: null });
   };
 
   return { auth, login, logout };

@@ -15,6 +15,7 @@ export const login = async (credentials) => {
     const response = await api.post("/auth/login", credentials);
     // Backend trả về access_token, refresh_token, token_type, user
     const { access_token, refresh_token, token_type, user } = response.data;
+    const groupId = user?.group_id ?? null;
     if (!access_token) {
       console.error("[auth.login] access_token is missing in response", response.data);
     }
@@ -23,6 +24,11 @@ export const login = async (credentials) => {
     localStorage.setItem("token", access_token || "");
     localStorage.setItem("refresh_token", refresh_token || "");
     localStorage.setItem("user", JSON.stringify(user));
+    if (groupId !== null && groupId !== undefined) {
+      localStorage.setItem("group_id", String(groupId));
+    } else {
+      localStorage.removeItem("group_id");
+    }
     
     // Start auto refresh mechanism
     startAutoRefresh();
@@ -48,12 +54,18 @@ export const refreshToken = async () => {
     const response = await refreshApi.post("/auth/refresh", { refresh_token });
     console.log("[auth.refreshToken] refreshToken response", response);
     const { access_token, refresh_token: new_refresh_token, user } = response.data;
+    const groupId = user?.group_id ?? null;
     
     // Cập nhật tokens mới
     localStorage.setItem("token", access_token);
     localStorage.setItem("refresh_token", new_refresh_token);
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
+    }
+    if (groupId !== null && groupId !== undefined) {
+      localStorage.setItem("group_id", String(groupId));
+    } else {
+      localStorage.removeItem("group_id");
     }
     
     return { token: access_token, refresh_token: new_refresh_token, user };
@@ -66,6 +78,7 @@ export const refreshToken = async () => {
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
+    localStorage.removeItem("group_id");
       
     throw new Error(data?.detail || data?.message || error.message || "Refresh token thất bại");
   }
@@ -75,4 +88,5 @@ export const logout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("refresh_token");
+  localStorage.removeItem("group_id");
 };

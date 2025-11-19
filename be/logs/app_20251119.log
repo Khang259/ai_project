@@ -1,0 +1,181 @@
+2025-11-19 07:51:59,965 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 07:51:59,966 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-19 07:52:05,203 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 07:52:05,204 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 07:52:05,728 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 07:52:05,728 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 07:52:05,831 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 07:52:05,834 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 07:52:05,834 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 07:52:05,835 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 07:52:05,835 - camera_ai_app - INFO - Notification service started
+2025-11-19 07:52:05,835 - camera_ai_app - INFO - Task service started
+2025-11-19 07:52:05,836 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-19 07:52:05,836 - camera_ai_app - INFO - Heartbeat service started
+2025-11-19 07:57:11,456 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-19 07:57:11,456 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-19 07:57:11,457 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-19 07:57:11,458 - camera_ai_app - INFO - Task service stopped
+2025-11-19 07:57:11,458 - camera_ai_app - INFO - Notification service stopped
+2025-11-19 07:57:11,459 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-11-19 07:57:11,459 - camera_ai_app - INFO - Heartbeat service stopped
+2025-11-19 07:57:11,488 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-19 07:59:32,746 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 07:59:32,747 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-19 07:59:37,996 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 07:59:37,996 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 07:59:38,565 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 07:59:38,566 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 07:59:38,680 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 07:59:38,683 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 07:59:38,683 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 07:59:38,683 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 07:59:38,684 - camera_ai_app - INFO - Notification service started
+2025-11-19 07:59:38,684 - camera_ai_app - INFO - Task service started
+2025-11-19 07:59:38,684 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-19 07:59:38,684 - camera_ai_app - INFO - Heartbeat service started
+2025-11-19 08:00:25,193 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 08:00:33,840 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-19 08:00:33,960 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:00:58,130 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e82', 'node_name': 'L2_CD-1a', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000601, 'end': 99, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.389000', 'updated_at': '2025-10-29T03:31:31.389000'}
+2025-11-19 08:01:26,823 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 1
+2025-11-19 08:01:29,856 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 2
+2025-11-19 08:01:37,593 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e82', 'node_name': 'L2_CD-1a', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000601, 'end': 99, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.389000', 'updated_at': '2025-10-29T03:31:31.389000'}
+2025-11-19 08:01:38,708 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:01:38,709 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:01:50,360 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e83', 'node_name': 'L2_CD-1b/c', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000601, 'end': 88, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.453000', 'updated_at': '2025-10-29T03:31:31.453000'}
+2025-11-19 08:02:08,717 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:02:08,718 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:02:20,075 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e83', 'node_name': 'L2_CD-1b/c', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000601, 'end': 88, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.453000', 'updated_at': '2025-10-29T03:31:31.453000'}
+2025-11-19 08:02:24,068 - camera_ai_app - INFO - End slot 88 marked as empty by user API
+2025-11-19 08:02:34,991 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e84', 'node_name': 'L2_CD-2a/b', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000599, 'end': 10000294, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.509000', 'updated_at': '2025-10-29T03:31:31.509000'}
+2025-11-19 08:02:38,743 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:02:38,744 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:02:40,231 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e85', 'node_name': 'L2_CD-2c/d', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000599, 'end': 10000299, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.564000', 'updated_at': '2025-10-29T03:31:31.564000'}
+2025-11-19 08:02:43,991 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e89', 'node_name': 'L2_CD-3d/e', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10001107, 'end': 10000383, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.790000', 'updated_at': '2025-10-29T03:31:31.790000'}
+2025-11-19 08:02:46,587 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a94e2f8e2125e965e8e', 'node_name': 'L3_CD-2a/b', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000591, 'end': 10000348, 'next_start': 10000502, 'next_end': 0, 'line': 'Line 3', 'created_at': '2025-10-29T03:31:32.090000', 'updated_at': '2025-10-29T03:31:32.090000'}
+2025-11-19 08:02:48,931 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a94e2f8e2125e965e92', 'node_name': 'L3_CD-4a/b', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000589, 'end': 10000534, 'next_start': 10000502, 'next_end': 0, 'line': 'Line 3', 'created_at': '2025-10-29T03:31:32.329000', 'updated_at': '2025-10-29T03:31:32.329000'}
+2025-11-19 08:03:08,753 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:03:08,754 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:03:08,901 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a94e2f8e2125e965e95', 'node_name': 'L4_CD-1a', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000585, 'end': 10000078, 'next_start': 10000504, 'next_end': 0, 'line': 'Line 4', 'created_at': '2025-10-29T03:31:32.500000', 'updated_at': '2025-10-29T03:31:32.500000'}
+2025-11-19 08:03:18,984 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e83', 'node_name': 'L2_CD-1b/c', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000601, 'end': 88, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.453000', 'updated_at': '2025-10-29T03:31:31.453000'}
+2025-11-19 08:03:21,259 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e82', 'node_name': 'L2_CD-1a', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000601, 'end': 99, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.389000', 'updated_at': '2025-10-29T03:31:31.389000'}
+2025-11-19 08:03:38,731 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:03:38,732 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:04:08,755 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:04:08,756 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:04:38,756 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:04:38,757 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:04:45,135 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e8c', 'node_name': 'L3_CD-1a', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000593, 'end': 10000350, 'next_start': 10000502, 'next_end': 0, 'line': 'Line 3', 'created_at': '2025-10-29T03:31:31.970000', 'updated_at': '2025-10-29T03:31:31.970000'}
+2025-11-19 08:05:08,760 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:05:08,761 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:05:38,770 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:05:38,771 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:06:08,779 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:06:08,780 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:06:38,788 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:06:38,789 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:07:08,781 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:07:08,782 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:07:38,791 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:07:38,792 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:08:08,792 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:08:08,793 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:08:38,799 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:08:38,800 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:09:08,806 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:09:08,807 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:09:38,816 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD215400>
+2025-11-19 08:09:38,817 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD217C20>
+2025-11-19 08:10:01,680 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-11-19 08:10:01,681 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 1
+2025-11-19 08:10:01,682 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-11-19 08:10:01,682 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 0
+2025-11-19 08:10:03,591 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 1
+2025-11-19 08:10:06,535 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 2
+2025-11-19 08:10:08,832 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:10:08,833 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:10:38,841 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:10:38,842 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:11:08,855 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:11:08,856 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:11:09,272 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 08:11:20,846 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e84', 'node_name': 'L2_CD-2a/b', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000599, 'end': 10000294, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.509000', 'updated_at': '2025-10-29T03:31:31.509000'}
+2025-11-19 08:11:38,881 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:11:38,882 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:12:08,875 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:12:08,876 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:12:14,972 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e85', 'node_name': 'L2_CD-2c/d', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000599, 'end': 10000299, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.564000', 'updated_at': '2025-10-29T03:31:31.564000'}
+2025-11-19 08:12:16,931 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e8b', 'node_name': 'L2_CD-3d/e', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000595, 'end': 10000385, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.910000', 'updated_at': '2025-10-29T03:31:31.910000'}
+2025-11-19 08:12:19,263 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a94e2f8e2125e965e8f', 'node_name': 'L3_CD-2c/d', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000591, 'end': 10000353, 'next_start': 10000502, 'next_end': 0, 'line': 'Line 3', 'created_at': '2025-10-29T03:31:32.153000', 'updated_at': '2025-10-29T03:31:32.153000'}
+2025-11-19 08:12:22,827 - camera_ai_app - INFO - Clearing monitor: {'group_id': '1', 'id': '69018a93e2f8e2125e965e82', 'node_name': 'L2_CD-1a', 'node_type': 'auto', 'owner': 'hau_admin', 'process_code': 'Cap_vat_lieu', 'start': 10000601, 'end': 99, 'next_start': 10000500, 'next_end': 0, 'line': 'Line 2', 'created_at': '2025-10-29T03:31:31.389000', 'updated_at': '2025-10-29T03:31:31.389000'}
+2025-11-19 08:12:38,876 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:12:38,877 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:13:08,896 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:13:08,897 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:13:38,889 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:13:38,890 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:14:08,917 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:14:08,918 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:14:38,919 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:14:38,920 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:15:08,926 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:15:08,927 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:15:38,928 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:15:38,929 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:16:08,920 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:16:08,921 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:16:38,925 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:16:38,926 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:17:08,926 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:17:08,927 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:17:38,947 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:17:38,948 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:18:08,962 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:18:08,963 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:18:38,978 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:18:38,979 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:19:08,995 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:19:08,996 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:19:38,992 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:19:38,994 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:20:09,006 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:20:09,006 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:20:39,002 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:20:39,003 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:21:09,008 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:21:09,009 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:21:39,007 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:21:39,008 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:22:09,003 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:22:09,004 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:22:39,003 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:22:39,004 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:23:09,005 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:23:09,006 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:23:39,011 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:23:39,012 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:24:09,021 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:24:09,022 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:24:39,027 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:24:39,028 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:25:09,033 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:25:09,034 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:25:39,037 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:25:39,038 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:26:09,037 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:26:09,038 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:26:39,014 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD20BD40>
+2025-11-19 08:26:39,015 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000001D0FD2165D0>
+2025-11-19 08:27:08,191 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-11-19 08:27:08,192 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 1
+2025-11-19 08:27:08,193 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-11-19 08:27:08,193 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 0
+2025-11-19 08:27:08,303 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-19 08:27:08,303 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-19 08:27:08,304 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-19 08:27:08,305 - camera_ai_app - INFO - Task service stopped
+2025-11-19 08:27:08,305 - camera_ai_app - INFO - Notification service stopped
+2025-11-19 08:27:08,306 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-11-19 08:27:08,306 - camera_ai_app - INFO - Heartbeat service stopped
+2025-11-19 08:27:08,338 - camera_ai_app - INFO - Disconnected from MongoDB
