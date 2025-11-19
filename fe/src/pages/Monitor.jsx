@@ -21,6 +21,7 @@ const MonitorPage = () => {
     { title: 'Tên sản phẩm', dataIndex: 'product_name', key: 'product_name', align: 'center' },
     {
       title: 'Kế hoạch',
+      width: 100,
       key: 'plan',
       align: 'center',
       render: (_, record) => {
@@ -28,7 +29,7 @@ const MonitorPage = () => {
           record.status === 'in_progress'
             ? `${record.produced_quantity}/${record.target_quantity}`
             : record.target_quantity;
-        return <span className="align-middle">{value}</span>;
+        return <span className="text-3xl leading-tight">{value}</span>;
       },
     },
   ];
@@ -83,12 +84,12 @@ const MonitorPage = () => {
         </CardHeader>
         <CardContent>
           {/* ========== BARS WRAPPER ========== */}
-          <div className="relative rounded-xl p-2 bg-gradient-to-br from-white-600 to-yellow-300 shadow-[0_0_25px_#000000] mb-12 mt-10">
+          <div className="relative rounded-xl p-2 bg-gradient-to-br from-white-600 to-yellow-300 shadow-[0_0_25px_#000000] mb-6 mt-10">
              <div className="w-[10px] aspect-square absolute bg-blue-600 rounded-full shadow-[0_0_10px_#ffffff] z-[1] right-[1%] top-[1%] animate-[moveDot_15s_linear_infinite]"></div>
             <div className="rounded-lg bg-white p-4">
               {/* ========== FRAME SECTION ========== */}
-              <div className="mb-8">
-                <h4 className="text-2xl font-semibold mb-3 text-sky-600">
+              <div className="mb-2">
+                <h4 className="text-2xl font-semibold mb-1 text-sky-600">
                   Frame
                 </h4>
                 <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-gradient-to-r from-slate-100 to-slate-300">
@@ -107,8 +108,8 @@ const MonitorPage = () => {
               </div>
 
               {/* ========== TANK SECTION ========== */}
-              <div className="mb-2">
-                <h4 className="text-2xl font-semibold mb-3 text-emerald-600">
+              <div className="mb-1">
+                <h4 className="text-2xl font-semibold text-emerald-600">
                   Tank
                 </h4>
                 <div className="flex gap-1 h-10 rounded-lg overflow-hidden shadow-inner bg-gradient-to-r from-slate-100 to-slate-300">
@@ -131,11 +132,10 @@ const MonitorPage = () => {
           {/* ========== TABLES SECTION ========== */}
           <div className="flex flex-wrap gap-8">
             {/* FRAME TABLE */}
-            <div className="flex-1 min-w-[400px] bg-gradient-to-br from-black-600 to-blue-400 shadow-[-10px_10px_25px_#000000] mb-12 rounded-xl border border-slate-300 p-4">
-              <h5 className="text-5xl font-semibold mb-3 text-center text-sky-600">Model Frame</h5>
+            <div className="flex-1 min-w-[400px] bg-gradient-to-br from-black-600 to-blue-400 shadow-[-10px_10px_25px_#000000] mb-6 rounded-xl border border-slate-300 p-4">
+              <h5 className="text-5xl font-semibold mb-2 text-center text-sky-600">Model Frame</h5>
               <Table
                 size="large"
-                bordered
                 columns={columns}
                 dataSource={frameRows.filter((x) => x.status !== 'completed')}
                 pagination={false}
@@ -151,7 +151,7 @@ const MonitorPage = () => {
 
             {/* TANK TABLE */}
             <div className="flex-1 min-w-[400px] bg-gradient-to-br from-white-600 to-green-400 shadow-[10px_10px_25px_#000000] mb-12 rounded-xl border border-slate-300 p-4">
-              <h5 className="text-5xl font-semibold mb-3 text-center text-emerald-600">Model Tank</h5>
+              <h5 className="text-5xl font-semibold mb-2 text-center text-emerald-600">Model Tank</h5>
               <Table
                 size="large"
                 bordered
