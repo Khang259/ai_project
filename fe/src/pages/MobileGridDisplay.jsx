@@ -84,17 +84,25 @@ const MobileGridDisplay = () => {
   }, [normalizedNodes, selectedNodeType]);
 
   useEffect(() => {
-    if (!selectedNodeType || !selectedLine) {
+    if (!selectedNodeType) {
       setFilteredNodes([]);
       return;
     }
-    const filtered = normalizedNodes.filter(node => {
-      const matchNodeType = node.node_type === selectedNodeType;
-      const matchLine = node.line === selectedLine;
-      return matchNodeType && matchLine;
+    const filtered = normalizedNodes.filter((node) => {
+      if (node.node_type !== selectedNodeType) return false;
+      return selectedLine ? node.line === selectedLine : true;
     });
     setFilteredNodes(filtered);
   }, [normalizedNodes, selectedNodeType, selectedLine]);
+
+  const nodesByLine = React.useMemo(() => {
+    return filteredNodes.reduce((acc, node) => {
+      const line = node.line || 'Line khác';
+      if (!acc[line]) acc[line] = [];
+      acc[line].push(node);
+      return acc;
+    }, {});
+  }, [filteredNodes]);
 
   const handleNodeTypeSelect = (nodeType) => {
     setSelectedNodeType(nodeType);
@@ -207,7 +215,7 @@ const MobileGridDisplay = () => {
             </div>
 
             {selectedNodeType && Object.keys(lines).length > 0 && (
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200 sm:hidden">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Chọn Line:</h2>
                 <div className="flex flex-wrap gap-2">
                   {Object.keys(lines).sort().map((line) => {
@@ -245,25 +253,36 @@ const MobileGridDisplay = () => {
               </div>
             )}
 
-            {selectedNodeType && selectedLine && (
+            {selectedNodeType && filteredNodes.length > 0 && (
               <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
-                <div className={`grid gap-1 max-sm:grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10`}>
-                  {filteredNodes.map((node, index) => {
-                    const backgroundcolor = LINE_COLORS[node.line];
-                    return (
-                    <div 
-                      key={node.id || index}
-                        className={`rounded-lg cursor-pointer transition-colors duration-200 border-2 hover:border-[#016B61] text-white h-[80px] flex items-center justify-center w-full`}
-                        style={{ backgroundColor: backgroundcolor }}
-                        onClick={() => handleNodeSelect(node)}
-                    >
-                      <h3 className="font-bold text-white-800 text-lg lg:text-2xl truncate">
-                        {node.node_name}
-                      </h3>
+                {Object.keys(nodesByLine)
+                  .sort()
+                  .map((line) => (
+                    <div key={line} className="mb-4 last:mb-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs sm:text-base font-semibold text-white p-1 rounded-lg"    style={{ backgroundColor: LINE_COLORS[line] || '#5C9A94' }}>
+                          {line} 
+                        </h3>
+                      </div>
+                      <div className="grid gap-1 max-sm:grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10">
+                        {nodesByLine[line].map((node, index) => {
+                          const backgroundcolor = LINE_COLORS[node.line] || '#5C9A94';
+                          return (
+                            <div
+                              key={node.id || `${line}-${index}`}
+                              className="rounded-lg cursor-pointer transition-colors duration-200 border-2 hover:border-[#016B61] text-white h-[80px] flex items-center justify-center w-full"
+                              style={{ backgroundColor: backgroundcolor }}
+                              onClick={() => handleNodeSelect(node)}
+                            >
+                              <div className="text-center">
+                                <p className="text-xs sm:text-xl font-semibold truncate">{node.node_name}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    )
-                  })}
-                </div>
+                  ))}
               </div>
             )}
           </div>
