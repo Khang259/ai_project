@@ -4,6 +4,10 @@ import { useAuth } from '@/hooks/GridManagement/useAuth';
 import useNodesBySelectedUser from '@/hooks/Setting/useNodesBySelectedUser';
 import { useCreateTask } from '@/hooks/MobileGrid/useCreateTask';
 
+const RETURN_MATERIAL_TYPE = 'return_vl';
+const RETURN_SPARE_TYPE = 'return_pt';
+const hasNumericSuffix = (value = '') => /\d$/.test((value || '').trim());
+
 const MobileGridDisplay = () => {
   const { currentUser, logout } = useAuth();
   const { data: nodesData, fetchData: fetchNodesData } = useNodesBySelectedUser(currentUser);
@@ -14,26 +18,40 @@ const MobileGridDisplay = () => {
   const [filteredNodes, setFilteredNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [commandLogs, setCommandLogs] = useState([]);
 
+  const getNodeTypeLabel = (nodeType) => nodeTypeMapping[nodeType] || nodeType;
   const nodeTypeMapping = {
-    'supply': 'Cấp hàng',
-    'returns': 'Trả hàng', 
-    'both': 'Cấp và trả hàng',
-    'auto': 'Tự động'
+    supply: 'Trả phụ tùng',
+    [RETURN_MATERIAL_TYPE]: 'Cấp phụ tùng',
+    [RETURN_SPARE_TYPE]: 'Vật liệu',
+    both: 'Cấp và trả hàng',
+    auto: 'Tự động'
   };
 
-  // Color palette cho các lines (10 màu khác nhau)
+  const normalizedNodes = React.useMemo(() => {
+    return (nodesData || []).map((node) => {
+      if (node?.node_type !== 'returns') return node;
+      const nodeName = (node?.node_name || '').trim();
+      const hasNumberEnding = hasNumericSuffix(nodeName);
+      return {
+        ...node,
+        node_type: hasNumberEnding ? RETURN_MATERIAL_TYPE : RETURN_SPARE_TYPE
+      };
+    });
+  }, [nodesData]);
+
   const LINE_COLORS = {
-    'Line 1': '#016B61',   // Teal Green (hiện tại)
-    'Line 2': '#2563EB',   // Blue
-    'Line 3': '#DC2626',   // Red
-    'Line 4': '#9333EA',   // Purple
-    'Line 5': '#EA580C',   // Orange
-    'Line 6': '#059669',   // Emerald
-    'Line 7': '#DB2777',   // Pink
-    'Line 8': '#7C3AED',   // Violet
-    'Line 9': '#0891B2',   // Cyan
-    'Line 10': '#CA8A04',  // Yellow
+    'Line 1': '#5C9A94',
+    'Line 2': '#5E8CCF',
+    'Line 3': '#C26A6A',
+    'Line 4': '#A879D9',
+    'Line 5': '#D9895E',
+    'Line 6': '#5CA382',
+    'Line 7': '#CF6A9B',
+    'Line 8': '#9A6ACF',
+    'Line 9': '#5E9ECF',
+    'Line 10': '#CFAF5C'
   };
 
   useEffect(() => {
@@ -43,18 +61,18 @@ const MobileGridDisplay = () => {
   }, [currentUser, fetchNodesData]);
 
   const nodeTypes = React.useMemo(() => {
-    return (nodesData || []).reduce((acc, node) => {
-      const type = node.node_type || 'unknown';
+    return normalizedNodes.reduce((acc, node) => {
+      const type = node?.node_type || 'unknown';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
-  }, [nodesData]);
+  }, [normalizedNodes]);
 
   const lines = React.useMemo(() => {
     // Filter nodes theo selectedNodeType trước
     const filteredByType = selectedNodeType 
-      ? (nodesData || []).filter(n => n.node_type === selectedNodeType)
-      : (nodesData || []);
+      ? normalizedNodes.filter(n => n.node_type === selectedNodeType)
+      : normalizedNodes;
     
     // Sau đó count lines
     return filteredByType.reduce((acc, node) => {
@@ -63,20 +81,20 @@ const MobileGridDisplay = () => {
       }
       return acc;
     }, {});
-  }, [nodesData, selectedNodeType]);
+  }, [normalizedNodes, selectedNodeType]);
 
   useEffect(() => {
     if (!selectedNodeType || !selectedLine) {
       setFilteredNodes([]);
       return;
     }
-    const filtered = (nodesData || []).filter(node => {
+    const filtered = normalizedNodes.filter(node => {
       const matchNodeType = node.node_type === selectedNodeType;
       const matchLine = node.line === selectedLine;
       return matchNodeType && matchLine;
     });
     setFilteredNodes(filtered);
-  }, [nodesData, selectedNodeType, selectedLine]);
+  }, [normalizedNodes, selectedNodeType, selectedLine]);
 
   const handleNodeTypeSelect = (nodeType) => {
     setSelectedNodeType(nodeType);
@@ -103,10 +121,14 @@ const MobileGridDisplay = () => {
 
   const handleConfirmSend = async () => {
     if (!selectedNode) return;
-    
+    let nodeType = selectedNode.node_type;
+    if (nodeType === 'return_vl' || nodeType === 'return_pt') {
+        nodeType = 'returns';
+    }
+
     const taskData = {
       node_name: selectedNode.node_name,
-      node_type: selectedNode.node_type,
+      node_type: nodeType,
       owner: currentUser?.username,
       process_code: selectedNode.process_code,
       line: selectedNode.line,
@@ -117,7 +139,15 @@ const MobileGridDisplay = () => {
     };
     console.log('taskData', taskData);
     const result = await createTaskHandler(taskData);
-    
+    const logEntry = {
+      id: Date.now(),
+      nodeName: selectedNode.node_name,
+      line: selectedNode.line,
+      typeLabel: getNodeTypeLabel(selectedNode.node_type),
+      status: result.success ? 'Thành công' : 'Lỗi'
+    };
+    setCommandLogs((prev) => [logEntry, ...prev]);
+
     if (result.success) {
       alert(`✅ Gửi lệnh thành công!\nNode: ${selectedNode.node_name}\nStart: ${selectedNode.start} → End: ${selectedNode.end}`);
       setShowConfirmModal(false);
@@ -133,12 +163,12 @@ const MobileGridDisplay = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
+    <div className="min-h-screen bg-gray-100">
       <div className=" mx-auto">
         <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden mb-4 sm:mb-6">
           <div className="bg-[#016B61] px-3 py-3 sm:px-6 sm:py-4 text-white">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-              <h1 className="text-lg sm:text-xl font-bold text-center sm:text-left">MOBILE GRID DISPLAY</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-center sm:text-left">CALL AMR SYSTEM</h1>
               <button 
                 className="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-3 py-2 sm:px-4 rounded font-medium transition-colors duration-200 text-sm sm:text-base"
                 onClick={logout}
@@ -147,7 +177,7 @@ const MobileGridDisplay = () => {
               </button>
             </div>
             
-            <div className="mt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+            <div className=" flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <div className="text-center sm:text-left">
                 <span className="bg-white/20 border border-white/30 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm font-medium">
                   User: {currentUser?.username || 'Chưa đăng nhập'}
@@ -157,10 +187,9 @@ const MobileGridDisplay = () => {
             </div>
           </div>
           
-          <div className="p-3 sm:p-6">
-            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn loại chu trình:</h2>
-              <div className="flex flex-wrap justify-between w-full ">
+          <div className="p-1">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-2 border border-gray-200">
+              <div className="flex flex-wrap justify-between w-full h-[70px]">
                 {Object.keys(nodeTypes).map((nodeType) => (
                   <button
                     key={nodeType}
@@ -179,10 +208,10 @@ const MobileGridDisplay = () => {
 
             {selectedNodeType && Object.keys(lines).length > 0 && (
               <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Chọn Line:</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Chọn Line:</h2>
                 <div className="flex flex-wrap gap-2">
                   {Object.keys(lines).sort().map((line) => {
-                    const lineColor = LINE_COLORS[line] || '#016B61';
+                    const lineColor = LINE_COLORS[line];
                     return (
                       <button
                         key={line}
@@ -218,38 +247,22 @@ const MobileGridDisplay = () => {
 
             {selectedNodeType && selectedLine && (
               <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
-                  Danh sách nodes ({filteredNodes.length}):
-                </h2>
-                <div className={`grid gap-2 sm:gap-3 ${getGridClasses()}`}>
-                  {filteredNodes.map((node, index) => (
+                <div className={`grid gap-1 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10`}>
+                  {filteredNodes.map((node, index) => {
+                    const backgroundcolor = LINE_COLORS[node.line];
+                    return (
                     <div 
                       key={node.id || index}
-                      className={`bg-gray-50 rounded-lg p-2 sm:p-3 cursor-pointer transition-colors duration-200 border-2 ${
-                        selectedNode?.id === node.id 
-                          ? 'border-[#016B61] bg-[#016B61]/10' 
-                          : 'border-gray-200 hover:border-[#016B61] hover:bg-gray-100'
-                      }`}
-                      onClick={() => handleNodeSelect(node)}
+                        className={`rounded-lg cursor-pointer transition-colors duration-200 border-2 hover:border-[#016B61] text-white h-[80px] flex items-center justify-center w-full`}
+                        style={{ backgroundColor: backgroundcolor }}
+                        onClick={() => handleNodeSelect(node)}
                     >
-                      <div className="text-center h-[180px]">
-                        <h3 className="font-bold text-gray-800 text-xl sm:text-2xl mb-1 sm:mb-2 truncate">
-                          {node.node_name || `Node ${index + 1}`}
-                        </h3>
-                        <div className="space-y-3 text-3xl text-gray-600">
-                          <div className="flex justify-center">
-                            <span className="font-bold bg-primary/20 text-[#016B61]">{node.start || 0} → {node.end || 0}</span>
-                          </div>
-                          
-                          {selectedNodeType === 'both' && (
-                            <div className="flex justify-center">
-                              <span className="font-bold text-[#016B61]">{node.next_start} → {node.next_end}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <h3 className="font-bold text-white-800 text-xl sm:text-2xl truncate">
+                        {node.node_name}
+                      </h3>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -275,7 +288,7 @@ const MobileGridDisplay = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Loại:</span>
-                    <span className="font-bold text-gray-800">{nodeTypeMapping[selectedNode.node_type] || selectedNode.node_type}</span>
+                    <span className="font-bold text-gray-800">{nodeTypeMapping[selectedNode.node_type] }</span>
                   </div>
                   {selectedNode.line && (
                     <div className="flex justify-between">
@@ -312,6 +325,49 @@ const MobileGridDisplay = () => {
           </div>
         </div>
       )}
+         <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">Lịch sử gửi lệnh</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STT</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên lệnh</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Line</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nhiệm vụ</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tình trạng</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {commandLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-4 text-center text-sm text-gray-500">
+                    Chưa có lệnh nào được gửi
+                  </td>
+                </tr>
+              ) : (
+                commandLogs.map((log, idx) => (
+                  <tr key={log.id}>
+                    <td className="px-4 py-2 text-sm text-gray-700">{idx + 1}</td>
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900">{log.nodeName}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{log.line || '-'}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{getNodeTypeLabel(log.typeLabel)}</td>
+                    <td className="px-4 py-2 text-sm font-semibold">
+                      {log.status === 'Thành công' ? (
+                        <span className="text-green-600">Thành công</span>
+                      ) : (
+                        <span className="text-red-600">Lỗi</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
