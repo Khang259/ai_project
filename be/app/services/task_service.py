@@ -149,7 +149,8 @@ async def filter_raw_task(payload):
             grouped[group_id] = []
         grouped[group_id].append(task_data.copy())
 
-        await clear_monitor(group_id, task_data["order_id"])
+        if task_data["status"] == 20:
+            await clear_monitor(group_id, task_data["order_id"])
      
     
     if len(task_list) > 0:
