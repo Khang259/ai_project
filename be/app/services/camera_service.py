@@ -21,8 +21,8 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
     cameras = get_collection("cameras")
     
     # Validate area tồn tại
-    if not await validate_area_exists(camera_in.area):
-        logger.warning(f"Camera creation failed: area '{camera_in.area}' does not exist")
+    if not await validate_area_exists(camera_in.area_id):
+        logger.warning(f"Camera creation failed: area '{camera_in.area_id}' does not exist")
         raise ValueError("Area does not exist")
     
     # Kiểm tra xem camera_id đã tồn tại chưa
@@ -41,7 +41,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         "camera_id": camera_in.camera_id,
         "camera_name": camera_in.camera_name,
         "camera_path": camera_in.camera_path,
-        "area": camera_in.area,
+        "area_id": camera_in.area_id,
         "mapping": [item.dict() for item in camera_in.mapping],
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
@@ -93,7 +93,7 @@ async def get_cameras_by_area(area_id: int) -> List[CameraOut]:
     """Lấy danh sách cameras theo area"""
     cameras = get_collection("cameras")
     
-    cursor = cameras.find({"area": area_id})
+    cursor = cameras.find({"area_id": area_id})
     camera_list = await cursor.to_list(length=None)
     
     return [CameraOut(**camera, id=str(camera["_id"])) for camera in camera_list]
@@ -119,9 +119,9 @@ async def update_camera(camera_id: str, camera_update: CameraUpdate) -> Optional
             update_data[field] = value
     
     # Validate area nếu có thay đổi
-    if "area" in update_data:
-        if not await validate_area_exists(update_data["area"]):
-            logger.warning(f"Camera update failed: area '{update_data['area']}' does not exist")
+    if "area_id" in update_data:
+        if not await validate_area_exists(update_data["area_id"]):
+            logger.warning(f"Camera update failed: area '{update_data['area_id']}' does not exist")
             raise ValueError("Area does not exist")
     
     # Kiểm tra camera_id mới có trùng không (nếu có thay đổi)
@@ -191,7 +191,7 @@ async def get_camera_count_by_area(area_id: int) -> int:
     """Lấy số lượng cameras trong area"""
     cameras = get_collection("cameras")
     
-    return await cameras.count_documents({"area": area_id})
+    return await cameras.count_documents({"area_id": area_id})
 
 def generate_frames_from_rtsp(rtsp_url: str):
     """

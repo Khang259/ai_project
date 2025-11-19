@@ -176,14 +176,14 @@ async def check_area_has_cameras(area_id: int) -> bool:
     """Kiểm tra xem area có đang được sử dụng bởi cameras không"""
     cameras = get_collection("cameras")
     
-    camera_count = await cameras.count_documents({"area": area_id})
+    camera_count = await cameras.count_documents({"area_id": area_id})
     return camera_count > 0
 
 async def get_area_camera_count(area_id: int) -> int:
     """Lấy số lượng cameras trong area"""
     cameras = get_collection("cameras")
     
-    return await cameras.count_documents({"area": area_id})
+    return await cameras.count_documents({"area_id": area_id})
 
 async def get_available_owners() -> List[str]:
     """Lấy danh sách các user có thể làm owner (từ users collection)"""
