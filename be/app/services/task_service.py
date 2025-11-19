@@ -80,7 +80,7 @@ async def track_task(payload: dict):
         **payload
     }
     
-    logger.info(f"Tracking task: order_id={order_id}")
+    logger.info(f"Tracking task: order_id={order_id}, task_service._tracking_task={task_service._tracking_task}")
     return {"status": "success", "data": "Task tracked successfully"}
 
 async def extract_task_by_group_id(data: dict):
