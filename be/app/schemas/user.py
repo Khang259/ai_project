@@ -8,7 +8,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     roles: Optional[List[str]] = []
-    area: Optional[int] = []
+    area_id: Optional[int] = 0
     group_id: Optional[int] = 0
     route: Optional[List[str]] = []
 
@@ -22,7 +22,7 @@ class UserOut(UserBase):
     is_superuser: bool
     permissions: List[str] = []  # Thêm field permissions
     roles: List[str] = []
-    area: Optional[int] = []
+    area_id: Optional[int] = 0
     group_id: Optional[int] = 0
     route: Optional[List[str]] = []
     created_at: Optional[datetime] = None
@@ -32,7 +32,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     is_active: Optional[bool] = None
     roles: Optional[List[str]] = None
-    area: Optional[int] = None
+    area_id: Optional[int] = None
     group_id: Optional[int] = None
     route: Optional[List[str]] = None
 class RoleCreate(BaseModel):

@@ -16,7 +16,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
-API_URL = "http://localhost:7000/ics/taskOrder/addTask"
+API_URL = "http://10.250.161.134:7000/ics/taskOrder/addTask"
+TRACKING_API_URL = "http://192.168.1.7:8001/track-task"
 DB_PATH = "../queues.db"  # relative to this script folder
 ORDER_ID_FILE = os.path.join(os.path.dirname(__file__), "order_id.txt")
 TOPICS = ["stable_pairs", "stable_dual"]  # Subscribe to both topics
@@ -133,7 +134,7 @@ def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_
     
     Format:
     {
-        "modelProcessCode": "lenhDon",
+        "modelProcessCode": "Cap_phu_tung",
         "fromSystem": "ICS",
         "orderId": "...",
         "taskOrderDetail": [
@@ -145,7 +146,7 @@ def build_payload_from_pair(pair_id: str, start_slot: str, end_slot: str, order_
     """
     task_path = f"{start_slot},{end_slot}"
     return {
-        "modelProcessCode": "lenhDon",
+        "modelProcessCode": "Cap_phu_tung",
         "fromSystem": "ICS",
         "orderId": order_id,
         "taskOrderDetail": [
@@ -162,7 +163,7 @@ def build_payload_from_pair_3_points(pair_id: str, start_slot: str, end_slot: st
     
     Format:
     {
-        "modelProcessCode": "lenh3diem",
+        "modelProcessCode": "Cap_tra_xe_vat_lieu",
         "fromSystem": "ICS",
         "orderId": "...",
         "taskOrderDetail": [
@@ -174,7 +175,7 @@ def build_payload_from_pair_3_points(pair_id: str, start_slot: str, end_slot: st
     """
     task_path = f"{start_slot},{end_slot},{end_slot_2}"
     return {
-        "modelProcessCode": "lenh3diem",
+        "modelProcessCode": "Cap_tra_xe_vat_lieu",
         "fromSystem": "ICS",
         "orderId": order_id,
         "taskOrderDetail": [
@@ -191,7 +192,7 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict
     
     - Dual 2P (2 QR codes):
       {
-          "modelProcessCode": "lenhDon",
+          "modelProcessCode": "Cap_phu_tung",
           "taskOrderDetail": [
               { "taskPath": "start_qr,end_qrs" }
           ]
@@ -199,7 +200,7 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict
     
     - Dual 4P (4 QR codes):
       {
-          "modelProcessCode": "lenhDooi",
+          "modelProcessCode": "Cap_tra_phu_tung",
           "taskOrderDetail": [
               { "taskPath": "start_qr,end_qrs" },
               { "taskPath": "start_qr_2,end_qrs_2" }
@@ -217,10 +218,10 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict
         # ========================================
         # DUAL 4-POINT: 4 QR codes
         # ========================================
-        # modelProcessCode = "lenhDooi"
+        # modelProcessCode = "Cap_tra_phu_tung"
         # taskOrderDetail = 2 objects (mỗi object 2 QR codes)
         return {
-            "modelProcessCode": "lenhDooi",
+            "modelProcessCode": "Cap_tra_phu_tung",
             "fromSystem": "ICS",
             "orderId": order_id,
             "taskOrderDetail": [
@@ -236,10 +237,10 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict
         # ========================================
         # DUAL 2-POINT: 2 QR codes
         # ========================================
-        # modelProcessCode = "lenhDon"
+        # modelProcessCode = "Cap_phu_tung"
         # taskOrderDetail = 1 object (2 QR codes)
         return {
-            "modelProcessCode": "lenhDon",
+            "modelProcessCode": "Cap_phu_tung",
             "fromSystem": "ICS",
             "orderId": order_id,
             "taskOrderDetail": [
@@ -254,6 +255,52 @@ def build_payload_from_dual(dual_payload: Dict[str, Any], order_id: str) -> Dict
 def build_payload(pair_id: str, start_slot: str, end_slot: str, order_id: str) -> Dict[str, Any]:
     """Backward compatibility cho regular pairs"""
     return build_payload_from_pair(pair_id, start_slot, end_slot, order_id)
+
+
+def send_tracking_api(order_id: str, end_qrs: str, logger: logging.Logger) -> bool:
+    """
+    Gửi tracking API cho task Cap_tra_xe_vat_lieu (3-point pair)
+    
+    Args:
+        order_id: OrderID của task chính
+        end_qrs: QR code của điểm end (điểm thứ 2 trong 3 điểm)
+        logger: Logger instance
+    
+    Returns:
+        bool: True nếu gửi thành công, False nếu thất bại
+    """
+    tracking_payload = {
+        "orderId": order_id,
+        "end_qrs": end_qrs
+    }
+    
+    headers = {"Content-Type": "application/json"}
+    
+    try:
+        print(f"[TRACKING_API] Gửi tracking cho orderId={order_id}, end_qrs={end_qrs}")
+        logger.info(f"TRACKING_API_START: orderId={order_id}, end_qrs={end_qrs}, url={TRACKING_API_URL}")
+        
+        resp = requests.post(TRACKING_API_URL, headers=headers, json=tracking_payload, timeout=5)
+        
+        status_ok = (200 <= resp.status_code < 300)
+        
+        if status_ok:
+            print(f"[TRACKING_API] ✓ Thành công | Status: {resp.status_code}")
+            logger.info(f"TRACKING_API_SUCCESS: orderId={order_id}, end_qrs={end_qrs}, status_code={resp.status_code}")
+            return True
+        else:
+            print(f"[TRACKING_API] ✗ Thất bại | Status: {resp.status_code}")
+            logger.warning(f"TRACKING_API_FAILED: orderId={order_id}, end_qrs={end_qrs}, status_code={resp.status_code}")
+            return False
+            
+    except requests.exceptions.Timeout:
+        print(f"[TRACKING_API] ✗ Timeout sau 5s")
+        logger.error(f"TRACKING_API_TIMEOUT: orderId={order_id}, end_qrs={end_qrs}")
+        return False
+    except Exception as e:
+        print(f"[TRACKING_API] ✗ Lỗi: {e}")
+        logger.error(f"TRACKING_API_ERROR: orderId={order_id}, end_qrs={end_qrs}, error={str(e)}")
+        return False
 
 
 def send_unlock_after_delay(queue: SQLiteQueue, pair_id: str, start_slot: str, delay_seconds: int = 60) -> None:
@@ -425,6 +472,8 @@ def main() -> int:
                     print(f"{'='*60}")
                     
                     # Xử lý dựa trên topic type
+                    is_3_point_pair = False  # Flag để track nếu là 3-point pair (cần gửi tracking API)
+                    
                     if topic == "stable_pairs":
                         # Xử lý regular stable pairs (có thể 2 hoặc 3 điểm)
                         pair_id = payload.get("pair_id", r.get("key", ""))
@@ -443,6 +492,7 @@ def main() -> int:
                             # Xử lý pair với 3 điểm
                             body = build_payload_from_pair_3_points(pair_id, start_slot, end_slot, str(end_slot_2), order_id)
                             task_path = f"{start_slot},{end_slot},{end_slot_2}"
+                            is_3_point_pair = True  # Đánh dấu để gửi tracking API
                             print(f"Bắt đầu xử lý pair 3 điểm: {pair_id}, orderId={order_id}, taskPath={task_path}")
                         else:
                             # Xử lý pair với 2 điểm
@@ -496,6 +546,12 @@ def main() -> int:
                             ok = True
                             success_complete_msg = f"\n✓ HOÀN THÀNH THÀNH CÔNG | {topic} | OrderID: {order_id} | Attempt: {attempt + 1}/3"
                             print(success_complete_msg)
+                            
+                            # Nếu là 3-point pair (Cap_tra_xe_vat_lieu), gửi tracking API
+                            if is_3_point_pair:
+                                print(f"\n[3-POINT PAIR] Gửi tracking API cho orderId={order_id}")
+                                send_tracking_api(order_id, end_slot, logger)
+                            
                             break
                         else:
                             retry_msg = f"⚠ Lần thử {attempt + 1} thất bại, {2 if attempt < 2 else 0} giây trước khi thử lại..."

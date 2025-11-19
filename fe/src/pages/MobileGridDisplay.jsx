@@ -121,7 +121,6 @@ const MobileGridDisplay = () => {
     setSelectedNode(node);
     setShowConfirmModal(true);
     setSelectedEndQr(null);
-    sendClearMonitor(node);
   };
 
   const handleAutoQrSelect = (autoNode) => {
@@ -130,7 +129,6 @@ const MobileGridDisplay = () => {
     setSelectedNode(autoNode);
     setSelectedEndQr(autoNode.end);
     setShowConfirmModal(true);
-    sendClearMonitor(autoNode);
   };
 
   
@@ -143,6 +141,9 @@ const MobileGridDisplay = () => {
   const handleConfirmSend = async () => {
     // Handle Auto QR selection
     if (selectedEndQr !== null) {
+      if (selectedNode) {
+        await sendClearMonitor(selectedNode);
+      }
       const result = await requestEndSlotHandler(selectedEndQr, "manual_request");
       
       if (result.success) {

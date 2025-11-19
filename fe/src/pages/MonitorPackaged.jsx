@@ -40,6 +40,16 @@ const initialLineData = [
   },
 ];
 
+// Config cứng cho mapping end_qrs -> node_name
+const END_QRS_NODE_CONFIG = {
+  end_qrs: {
+    node_name: {
+      99: 'L2_CD-1a',
+      88: 'L2_CD-1b/c'
+    },
+  },
+};
+
 // 2. CÁC COMPONENT CON (Child Components)
 
 // Component cho phần Header
@@ -142,7 +152,60 @@ const MonitorPackaged = () => {
   };
 
   /**
-   * Clear tất cả boxes về trạng thái rỗng
+   * Clear một box cụ thể về trạng thái rỗng
+   */
+  const clearBox = (lineIndex, boxId) => {
+    const boxElement = document.querySelector(
+      `.storage-box[data-line="${lineIndex}"][data-box="${boxId}"]`
+    );
+    
+    if (boxElement) {
+      const textElement = boxElement.querySelector('[data-content]');
+      if (textElement) {
+        textElement.innerHTML = '';
+      }
+      boxElement.classList.remove('active');
+      console.log(`[DOM] ✓ Cleared box Line ${lineIndex + 2}, Box ${boxId}`);
+    }
+  };
+
+  /**
+   * Clear box dựa trên end_qrs
+   * Map end_qrs -> node_name -> parse để lấy lineIndex và boxId
+   */
+  const clearBoxByEndQrs = (endQrs) => {
+    if (!endQrs && endQrs !== 0) {
+      console.warn('[DOM] Invalid end_qrs:', endQrs);
+      return;
+    }
+
+    // Lấy node_name từ config
+    const nodeName = END_QRS_NODE_CONFIG.end_qrs.node_name[endQrs];
+    
+    if (!nodeName) {
+      console.warn(`[DOM] No node_name mapping found for end_qrs: ${endQrs}`);
+      return;
+    }
+
+    console.log(`[DOM] Mapping end_qrs ${endQrs} -> node_name: ${nodeName}`);
+
+    // Parse node_name để lấy Line và Box number
+    const match = nodeName.match(/L(\d+).*?(\d+)/);
+    
+    if (match) {
+      const lineNumber = parseInt(match[1], 10); // L2 -> 2
+      const boxNumber = parseInt(match[2], 10);  // CD-1a -> 1
+      const lineIndex = lineNumber - 2;          // LINE 2 -> index 0
+      
+      clearBox(lineIndex, boxNumber);
+      console.log(`[DOM] ✓ Cleared box via end_qrs ${endQrs}: Line ${lineNumber}, Box ${boxNumber}`);
+    } else {
+      console.warn('[DOM] Could not parse node_name:', nodeName);
+    }
+  };
+
+  /**
+   * Clear tất cả boxes về trạng thái rỗng (chỉ dùng khi cần clear toàn bộ)
    */
   const clearAllBoxes = () => {
     const allBoxes = document.querySelectorAll('.storage-box');
@@ -158,6 +221,9 @@ const MonitorPackaged = () => {
 
   /**
    * Parse node_name và cập nhật box tương ứng
+   * Logic mới: Chỉ update ô cụ thể, KHÔNG clear toàn bộ
+   * - Nếu cùng một ô nhận data mới → ghi đè data cũ
+   * - Nếu ô khác nhận data mới → giữ nguyên ô cũ, thêm data mới
    */
   const updateFromNodeName = (nodeName) => {
     if (!nodeName) return;
@@ -165,52 +231,60 @@ const MonitorPackaged = () => {
     console.log('[DOM] Parsing node_name:', nodeName);
     
     // Parse format: "L2_CD-2a/b" -> Line 2, Box 2
-    const match = nodeName.match(/L(\d+).*?(\d+)/);
-    
-    if (match) {
-      const lineNumber = parseInt(match[1], 10); // L2 -> 2
-      const boxNumber = parseInt(match[2], 10); // 2a/b -> 2
-      const lineIndex = lineNumber - 2; // LINE 2 -> index 0
+      const match = nodeName.match(/L(\d+).*?(\d+)/);
       
-      // Clear toàn bộ trước khi update (theo logic Initial)
-      clearAllBoxes();
-      
+      if (match) {
+        const lineNumber = parseInt(match[1], 10); // L2 -> 2
+        const boxNumber = parseInt(match[2], 10); // 2a/b -> 2
+        const lineIndex = lineNumber - 2; // LINE 2 -> index 0
+        
+      // ⚡ CHỈ UPDATE Ô CỤ THỂ - KHÔNG CLEAR TOÀN BỘ
+      // Nếu ô này đã có data → ghi đè bằng data mới
+      // Các ô khác giữ nguyên
       updateBoxContent(lineIndex, boxNumber, nodeName, true);
-    } else {
+      console.log(`[DOM] ✓ Updated box Line ${lineNumber}, Box ${boxNumber} (other boxes unchanged)`);
+          } else {
       console.warn('[DOM] Could not parse node_name:', nodeName);
     }
   };
 
   /**
    * Cập nhật từ danh sách tasks
+   * Logic mới: Chỉ update các ô có trong tasks, KHÔNG clear toàn bộ
+   * - Mỗi task sẽ update/ghi đè ô tương ứng
+   * - Các ô không có trong tasks giữ nguyên
    */
   const updateFromTasks = (tasks) => {
     if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
       console.log('[DOM] No tasks to update');
       return;
     }
-    
+
     console.log(`[DOM] Processing ${tasks.length} tasks`);
+    console.log('[DOM] ⚡ Only updating boxes in tasks, other boxes unchanged');
     
-    // Clear toàn bộ trước khi update
-    clearAllBoxes();
-    
+    // ⚡ KHÔNG CLEAR TOÀN BỘ - CHỈ UPDATE TỪNG Ô CÓ TRONG TASKS
     tasks.forEach((task, index) => {
       const { shelf_number, status } = task;
       
-      if (shelf_number) {
-        const match = shelf_number.match(/L(\d+).*?(\d+)/);
-        
-        if (match) {
+        if (shelf_number) {
+          const match = shelf_number.match(/L(\d+).*?(\d+)/);
+          
+          if (match) {
           const lineNumber = parseInt(match[1], 10);
           const boxNumber = parseInt(match[2], 10);
           const lineIndex = lineNumber - 2;
           
           const isActive = status === 'processing' || status === 'active';
+          
+          // ⚡ GHI ĐÈ DATA CHO Ô NÀY (nếu ô đã có data → thay thế)
+          // Các ô khác không có trong tasks → giữ nguyên
           updateBoxContent(lineIndex, boxNumber, shelf_number, isActive);
         }
       }
     });
+    
+    console.log(`[DOM] ✓ Updated ${tasks.length} boxes, other boxes unchanged`);
   };
 
   // ==================== WEBSOCKET CONNECTION ====================
@@ -250,11 +324,11 @@ const MonitorPackaged = () => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
-        console.log('╔═══════════════════════════════════════════════════════════════╗');
-        console.log('║           📨 NEW WEBSOCKET MESSAGE RECEIVED                   ║');
-        console.log('╚═══════════════════════════════════════════════════════════════╝');
-        console.log('⏰ Timestamp:', new Date().toISOString());
+
+    console.log('╔═══════════════════════════════════════════════════════════════╗');
+    console.log('║           📨 NEW WEBSOCKET MESSAGE RECEIVED                   ║');
+    console.log('╚═══════════════════════════════════════════════════════════════╝');
+    console.log('⏰ Timestamp:', new Date().toISOString());
         console.log('📋 Message Type:', data.type || 'NO TYPE');
         console.log('📄 Full Data:', JSON.stringify(data, null, 2));
         console.log('');
@@ -267,50 +341,63 @@ const MonitorPackaged = () => {
 
         // Xử lý theo TYPE
         if (data.type === 'Initial') {
-          console.log('┌─────────────────────────────────────────────────────────────┐');
-          console.log('│ 🔄 ACTION: INITIAL (Render Node to Grid)                   │');
-          console.log('└─────────────────────────────────────────────────────────────┘');
+      console.log('┌─────────────────────────────────────────────────────────────┐');
+      console.log('│ 🔄 ACTION: INITIAL (Render Node to Grid)                   │');
+      console.log('└─────────────────────────────────────────────────────────────┘');
           console.log('  ├─ Group ID:', data.group_id);
           console.log('  ├─ Node Name:', data.node_name);
           console.log('  └─ Line:', data.line);
-          console.log('');
-          
+      console.log('');
+      
           if (data.node_name) {
             updateFromNodeName(data.node_name);
+      } else {
+            clearAllBoxes();
+      }
+          
+        } else if (data.type === 'Clear') {
+      console.log('┌─────────────────────────────────────────────────────────────┐');
+      console.log('│ 🗑️  ACTION: CLEAR ORDER                                     │');
+      console.log('└─────────────────────────────────────────────────────────────┘');
+          console.log('  ├─ Order ID:', data.order_id);
+          console.log('  ├─ Group ID:', data.group_id);
+          console.log('  └─ End QRS:', data.end_qrs);
+      console.log('');
+          
+          // Xử lý end_qrs: có thể là single value hoặc array
+          if (data.end_qrs !== undefined) {
+            const endQrsList = Array.isArray(data.end_qrs) ? data.end_qrs : [data.end_qrs];
+            
+            console.log(`[DOM] Processing ${endQrsList.length} end_qrs value(s) for clearing`);
+            endQrsList.forEach(endQrs => {
+              clearBoxByEndQrs(endQrs);
+            });
           } else {
+            console.warn('[DOM] No end_qrs provided in Clear message, clearing all boxes');
             clearAllBoxes();
           }
           
-        } else if (data.type === 'Clear') {
-          console.log('┌─────────────────────────────────────────────────────────────┐');
-          console.log('│ 🗑️  ACTION: CLEAR ORDER                                     │');
-          console.log('└─────────────────────────────────────────────────────────────┘');
-          console.log('  ├─ Order ID:', data.order_id);
-          console.log('  └─ Group ID:', data.group_id);
-          console.log('');
-          clearAllBoxes();
-          
         } else if (data.type === 'TaskUpdate' && data.tasks) {
-          console.log('┌─────────────────────────────────────────────────────────────┐');
-          console.log('│ 📋 ACTION: UPDATE TASKS (TaskUpdate)                        │');
-          console.log('└─────────────────────────────────────────────────────────────┘');
+      console.log('┌─────────────────────────────────────────────────────────────┐');
+      console.log('│ 📋 ACTION: UPDATE TASKS (TaskUpdate)                        │');
+      console.log('└─────────────────────────────────────────────────────────────┘');
           console.log('  ├─ Group ID:', data.group_id);
           console.log('  └─ Number of tasks:', data.tasks.length);
-          console.log('');
+      console.log('');
           updateFromTasks(data.tasks);
           
         } else if (Array.isArray(data)) {
-          console.log('┌─────────────────────────────────────────────────────────────┐');
-          console.log('│ 📋 ACTION: UPDATE TASKS (Array)                             │');
-          console.log('└─────────────────────────────────────────────────────────────┘');
+      console.log('┌─────────────────────────────────────────────────────────────┐');
+      console.log('│ 📋 ACTION: UPDATE TASKS (Array)                             │');
+      console.log('└─────────────────────────────────────────────────────────────┘');
           console.log('  └─ Number of tasks:', data.length);
-          console.log('');
+      console.log('');
           updateFromTasks(data);
           
         } else if (data.type === 'heartbeat') {
           // Heartbeat - bỏ qua
-          return;
-        } else {
+      return;
+    } else {
           console.log('⚠️  WARNING: UNKNOWN DATA FORMAT');
         }
         

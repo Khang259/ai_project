@@ -36,7 +36,7 @@ async def get_users(
             username=user["username"],
             is_active=user.get("is_active", True),
             is_superuser=user.get("is_superuser", False),
-            area=user.get("area", 0),
+            area_id=user.get("area_id", 0),
             group_id=user.get("group_id", 0),
             route=user.get("route", []),
             roles=role_names,
@@ -77,7 +77,7 @@ async def get_user(
         username=user["username"],
         is_active=user.get("is_active", True),
         is_superuser=user.get("is_superuser", False),
-        area=user.get("area", 0),
+        area_id=user.get("area_id", 0),
         group_id=user.get("group_id", 0),
         route=user.get("route", []),
         roles=role_names,
@@ -124,8 +124,8 @@ async def update_user(
                 raise HTTPException(status_code=400, detail=f"Invalid role ID format: {role_id}")
         update_data["roles"] = role_object_ids
 
-    if user_update.area is not None:
-        update_data["area"] = int(user_update.area)
+    if user_update.area_id is not None:
+        update_data["area_id"] = int(user_update.area_id)
 
     if user_update.group_id is not None:
         try:
@@ -161,7 +161,7 @@ async def update_user(
         username=updated_user["username"],
         is_active=updated_user.get("is_active", True),
         is_superuser=updated_user.get("is_superuser", False),
-        area=updated_user.get("area", 0),
+        area_id=updated_user.get("area_id", 0),
         group_id=updated_user.get("group_id", 0),
         route=updated_user.get("route", []),
         roles=role_names,
