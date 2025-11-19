@@ -60,7 +60,7 @@ async def put_to_service(payload: dict):
 
 async def track_task(payload: dict):
     # Tracking task - Nested structure: {group_id: {order_id: {...}}}
-    group_id = payload["group_id"]
+    group_id = str(payload["group_id"])
     order_id = payload.get("order_id") or payload.get("orderId")
     
     if not order_id:
@@ -103,8 +103,8 @@ async def clear_monitor(group_id: str, order_id: str):
             clear_payload = {
                 "type": "Clear",
                 "group_id": group_id,
-                "order_id": order_id,
-                "node_name": tracked_group[order_id]["node_name"],
+                "orderId": order_id,
+                "end_qrs": tracked_group[order_id]["end_qrs"],
             }
             await task_service.publish_to_service(group_id, clear_payload)
 
