@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script để chạy FastAPI Server
-Chạy server tại: http://192.168.1.136:7000
+Chạy server tại: http://192.168.1.110:7000
 """
 
 import os

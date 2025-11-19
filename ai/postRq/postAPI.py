@@ -16,8 +16,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
-API_URL = "http://10.250.161.134:7000/ics/taskOrder/addTask"
-TRACKING_API_URL = "http://192.168.1.7:8001/track-task"
+# API_URL = "http://10.250.161.134:7000/ics/taskOrder/addTask"
+API_URL = "http://192.168.1.110:7000/ics/taskOrder/addTask"
+
+TRACKING_API_URL = "http://192.168.1.110:8001/track-task"
 DB_PATH = "../queues.db"  # relative to this script folder
 ORDER_ID_FILE = os.path.join(os.path.dirname(__file__), "order_id.txt")
 TOPICS = ["stable_pairs", "stable_dual"]  # Subscribe to both topics
@@ -279,10 +281,28 @@ def send_tracking_api(order_id: str, end_qrs: str, logger: logging.Logger) -> bo
     try:
         print(f"[TRACKING_API] Gửi tracking cho orderId={order_id}, end_qrs={end_qrs}")
         logger.info(f"TRACKING_API_START: orderId={order_id}, end_qrs={end_qrs}, url={TRACKING_API_URL}")
+        logger.info(
+            "TRACKING_API_PAYLOAD: orderId=%s, end_qrs=%s, payload=%s",
+            order_id,
+            end_qrs,
+            json.dumps(tracking_payload, ensure_ascii=False),
+        )
         
         resp = requests.post(TRACKING_API_URL, headers=headers, json=tracking_payload, timeout=5)
+        resp_text = resp.text
         
         status_ok = (200 <= resp.status_code < 300)
+        try:
+            resp_body = resp.json()
+        except ValueError:
+            resp_body = {"raw": resp_text}
+        logger.info(
+            "TRACKING_API_RESPONSE: orderId=%s, end_qrs=%s, status=%s, body=%s",
+            order_id,
+            end_qrs,
+            resp.status_code,
+            json.dumps(resp_body, ensure_ascii=False),
+        )
         
         if status_ok:
             print(f"[TRACKING_API] ✓ Thành công | Status: {resp.status_code}")

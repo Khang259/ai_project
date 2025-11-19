@@ -45,7 +45,34 @@ const END_QRS_NODE_CONFIG = {
   end_qrs: {
     node_name: {
       99: 'L2_CD-1a',
-      88: 'L2_CD-1b/c'
+      88: 'L2_CD-1b/c',
+      10000294: 'L2_CD-2a/b',
+      10000299: 'L2_CD-2c/d',
+      10001122: 'L2_CD-2e',
+      10001121: 'L2_CD-3a',
+      10000388: 'L2_CD-3b/c',
+      10000350: 'L3_CD-1a',
+      10000534: 'L3_CD-3c',
+      10000077: 'L4_CD-1b/c',
+      10000048: 'L4_CD-3b/c',
+      10000349: 'L3_CD-1b/c',
+      10000534: 'L3_CD-4a/b',
+      10000076: 'L4_CD-2a/b',
+      10000043: 'L4_CD-3d/e',
+      10000383: 'L2_CD-3d/e',
+      10000348: 'L3_CD-2a/b',
+      10000469: 'L3_CD-4a/b',
+      10000081: 'L4_CD-2c/d',
+      10000044: 'L4_CD-4a/b',
+      10000384: 'L2_CD-4a/b',
+      10000353: 'L3_CD-2c/d',
+      10000470: 'L3_CD-4c',
+      10001118: 'L4_CD-2e',
+      10000045: 'L4_CD-4c',
+      10000385: 'L2_CD-3d/e',
+      10001120: 'L3_CD-2e',
+      10000078: 'L4_CD-1a',
+      10001117: 'L4_CD-3a'
     },
   },
 };
@@ -109,6 +136,10 @@ const MonitorPackaged = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   
+  // Stack/Array để lưu trữ nhiều giá trị cho mỗi ô grid
+  // Format: { "lineIndex-boxId": ["value1", "value2", ...] }
+  const [boxDataStacks, setBoxDataStacks] = useState({});
+  
   const socketRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   
@@ -125,53 +156,109 @@ const MonitorPackaged = () => {
   // ==================== DOM MANIPULATION FUNCTIONS ====================
   
   /**
-   * Cập nhật nội dung của box bằng innerHTML - Data sẽ nằm yên cho đến khi ghi đè
+   * Push data vào Stack của ô và render phần tử ĐẦU TIÊN (FIFO)
+   * Logic: Stack lưu nhiều giá trị, luôn hiển thị phần tử đầu tiên (index 0)
    */
   const updateBoxContent = (lineIndex, boxId, content, isActive = false) => {
-    const boxElement = document.querySelector(
-      `.storage-box[data-line="${lineIndex}"][data-box="${boxId}"]`
-    );
+    const key = `${lineIndex}-${boxId}`;
     
-    if (boxElement) {
-      const textElement = boxElement.querySelector('[data-content]');
-      if (textElement) {
-        textElement.innerHTML = content || ''; // Sử dụng innerHTML
-      }
+    // Push vào cuối Stack
+    setBoxDataStacks(prev => {
+      const currentStack = prev[key] || [];
+      const newStack = [...currentStack, content];
       
-      // Toggle active class
-      if (isActive) {
-        boxElement.classList.add('active');
+      console.log(`[STACK] Push "${content}" to [L${lineIndex + 2}, Box${boxId}]`);
+      console.log(`[STACK] Stack now: [${newStack.join(', ')}]`);
+      
+      // Render phần tử ĐẦU TIÊN trong stack (không phải phần tử vừa push)
+      const displayValue = newStack[0]; // Luôn lấy phần tử đầu
+      console.log(`[STACK] Display FIRST element: "${displayValue}"`);
+      
+      // Update DOM
+      const boxElement = document.querySelector(
+        `.storage-box[data-line="${lineIndex}"][data-box="${boxId}"]`
+      );
+      
+      if (boxElement) {
+        const textElement = boxElement.querySelector('[data-content]');
+        if (textElement) {
+          textElement.innerHTML = displayValue || '';
+        }
+        
+        // Toggle active class
+        if (isActive) {
+          boxElement.classList.add('active');
+        } else {
+          boxElement.classList.remove('active');
+        }
+        
+        console.log(`[DOM] ✓ Display: "${displayValue}" at Line ${lineIndex + 2}, Box ${boxId}`);
       } else {
-        boxElement.classList.remove('active');
+        console.warn(`[DOM] ✗ Box not found: Line ${lineIndex}, Box ${boxId}`);
       }
       
-      console.log(`[DOM] ✓ Updated box Line ${lineIndex + 2}, Box ${boxId}: "${content}"`);
-    } else {
-      console.warn(`[DOM] ✗ Box not found: Line ${lineIndex}, Box ${boxId}`);
-    }
+      return {
+        ...prev,
+        [key]: newStack
+      };
+    });
   };
 
   /**
-   * Clear một box cụ thể về trạng thái rỗng
+   * Xóa một giá trị cụ thể khỏi Stack và render lại phần tử ĐẦU TIÊN (FIFO)
+   * Nếu valueToRemove không được cung cấp -> xóa toàn bộ stack
    */
-  const clearBox = (lineIndex, boxId) => {
-    const boxElement = document.querySelector(
-      `.storage-box[data-line="${lineIndex}"][data-box="${boxId}"]`
-    );
+  const clearBox = (lineIndex, boxId, valueToRemove = null) => {
+    const key = `${lineIndex}-${boxId}`;
     
-    if (boxElement) {
-      const textElement = boxElement.querySelector('[data-content]');
-      if (textElement) {
-        textElement.innerHTML = '';
+    setBoxDataStacks(prev => {
+      const currentStack = prev[key] || [];
+      
+      let newStack;
+      
+      if (valueToRemove === null) {
+        // Không có giá trị cụ thể -> Xóa toàn bộ stack
+        newStack = [];
+        console.log(`[STACK] Clear ALL from [L${lineIndex + 2}, Box${boxId}]`);
+      } else {
+        // Xóa giá trị cụ thể khỏi stack
+        newStack = currentStack.filter(item => item !== valueToRemove);
+        console.log(`[STACK] Remove "${valueToRemove}" from [L${lineIndex + 2}, Box${boxId}]`);
+        console.log(`[STACK] Stack was: [${currentStack.join(', ')}]`);
+        console.log(`[STACK] Stack now: [${newStack.join(', ')}]`);
       }
-      boxElement.classList.remove('active');
-      console.log(`[DOM] ✓ Cleared box Line ${lineIndex + 2}, Box ${boxId}`);
-    }
+      
+      // Render lại phần tử ĐẦU TIÊN (hoặc rỗng nếu stack trống)
+      const boxElement = document.querySelector(
+        `.storage-box[data-line="${lineIndex}"][data-box="${boxId}"]`
+      );
+      
+      if (boxElement) {
+        const textElement = boxElement.querySelector('[data-content]');
+        if (textElement) {
+          // Lấy phần tử ĐẦU TIÊN thay vì cuối
+          const firstValue = newStack.length > 0 ? newStack[0] : '';
+          textElement.innerHTML = firstValue;
+          console.log(`[DOM] ✓ Re-render FIRST element: "${firstValue}" at Line ${lineIndex + 2}, Box ${boxId}`);
+        }
+        
+        // Xóa active class nếu stack rỗng
+        if (newStack.length === 0) {
+          boxElement.classList.remove('active');
+        }
+      }
+      
+      return {
+        ...prev,
+        [key]: newStack
+      };
+    });
   };
 
   /**
    * Clear box dựa trên end_qrs
    * Map end_qrs -> node_name -> parse để lấy lineIndex và boxId
+   * Xóa node_name cụ thể khỏi stack của ô đó
    */
   const clearBoxByEndQrs = (endQrs) => {
     if (!endQrs && endQrs !== 0) {
@@ -197,17 +284,22 @@ const MonitorPackaged = () => {
       const boxNumber = parseInt(match[2], 10);  // CD-1a -> 1
       const lineIndex = lineNumber - 2;          // LINE 2 -> index 0
       
-      clearBox(lineIndex, boxNumber);
-      console.log(`[DOM] ✓ Cleared box via end_qrs ${endQrs}: Line ${lineNumber}, Box ${boxNumber}`);
+      // Xóa node_name cụ thể khỏi stack
+      clearBox(lineIndex, boxNumber, nodeName);
+      console.log(`[DOM] ✓ Removed "${nodeName}" from stack via end_qrs ${endQrs}`);
     } else {
       console.warn('[DOM] Could not parse node_name:', nodeName);
     }
   };
 
   /**
-   * Clear tất cả boxes về trạng thái rỗng (chỉ dùng khi cần clear toàn bộ)
+   * Clear tất cả boxes và stacks về trạng thái rỗng
    */
   const clearAllBoxes = () => {
+    // Xóa tất cả stacks
+    setBoxDataStacks({});
+    
+    // Xóa hiển thị DOM
     const allBoxes = document.querySelectorAll('.storage-box');
     allBoxes.forEach(box => {
       const textElement = box.querySelector('[data-content]');
@@ -216,14 +308,13 @@ const MonitorPackaged = () => {
       }
       box.classList.remove('active');
     });
-    console.log('[DOM] ✓ Cleared all boxes');
+    console.log('[STACK] ✓ Cleared all stacks');
+    console.log('[DOM] ✓ Cleared all boxes display');
   };
 
   /**
-   * Parse node_name và cập nhật box tương ứng
-   * Logic mới: Chỉ update ô cụ thể, KHÔNG clear toàn bộ
-   * - Nếu cùng một ô nhận data mới → ghi đè data cũ
-   * - Nếu ô khác nhận data mới → giữ nguyên ô cũ, thêm data mới
+   * Parse node_name và push vào stack của box tương ứng
+   * Logic: Push node_name vào stack, hiển thị phần tử ĐẦU TIÊN (FIFO)
    */
   const updateFromNodeName = (nodeName) => {
     if (!nodeName) return;
@@ -231,28 +322,24 @@ const MonitorPackaged = () => {
     console.log('[DOM] Parsing node_name:', nodeName);
     
     // Parse format: "L2_CD-2a/b" -> Line 2, Box 2
-      const match = nodeName.match(/L(\d+).*?(\d+)/);
+    const match = nodeName.match(/L(\d+).*?(\d+)/);
+    
+    if (match) {
+      const lineNumber = parseInt(match[1], 10); // L2 -> 2
+      const boxNumber = parseInt(match[2], 10); // 2a/b -> 2
+      const lineIndex = lineNumber - 2; // LINE 2 -> index 0
       
-      if (match) {
-        const lineNumber = parseInt(match[1], 10); // L2 -> 2
-        const boxNumber = parseInt(match[2], 10); // 2a/b -> 2
-        const lineIndex = lineNumber - 2; // LINE 2 -> index 0
-        
-      // ⚡ CHỈ UPDATE Ô CỤ THỂ - KHÔNG CLEAR TOÀN BỘ
-      // Nếu ô này đã có data → ghi đè bằng data mới
-      // Các ô khác giữ nguyên
+      // Push vào stack của ô này
       updateBoxContent(lineIndex, boxNumber, nodeName, true);
-      console.log(`[DOM] ✓ Updated box Line ${lineNumber}, Box ${boxNumber} (other boxes unchanged)`);
-          } else {
+      console.log(`[DOM] ✓ Pushed "${nodeName}" to stack of Line ${lineNumber}, Box ${boxNumber}`);
+    } else {
       console.warn('[DOM] Could not parse node_name:', nodeName);
     }
   };
 
   /**
    * Cập nhật từ danh sách tasks
-   * Logic mới: Chỉ update các ô có trong tasks, KHÔNG clear toàn bộ
-   * - Mỗi task sẽ update/ghi đè ô tương ứng
-   * - Các ô không có trong tasks giữ nguyên
+   * Logic: Push shelf_number của mỗi task vào stack của ô tương ứng
    */
   const updateFromTasks = (tasks) => {
     if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
@@ -261,30 +348,27 @@ const MonitorPackaged = () => {
     }
 
     console.log(`[DOM] Processing ${tasks.length} tasks`);
-    console.log('[DOM] ⚡ Only updating boxes in tasks, other boxes unchanged');
     
-    // ⚡ KHÔNG CLEAR TOÀN BỘ - CHỈ UPDATE TỪNG Ô CÓ TRONG TASKS
     tasks.forEach((task, index) => {
       const { shelf_number, status } = task;
       
-        if (shelf_number) {
-          const match = shelf_number.match(/L(\d+).*?(\d+)/);
-          
-          if (match) {
+      if (shelf_number) {
+        const match = shelf_number.match(/L(\d+).*?(\d+)/);
+        
+        if (match) {
           const lineNumber = parseInt(match[1], 10);
           const boxNumber = parseInt(match[2], 10);
           const lineIndex = lineNumber - 2;
           
           const isActive = status === 'processing' || status === 'active';
           
-          // ⚡ GHI ĐÈ DATA CHO Ô NÀY (nếu ô đã có data → thay thế)
-          // Các ô khác không có trong tasks → giữ nguyên
+          // Push shelf_number vào stack
           updateBoxContent(lineIndex, boxNumber, shelf_number, isActive);
         }
       }
     });
     
-    console.log(`[DOM] ✓ Updated ${tasks.length} boxes, other boxes unchanged`);
+    console.log(`[DOM] ✓ Pushed ${tasks.length} shelf_numbers to stacks`);
   };
 
   // ==================== WEBSOCKET CONNECTION ====================
