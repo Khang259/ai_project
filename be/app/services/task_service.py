@@ -60,7 +60,7 @@ async def put_to_service(payload: dict):
 
 async def track_task(payload: dict):
     # Tracking task - Nested structure: {group_id: {order_id: {...}}}
-    group_id = str(payload["group_id"])
+    # group_id = str(payload["group_id"])
     order_id = payload.get("order_id") or payload.get("orderId")
     
     if not order_id:
@@ -68,15 +68,19 @@ async def track_task(payload: dict):
         return {"status": "error", "data": "order_id is required"}
     
     # Initialize group if not exists
-    if group_id not in task_service._tracking_task:
-        task_service._tracking_task[group_id] = {}
+    # if group_id not in task_service._tracking_task:
+    #     task_service._tracking_task[group_id] = {}
     
     # Tracking by order_id
-    task_service._tracking_task[group_id][order_id] = {
+    # task_service._tracking_task[group_id][order_id] = {
+    #     **payload
+    # }
+
+    task_service._tracking_task[order_id] = {
         **payload
     }
     
-    logger.info(f"Tracking task: group_id={group_id}, order_id={order_id}")
+    logger.info(f"Tracking task: order_id={order_id}")
     return {"status": "success", "data": "Task tracked successfully"}
 
 async def extract_task_by_group_id(data: dict):
@@ -94,32 +98,32 @@ async def extract_task_by_group_id(data: dict):
         return {"status": "error", "data": "Route not found"}
 
 async def clear_monitor(group_id: str, order_id: str):
-    if group_id in task_service._tracking_task:
-        tracked_group = task_service._tracking_task[group_id]
-        if order_id in tracked_group:
-            logger.info(f"Clearing order_id: {order_id}")
+    # if group_id in task_service._tracking_task:
+    #     tracked_group = task_service._tracking_task[group_id]
+    if order_id in task_service._tracking_task:
+        logger.info(f"Clearing order_id: {order_id}")
 
-            #Send clear monitor command
-            clear_payload = {
-                "type": "Clear",
-                "group_id": group_id,
-                "orderId": order_id,
-                "end_qrs": tracked_group[order_id]["end_qrs"],
-            }
-            await task_service.publish_to_service(group_id, clear_payload)
+        #Send clear monitor command
+        clear_payload = {
+            "type": "Clear",
+            "group_id": group_id,
+            "orderId": order_id,
+            "end_qrs": task_service._tracking_task[order_id]["end_qrs"],
+        }
+        await task_service.publish_to_service(group_id, clear_payload)
 
-            #Remove order_id from group
-            del tracked_group[order_id]
-            logger.info(f"Removed order_id: {order_id} from group {group_id}")
+        #Remove order_id from group
+        del task_service._tracking_task[order_id]
+        logger.info(f"Removed order_id: {order_id} from group {group_id}")
 
-            # If group is empty, remove the group
-            if not tracked_group:
-                del task_service._tracking_task[group_id]
-                logger.info(f"Removed empty group {group_id} from tracking")
-        else:
-            return
+        # # If group is empty, remove the group
+        # if not task_service._tracking_task:
+        #     del task_service._tracking_task[group_id]
+        #     logger.info(f"Removed empty group {group_id} from tracking")
     else:
         return
+    # else:
+    #     return
 
 async def filter_raw_task(payload):
     tasks_collection = get_collection("tasks")
