@@ -55,13 +55,14 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
 
   // Lọc menu dựa trên role
   const filteredNavigation = navigation.filter(item => {
-    // Nếu user có role admin hoặc superuser, hiển thị tất cả menu
+    // Admin/Superuser: Hiển thị tất cả menu
     if (auth.user?.roles?.includes('admin') || auth.user?.roles?.includes('superuser')) {
       return true;
     }
-    // Nếu chỉ có role user, ẩn một số menu nhạy cảm
-    if (auth.user?.roles?.includes('user') && !auth.user?.roles?.includes('admin')) {
-      return !['navigation.userManagement', 'navigation.settings'].includes(item.nameKey);
+    
+    // Operator: Ẩn Area Management và Settings
+    if (auth.user?.roles?.includes('operator')) {
+      return !['navigation.areaManagement'].includes(item.nameKey);
     }
     return true;
   });

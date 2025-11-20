@@ -120,7 +120,7 @@ function App() {
           <Route
             path="/area"
             element={
-              <PrivateRoute requiredRole={["admin", "operator"]}>
+              <PrivateRoute requiredRole={["admin"]}>
                 <DashboardLayout>
                   <Area />
                 </DashboardLayout>

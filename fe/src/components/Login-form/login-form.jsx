@@ -11,7 +11,7 @@ export function LoginForm() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate(); // Initialize useNavigate
+  // const navigate = useNavigate(); // Initialize useNavigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,12 +19,13 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      await login({ username, password });
-      console.log("Login successful");
-      navigate("/dashboard"); // Redirect to dashboard after successful login
+      const response = await login({ username, password });
+      console.log("Login successful for user:", response.user?.username);
+      
+      // Sử dụng window.location.href để force reload và đảm bảo state được reset
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -71,7 +72,7 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full h-12 px-4 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="••••••••••"
+            placeholder="********"
             required
             disabled={isLoading}
           />

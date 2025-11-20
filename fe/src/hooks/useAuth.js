@@ -23,8 +23,10 @@ export function useAuth() {
     try {
       const response = await loginService(credentials);
       setAuth({ token: response.token, user: response.user });
+      console.log('[useAuth] Login successful for user:', response.user?.username);
       return response;
     } catch (error) {
+      console.error('[useAuth] Login failed:', error);
       throw error;
     }
   };
@@ -33,6 +35,25 @@ export function useAuth() {
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
+    localStorage.removeItem("selectedAreaName");
+    localStorage.removeItem("selectedAreaId");
+    localStorage.removeItem("currAreaName");
+    localStorage.removeItem("currAreaId");
+    localStorage.removeItem("areaData");
+    localStorage.removeItem("currentAreaId");
+    localStorage.removeItem("mapData");
+    localStorage.removeItem("importedMapData");
+
+    console.log('[useAuth] Logout successful - removed items:');
+    
+    // Clear user-specific area localStorage
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('selectedAreaId_') || key.startsWith('selectedAreaName_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
     setAuth({ token: null, user: null });
   };
 

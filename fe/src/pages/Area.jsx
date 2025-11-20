@@ -5,7 +5,6 @@ import AreaHeader from "@/components/Area/AreaHeader";
 import AreaFilters from "@/components/Area/AreaFilters";
 import AreaTable from "@/components/Area/AreaTable";
 import AddAreaModal from "@/components/Area/AddAreaModal";
-import { useAreas } from "@/hooks/Area/useAreas";
 
 export default function AreaDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
