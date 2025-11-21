@@ -8,12 +8,15 @@ import './i18n'
 // import 'bootstrap/dist/css/bootstrap.min.css'
 // Bootstrap Icons (for bi- classes)
 import { Toaster } from 'sonner'
+import { NotificationProvider } from './contexts/NotificationContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
-      <Toaster richColors position="top-right" />
+      <NotificationProvider>
+        <App />
+        <Toaster richColors position="top-right" />
+      </NotificationProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )

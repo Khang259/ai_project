@@ -12,7 +12,7 @@ import Maintain from './pages/Maintain';
 import MonitorPackaged from './pages/MonitorPackaged';
 import MobileGridDisplay from './pages/MobileGridDisplay';
 import Area from './pages/Area';
-import PrivateRoute from './components/PrivateRoute'; 
+import PrivateRoute from './components/PrivateRoute';
 import { AreaProvider } from './contexts/AreaContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import './i18n';
@@ -26,8 +26,8 @@ function App() {
   return (
     <LanguageProvider>
       <AreaProvider>
-      {/* Background video */}
-      {/* {showVideo && (
+        {/* Background video */}
+        {/* {showVideo && (
           <video
             id="background-video"
             autoPlay
@@ -42,7 +42,7 @@ function App() {
         )} */}
         <div className="fixed top-0 left-0 w-full h-full bg-black -z-10"></div>
         <Routes>
-      {/* Public routes */}
+          {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<LoginPage />} />
 
@@ -88,7 +88,7 @@ function App() {
             }
           />
           <Route
-            path="/task"
+            path="/task-management"
             element={
               <PrivateRoute requiredRole={["admin", "operator"]}>
                 <DashboardLayout>

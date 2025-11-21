@@ -19,7 +19,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 const navigation = [
   { nameKey: "navigation.dashboard", href: "/dashboard", icon: Home },
-  { nameKey: "navigation.taskManagement", href: "/task", icon: Workflow },
+  { nameKey: "navigation.taskManagement", href: "/task-management", icon: Workflow },
   { nameKey: "navigation.analytics", href: "/analytics", icon: BarChart3 },
   { nameKey: "navigation.notification", href: "/notification", icon: Bell },
   { nameKey: "navigation.userManagement", href: "/users", icon: Users },
@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
     if (auth.user?.roles?.includes('admin') || auth.user?.roles?.includes('superuser')) {
       return true;
     }
-    
+
     // Operator: Ẩn Area Management và Settings
     if (auth.user?.roles?.includes('operator')) {
       return !['navigation.areaManagement'].includes(item.nameKey);
@@ -131,18 +131,18 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
         </svg>
         <header className="relative flex items-center justify-between rounded-2xl px-4 py-3">
           {/* Left Section - Logo & Area Selector */}
-          <div className="relative flex items-center z-1" 
-            // style={{ 
-            //   borderBottom: '1px solid rgb(34,189,189)' 
-            //   }}
+          <div className="relative flex items-center z-1"
+          // style={{ 
+          //   borderBottom: '1px solid rgb(34,189,189)' 
+          //   }}
           >
             {/* Logo - Minimal Design */}
             <div className="w-1/5 flex items-center gap-3">
               <div className="">
-                <img 
-                  src="/src/assets/logo_cty.png" 
-                  alt="Company Logo" 
-                  className="h-14 object-contain filter drop-shadow-lg" 
+                <img
+                  src="/src/assets/logo_cty.png"
+                  alt="Company Logo"
+                  className="h-14 object-contain filter drop-shadow-lg"
                 />
               </div>
             </div>
@@ -157,11 +157,10 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                       <Link
                         key={item.nameKey}
                         to={item.href}
-                        className={`header-nav-item flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
-                          isActive
+                        className={`header-nav-item flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${isActive
                             ? "active text-[rgb(34,189,189)]"
                             : "text-gray-300 hover:text-white"
-                        }`}
+                          }`}
                       >
                         <item.icon className={`w-4 h-4 ${isActive ? 'text-[rgb(34,189,189)]' : ''}`} />
                         <span className="hidden xl:inline">{t(item.nameKey)}</span>
@@ -206,9 +205,9 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
               <div className="hidden md:flex items-center">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="header-button-neumorphism flex items-center gap-2 border-none text-white h-10 px-4 rounded-xl font-medium bg-transparent" 
+                    <Button
+                      variant="outline"
+                      className="header-button-neumorphism flex items-center gap-2 border-none text-white h-10 px-4 rounded-xl font-medium bg-transparent"
                       disabled={areaLoading}
                     >
                       <span className="text-sm">
@@ -253,8 +252,8 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="header-button-neumorphism border-none rounded-full w-10 h-10 bg-transparent hover:bg-transparent"
                 >
@@ -276,7 +275,7 @@ export default function DashboardLayout({ children }) {  // Bỏ interface, dùn
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={handleLogout}
                   className="text-red-600 focus:text-red-700 focus:bg-red-50"
                 >

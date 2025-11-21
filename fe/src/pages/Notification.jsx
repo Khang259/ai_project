@@ -28,7 +28,6 @@ export default function Notification() {
     total,
     refetch,
   } = useNotifications({
-    page: currentPage,
     limit: LIMIT,
     searchQuery,
     priorityFilter,
@@ -39,6 +38,9 @@ export default function Notification() {
   });
 
   const totalPages = Math.ceil(total / LIMIT);
+
+  // Debug: Kiểm tra giá trị để biết tại sao pagination không hiển thị
+  console.log("[DEBUG] total:", total, "| totalPages:", totalPages, "| notifications.length:", notifications.length);
 
   const handleReset = () => {
     setSearchQuery("");
@@ -57,12 +59,16 @@ export default function Notification() {
 
   // Map dữ liệu backend
   const mappedNotifications = notifications.map((item) => ({
-    id: `${item.alarm_code}_${item.alarm_date}`,
-    messageType: item.alarm_code || "Unknown",
+    // id: `${item.alarm_code}_${item.alarm_date}`,
+    source: item.alarm_source || "Unknown",
+    area: item.area_id || "Unknown",
+    group: item.group_id || "Unknown",
     alarmLevel: item.alarm_grade >= 9 ? "Alert" : item.alarm_grade >= 5 ? "Warning" : "Low",
+    messageType: item.alarm_code || "Unknown",
+    route: item.route_name || "Unknown",
     deviceNo: item.device_name || "--",
-    deviceSerialNo: item.device_name || "--",
-    abnormalReason: `${item.alarm_code} tại ${item.device_name || "thiết bị"}`,
+    // deviceSerialNo: item.device_name || "--",
+    abnormalReason: `${item.alarm_code}`,
     alarmTime: new Date(item.alarm_date).toLocaleString("vi-VN"),
   }));
 

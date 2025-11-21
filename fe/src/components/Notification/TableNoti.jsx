@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 export default function TableNoti({ alerts }) {
+  const { t } = useTranslation();
+
   const getBadgeVariant = (level) => {
     switch (level) {
       case "Alert":
@@ -31,32 +34,43 @@ export default function TableNoti({ alerts }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="font-semibold text-white">Type</TableHead>
-          <TableHead className="font-semibold text-white">Alarm Level</TableHead>
-          <TableHead className="font-semibold text-white">Device No.</TableHead>
-          <TableHead className="font-semibold text-white">Device Serial No.</TableHead>
-          <TableHead className="font-semibold text-white">Abnormal Reason</TableHead>
-          <TableHead className="font-semibold text-white">Alarm Time</TableHead>
-          <TableHead className="font-semibold text-white">Operation</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.source")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.area")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.group")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.route")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.alarm_level")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.device_no")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.abnormal_reason")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.alarm_time")}</TableHead>
+          <TableHead className="font-semibold text-white">{t("notification.operation")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {alerts.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center text-gray-400">
-              Không có dữ liệu cảnh báo
+            <TableCell className="text-center text-gray-400">
+              {t("notification.no_data")}
             </TableCell>
           </TableRow>
         ) : (
           alerts.map((alert, index) => (
-            <TableRow key={`${alert.id}-${index}`} className="text-white hover:bg-white/5">
+            <TableRow key={`${alert.source}-${index}`} className="text-white hover:bg-white/5">
               {/* Type */}
               <TableCell>
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                  {alert.messageType}
+                  {alert.source}
                 </span>
               </TableCell>
+
+              {/* Area */}
+              <TableCell>{alert.area}</TableCell>
+
+              {/* Group */}
+              <TableCell>{alert.group}</TableCell>
+
+              {/* Route  */}
+              <TableCell>{alert.route}</TableCell>
 
               {/* Alarm Level */}
               <TableCell>
@@ -68,9 +82,6 @@ export default function TableNoti({ alerts }) {
               {/* Device No. */}
               <TableCell>{alert.deviceNo}</TableCell>
 
-              {/* Device Serial No. */}
-              <TableCell>{alert.deviceSerialNo}</TableCell>
-
               {/* Abnormal Reason */}
               <TableCell className="max-w-xs truncate" title={alert.abnormalReason}>
                 {alert.abnormalReason}
@@ -78,11 +89,11 @@ export default function TableNoti({ alerts }) {
 
               {/* Alarm Time */}
               <TableCell>{alert.alarmTime}</TableCell>
-              
+
               {/* Operation */}
               <TableCell>
                 <Button variant="ghost" size="sm">
-                  Chi tiết
+                  {t("notification.detail")}
                 </Button>
               </TableCell>
             </TableRow>
