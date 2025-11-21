@@ -8,7 +8,7 @@ logger = get_logger("camera_ai_app")
 router = APIRouter()
 
 
-@router.websocket("/ws/device/{device_code}")
+@router.websocket("/ws/route/{device_code}")
 async def websocket_device_channel(websocket: WebSocket, device_code: str):
     await manager.connect(websocket, device_code=device_code)
     try:
@@ -41,15 +41,18 @@ async def websocket_group_channel(websocket: WebSocket, group_id: str):
         raise
 
 
-@router.websocket("/ws/dashboard")
+@router.websocket("/ws/admin")
 async def websocket_dashboard_channel(websocket: WebSocket):
     """
-    WebSocket channel chung cho dashboard tổng quan.
-
-    Frontend kết nối tới ws://<host>/ws/dashboard và sẽ nhận broadcast
-    chung thông qua manager.broadcast(...)
+    WebSocket channel tổng - nhận TẤT CẢ các thông báo và lệnh:
+    - Broadcast chung (broadcast)
+    - Broadcast đến device (broadcast_to_device)
+    - Broadcast đến group (broadcast_to_group)
+    - Tất cả các loại thông báo khác
+    
+    Frontend kết nối tới ws://<host>/ws/dashboard để nhận tất cả messages
     """
-    await manager.connect(websocket)
+    await manager.connect(websocket, is_global=True)
     try:
         while True:
             message = await websocket.receive_text()

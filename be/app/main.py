@@ -27,6 +27,7 @@ from app.services.role_service import initialize_default_permissions, initialize
 from app.services.notification_service import notification_service
 from app.services.heartbeat_service import websocket_heartbeat_service
 from app.services.task_service import task_service
+from app.services.websocket_service import manager as websocket_manager
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -61,17 +62,32 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Shutdown
+    # Shutdown - Thứ tự quan trọng: đóng connections trước, sau đó stop services
     logger.info("Shutting down CameraAI Backend...")
-    shutdown_scheduler()
-    logger.info("AGV Scheduler stopped")
-    await notification_service.stop()
-    await task_service.stop()
-    logger.info("Task service stopped")
-    logger.info("Notification service stopped")
+    
+    # 1. Dừng heartbeat service trước (để tránh gửi heartbeat đến connections đang đóng)
     await websocket_heartbeat_service.stop()
     logger.info("Heartbeat service stopped")
+    
+    # 2. Đóng tất cả WebSocket connections
+    await websocket_manager.disconnect_all()
+    logger.info("All WebSocket connections closed")
+    
+    # 3. Dừng các background services (notification và task service)
+    await notification_service.stop()
+    logger.info("Notification service stopped")
+    await task_service.stop()
+    logger.info("Task service stopped")
+    
+    # 4. Dừng scheduler (đợi jobs đang chạy hoàn thành với timeout)
+    shutdown_scheduler()
+    logger.info("AGV Scheduler stopped")
+    
+    # 5. Đóng database connection cuối cùng
     await close_mongo_connection()
+    logger.info("MongoDB connection closed")
+    
+    logger.info("CameraAI Backend shutdown completed")
 
 # Create FastAPI app
 app = FastAPI(

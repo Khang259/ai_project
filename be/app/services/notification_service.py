@@ -56,36 +56,31 @@ async def extract_notification_by_group_id(data: dict):
         data["route_name"] = "No Route"
         return {"status": "error", "data": "Route not found"}
 
-async def filter_notification(payload):
-    if isinstance(payload, dict):
-        payload = [payload]
-    
+async def filter_notification(payload): 
     notifications_collection = get_collection("notifications")
-    notification_list = []
-    for record in payload:
-        notification_data = {
-            "alarm_code": record.get("alarmCode"),
-            "device_name": record.get("deviceName"),
-            "alarm_grade": record.get("alarmGrade"),
-            "alarm_status": record.get("alarmStatus"),
-            "area_id": record.get("areaId"),
-            "alarm_source": record.get("alarmSource"),
-            "status": record.get("status"),
-            "alarm_date": datetime.now().isoformat(),
-        }
 
-        if notification_data["alarm_status"] > 3:
-            await extract_notification_by_group_id(notification_data)
-            notification_list.append(notification_data)
-            await notification_service.publish_to_device(notification_data["group_id"], notification_data)
-        elif notification_data["alarm_grade"] > 5:
-            await extract_notification_by_group_id(notification_data)
-            notification_list.append(notification_data)
-            await notification_service.publish_to_device(notification_data["group_id"], notification_data)
-        else:
-            return {"status": "error", "data": "Notification not found"}
+    notification_data = {
+        "alarm_code": payload.get("alarmCode"),
+        "device_name": payload.get("deviceName"),
+        "alarm_grade": payload.get("alarmGrade"),
+        "alarm_status": payload.get("alarmStatus"),
+        "area_id": payload.get("areaId"),
+        "alarm_source": payload.get("alarmSource"),
+        "status": payload.get("status"),
+        "type": "notification",
+        "alarm_date": datetime.now().isoformat(),
+    }
 
-    await notifications_collection.insert_many(notification_list)
+    if notification_data["alarm_status"] > 3:
+        await extract_notification_by_group_id(notification_data)
+        await notification_service.publish_to_device(notification_data["group_id"], notification_data)
+    elif notification_data["alarm_grade"] > 5:
+        await extract_notification_by_group_id(notification_data)
+        await notification_service.publish_to_device(notification_data["group_id"], notification_data)
+    else:
+        return {"status": "error", "data": "Notification not found"}
+
+    await notifications_collection.insert_one(notification_data)
 
     return {"status": "success", "data": "Notification sent successfully"}
 

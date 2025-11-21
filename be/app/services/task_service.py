@@ -127,37 +127,26 @@ async def clear_monitor(group_id: str, order_id: str):
 
 async def filter_raw_task(payload):
     tasks_collection = get_collection("tasks")
+    
+    task_data = {
+        "order_id": payload.get("orderId"),
+        "device_code": payload.get("deviceCode"),
+        "model_process_code": payload.get("modelProcessCode"),
+        "device_num": payload.get("deviceNum"),
+        "qr_code": payload.get("qrCode"),
+        "shelf_number": payload.get("shelfNumber"),
+        "status": payload.get("status"),
+        "type": "task-status",
+        "updated_at": datetime.now().isoformat(),
+    }
+    await extract_task_by_group_id(task_data)
+    group_id = task_data["group_id"]
 
-    task_list = []
-    grouped = {}
-    for record in payload:
-        task_data = {
-            "order_id": record.get("orderId"),
-            "device_code": record.get("deviceCode"),
-            "model_process_code": record.get("modelProcessCode"),
-            "device_num": record.get("deviceNum"),
-            "qr_code": record.get("qrCode"),
-            "shelf_number": record.get("shelfNumber"),
-            "status": record.get("status"),
-            "updated_at": datetime.now().isoformat(),
-        }
-        await extract_task_by_group_id(task_data)
-        task_list.append(task_data)
-
-        group_id = task_data["group_id"]
-        if group_id not in grouped:
-            grouped[group_id] = []
-        grouped[group_id].append(task_data.copy())
-
+    if task_data["status"] == 20:
         await clear_monitor(group_id, task_data["order_id"])
      
-    
-    if len(task_list) > 0:
-        await tasks_collection.insert_many(task_list)
-    # 👇 Chuyển dict thành list để frontend dễ dùng
-    grouped_list = [{"group_id": gid, "tasks": tasks} for gid, tasks in grouped.items()]
-
-    return {"status": "success", "data": grouped_list}
+    await tasks_collection.insert_one(task_data)
+    return {"status": "success", "tasks": task_data}
 
 
 async def get_tasks_from_db(page: int = 1, limit: int = 20):

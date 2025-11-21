@@ -15,10 +15,9 @@ async def receive_task_status(request: Request):
     data = await filter_raw_task(payload)
 
     if data["status"] == "success":
-        for group in data["data"]:
-            message = json.dumps(group["tasks"])
-            await manager.broadcast_to_group(group["group_id"], message)
-        return {"status": "success", "message": f"Task successfully updated to {len(data["data"])} groups"}
+        message = data["tasks"]
+        await manager.broadcast_to_group(data["tasks"]["group_id"], message)
+        return {"status": "success", "message": f"Task successfully updated to group {data['tasks']['group_id']}"}
     else:
         return {"status": "error", "message": "Failed to extract data by group id"}
 
