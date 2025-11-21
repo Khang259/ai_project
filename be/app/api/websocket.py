@@ -8,20 +8,20 @@ logger = get_logger("camera_ai_app")
 router = APIRouter()
 
 
-@router.websocket("/ws/route/{device_code}")
-async def websocket_device_channel(websocket: WebSocket, device_code: str):
-    await manager.connect(websocket, device_code=device_code)
+@router.websocket("/ws/route/{route_name}")
+async def websocket_route_channel(websocket: WebSocket, route_name: str):
+    await manager.connect(websocket, route_code=route_name)
     try:
         while True:
             # Nếu frontend không gửi dữ liệu thì vẫn phải "consume" frame để tránh disconnect.
             message = await websocket.receive_text()
-            logger.debug(f"Received WS message from {device_code}: {message}")
+            logger.debug(f"Received WS message from {route_name}: {message}")
     except WebSocketDisconnect:
-        logger.info(f"WebSocket disconnected from device channel {device_code}")
-        manager.disconnect(websocket, device_code=device_code)
+        logger.info(f"WebSocket disconnected from route channel {route_name}")
+        manager.disconnect(websocket, route_code=route_name)
     except Exception as exc:
-        logger.error(f"Unexpected error on device WS {device_code}: {exc}")
-        manager.disconnect(websocket, device_code=device_code)
+        logger.error(f"Unexpected error on route WS {route_name}: {exc}")
+        manager.disconnect(websocket, route_code=route_name)
         raise
 
 @router.websocket("/ws/group/{group_id}")

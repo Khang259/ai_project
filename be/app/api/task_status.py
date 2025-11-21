@@ -17,6 +17,8 @@ async def receive_task_status(request: Request):
     if data["status"] == "success":
         message = data["tasks"]
         await manager.broadcast_to_group(data["tasks"]["group_id"], message)
+        await manager.broadcast_to_route(data["tasks"]["route_id"], message)
+        logger.info(f"Task successfully updated to group {data['tasks']['group_id']} and route {data['tasks']['route_id']}")
         return {"status": "success", "message": f"Task successfully updated to group {data['tasks']['group_id']}"}
     else:
         return {"status": "error", "message": "Failed to extract data by group id"}

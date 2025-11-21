@@ -38,7 +38,7 @@ async def get_users(
             is_superuser=user.get("is_superuser", False),
             area_id=user.get("area_id", 0),
             group_id=user.get("group_id", 0),
-            route=user.get("route", []),
+            route_id=user.get("route_id", 0),
             roles=role_names,
             permissions=user.get("permissions", []),
             created_at=user.get("created_at"),
@@ -79,7 +79,7 @@ async def get_user(
         is_superuser=user.get("is_superuser", False),
         area_id=user.get("area_id", 0),
         group_id=user.get("group_id", 0),
-        route=user.get("route", []),
+        route_id=user.get("route_id", 0),
         roles=role_names,
         permissions=user.get("permissions", []),
         created_at=user.get("created_at"),
@@ -133,8 +133,8 @@ async def update_user(
         except Exception:
             raise HTTPException(status_code=400, detail="group_id must be an integer")
 
-    if user_update.route is not None:
-        update_data["route"] = user_update.route
+    if user_update.route_id is not None:
+        update_data["route_id"] = user_update.route_id
 
     update_data["updated_at"] = datetime.utcnow()
     
@@ -163,7 +163,7 @@ async def update_user(
         is_superuser=updated_user.get("is_superuser", False),
         area_id=updated_user.get("area_id", 0),
         group_id=updated_user.get("group_id", 0),
-        route=updated_user.get("route", []),
+        route_id=updated_user.get("route_id", 0),
         roles=role_names,
         permissions=updated_user.get("permissions", []),
         created_at=updated_user.get("created_at"),

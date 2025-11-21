@@ -90,11 +90,12 @@ async def extract_task_by_group_id(data: dict):
     if route:
         data["area_id"] = route["area_id"]
         data["group_id"] = str(route["group_id"])
+        data["route_id"] = route["route_id"]
         return {"status": "success", "data": "Extracted task by group id successfully"}
     else:
         data["area_id"] = "No Area"
         data["group_id"] = "No Group"
-        data["route_name"] = "No Route"
+        data["route_id"] = "No Route"
         return {"status": "error", "data": "Route not found"}
 
 async def clear_monitor(group_id: str, order_id: str):
