@@ -312,9 +312,9 @@ const LeafletMap = ({
             
             // Màu path
             const path = L.polyline(smoothPath, {
-              color: 'rgb(17, 113, 223)',
+              color: 'rgb(17, 223, 223)',
               weight: 3,
-              opacity: 0.8,
+              opacity: 1,
               lineCap: 'round',
               lineJoin: 'round',
               smoothFactor: 1,
@@ -623,16 +623,13 @@ const LeafletMap = ({
         `}
       </style>
         <div 
+          className='map-wrapper'
           ref={mapRef} 
-          style={{ 
-            width: '100%', 
-            height: '85vh',
-            backgroundColor: 'rgb(255, 255, 255)',
-            position: 'relative',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          }} 
+          style={{
+            width: '100%',
+            height: '40vh',
+            position: 'relative'
+          }}
         />
       {/* Camera layer với error boundary */}
       <CameraErrorBoundary>

@@ -4,6 +4,7 @@ import api from "./api";
 export const addCamera = async (cameraData) => {
   try {
     const response = await api.post("/cameras", cameraData);
+    console.log("[camera-settings] addCamera response:", response);
     return response.data;
   } catch (error) {
     console.error("Error adding camera:", error);

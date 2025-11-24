@@ -58,3 +58,4 @@ def shutdown_scheduler():
             logger.info("AGV Scheduler shut down successfully.")
     except Exception as e:
         logger.error(f"Error shutting down scheduler: {e}")
+

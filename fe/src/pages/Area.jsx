@@ -5,7 +5,6 @@ import AreaHeader from "@/components/Area/AreaHeader";
 import AreaFilters from "@/components/Area/AreaFilters";
 import AreaTable from "@/components/Area/AreaTable";
 import AddAreaModal from "@/components/Area/AddAreaModal";
-import { useAreas } from "@/hooks/Area/useAreas";
 
 export default function AreaDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -22,7 +21,6 @@ export default function AreaDashboard() {
     handleUpdateArea,
     loading,
     error,
-    refetchAreas,
   } = useAreas();
 
   if (loading) return <div className="p-6">Đang tải danh sách khu vực...</div>;
@@ -74,9 +72,8 @@ export default function AreaDashboard() {
        <AreaTable
          areas={filteredAreas.map((area) => ({
            ...area,
-           areaDescription: "Do not Support Cross area", // Mock data - có thể lấy từ API
-           associatedAccount: "doan、duc_beo、khang、linh", // Mock data - có thể lấy từ API
-           associatedDevice: area.area_id === 1 ? "---" : "0001、0002、0003、0004、0005、...", // Mock data
+           areaCreatedAt:new Date(area.created_at).toLocaleString('vi-VN'),
+           areaCreatedBy:area.created_by,
          }))}
          onEdit={handleEditArea}
          onDelete={handleDeleteArea}

@@ -12,9 +12,11 @@ import NodeDetailsModal from '@/components/Overview/map/AMRWarehouseMap/NodeDeta
 import SwitchButton from '@/components/Overview/map/AMRWarehouseMap/SwitchButton';
 import { useArea } from '@/contexts/AreaContext';
 import { getMapFromBackend } from '@/services/mapService';
+import { useTranslation } from 'react-i18next';
 const { Title } = Typography;
 
 const AMRWarehouseMap = () => {
+  const { t } = useTranslation();
   // Area context
   const { currAreaId, currAreaName } = useArea();
   
@@ -117,12 +119,9 @@ const AMRWarehouseMap = () => {
   };
 
   return (
-    <div className="dashboard-page" style={{ background: 'white', minHeight: '75vh' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <Title level={1} style={{ color: 'black', fontWeight: 500, fontSize: 32, paddingLeft: 24, paddingRight: 24 }}>
-          Bản đồ quan sát AMR
-        </Title>
-        <MapFilters
+    <div className="dashboard-page">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', height: '100%' }}>
+        <MapFilters className='glass'
           cameraFilter={cameraFilter}
           setCameraFilter={(value) => {
             setCameraFilter(value);
@@ -130,7 +129,9 @@ const AMRWarehouseMap = () => {
           amrFilter={amrFilter}
           setAmrFilter={setAmrFilter}
         />
-        <SwitchButton />
+        <div className='items-center justify-center'>
+          <SwitchButton/>
+        </div>
       </div>
       {/* <MapLegend /> */}
       {/* <Card variant="borderless" style={{ borderRadius: 16, color: '#fff' }}> */}
@@ -149,7 +150,7 @@ const AMRWarehouseMap = () => {
           }}>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
             <div style={{ color: '#1890ff', fontSize: '16px', fontWeight: '500' }}>
-              Đang tải bản đồ cho khu vực: {currAreaName || 'Unknown'}
+              {t('map.loading')} {currAreaName || 'Unknown'}
             </div>
             <div style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
               Area ID: {currAreaId}

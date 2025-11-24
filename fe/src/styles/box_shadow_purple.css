@@ -1,0 +1,46 @@
+.card-purple {
+    width: 100%;
+    background: rgba(15, 12, 41, 0.7);
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.4);
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    backdrop-filter: blur(12px);
+    text-align: center;
+  }
+
+
+.card-purple-specific {
+    width: 300px;
+    background: rgba(15, 12, 41, 0.7);
+    padding-top: 20px;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.4);
+    border: 2px solid rgba(138, 43, 226, 0.3);
+    backdrop-filter: blur(12px);
+    text-align: center;
+}
+
+
+.card-purple-button {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(138, 43, 226, 0.4);
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  backdrop-filter: blur(12px);
+}
+
+.card-purple-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(138, 43, 226, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(138, 43, 226, 0.4);
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  backdrop-filter: blur(12px);
+}

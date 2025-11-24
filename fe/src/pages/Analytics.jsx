@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-semibold text-gray-900 mt-4 ml-4">Trang thống kê</h1>
+            <h1 className="text-4xl font-semibold text-gray-50 mt-4 ml-4">{t('analytics.analytics')}</h1>
           </div>
           {/* Filter */}
           <div className="flex items-center gap-3">
@@ -157,8 +157,8 @@ export default function AnalyticsPage() {
 
         <Tabs defaultValue="performance" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="workflows">Workflows</TabsTrigger>
+            <TabsTrigger value="performance">{t('analytics.performance')}</TabsTrigger>
+            <TabsTrigger value="workflows">{t('analytics.workflows')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="performance" className="space-y-6">
@@ -166,7 +166,7 @@ export default function AnalyticsPage() {
               {/* Execution Trends */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian làm và nghỉ</CardTitle>
+                  <CardTitle>{t('analytics.timeRangeIdleAndTask')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
               {/* Success vs Failed */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Thời gian tải và không tải</CardTitle>
+                  <CardTitle>{t('analytics.timeRangeWithPayloadandWithoutPayload')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">

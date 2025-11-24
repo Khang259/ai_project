@@ -6,18 +6,19 @@ import UsersFilters from "@/components/Users/UsersFilters";
 import UsersTable from "@/components/Users/UsersTable";
 import AddUserModal from "@/components/Users/AddUserModal";
 import UpdateUserModal from "@/components/Users/UpdateUserModal";
+import CreateRouteModal from "@/components/Users/CreateRouteModal";
 import { useUsers } from "@/hooks/Users/useUsers";
 import Username from "@/components/Users/username";
 import { useArea } from "@/contexts/AreaContext";
+import { useTranslation } from 'react-i18next';
 
 export default function UserDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isCreateRouteModalOpen, setIsCreateRouteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const { currAreaName, currAreaId } = useArea();
-  
+  const { t } = useTranslation();  
   const {
-    users,
     search,
     setSearch,
     roleFilter,
@@ -30,17 +31,17 @@ export default function UserDashboard() {
     error,
   } = useUsers();
 
-  if (loading) return <div className="p-6">Đang tải danh sách người dùng...</div>;
+  if (loading) return <div className="p-6">{t('users.loading')}</div>;
   if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   const handleAddUserSubmit = async (userData) => {
     try {
       await handleAddUser(userData);
-      toast.success("Thêm người dùng thành công");
+      toast.success(t('users.addUserSuccess'));
       setIsAddModalOpen(false);
     } catch (error) {
       console.error("Lỗi khi thêm user:", error);
-      toast.error(error?.message || "Thêm người dùng thất bại");
+      toast.error(error?.message || t('users.addUserError'));
     }
   };
 
@@ -53,11 +54,16 @@ export default function UserDashboard() {
     if (!selectedUser?.id) return;
     try {
       await handleUpdateUser(selectedUser.id, payload);
-      toast.success("Cập nhật người dùng thành công");
+      toast.success(t('users.updateUserSuccess'));
       setIsUpdateModalOpen(false);
     } catch (error) {
-      toast.error(error?.message || "Cập nhật người dùng thất bại");
+      toast.error(error?.message || t('users.updateUserError'));
     }
+  };
+
+  const handleCreateRoute = (id, user) => {
+    setSelectedUser(user);
+    setIsCreateRouteModalOpen(true);
   };
 
   return (
@@ -75,12 +81,13 @@ export default function UserDashboard() {
         users={filteredUsers.map((u) => ({ 
           ...u, 
           name: <Username name={u.username} />,
-          role: u.roles && u.roles.length > 0 ? u.roles[0].charAt(0).toUpperCase() + u.roles[0].slice(1) : "User",
+          // Giữ nguyên roles array để UsersTable có thể hiển thị đúng
+          roles: u.roles || [],
           status: u.is_active ? "Active" : "Inactive",
-          email: "-"  // API không có email field
         }))}
         onDelete={handleDelete}
         onEdit={handleEdit}
+        onCreateRoute={handleCreateRoute}
       />
 
       <AddUserModal
@@ -98,6 +105,13 @@ export default function UserDashboard() {
         userData={selectedUser}
       />
       
+      <CreateRouteModal
+        isOpen={isCreateRouteModalOpen}
+        onClose={() => setIsCreateRouteModalOpen(false)}
+        onSubmit={handleCreateRoute}
+        loading={loading}
+        user={selectedUser}
+      />
     </div>
   );
 }

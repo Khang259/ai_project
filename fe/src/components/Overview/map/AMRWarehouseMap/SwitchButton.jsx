@@ -1,41 +1,46 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
+
+const handleToggleAI = () => {
+  console.log('Toggle AI mode');
+}
 
 const Button = () => {
+  const { t } = useTranslation(); 
   return (
     <StyledWrapper>
-      <button> Button
+      <button onClick={handleToggleAI} className="shadow__btn">
+          {t('map.ai_mode')}
       </button>
     </StyledWrapper>
   );
 }
 
 const StyledWrapper = styled.div`
-  button {
-    padding: 1.3em 3em;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    font-weight: 500;
-    color: #000;
-    background-color: #fff;
+  .shadow__btn {
+    padding: 10px 20px;
     border: none;
-    border-radius: 45px;
-    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease 0s;
-    cursor: pointer;
-    outline: none;
-  }
-
-  button:hover {
-    background-color: rgb(34,189,189);
-    box-shadow: 0px 15px 20px rgba(34,189,189, 0.3);
+    font-size: 17px;
     color: #fff;
-    transform: translateY(-7px);
+    border-radius: 7px;
+    letter-spacing: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: 0.5s;
+    transition-property: box-shadow;
   }
 
-  button:active {
-    transform: translateY(-1px);
+  .shadow__btn {
+    background: rgb(138, 43, 226);
+    box-shadow: 0 0 25px rgb(138, 43, 226);
+  }
+
+  .shadow__btn:hover {
+    box-shadow: 0 0 5px rgb(138, 43, 226),
+                0 0 25px rgb(138, 43, 226),
+                0 0 50px rgb(138, 43, 226),
+                0 0 100px rgb(138, 43, 226);
   }`;
 
 export default Button;

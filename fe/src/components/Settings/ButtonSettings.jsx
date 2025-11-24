@@ -11,11 +11,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useUsers } from '../../hooks/Users/useUsers';
 import useNodesBySelectedUser from '../../hooks/Setting/useNodesBySelectedUser';
 import useNodeSettingsLazy from '../../hooks/Setting/useNodeSettingsLazy';
-
+import { useTranslation } from "react-i18next"; 
 const ButtonSettings = () => {
-  // ===========================================
-  // 1. KHAI BÁO STATE VÀ HOOKS
-  // ===========================================
+  const { t } = useTranslation();
+
   const [columnsWantToShow, setColumnsWantToShow] = useState(5); // Cột muốn hiển thị trong Grid Preview có thể tùy chỉnh
   
   // Mapping cho các giá trị node_type
@@ -182,12 +181,12 @@ const ButtonSettings = () => {
     console.log("payload", payload);
     const res = await addNode(payload);
     if (!res.success) { 
-      console.error("Phản hồi lỗi:", res);
-      alert(`Tạo node thất bại (${res.status}): ${res.error || 'Lỗi không xác định'}`)
+      console.error(t('settings.errorResponse'), res);
+      alert(t('settings.createNodeFailed', {status: res.status, error: res.error || t('settings.unknownError')}))
     }
     if (res.status === 201 || res.status === 200) {
       const newNode = res.data; 
-      alert(`Thành công! Đã tạo node "${newNode.node_name}" (ID: ${newNode.id})`);
+      alert(t('settings.successCreateNode', {nodeName: newNode.node_name, nodeId: newNode.id}));
     }
     
     await fetchData();
@@ -219,7 +218,7 @@ const ButtonSettings = () => {
   const handleDeleteCell = async (cellId) => {
     const nodeToDelete = dataFilteredByNodes.find(node => node.id === cellId);
     if (!nodeToDelete) return;
-    if (confirm(`Bạn có chắc chắn muốn xóa ô ${nodeToDelete.node_name}?`)) {
+    if (confirm(t('settings.confirmDeleteCell', {nodeName: nodeToDelete.node_name}))) {
       const res = await deleteNode(cellId);
       await fetchData();
     }
@@ -241,7 +240,7 @@ const ButtonSettings = () => {
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         if (!firstSheetName) {
-          alert('File không có sheet nào.');
+          alert(t('settings.fileDoesNotHaveAnySheet'));
           return;
         }
         const worksheet = workbook.Sheets[firstSheetName];
@@ -249,7 +248,7 @@ const ButtonSettings = () => {
         console.log('=== ROWS ===');
         console.log(rows);
         if (!rows || rows.length === 0) {
-          alert('Không có dữ liệu để import.');
+          alert(t('settings.noDataToImport'));
           return;
         }
 
@@ -334,15 +333,15 @@ const ButtonSettings = () => {
         const result = await updateBatch(payload);
         if (result?.success) {
           await fetchData();
-          alert(`Đã import và lưu ${importedNodes.length} dòng thành công!`);
+          alert(t('settings.successImportAndSave', {count: importedNodes.length}));
         } else {
-          alert(`Import thành công nhưng lưu thất bại: ${result?.error || 'Unknown error'}`);
+          alert(t('settings.successImportButSaveFailed', {error: result?.error || t('settings.unknownError')}));
         }
 
         event.target.value = '';
       } catch (error) {
         console.error(error);
-        alert('Lỗi khi đọc file Excel: ' + error.message);
+        alert(t('settings.errorReadingExcelFile', {error: error.message}));
       }
     };
     reader.readAsArrayBuffer(file);
@@ -365,7 +364,7 @@ const ButtonSettings = () => {
     console.log("payload", payload);
     const result = await updateBatch(payload);
     if (result?.success) {
-      alert("Cập nhật thành công");
+      alert(t('settings.successUpdate'));
       await fetchData();
     }
   };
@@ -447,19 +446,16 @@ const ButtonSettings = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  // ===========================================
-  // 8. GIAO DIỆN NGƯỜI DÙNG (UI)
-  // ===========================================
   return (
     <div className="space-y-6">
       {/* Grid Configuration */}
-      <Card className="border-2">
+      <Card className="border-2 glass">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Grid3x3 className="h-5 w-5 text-primary" />
-                Cấu Hình Nút
+                <Grid3x3 className="h-5 w-5 text-white" />
+                {t('settings.buttonSettings')}
               </CardTitle>
             </div>
             <div className="flex items-center gap-2">
@@ -467,28 +463,37 @@ const ButtonSettings = () => {
               <div className="flex items-center gap-2">
               <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
+                <Button variant="outline" size="sm" className="flex items-center gap-2 glass">
+                  <User className="h-4 w-4 glass" />
                   {selectedUser?.username || 'User'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  Chọn User
+              <DropdownMenuContent align="end" 
+                className="w-64 glass" 
+                style={{ 
+                  backgroundColor: "rgba(139,92,246,0.25)", 
+                  border: "1px solid rgba(255,255,255,0.25)" 
+                  }}
+                >
+                <div className="px-2 py-1.5 text-sm font-semibold text-white">
+                  {t('settings.selectUser')}
                 </div>
                 {usersLoading ? (
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    Đang tải danh sách người dùng...
+                  <div className="px-2 py-1.5 text-sm text-white">
+                    {t('settings.loadingUserList')}
                   </div>
                 ) : usersError ? (
                   <div className="px-2 py-1.5 text-sm text-red-500">
-                    Lỗi: {usersError}
+                    {t('settings.error', {error: usersError})}
                   </div>
                 ) : (
                   <div
                     style={{
                       maxHeight: users.length > 4 ? "200px" : "auto",
                       overflowY: users.length > 4 ? "auto" : "visible",
+                      color: "white",
+                      backgroundColor: "rgba(255,255,255,0.25)",
+                      borderRadius: "8px"
                     }}
                   >
                     {users.map((user) => (
@@ -498,7 +503,7 @@ const ButtonSettings = () => {
                         className="flex justify-between items-center"
                       >
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
+                          <User className="h-4 w-4 text-white" />
                           <div>
                             <div className="font-medium">{user.username}</div>
                             <div className="text-xs text-muted-foreground">
@@ -513,38 +518,11 @@ const ButtonSettings = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             </div>
-            {/* Settings Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Cài đặt
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  Cài đặt hiển thị
-                </div>
-                <div className="px-2 py-1.5">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs">Số ô trên 1 hàng:</Label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={columnsWantToShow}
-                      onChange={(e) => setColumnsWantToShow(parseInt(e.target.value) || 5)}
-                      className="w-16 px-1 py-0.5 text-xs border rounded text-center"
-                    />
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
             </div>
-            </div>
+          </div>
         </CardHeader>
 
-
+        {/* Chu trình */}
         <CardContent className="space-y-6">
           {/* Line Selection */}
           <div className="space-y-2">
@@ -580,15 +558,20 @@ const ButtonSettings = () => {
 
           <div className="space-y-2">
             <Label htmlFor="nodeType" className="text-sm font-medium">
-              Chế độ chu trình
+              {t('settings.cycleMode')}
             </Label>
             <Select value={selectedNodeType} onValueChange={handleNodeTypeChange}>
               <SelectTrigger id="nodeType" className="text-lg">
-                <SelectValue placeholder="Chọn chế độ">
+                <SelectValue placeholder={t('settings.selectCycleMode')}>
                   {selectedNodeType ? nodeTypeMapping[selectedNodeType] || selectedNodeType : "Chọn chế độ"}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent 
+                className="glass" 
+                style={{ 
+                backgroundColor: "rgba(139,92,246,0.25)", 
+                // border: "1px solid rgba(255,255,255,0.25)" 
+                }}>
                 {Object.keys(nodeTypes).map((nodeType) => (
                   <SelectItem key={nodeType} value={nodeType}>
                     {nodeTypeMapping[nodeType] }
@@ -600,12 +583,12 @@ const ButtonSettings = () => {
 
           <div className="flex items-center justify-between">
             <div className="flex gap-3 flex-col">
-              <Label className="text-sm font-medium">Tổng Số ô :</Label>
-              <div className="text-4xl font-bold font-mono text-primary">{totalCellsSelectedType}</div>
+              <Label className="text-sm font-medium">{t('settings.totalCells')}:</Label>
+              <div className="text-4xl font-bold font-mono text-white">{totalCellsSelectedType}</div>
             </div>
             <div className="flex items-center gap-3 flex-col">
-              <Label className="text-sm font-medium">Tạo mới:</Label>
-              <Button variant="outline" size="icon" onClick={increaseCells}>
+              <Label className="text-sm font-medium">{t('settings.createNew')}:</Label>
+              <Button variant="ghost" size="icon" onClick={increaseCells}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -615,9 +598,9 @@ const ButtonSettings = () => {
             <div className="pt-4 border-t">
               <Card className="bg-blue-50 border-blue-200">
                 <CardHeader>
-                  <CardTitle className="text-lg text-blue-800">Thêm Node Mới</CardTitle>
+                  <CardTitle className="text-lg text-blue-800">{t('settings.addNewNode')}</CardTitle>
                   <CardDescription className="text-blue-600">
-                    Nhập thông tin cho node mới
+                    {t('settings.enterInformationForNewNode')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -650,7 +633,7 @@ const ButtonSettings = () => {
                   {!selectedNodeType && (
                     <div className="space-y-2">
                       <Label htmlFor="nodeType" className="text-sm font-medium">
-                        Chu trình *
+                        {t('settings.cycleMode')} *
                       </Label>
                       <select
                         id="nodeType"
@@ -669,7 +652,7 @@ const ButtonSettings = () => {
                   <div className="grid grid-cols-2 grid-rows-3 gap-4">
                     <div className="space-y-2 col-span-2">
                       <Label htmlFor="node_name" className="text-sm font-medium">
-                        Tên Node *
+                        {t('settings.nodeName')} *
                       </Label>
                       <input
                         id="node_name"
@@ -695,27 +678,27 @@ const ButtonSettings = () => {
                     </div>
                     <div className="space-y-2  row-start-2">
                       <Label htmlFor="start" className="text-sm font-medium">
-                        Start *
+                        {t('settings.start')} *
                       </Label>
                       <input
                         id="start"
                         type="number"
                         value={newNodeData.start}
                         onChange={(e) => setNewNodeData(prev => ({ ...prev, start: parseInt(e.target.value) || null }))}
-                        placeholder="Nhập giá trị start..."
+                        placeholder={t('settings.enterStartValue')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="space-y-2 row-start-2">
                       <Label htmlFor="end" className="text-sm font-medium">
-                        End *
+                        {t('settings.end')} *
                       </Label>
                       <input
                         id="end"
                         type="number"
                         value={newNodeData.end}
                         onChange={(e) => setNewNodeData(prev => ({ ...prev, end: parseInt(e.target.value) || null }))}
-                        placeholder="Nhập giá trị end..."
+                        placeholder={t('settings.enterEndValue')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -723,27 +706,27 @@ const ButtonSettings = () => {
                       <>
                         <div className="space-y-2 row-start-3">
                           <Label htmlFor="next_start" className="text-sm font-medium">
-                            Next Start (Tùy chọn)
+                            {t('settings.nextStart')} (Tùy chọn)
                           </Label>
                           <input
                             id="next_start"
                             type="number"
                             value={newNodeData.next_start}
                             onChange={(e) => setNewNodeData(prev => ({ ...prev, next_start: parseInt(e.target.value) || null }))}
-                            placeholder="Nhập giá trị next_start..."
+                            placeholder={t('settings.enterNextStartValue')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                         <div className="space-y-2 row-start-3">
                           <Label htmlFor="next_end" className="text-sm font-medium">
-                            Next End (Tùy chọn)
+                            {t('settings.nextEnd')} (Tùy chọn)
                           </Label>
                           <input
                             id="next_end"
                             type="number"
                             value={newNodeData.next_end}
                             onChange={(e) => setNewNodeData(prev => ({ ...prev, next_end: parseInt(e.target.value) || null }))}
-                            placeholder="Nhập giá trị next_end..."
+                            placeholder={t('settings.enterNextEndValue')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
@@ -767,14 +750,14 @@ const ButtonSettings = () => {
                         });
                       }}
                     >
-                      Hủy
+                      {t('settings.cancel')}
                     </Button>
                     <Button 
                       onClick={handleConfirmAddNode}
                       disabled={(!newNodeData.line && !selectedLine) || !newNodeData.node_name || !newNodeData.process_code || !newNodeData.start || !newNodeData.end || (!selectedNodeType && !newNodeData.nodeType)}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      Xác Nhận
+                      {t('settings.confirm')}
                     </Button>
                   </div>
                 </CardContent>
@@ -787,13 +770,12 @@ const ButtonSettings = () => {
           </div>
         </CardContent>
       </Card>
-{/*   Cell Name Configuration */}
-      <Card className="border-2">
+      {/*Cell Name Configuration */}
+      <Card className="border-2 glass">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Tùy Chỉnh Ô</CardTitle>
-              <CardDescription>Đặt tên cho từng ô trong lưới hiển thị</CardDescription>
+              <CardTitle>{t('settings.cellNameEditor')}</CardTitle>
             </div>
             <div className="flex flex-col items-end gap-2">
               <input
@@ -806,13 +788,13 @@ const ButtonSettings = () => {
               <div className="flex flex-row items-end gap-2">
               {/* Nút Export Excel */}
               <Button
-                variant="outline"
+              className="glass"
                 onClick={handleExportData}
                 size="sm"
-                title={data && data.length > 0 ? 'Export dữ liệu hiện có' : 'Tải file mẫu'}
+                title={data && data.length > 0 ? t('settings.exportCurrentData') : t('settings.downloadTemplate')}
               >
-                <Download className="h-4 w-4 mr-2" />
-                {data && data.length > 0 ? 'Export Excel' : 'Tải Mẫu Excel'}
+                <Download className="h-4 w-4 mr-2 glass" />
+                {data && data.length > 0 ? t('settings.exportExcel') : t('settings.downloadExcelTemplate')}
               </Button>
 
               {/* Nút Import Excel */}
@@ -821,28 +803,28 @@ const ButtonSettings = () => {
                   return (
                     <div className="relative inline-block group">
                       <Button
-                        variant="outline"
+                        className="glass"
                         disabled
                         onClick={() => {}}
                         size="sm"
                       >
                         <Upload className="h-4 w-4 mr-2" />
-                        Import Excel
+                        {t('settings.importExcel')}
                       </Button>
                       <div className="pointer-events-none absolute -top-8 left-0 -translate-x-1/2 whitespace-nowrap rounded bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 transition-opacity group-hover:opacity-100 border shadow-sm">
-                        Chọn user trước khi import bằng Excel
+                        {t('settings.selectUserBeforeImportExcel')}
                       </div>
                     </div>
                   );
                 }
                 return (
                   <Button
-                    variant="outline"
+                    className="glass"
                     onClick={() => document.getElementById('excel-import').click()}
                     size="sm"
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Import Excel
+                    {t('settings.importExcel')}
                   </Button>
                 );
               })()}
@@ -853,7 +835,7 @@ const ButtonSettings = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="text-white">
           <CellNameEditor 
             cells={dataFilteredByNodes} 
             handleUpdateBatch={handleUpdateBatch} 

@@ -1,259 +1,149 @@
+// pages/Notification.jsx
 import React, { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
+import TableFilter from "@/components/Notification/TableFilter";
+import TableNoti from "@/components/Notification/TableNoti";
+import TablePagination from "@/components/Notification/TablePagination";
+import { useNotifications } from "@/hooks/Notification/useNotifications";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, Search } from "lucide-react";
-import { useArea } from "@/contexts/AreaContext";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 
-const alerts = [
-  {
-    id: 1,
-    messageType: "Service exception",
-    alarmLevel: "Alert",
-    alarmStatus: "Resumed",
-    deviceNo: "No corresponding",
-    deviceSerialNo: "No corresponding",
-    coordinates: "--",
-    node: "--",
-    abnormalReason: "Server 192.168.1.169 CPU ...",
-    alarmTime: "2025-09-26 09:22:20",
-    endTime: "2025-09-26 09:23:04",
-    note: "",
-  },
-  {
-    id: 1,
-    messageType: "Service exception",
-    alarmLevel: "Alert",
-    alarmStatus: "Resumed",
-    deviceNo: "No corresponding",
-    deviceSerialNo: "No corresponding",
-    coordinates: "--",
-    node: "--",
-    abnormalReason: "Server 192.168.1.169 CPU ...",
-    alarmTime: "2025-09-26 09:22:20",
-    endTime: "2025-09-26 09:23:04",
-    note: "",
-  },
-  {
-    id: 1,
-    messageType: "Service exception",
-    alarmLevel: "Alert",
-    alarmStatus: "Resumed",
-    deviceNo: "No corresponding",
-    deviceSerialNo: "No corresponding",
-    coordinates: "--",
-    node: "--",
-    abnormalReason: "Server 192.168.1.169 CPU ...",
-    alarmTime: "2025-09-26 09:22:20",
-    endTime: "2025-09-26 09:23:04",
-    note: "",
-  },
-  {
-    id: 1,
-    messageType: "Service exception",
-    alarmLevel: "Alert",
-    alarmStatus: "Resumed",
-    deviceNo: "No corresponding",
-    deviceSerialNo: "No corresponding",
-    coordinates: "--",
-    node: "--",
-    abnormalReason: "Server 192.168.1.169 CPU ...",
-    alarmTime: "2025-09-26 09:22:20",
-    endTime: "2025-09-26 09:23:04",
-    note: "",
-  },
-  {
-    id: 1,
-    messageType: "Service exception",
-    alarmLevel: "Warning",
-    alarmStatus: "Resumed",
-    deviceNo: "No corresponding",
-    deviceSerialNo: "No corresponding",
-    coordinates: "--",
-    node: "--",
-    abnormalReason: "Server 192.168.1.169 CPU ...",
-    alarmTime: "2025-09-26 09:22:20",
-    endTime: "2025-09-26 09:23:04",
-    note: "",
-  }
-];
+const LIMIT = 20;
 
-export default function AlertTable() {
-  const { currAreaName, currAreaId } = useArea();
+export default function Notification() {
+  const { t } = useTranslation();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const {
+    notifications,
+    loading,
+    error,
+    total,
+    refetch,
+  } = useNotifications({
+    limit: LIMIT,
+    searchQuery,
+    priorityFilter,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+  });
+
+  const totalPages = Math.ceil(total / LIMIT);
+
+  // Debug: Kiểm tra giá trị để biết tại sao pagination không hiển thị
+  console.log("[DEBUG] total:", total, "| totalPages:", totalPages, "| notifications.length:", notifications.length);
+
+  const handleReset = () => {
+    setSearchQuery("");
+    setPriorityFilter("all");
+    setStartDate(null);
+    setEndDate(null);
+    setStartTime("");
+    setEndTime("");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" }); // cuộn lên đầu khi đổi trang
+  };
+
+  // Map dữ liệu backend
+  const mappedNotifications = notifications.map((item) => ({
+    // id: `${item.alarm_code}_${item.alarm_date}`,
+    source: item.alarm_source || "Unknown",
+    area: item.area_id || "Unknown",
+    group: item.group_id || "Unknown",
+    alarmLevel: item.alarm_grade >= 9 ? "Alert" : item.alarm_grade >= 5 ? "Warning" : "Low",
+    messageType: item.alarm_code || "Unknown",
+    route: item.route_name || "Unknown",
+    deviceNo: item.device_name || "--",
+    // deviceSerialNo: item.device_name || "--",
+    abnormalReason: `${item.alarm_code}`,
+    alarmTime: new Date(item.alarm_date).toLocaleString("vi-VN"),
+  }));
+
   return (
-    <div className="p-6 ml-6 mr-6 border border-gray-200 rounded-xl shadow-md">
-      <div>
-        <h1 className="text-4xl font-semibold text-gray-900 ">Trang thông báo</h1>
+    <div className="space-y-8">
+      <h1 className="text-4xl font-semibold text-white mt-4 ml-4">
+        {t("notification.notification")}
+      </h1>
+
+      <div className="glass rounded-lg border border-gray-200 overflow-hidden text-white p-6 m-4 mt-16">
+        <TableFilter
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          priorityFilter={priorityFilter}
+          setPriorityFilter={setPriorityFilter}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          startTime={startTime}
+          setStartTime={setStartTime}
+          endTime={endTime}
+          setEndTime={setEndTime}
+          onReset={handleReset}
+        />
+
+        <div className="mt-8">
+          {/* Loading */}
+          {loading && (
+            <div className="space-y-3">
+              {[...Array(8)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+              ))}
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-red-400 text-lg mb-4">Không thể tải dữ liệu</p>
+              <Button onClick={refetch} variant="outline">Thử lại</Button>
+            </div>
+          )}
+
+          {/* Empty */}
+          {!loading && !error && mappedNotifications.length === 0 && (
+            <div className="text-center py-16 text-gray-400">
+              <p className="text-xl">Không tìm thấy cảnh báo nào</p>
+            </div>
+          )}
+
+          {/* Table + Pagination */}
+          {!loading && !error && mappedNotifications.length > 0 && (
+            <>
+              <TableNoti alerts={mappedNotifications} />
+
+              <div className="mt-8 flex flex-col items-center gap-6">
+                {/* Thông tin bản ghi */}
+                <p className="text-sm text-gray-300">
+                  Hiển thị {(currentPage - 1) * LIMIT + 1} -{" "}
+                  {Math.min(currentPage * LIMIT, total)} trong tổng số{" "}
+                  <span className="font-semibold text-white">{total}</span> cảnh báo
+                </p>
+
+                {/* Component Pagination tái sử dụng */}
+                <TablePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </div>
-      {/* Tất cả các bộ lọc */}
-      <div className="flex flex-wrap gap-4 mt-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Tìm kiếm theo loại cảnh báo..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Mức độ cảnh báo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Mức độ cảnh báo</SelectItem>
-            <SelectItem value="Low">Low</SelectItem>
-            <SelectItem value="Medium">Medium</SelectItem>
-            <SelectItem value="High">High</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Từ giờ:</label>
-          <Input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="w-[120px]"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Đến giờ:</label>
-          <Input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className="w-[120px]"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Từ ngày:</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-[200px] justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={startDate}
-                onSelect={setStartDate}
-                initialFocus
-                locale={vi}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">Đến ngày:</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-[200px] justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDate ? format(endDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={endDate}
-                onSelect={setEndDate}
-                initialFocus
-                locale={vi}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <Button 
-          variant="outline" 
-          onClick={() => {
-            setStartDate(null);
-            setEndDate(null);
-            setStartTime("");
-            setEndTime("");
-            setSearchQuery("");
-            setPriorityFilter("all");
-          }}
-        >
-          Xóa bộ lọc
-        </Button>
-      </div>
-      <Table>
-        <TableCaption>Danh sách cảnh báo hệ thống</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Alarm Level</TableHead>
-            <TableHead>Device No.</TableHead>
-            <TableHead>Device Serial No.</TableHead>
-            <TableHead>Abnormal Reason</TableHead>
-            <TableHead>Alarm Time</TableHead>
-            <TableHead>Operation</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {alerts.map((alert) => (
-            <TableRow key={alert.id}>
-              <TableCell>
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  {alert.messageType}
-                </span>
-              </TableCell>
-              <TableCell>
-                <Badge variant="destructive">{alert.alarmLevel}</Badge>
-              </TableCell>
-              <TableCell>{alert.deviceNo}</TableCell>
-              <TableCell>{alert.deviceSerialNo}</TableCell>
-              <TableCell>{alert.abnormalReason}</TableCell>
-              <TableCell>{alert.alarmTime}</TableCell>
-              <TableCell>
-                <Button variant="outline" size="sm">
-                  Details
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
     </div>
   );
 }

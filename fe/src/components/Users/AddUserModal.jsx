@@ -6,18 +6,53 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { getRoles } from "@/services/roles";
+import { useTranslation } from "react-i18next";
+import { useRoute } from "@/hooks/Setting/useRoute";
+import { useAuth } from "@/hooks/useAuth";
+import { useArea } from "@/contexts/AreaContext";
 
 export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
+  const { t } = useTranslation();
+  const { auth } = useAuth();
+  const currentUsername = auth?.user?.username || "";
+  const currentUser = auth?.user || {};
+  const { routes, loading: routesLoading, getRoutesByCreator } = useRoute();
+  const { areaData, loading: areaLoading } = useArea();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
     roles: [], // Sẽ được set từ API
-    permissions: []
+    area: 0, // area sẽ được lấy theo currentUsername hoặc admin chọn
+    group_id: 0, // group_id sẽ được lấy theo currentUsername hoặc admin chọn
+    route: [] // route sẽ được lấy theo người dùng operator tạo trước đó
   });
+
+  // Logic tự động set fields dựa trên role:
+  // - Operator: tự động set area, group_id từ currentUser, có routes
+  // - Admin: hiển thị UI để chọn area, group_id, route để trống 
   
+  const isAdmin = auth.user?.roles?.includes('admin');
+  const isOperator = auth.user?.roles?.includes('operator');
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Tự động set fields cho operator và admin
+  useEffect(() => {
+    if (isOperator && !isAdmin) {
+      // Operator: tự động set role "user", area và group_id từ currentUser
+      const userRole = roles.find(role => role.name === 'user');
+      if (userRole) {
+        setFormData(prev => ({
+          ...prev,
+          roles: [userRole.id],
+          area: currentUser.area || 0,
+          group_id: currentUser.group_id || 0,
+          route: [] // Operator sẽ chọn route sau
+        }));
+      }
+    }
+  }, [isOperator, isAdmin, roles, currentUser]);
 
   // Load roles khi modal mở
   useEffect(() => {
@@ -31,7 +66,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
           console.error("Error loading roles:", error);
           setErrors(prev => ({
             ...prev,
-            roles: "Không thể tải danh sách vai trò"
+            roles: t('users.roleLoadingError')
           }));
         } finally {
           setRolesLoading(false);
@@ -42,23 +77,44 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     loadRoles();
   }, [isOpen]);
 
+
+  // Load routes theo người tạo hiện tại - chỉ cho operator
+  useEffect(() => {
+    const fetchRoutes = async () => {
+      if (!isOpen || !currentUsername || !isOperator || isAdmin) return;
+      try {
+        await getRoutesByCreator(currentUsername);
+      } catch (error) {
+        console.error("[AddUserModal] Error loading routes:", error);
+      }
+    };
+
+    fetchRoutes();
+  }, [isOpen, currentUsername, isOperator, isAdmin]);
+
   const validateForm = () => {
     const newErrors = {};
     
     if (!formData.username.trim()) {
-      newErrors.username = "Tên người dùng là bắt buộc";
+      newErrors.username = t('users.usernameRequired');
     } else if (formData.username.length < 3) {
-      newErrors.username = "Tên người dùng phải có ít nhất 3 ký tự";
+      newErrors.username = t('users.usernameMinLength');
     }
     
     if (!formData.password.trim()) {
-      newErrors.password = "Mật khẩu là bắt buộc";
+      newErrors.password = t('users.passwordRequired');
     } else if (formData.password.length < 3) {
-      newErrors.password = "Mật khẩu phải có ít nhất 3 ký tự";
+      newErrors.password = t('users.passwordMinLength');
     }
     
-    if (!formData.roles || formData.roles.length === 0) {
-      newErrors.roles = "Vai trò là bắt buộc";
+    // Chỉ validate roles nếu user có quyền chọn roles (admin)
+    if (isAdmin && (!formData.roles || formData.roles.length === 0)) {
+      newErrors.roles = t('users.roleRequired');
+    }
+
+    // Chỉ validate area cho admin (operator tự động có từ currentUser)
+    if (isAdmin && (!formData.area || formData.area === 0)) {
+      newErrors.area = t('users.areaRequired') || 'Vui lòng chọn khu vực';
     }
     
     setErrors(newErrors);
@@ -92,7 +148,10 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
       username: "",
       password: "",
       roles: [],
-      permissions: []
+      permissions: [],
+      area: 0,
+      group_id: 0,
+      route: []
     });
     setErrors({});
     onClose();
@@ -105,9 +164,9 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
       <Card className="w-full max-w-md mx-4 bg-gray-300" style={{ borderRadius: "30px" }}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle>Thêm người dùng mới</CardTitle>
+            <CardTitle>{t('users.addUser')}</CardTitle>
             <CardDescription>
-              Tạo tài khoản người dùng mới trong hệ thống
+              {t('users.addUserDescription')}
             </CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={handleClose}>
@@ -117,13 +176,15 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
         
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            
+            {/* Username */}
             <div className="space-y-2">
-              <Label htmlFor="username">Tên người dùng *</Label>
+              <Label htmlFor="username">{t('users.username')}</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Nhập tên người dùng"
-                style={{ backgroundColor: "#fff" }}
+                placeholder={t('users.usernamePlaceholder')}
+                style={{ backgroundColor: "#fff", width: "100%", borderRadius: "16px" }}
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
                 className={errors.username ? "border-red-500" : ""}
@@ -133,13 +194,14 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
               )}
             </div>
 
+            {/* Password: */}
             <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu *</Label>
+              <Label htmlFor="password">{t('users.password')}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Nhập mật khẩu"
-                style={{ backgroundColor: "#fff" }}
+                placeholder={t('users.passwordPlaceholder')}
+                style={{ backgroundColor: "#fff", width: "100%", borderRadius: "16px" }}
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 className={errors.password ? "border-red-500" : ""}
@@ -148,37 +210,149 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
                 <p className="text-sm text-red-500">{errors.password}</p>
               )}
             </div>
+            
+            {/* Route Select - Chỉ hiển thị cho Operator */}
+            {isOperator && !isAdmin && (
+              <div className="space-y-2">
+                <Label htmlFor="routes">{t('users.route') || 'Tuyến đường'}</Label>
+                <Select
+                  value={formData.route?.[0] || ""}
+                  onValueChange={(value) => handleInputChange("route", [value])}
+                  disabled={routesLoading || routes.length === 0}
+                >
+                  <SelectTrigger style={{ backgroundColor: "#fff", width: "100%", borderRadius: "16px" }}>
+                    <SelectValue
+                      placeholder={
+                        routesLoading
+                          ? t('users.loadingRoutes') || 'Đang tải routes...'
+                          : routes.length === 0
+                            ? t('users.noRoutes') || 'Không có routes'
+                            : t('users.selectRoute') || 'Chọn route'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {routes.map((route) => (
+                      <SelectItem key={route.id} value={String(route.route_name)}>
+                        {route.route_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.route && (
+                  <p className="text-sm text-red-500">{errors.route}</p>
+                )}
+              </div>
+            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="roles">Vai trò *</Label>
-              <Select
-                value={formData.roles[0] || ""}
-                onValueChange={(value) => handleInputChange("roles", [value])}
-                disabled={rolesLoading}
-              >
-                <SelectTrigger style={{ backgroundColor: "#fff" }}>
-                  <SelectValue placeholder={rolesLoading ? "Đang tải..." : "Chọn vai trò"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.roles && (
-                <p className="text-sm text-red-500">{errors.roles}</p>
-              )}
-            </div>
+            {/* Hiển thị thông tin route cho admin */}
+            {isAdmin && (
+              <div className="space-y-2">
+                <Label>{t('users.route') || 'Tuyến đường'}</Label>
+                <div className="px-3 py-2 bg-gray-100 rounded-lg border">
+                  <span className="text-sm text-gray-600">
+                    {t('users.adminRouteNote') || 'Admin tạo user không cần gán route - để trống'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Roles */}
+            {isAdmin && (
+              <div className="space-y-2">
+                <Label htmlFor="roles">{t('users.role')}</Label>
+                <Select
+                  value={formData.roles[0] || ""}
+                  onValueChange={(value) => handleInputChange("roles", [value])}
+                  disabled={rolesLoading}
+                >
+                  <SelectTrigger style={{ backgroundColor: "#fff", width: "100%", borderRadius: "16px" }}>
+                    <SelectValue placeholder={rolesLoading ? t('users.loadingRoles') : t('users.selectRole')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.roles && (
+                  <p className="text-sm text-red-500">{errors.roles}</p>
+                )}
+              </div>
+            )}
+
+            {/* Hiển thị role đã được tự động chọn cho operator */}
+            {isOperator && !isAdmin && (
+              <div className="space-y-2">
+                <Label>{t('users.role')}</Label>
+                <div className="px-3 py-2 bg-gray-100 rounded-lg border">
+                  <span className="text-sm text-gray-600">
+                    {t('users.autoAssignedRole')}: <strong>User</strong>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Area Selection - Chỉ hiển thị cho Admin */}
+            {isAdmin && (
+              <div className="space-y-2">
+                <Label htmlFor="area">{t('users.area') || 'Khu vực'}</Label>
+                <Select
+                  value={formData.area?.toString() || ""}
+                  onValueChange={(value) => {
+                    const areaId = parseInt(value);
+                    handleInputChange("area", areaId);
+                    // Tự động set group_id = area_id
+                    handleInputChange("group_id", areaId);
+                  }}
+                  disabled={areaLoading || areaData.length === 0}
+                >
+                  <SelectTrigger style={{ backgroundColor: "#fff", width: "100%", borderRadius: "16px" }}>
+                    <SelectValue
+                      placeholder={
+                        areaLoading
+                          ? t('users.loadingAreas') || 'Đang tải khu vực...'
+                          : areaData.length === 0
+                            ? t('users.noAreas') || 'Không có khu vực'
+                            : t('users.selectArea') || 'Chọn khu vực'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {areaData.map((area) => (
+                      <SelectItem key={area.area_id} value={area.area_id.toString()}>
+                        {area.area_name} (ID: {area.area_id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.area && (
+                  <p className="text-sm text-red-500">{errors.area}</p>
+                )}
+              </div>
+            )}
+
+            {/* Hiển thị thông tin area và group_id cho operator */}
+            {isOperator && !isAdmin && (
+              <div className="space-y-2">
+                <Label>{t('users.areaAndGroup') || 'Khu vực & Nhóm'}</Label>
+                <div className="px-3 py-2 bg-gray-100 rounded-lg border">
+                  <span className="text-sm text-gray-600">
+                    {t('users.autoAssignedArea') || 'Tự động gán'}: <strong>Area {currentUser.area || 0}, Group {currentUser.group_id || 0}</strong>
+                  </span>
+                </div>
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={handleClose}>
-              Hủy
+              {t('users.cancel')}
             </Button>
             <Button type="submit" disabled={loading || rolesLoading}>
-              {loading ? "Đang tạo..." : "Tạo người dùng"}
+              {loading ? t('users.loading') : t('users.createUser')}
             </Button>
           </CardFooter>
         </form>

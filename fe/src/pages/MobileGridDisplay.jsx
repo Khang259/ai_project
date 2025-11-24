@@ -1,4 +1,3 @@
-// src/pages/MobileGridDisplay.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/GridManagement/useAuth';
 import useNodesBySelectedUser from '@/hooks/Setting/useNodesBySelectedUser';

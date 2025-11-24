@@ -3,9 +3,11 @@ import React, {useEffect, useState} from 'react';
 import { Input, AutoComplete } from 'antd';
 import { getCamerasByArea } from '@/services/camera-settings';
 import { useArea } from '@/contexts/AreaContext';
+import { useTranslation } from 'react-i18next';
 
 const MapFilters = ({ cameraFilter, setCameraFilter}) => {
   const [cameras, setCameras] = useState([]);
+  const { t } = useTranslation();
   const { currAreaId } = useArea();
   const [open, setOpen] = useState(false);
 
@@ -36,10 +38,10 @@ const MapFilters = ({ cameraFilter, setCameraFilter}) => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, border: '1px #333', borderRadius: 10, boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)', padding: 10 }}>
-      {/* Filter Camera ID */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{ fontWeight: 500, color: '#333' }}>Camera ID:</span>
+    <div style={{display: 'flex', alignItems: 'center', gap: 12, border: '1px #333', borderRadius: 10, boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)', padding: 10 }}>
+     {/* Filter Camera ID */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'white' }}>
+        <span style={{ fontWeight: 500 }}>{t('map.cameraId')}:</span>
         <AutoComplete
           value={cameraFilter || ''}
           options={options}
@@ -53,12 +55,12 @@ const MapFilters = ({ cameraFilter, setCameraFilter}) => {
           style={{ width: 220 }}
         >
         <Input
-          placeholder="Nhập Camera ID"
+          placeholder={t('map.enterCameraId')}
           value={cameraFilter || ''}
           onChange={(e) => {
             setCameraFilter(e.target.value);
           }}
-          style={{ width: 120 }}
+          style={{ width: 120}}
           allowClear
           size="middle"
         />

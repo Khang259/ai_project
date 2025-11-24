@@ -236,3 +236,4 @@ async def get_all_robots_payload_statistics_summary_endpoint(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
