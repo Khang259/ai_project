@@ -1,102 +1,69 @@
-// pages/Notification.jsx
-import React, { useState } from "react";
+// pages/TaskManagement.jsx
+import React from "react";
 import { useTranslation } from "react-i18next";
-import TableFilter from "@/components/Notification/TableFilter";
-import TableNoti from "@/components/TaskManagement/TaskTable";
+import TaskTable from "@/components/TaskManagement/TaskTable";
+import TaskFilter from "@/components/TaskManagement/TaskFilter";
 import TablePagination from "@/components/Notification/TablePagination";
-import { useNotifications } from "@/hooks/Notification/useNotifications";
+import { useTaskRecord } from "@/hooks/TaskRecord/useTaskRecord";
+import { useTaskFilter } from "@/hooks/TaskRecord/useTaskFilter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
 const LIMIT = 20;
 
-export default function Notification() {
+export default function TaskManagement() {
   const { t } = useTranslation();
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-
   const {
-    notifications,
+    tasks,
     loading,
     error,
-    total,
+    total: totalTasks,
     refetch,
-  } = useNotifications({
-    limit: LIMIT,
-    searchQuery,
-    priorityFilter,
-    startDate,
-    endDate,
-    startTime,
-    endTime,
+  } = useTaskRecord({
+    page: 1,
+    limit: 1000,
+    filters: {},
   });
 
-  const totalPages = Math.ceil(total / LIMIT);
-
-  // Debug: Kiểm tra giá trị để biết tại sao pagination không hiển thị
-  console.log("[DEBUG] total:", total, "| totalPages:", totalPages, "| notifications.length:", notifications.length);
-
-  const handleReset = () => {
-    setSearchQuery("");
-    setPriorityFilter("all");
-    setStartDate(null);
-    setEndDate(null);
-    setStartTime("");
-    setEndTime("");
-    setCurrentPage(1);
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // cuộn lên đầu khi đổi trang
-  };
-
-  // Map dữ liệu backend
-  const mappedNotifications = notifications.map((item) => ({
-    // id: `${item.alarm_code}_${item.alarm_date}`,
-    source: item.alarm_source || "Unknown",
-    area: item.area_id || "Unknown",
-    group: item.group_id || "Unknown",
-    alarmLevel: item.alarm_grade >= 9 ? "Alert" : item.alarm_grade >= 5 ? "Warning" : "Low",
-    messageType: item.alarm_code || "Unknown",
-    route: item.route_name || "Unknown",
-    deviceNo: item.device_name || "--",
-    // deviceSerialNo: item.device_name || "--",
-    abnormalReason: `${item.alarm_code}`,
-    alarmTime: new Date(item.alarm_date).toLocaleString("vi-VN"),
-  }));
+  const {
+    orderIdFilter,
+    setOrderIdFilter,
+    deviceNumFilter,
+    setDeviceNumFilter,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    currentPage,
+    totalPages,
+    paginatedTasks,
+    total,
+    handlePageChange,
+    handleReset,
+    hasActiveFilters,
+  } = useTaskFilter(tasks, LIMIT);
 
   return (
     <div className="space-y-8">
       <h1 className="text-4xl font-semibold text-white mt-4 ml-4">
-        {t("notification.notification")}
+        {t("taskManagement.taskManagement")}
       </h1>
 
       <div className="glass rounded-lg border border-gray-200 overflow-hidden text-white p-6 m-4 mt-16">
-        <TableFilter
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          priorityFilter={priorityFilter}
-          setPriorityFilter={setPriorityFilter}
+        <TaskFilter
+          orderIdFilter={orderIdFilter}
+          setOrderIdFilter={setOrderIdFilter}
+          deviceNumFilter={deviceNumFilter}
+          setDeviceNumFilter={setDeviceNumFilter}
           startDate={startDate}
           setStartDate={setStartDate}
           endDate={endDate}
           setEndDate={setEndDate}
-          startTime={startTime}
-          setStartTime={setStartTime}
-          endTime={endTime}
-          setEndTime={setEndTime}
           onReset={handleReset}
         />
 
         <div className="mt-8">
-          {/* Loading */}
           {loading && (
             <div className="space-y-3">
               {[...Array(8)].map((_, i) => (
@@ -105,7 +72,6 @@ export default function Notification() {
             </div>
           )}
 
-          {/* Error */}
           {error && (
             <div className="text-center py-12">
               <p className="text-red-400 text-lg mb-4">Không thể tải dữ liệu</p>
@@ -113,33 +79,29 @@ export default function Notification() {
             </div>
           )}
 
-          {/* Empty */}
-          {!loading && !error && mappedNotifications.length === 0 && (
+          {!loading && !error && paginatedTasks.length === 0 && (
             <div className="text-center py-16 text-gray-400">
-              <p className="text-xl">Không tìm thấy cảnh báo nào</p>
+              <p className="text-xl">
+                {hasActiveFilters
+                  ? "Không tìm thấy tác vụ nào phù hợp với bộ lọc"
+                  : "Không tìm thấy tác vụ nào"}
+              </p>
             </div>
           )}
 
-          {/* Table + Pagination */}
-          {!loading && !error && mappedNotifications.length > 0 && (
+          {!loading && !error && paginatedTasks.length > 0 && (
             <>
-              <TableNoti alerts={mappedNotifications} />
+              <TaskTable tasks={paginatedTasks} />
 
-              <div className="mt-8 flex flex-col items-center gap-6">
-                {/* Thông tin bản ghi */}
-                <p className="text-sm text-gray-300">
-                  Hiển thị {(currentPage - 1) * LIMIT + 1} -{" "}
-                  {Math.min(currentPage * LIMIT, total)} trong tổng số{" "}
-                  <span className="font-semibold text-white">{total}</span> cảnh báo
-                </p>
-
-                {/* Component Pagination tái sử dụng */}
-                <TablePagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
+              <TablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                total={total}
+                totalTasks={totalTasks}
+                hasActiveFilters={hasActiveFilters}
+                itemsPerPage={LIMIT}
+              />
             </>
           )}
         </div>

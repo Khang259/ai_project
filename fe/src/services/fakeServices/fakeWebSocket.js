@@ -4,7 +4,7 @@ let fakeInterval = null;
 export function startFakeWebSocket(onMessage) {
     if (fakeInterval) return; // tránh chạy nhiều lần
 
-    console.log("Fake WebSocket STARTED - sẽ đẩy alarm mỗi 8-15s");
+    //console.log("Fake WebSocket STARTED - sẽ đẩy alarm mỗi 8-15s");
 
     fakeInterval = setInterval(() => {
         const fakeAlarms = [
@@ -57,7 +57,7 @@ export function startFakeWebSocket(onMessage) {
         };
 
         onMessage(fakeEvent); // đẩy vào callback
-        console.log("Fake alarm pushed:", randomAlarm.alarm_code, randomAlarm.device_name);
+        //console.log("Fake alarm pushed:", randomAlarm.alarm_code, randomAlarm.device_name);
     }, 8000 + Math.random() * 7000); // 8-15 giây/lần
 }
 
@@ -65,6 +65,6 @@ export function stopFakeWebSocket() {
     if (fakeInterval) {
         clearInterval(fakeInterval);
         fakeInterval = null;
-        console.log("Fake WebSocket STOPPED");
+        //console.log("Fake WebSocket STOPPED");
     }
 }
