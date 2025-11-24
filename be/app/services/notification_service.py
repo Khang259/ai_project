@@ -6,12 +6,14 @@ from datetime import datetime
 from .websocket_service import manager
 from app.core.database import get_collection
 from shared.logging import get_logger
+from app.services.modbusTCP_service import modbus_device_manager
 
 logger = get_logger("camera_ai_app")
 class NotificationService:
     def __init__(self) -> None:
         self._queue: asyncio.Queue[Dict[str, Any]] = asyncio.Queue()
         self._consumer_task: Optional[asyncio.Task] = None
+        self.modbus = modbus_device_manager
 
     async def start(self) -> None:
         if self._consumer_task is None:
@@ -39,6 +41,7 @@ class NotificationService:
                 message = json.dumps(event)
                 await manager.broadcast_to_group(group_id, message)
                 await manager.broadcast_to_route(route_id, message)
+                await self.modbus.send_alert_to_group(group_id)
                 logger.info(f"Notification successfully sent to group {group_id} and route {route_id}")
             except Exception as e:
                 self._queue.task_done()
@@ -68,7 +71,7 @@ async def filter_notification(payload):
         "alarm_status": payload.get("alarmStatus"),
         "area_id": payload.get("areaId"),
         "alarm_source": payload.get("alarmSource"),
-        "status": payload.get("status"),
+        "status": payload.get("alarmStatus"),
         "type": "notification",
         "alarm_date": datetime.now().isoformat(),
     }

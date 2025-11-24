@@ -28,6 +28,7 @@ from app.services.notification_service import notification_service
 from app.services.heartbeat_service import websocket_heartbeat_service
 from app.services.task_service import task_service
 from app.services.websocket_service import manager as websocket_manager
+from app.services.modbusTCP_service import modbus_device_manager
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -59,7 +60,8 @@ async def lifespan(app: FastAPI):
     logger.info("Task service started")
     await websocket_heartbeat_service.start()
     logger.info("Heartbeat service started")
-    
+    await modbus_device_manager.start()
+    logger.info("Modbus device manager started")
     yield
     
     # Shutdown - Thứ tự quan trọng: đóng connections trước, sau đó stop services
@@ -78,6 +80,9 @@ async def lifespan(app: FastAPI):
     logger.info("Notification service stopped")
     await task_service.stop()
     logger.info("Task service stopped")
+
+    await modbus_device_manager.stop()
+    logger.info("Modbus device manager stopped")
     
     # 4. Dừng scheduler (đợi jobs đang chạy hoàn thành với timeout)
     shutdown_scheduler()
@@ -143,7 +148,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=8001,
+        host=settings.app_host,
+        port=settings.app_port,
         reload=settings.app_debug
     )
