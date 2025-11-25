@@ -19,6 +19,7 @@ async def save_amr_data(amr_data: AMRData) -> bool:
                 "_id": f"{amr_data.orderId}_{amr_data.subTaskId}_{amr_data.deviceNum}",
                 "orderId": amr_data.orderId,
                 "deviceName": amr_data.deviceNum,
+                "deviceCode": amr_data.deviceCode,
                 "start_time_no_load": current_time,
                 "activity": "start_move_no_load",
                 "created_at": current_time,
@@ -357,6 +358,7 @@ async def handle_event(payload: List[Dict[str, Any]]) -> bool:
 
             duration_doc = {
                 "deviceName": device_name,
+                "deviceCode": device_code,
                 "state": current_state,
                 "orderId": orderId,
                 "startTime": start_time,
