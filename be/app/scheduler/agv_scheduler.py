@@ -37,7 +37,7 @@ def start_scheduler():
         
         # Bắt đầu scheduler
         scheduler.start()
-        logger.info("AGV Scheduler started successfully. Job scheduled at 23:00 daily.")
+        logger.info("AGV Scheduler started successfully.")
         
         # Log tất cả các jobs đã được scheduled
         jobs = scheduler.get_jobs()

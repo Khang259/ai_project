@@ -2,6 +2,7 @@ import collections
 from datetime import datetime, timedelta
 from app.core.database import get_collection
 from shared.logging import get_logger
+from typing import Optional
 
 logger = get_logger("camera_ai_app")
 
@@ -26,30 +27,273 @@ async def save_agv_data(payload: list):
                 }
                 agv_data.append(agv_record)
                 saved_count += 1
-        logger.info(f"Successfully saved {saved_count} AGV records")
+        
         if len(agv_data) > 0:
             await agv_collection.insert_many(agv_data)
+        logger.info(f"Successfully saved {saved_count} AGV records")
         return {"status": "success", "saved_count": saved_count}
 
     except Exception as e:
         logger.error(f"Error saving agv data: {e}")
         return {"status": "error", "message": str(e)}
 
-def get_agv_position(payload: list):
-    agv_info = [
-        {
-            "device_code": record.get("deviceCode"),
+
+async def get_group_id(device_code):
+    """Get group_id for device_code. Returns None if not found."""
+    if not device_code:
+        return None
+    routes_collection = get_collection("routes")
+    # Find route where device_code is in robot_list array
+    route = await routes_collection.find_one({"robot_list": {"$in": [device_code]}})
+    if not route or "group_id" not in route:
+        return None
+    return str(route.get("group_id")) if route.get("group_id") else None
+
+async def get_agv_position(payload: list):
+    """
+    Group AGV data theo group_id và return dict {group_id: [list of robots]}
+    """
+    grouped_data = {}
+    
+    for record in payload:
+        device_code = record.get("deviceCode")
+        if not device_code:
+            continue
+            
+        # Get group_id for this device
+        group_id = await get_group_id(device_code)
+        if not group_id or group_id == "None":
+            continue
+        
+        # Prepare robot info
+        robot_info = {
+            "device_code": device_code,
             "device_name": record.get("deviceName"),
             "battery": record.get("battery"),
             "speed": record.get("speed"),
             "devicePosition": record.get("devicePosition"),
             "orientation": record.get("orientation"),   
             "devicePositionReceived": record.get("devicePositionRec"),
+            "created_at": datetime.now().isoformat()
         }
-        for record in payload
-    ]
+        
+        # Group by group_id
+        if group_id not in grouped_data:
+            grouped_data[group_id] = []
+        grouped_data[group_id].append(robot_info)
+    
+    return grouped_data
 
-    return agv_info
+async def get_battery_agv(group_id: Optional[str] = None):
+    """
+    Lấy dữ liệu battery của ngày hôm trước.
+    
+    Args:
+        group_id: Nếu có, chỉ lấy data của group_id đó. Nếu None, lấy hết.
+    
+    Returns:
+        dict: Danh sách battery data của ngày hôm trước
+    """
+    try:
+        battery_collection = get_collection("battery_collection")
+        
+        # Tính ngày hôm trước
+        now = datetime.now()
+        yesterday_start = (now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        yesterday_end = yesterday_start + timedelta(days=1)  # 00:00:00 của ngày hôm nay
+        
+        # Build query
+        query = {
+            "snapshot_time": {
+                "$gte": yesterday_start,
+                "$lt": yesterday_end
+            }
+        }
+        
+        # Thêm filter group_id nếu có
+        if group_id:
+            query["group_id"] = group_id
+        
+        # Query database
+        cursor = battery_collection.find(query).sort("snapshot_time", 1)  # Sort theo thời gian tăng dần
+        battery_data = await cursor.to_list(length=None)
+        
+        if not battery_data:
+            logger.info(f"No battery data found for yesterday (group_id: {group_id or 'all'})")
+            return {
+                "status": "success",
+                "data": [],
+                "date": yesterday_start.date().isoformat(),
+                "group_id": group_id,
+                "count": 0
+            }
+        
+        logger.info(f"Retrieved {len(battery_data)} battery records for yesterday (group_id: {group_id or 'all'})")
+        
+        return {
+            "status": "success",
+            "data": battery_data,
+            "date": yesterday_start.date().isoformat(),
+            "group_id": group_id,
+            "count": len(battery_data)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting battery AGV data: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "data": []
+        }
+
+async def save_agv_position_snapshot(grouped_data: dict = None):
+    """
+    Lưu snapshot vị trí và thông tin AGV vào database mỗi giờ.
+    Tối ưu: Batch check và batch insert để giảm số lượng queries.
+    """
+    try:
+        battery_collection = get_collection("battery_collection")
+        snapshot_time = datetime.now().replace(minute=0, second=0, microsecond=0)
+
+        current_hour = snapshot_time.hour
+        if current_hour < 8 or current_hour >= 19:  # < 8h hoặc >= 19h thì không chạy
+            logger.debug(f"Snapshot skipped: outside working hours (current hour: {current_hour})")
+            return {
+                "status": "skipped",
+                "message": f"Snapshot only runs between 8:00 and 19:00. Current hour: {current_hour}",
+                "snapshot_time": snapshot_time.isoformat()
+            }
+        
+        if not grouped_data:
+            logger.warning("No grouped_data provided")
+            return {"status": "error", "message": "No data provided"}
+        
+        # ✅ TỐI ƯU 1: Batch check tất cả groups cùng lúc (1 query thay vì N queries)
+        group_ids = list(grouped_data.keys())
+        existing_snapshots = await battery_collection.find({
+            "group_id": {"$in": group_ids},
+            "snapshot_time": snapshot_time
+        }).to_list(length=None)
+        
+        # Tạo set các group_ids đã có snapshot
+        existing_group_ids = {snapshot["group_id"] for snapshot in existing_snapshots}
+        
+        # Tính toán và chuẩn bị data cho các groups chưa có snapshot
+        battery_data_to_insert = []
+        saved_groups = []
+        skipped_groups = list(existing_group_ids)
+        
+        for group_id, robots_list in grouped_data.items():
+            if group_id in existing_group_ids:
+                logger.debug(f"Snapshot already exists for group {group_id}")
+                continue
+            
+            # Tính toán battery cho group này
+            if not robots_list or len(robots_list) == 0:
+                logger.warning(f"No robots in group {group_id}")
+                continue
+            
+            sum_battery = 0
+            valid_count = 0
+            
+            for robot in robots_list:
+                battery = robot.get("battery")
+                if battery is not None:
+                    try:
+                        sum_battery += float(battery)
+                        valid_count += 1
+                    except (ValueError, TypeError):
+                        continue
+            
+            if valid_count == 0:
+                logger.warning(f"No valid battery data for group {group_id}")
+                continue
+            
+            avg_battery = sum_battery / valid_count
+            
+            battery_data_to_insert.append({
+                "group_id": group_id,
+                "avg_battery": round(avg_battery, 2),
+                "snapshot_time": snapshot_time,
+                "robot_count": len(robots_list),
+                "valid_battery_count": valid_count,
+                "created_at": datetime.now().isoformat()
+            })
+            saved_groups.append(group_id)
+        
+        # ✅ TỐI ƯU 2: Batch insert tất cả cùng lúc (1 query thay vì N queries)
+        if battery_data_to_insert:
+            await battery_collection.insert_many(battery_data_to_insert)
+            logger.info(f"Saved {len(battery_data_to_insert)} battery snapshots at {snapshot_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        return {
+            "status": "success",
+            "saved_groups": saved_groups,
+            "skipped_groups": skipped_groups,
+            "total_groups": len(grouped_data),
+            "snapshot_time": snapshot_time.isoformat()
+        }
+            
+    except Exception as e:
+        logger.error(f"Error saving AGV position snapshot: {e}")
+        return {"status": "error", "message": str(e)}
+
+async def get_task_dashboard(group_id: Optional[str] = None):
+    tasks_collection = get_collection("tasks")
+    base_query = {}
+    query_by_week = {}
+    query_by_month = {}
+
+    # Calculate time thresholds as ISO strings (since updated_at is stored as ISO string)
+    week_ago = (datetime.now() - timedelta(weeks=1)).isoformat()
+    month_ago = (datetime.now() - timedelta(days=30)).isoformat()
+
+    if group_id:
+        base_query["group_id"] = group_id
+        query_by_week["group_id"] = group_id
+        query_by_week["updated_at"] = {"$gte": week_ago}
+        query_by_month["group_id"] = group_id
+        query_by_month["updated_at"] = {"$gte": month_ago}
+    else:
+        # If no group_id, still filter by time for week/month queries
+        query_by_week["updated_at"] = {"$gte": week_ago}
+        query_by_month["updated_at"] = {"$gte": month_ago}
+    
+    tasks = tasks_collection.find(base_query)
+    tasks = await tasks.to_list(length=None)
+
+    tasks_by_week = tasks_collection.find(query_by_week)
+    tasks_by_week = await tasks_by_week.to_list(length=None)
+
+    tasks_by_month = tasks_collection.find(query_by_month)
+    tasks_by_month = await tasks_by_month.to_list(length=None)
+    
+    # Count tasks from list (not from collection)
+    completed_tasks = len([task for task in tasks if task.get("status") == 20])
+    in_progress_tasks = len([task for task in tasks if task.get("status") == 10])
+    cancelled_tasks = len([task for task in tasks if task.get("status") == 3])
+    failed_tasks = len([task for task in tasks if task.get("status") == 4])
+
+    completed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 20])
+    completed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 20])
+    cancelled_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 3])
+    cancelled_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 3])
+    failed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 4])
+    failed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 4])
+    
+    return {
+        "status": "success",
+        "completed_tasks": completed_tasks,
+        "in_progress_tasks": in_progress_tasks,
+        "cancelled_tasks": cancelled_tasks,
+        "failed_tasks": failed_tasks,
+        "completed_tasks_by_week": completed_tasks_by_week,
+        "completed_tasks_by_month": completed_tasks_by_month,
+        "cancelled_tasks_by_week": cancelled_tasks_by_week,
+        "cancelled_tasks_by_month": cancelled_tasks_by_month,
+        "failed_tasks_by_week": failed_tasks_by_week,
+        "failed_tasks_by_month": failed_tasks_by_month
+    }
 
 async def reverse_dashboard_data():
     """
@@ -887,5 +1131,4 @@ async def get_all_robots_work_status(
             "status": "error",
             "message": str(e)
         }
-
 
