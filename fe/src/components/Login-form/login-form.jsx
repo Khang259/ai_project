@@ -1,6 +1,5 @@
 // src/components/LoginForm.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +10,6 @@ export function LoginForm() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  // const navigate = useNavigate(); // Initialize useNavigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,8 +19,7 @@ export function LoginForm() {
     try {
       const response = await login({ username, password });
       console.log("Login successful for user:", response.user?.username);
-      
-      // Sử dụng window.location.href để force reload và đảm bảo state được reset
+
       window.location.href = "/dashboard";
     } catch (err) {
       setError(err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");

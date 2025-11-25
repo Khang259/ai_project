@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import {
   Table,
@@ -12,68 +12,34 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Plus, Trash2, Video, Loader2 } from 'lucide-react';
-import { getCamerasByArea, addCamera, updateCamera, deleteCamera } from '@/services/camera-settings';
+import { deleteCamera } from '@/services/camera-settings';
 import { useArea } from '@/contexts/AreaContext';
 import CameraViewerModal from '../Overview/map/camera/CameraViewerModal';
 import { useTranslation } from 'react-i18next';
-import { healthCheckCamera } from '@/services/health-check-camera';
+import { useLoadCameraFromDatabase } from '@/hooks/Setting/Camera/useLoadCameraFromDatabase';
+import { useHandleSaveCameras } from '@/hooks/Setting/Camera/usehandleSaveCameras';
 
 const CameraSettings = () => {
   const { t } = useTranslation();
-  const [cameras, setCameras] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const { currAreaId, currAreaName } = useArea();
+  
+  // Sử dụng custom hook để load cameras
+  const { cameras, setCameras, loading, refetch: loadCamerasFromDatabase } = useLoadCameraFromDatabase(currAreaId, t);
+  
+  // Sử dụng custom hook để save cameras
+  const { handleSaveCameras, saving, validateRTSPUrl, validateROI } = useHandleSaveCameras(cameras, loadCamerasFromDatabase, t);
+  
   const [healthCheckStatus, setHealthCheckStatus] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
 
-  useEffect(() => {
-    loadCamerasFromDatabase();
-  }, [currAreaId]);
-
-  useEffect(() => {
-    const fetchHealthCheckStatus = async () => {
-      const status = await healthCheckCamera();
-      setHealthCheckStatus(status);
-      console.log('Health check status:', status);
-    };
-    fetchHealthCheckStatus();
-  }, []);
-
-  const loadCamerasFromDatabase = async () => {
-    try {
-      setLoading(true);
-      const camerasData = await getCamerasByArea(currAreaId);
-      const formattedCameras = camerasData.map(cam => ({
-        ...cam,
-        roi: cam.roi && Array.isArray(cam.roi) && cam.roi.length > 0
-          ? cam.roi.map((r, i) => {
-              // Hỗ trợ string cũ: "100,200,300,400"
-              if (typeof r === 'string') {
-                const [x, y, w, h] = r.split(',').map(Number);
-                if (!isNaN(x) && !isNaN(y) && !isNaN(w) && !isNaN(h)) {
-                  return { x, y, width: w, height: h, label: `ROI ${i + 1}` };
-                }
-              }
-              // Hỗ trợ object: { x, y, w, h } hoặc { x, y, width, height }
-              return {
-                x: r.x || 0,
-                y: r.y || 0,
-                width: r.width || r.w || 0,
-                height: r.height || r.h || 0,
-                label: r.label || `ROI ${i + 1}`
-              };
-            }).filter(roi => roi.width > 0 && roi.height > 0)
-          : [] // Không để mảng rỗng có phần tử lỗi
-      }));
-      setCameras(formattedCameras);
-    } catch (error) {
-      console.error('Error loading cameras:', error);
-      alert(t('settings.errorLoadingCameras'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  // useEffect(() => {
+  //   const fetchHealthCheckStatus = async () => {
+  //     const status = await healthCheckCamera();
+  //     setHealthCheckStatus(status);
+  //     console.log('Health check status:', status);
+  //   };
+  //   fetchHealthCheckStatus();
+  // }, []);
 
   const selectCameraForViewing = (camera) => {
     if (!camera.camera_path) {
@@ -142,64 +108,6 @@ const CameraSettings = () => {
     }));
   };
 
-  const validateRTSPUrl = (url) => {
-    const rtspRegex = /^rtsp:\/\/[\w\-\.]+(:\d+)?(\/.*)?$/i;
-    return rtspRegex.test(url);
-  };
-
-  const validateROI = (roi) => {
-    return (
-      roi &&
-      typeof roi === 'object' &&
-      typeof roi.x === 'number' && roi.x >= 0 &&
-      typeof roi.y === 'number' && roi.y >= 0 &&
-      typeof roi.width === 'number' && roi.width > 0 &&
-      typeof roi.height === 'number' && roi.height > 0
-    );
-  };
-
-  const handleSaveCameras = async () => {
-    try {
-      setSaving(true);
-
-      const invalidCameras = cameras.filter(camera =>
-        (camera.camera_path && !validateRTSPUrl(camera.camera_path)) ||
-        camera.roi.some(roi => !validateROI(roi))
-      );
-
-      if (invalidCameras.length > 0) {
-        alert(t('settings.invalidRTSPUrlsOrBbox'));
-        return;
-      }
-
-      for (const camera of cameras) {
-        const cameraData = {
-          camera_id: camera.camera_id,
-          camera_name: camera.camera_name,
-          camera_path: camera.camera_path,
-          roi: camera.roi.filter(validateROI), // Chỉ gửi ROI hợp lệ
-          area: camera.area
-        };
-
-        if (camera.isNew) {
-          if (camera.camera_name && camera.camera_path) {
-            await addCamera(cameraData);
-          }
-        } else {
-          await updateCamera({ ...cameraData, id: camera.id });
-        }
-      }
-
-      await loadCamerasFromDatabase();
-      alert(t('settings.cameraConfigurationSavedSuccessfully'));
-    } catch (error) {
-      console.error('Error saving cameras:', error);
-      alert(t('settings.errorSavingCameraConfiguration'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -263,12 +171,11 @@ const CameraSettings = () => {
                       <div>
                         <Label className="text-xs text-black">{t('settings.rtspUrl')}</Label>
                         <Input
-                          placeholder="rtsp://192.168.1.100:554/stream"
+                          placeholder="rtsp://127.0.0.1:554/stream"
                           value={camera.camera_path || ''}
                           onChange={(e) => updateCameraField(camera.id, 'camera_path', e.target.value)}
-                          className={`font-mono text-sm border border-gray-500 rounded-md text-black ${
-                            camera.camera_path && !isValidRTSP ? 'border-red-500' : ''
-                          }`}
+                          className={`font-mono text-sm border border-gray-500 rounded-md text-black ${camera.camera_path && !isValidRTSP ? 'border-red-500' : ''
+                            }`}
                         />
                         {camera.camera_path && !isValidRTSP && (
                           <p className="text-xs text-red-500 mt-1">
@@ -291,7 +198,7 @@ const CameraSettings = () => {
                                 <TableHead className="text-xs text-center">y</TableHead>
                                 <TableHead className="text-xs text-center">w</TableHead>
                                 <TableHead className="text-xs text-center">h</TableHead>
-                                <TableHead className="text-xs text-center">TaskPath</TableHead>
+                                <TableHead className="text-xs text-center">NodeId</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -414,14 +321,12 @@ const CameraSettings = () => {
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <div
-                              className={`w-2.5 h-2.5 rounded-full ${
-                                healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? 'bg-green-500' : 'bg-red-500'
-                              }`}
+                              className={`w-2.5 h-2.5 rounded-full ${healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                                }`}
                             />
                             <span
-                              className={`text-xs font-medium ${
-                                healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? 'text-green-600' : 'text-red-600'
-                              }`}
+                              className={`text-xs font-medium ${healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? 'text-green-600' : 'text-red-600'
+                                }`}
                             >
                               {healthCheckStatus.find(h => h.camera_id === camera.camera_id)?.status === 'online' ? t('settings.active') : t('settings.inactive')}
                             </span>

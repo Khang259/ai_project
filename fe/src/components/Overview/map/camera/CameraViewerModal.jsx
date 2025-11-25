@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { X, Loader2, Save, Trash2 } from 'lucide-react';
 import { getStreamCamera } from '@/services/infocamera-dashboard';
 import StreamWithBoundingBox from './StreamWithBoundingBox';
+import { useTranslation } from 'react-i18next';
+import { Input } from "@/components/ui/input";
 
 const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
   const [streamUrl, setStreamUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ROIs, setROIs] = useState(cameraData.roi || []);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchStream = async () => {
@@ -33,14 +36,27 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
   }, [cameraData]);
 
   const handleSave = () => {
-    // Format là x,y,w,h để đồng bộ backend
+    // Format bao gồm x, y, width, height, label và task_path (nodeId)
     const convertedROIs = ROIs.map(roi => {
-      const { x, y, width, height, label } = roi;
-      return { x, y, width, height, label };
+      const { x, y, width, height, label, task_path } = roi;
+      return {
+        x,
+        y,
+        width,
+        height,
+        label,
+        task_path: task_path || '' // Lưu nodeId dưới tên task_path
+      };
     });
 
     onSaveROIs?.(convertedROIs);
     onClose();
+  };
+
+  const handleNodeIdChange = (index, value) => {
+    setROIs(prev => prev.map((roi, i) =>
+      i === index ? { ...roi, task_path: value } : roi
+    ));
   };
 
   const handleDeleteZone = (index) => {
@@ -108,19 +124,20 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
               </div>
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-gray-100">
+                <thead className="bg-gray-100 justify-between">
                   <tr>
                     <th className="px-3 py-2 text-left">ROI</th>
                     <th className="px-3 py-2 text-center">x1</th>
                     <th className="px-3 py-2 text-center">y1</th>
                     <th className="px-3 py-2 text-center">w</th>
                     <th className="px-3 py-2 text-center">h</th>
-                    <th className="px-3 py-2 text-center">Hành động</th>
+                    <th className="px-3 py-2 text-center">{t('taskPath.nodeId')}</th>
+                    <th className="px-3 py-2 text-center">{t('taskPath.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ROIs.map((roi, i) => {
-                    const { x, y, width, height } = roi;
+                    const { x, y, width, height, task_path } = roi;
                     return (
                       <tr key={i} className="border-t hover:bg-gray-50">
                         <td className="px-3 py-2 font-medium">ROI {i + 1}</td>
@@ -128,6 +145,15 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
                         <td className="px-3 py-2 text-center">{Math.round(y)}</td>
                         <td className="px-3 py-2 text-center">{Math.round(width)}</td>
                         <td className="px-3 py-2 text-center">{Math.round(height)}</td>
+
+                        <td className="px-3 py-2 text-center">
+                          <Input
+                            placeholder="nodeId"
+                            value={task_path || ''}
+                            onChange={(e) => handleNodeIdChange(i, e.target.value)}
+                          />
+                        </td>
+                        {/* Delete button */}
                         <td className="px-3 py-2 text-center">
                           <button
                             onClick={() => handleDeleteZone(i)}

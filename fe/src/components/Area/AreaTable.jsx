@@ -9,13 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import useZipImport from "@/hooks/MapDashboard/useZipImport";
 import { useTranslation } from "react-i18next";
 
@@ -23,7 +16,7 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
-  
+
   // Thêm state giống như AMRWarehouseMap
   const [mapData, setMapData] = useState(null);
   const [securityConfig, setSecurityConfig] = useState(null);
@@ -52,32 +45,32 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
   const handleZipFileChange = (e) => {
     const file = e.target.files[0];
     const areaId = e.target.getAttribute('data-area-id');
-    
+
     if (file && areaId) {
       // Tạo các function dummy để tránh lỗi
       const dummySetMapData = (data) => {
         console.log('Map data received:', data);
         localStorage.setItem('importedMapData', JSON.stringify(data));
       };
-      
+
       const dummySetSecurityConfig = (config) => {
         console.log('Security config received:', config);
         localStorage.setItem('importedSecurityConfig', JSON.stringify(config));
       };
-      
+
       const dummySetSelectedAvoidanceMode = (mode) => {
         console.log('Avoidance mode received:', mode);
       };
-      
+
       // Gọi handleZipImport với area_id cụ thể
       handleZipImport(
-        file, 
-        dummySetMapData, 
-        dummySetSecurityConfig, 
-        dummySetSelectedAvoidanceMode, 
+        file,
+        dummySetMapData,
+        dummySetSecurityConfig,
+        dummySetSelectedAvoidanceMode,
         parseInt(areaId)
       );
-      
+
       alert(`Đang import bản đồ cho Area ${areaId}...`);
     }
     // Reset input để có thể chọn cùng file lần nữa
@@ -117,7 +110,7 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
                   <div className="flex items-center gap-2">
                     <Button
                       variant="default"
-                       size="sm"
+                      size="sm"
                       onClick={() => handleEditClick(area)} // Sử dụng function mới
                     >
                       {t('area.edit')}

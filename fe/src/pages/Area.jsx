@@ -5,10 +5,12 @@ import AreaHeader from "@/components/Area/AreaHeader";
 import AreaFilters from "@/components/Area/AreaFilters";
 import AreaTable from "@/components/Area/AreaTable";
 import AddAreaModal from "@/components/Area/AddAreaModal";
+import { useAreas } from "@/hooks/Area/useAreas";
+import { useTranslation } from "react-i18next";
 
 export default function AreaDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  
+  const { t } = useTranslation();
   const {
     areas,
     search,
@@ -69,15 +71,15 @@ export default function AreaDashboard() {
         areas={areas}
       />
 
-       <AreaTable
-         areas={filteredAreas.map((area) => ({
-           ...area,
-           areaCreatedAt:new Date(area.created_at).toLocaleString('vi-VN'),
-           areaCreatedBy:area.created_by,
-         }))}
-         onEdit={handleEditArea}
-         onDelete={handleDeleteArea}
-       />
+      <AreaTable
+        areas={filteredAreas.map((area) => ({
+          ...area,
+          areaCreatedAt: new Date(area.created_at).toLocaleString('vi-VN'),
+          areaCreatedBy: area.created_by,
+        }))}
+        onEdit={handleEditArea}
+        onDelete={handleDeleteArea}
+      />
 
       <AddAreaModal
         isOpen={isAddModalOpen}
