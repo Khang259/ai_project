@@ -349,29 +349,24 @@ async def get_task_dashboard(group_id: Optional[str] = None):
     tasks_by_month = await tasks_by_month.to_list(length=None)
     
     # Count tasks from list (not from collection)
-    completed_tasks = len([task for task in tasks if task.get("status") == 20])
+    completed_tasks = len([task for task in tasks if task.get("status") == 9])
     cancelled_tasks = len([task for task in tasks if task.get("status") == 3])
-    failed_tasks = len([task for task in tasks if task.get("status") == 4])
 
-    completed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 20])
-    completed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 20])
-    cancelled_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 3])
-    cancelled_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 3])
-    failed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 4])
-    failed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 4])
+    completed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 9])
+    completed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 9])
+    total_tasks_by_week = len([task for task in tasks_by_week])
+    total_tasks_by_month = len([task for task in tasks_by_month])
+
     
     return {
         "status": "success",
         "completed_tasks": completed_tasks,
         "in_progress_tasks": in_progress_tasks,
         "cancelled_tasks": cancelled_tasks,
-        "failed_tasks": failed_tasks,
         "completed_tasks_by_week": completed_tasks_by_week,
         "completed_tasks_by_month": completed_tasks_by_month,
-        "cancelled_tasks_by_week": cancelled_tasks_by_week,
-        "cancelled_tasks_by_month": cancelled_tasks_by_month,
-        "failed_tasks_by_week": failed_tasks_by_week,
-        "failed_tasks_by_month": failed_tasks_by_month
+        "total_tasks_by_week": total_tasks_by_week,
+        "total_tasks_by_month": total_tasks_by_month,
     }
 
 async def get_success_task_by_hour(group_id: Optional[str] = None):
@@ -391,28 +386,61 @@ async def get_success_task_by_hour(group_id: Optional[str] = None):
     tasks = tasks_collection.find(base_query)
     tasks = await tasks.to_list(length=None)
     
-    # Group tasks theo group_id - luôn trả về format đồng nhất
-    tasks_by_group = {}
+    # Group tasks theo group_id và theo giờ - luôn trả về format đồng nhất
+    tasks_by_group_and_hour = {}
     for task in tasks:
         task_group_id = task.get("group_id")
-        if task_group_id:
-            if task_group_id not in tasks_by_group:
-                tasks_by_group[task_group_id] = []
-            tasks_by_group[task_group_id].append(task)
-    
-    # Count completed tasks by group và tính toán thống kê
-    groups_statistics = {}
-    for group_id, group_tasks in tasks_by_group.items():
-        total_tasks_in_group = len(group_tasks)
-        completed_tasks = [task for task in group_tasks if task.get("status") == 20]
-        completed_count = len(completed_tasks)
-        completion_rate = round((completed_count / total_tasks_in_group * 100), 2) if total_tasks_in_group > 0 else 0
+        if not task_group_id:
+            continue
         
-        groups_statistics[group_id] = {
-            "total_tasks": total_tasks_in_group,
-            "completed_count": completed_count,
-            "completion_rate": completion_rate
-        }
+        # Lấy giờ từ updated_at
+        updated_at = task.get("updated_at")
+        if isinstance(updated_at, str):
+            # Nếu là string, parse thành datetime
+            try:
+                # Xử lý cả ISO format và format khác
+                if 'T' in updated_at:
+                    updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+                else:
+                    updated_at = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
+            except:
+                continue
+        elif isinstance(updated_at, datetime):
+            # Đã là datetime object, giữ nguyên
+            pass
+        else:
+            continue
+        
+        hour = updated_at.hour
+        
+        # Chỉ tính từ 8h đến 19h
+        if hour < 8 or hour > 19:
+            continue
+        
+        # Khởi tạo structure nếu chưa có
+        if task_group_id not in tasks_by_group_and_hour:
+            tasks_by_group_and_hour[task_group_id] = {}
+        if hour not in tasks_by_group_and_hour[task_group_id]:
+            tasks_by_group_and_hour[task_group_id][hour] = {"total": 0, "completed": 0}
+        
+        # Đếm task
+        tasks_by_group_and_hour[task_group_id][hour]["total"] += 1
+        if task.get("status") == 22:
+            tasks_by_group_and_hour[task_group_id][hour]["completed"] += 1
+    
+    # Tính completion_rate cho từng giờ của mỗi group
+    groups_statistics = {}
+    for group_id, hours_data in tasks_by_group_and_hour.items():
+        groups_statistics[group_id] = {}
+        for hour in range(8, 20):  # Từ 8h đến 19h
+            if hour in hours_data:
+                total = hours_data[hour]["total"]
+                completed = hours_data[hour]["completed"]
+                completion_rate = round((completed / total * 100), 2) if total > 0 else 0
+                groups_statistics[group_id][str(hour)] = completion_rate
+            else:
+                # Nếu không có data cho giờ đó, set 0
+                groups_statistics[group_id][str(hour)] = 0
     
     # Trả về format đồng nhất với metadata để frontend dễ render
     return {
@@ -567,7 +595,6 @@ async def reverse_dashboard_data():
             # Payload statistics
             InTask_payload_0_0 = payload_data.get(key, {}).get("InTask_payLoad_0_0_count", 0)
             InTask_payload_1_0 = payload_data.get(key, {}).get("InTask_payLoad_1_0_count", 0)
-
             
             total_InTask_payload = InTask_payload_0_0 + InTask_payload_1_0
             

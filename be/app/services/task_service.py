@@ -88,9 +88,9 @@ async def extract_task_by_group_id(data: dict):
 
     route = await routes.find_one({"robot_list": {"$in": [data["device_code"]]}})
     if route:
-        data["area_id"] = route["area_id"]
+        data["area_id"] = str(route["area_id"])
         data["group_id"] = str(route["group_id"])
-        data["route_id"] = route["route_id"]
+        data["route_id"] = str(route["route_id"])
         return {"status": "success", "data": "Extracted task by group id successfully"}
     else:
         data["area_id"] = "No Area"
@@ -143,11 +143,14 @@ async def filter_raw_task(payload):
     await extract_task_by_group_id(task_data)
     group_id = task_data["group_id"]
 
+    print(task_data)
+
     if task_data["status"] == 20 or task_data["status"] == 3:
         await clear_monitor(group_id, task_data["order_id"])
     
-    if task_data["status"] == 40 or task_data["status"] == 3:
+    if task_data["status"] == 22 or task_data["status"] == 3:
         await tasks_collection.insert_one(task_data)
+        task_data["_id"] = str(task_data["_id"])
 
     return {"status": "success", "tasks": task_data}
 

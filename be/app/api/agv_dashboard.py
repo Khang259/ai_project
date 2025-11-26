@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Query
 from app.services.agv_dashboard_service import (
-    save_agv_data, 
     get_data_by_time, 
     get_agv_position,
     get_all_robots_payload_data,

@@ -283,8 +283,12 @@ async def get_nodes_advanced(owner: str) -> dict:
     }
 
 
-async def process_caller(node: ProcessCaller, priority: int) -> str:
+async def process_caller(node: ProcessCaller, priority: Optional[int] = None) -> str:
     """Gọi process caller"""
+    # # Nếu priority là None, sử dụng giá trị mặc định (ví dụ: 5)
+    # if priority is None:
+    #     priority = 5  # Giá trị mặc định, có thể thay đổi theo yêu cầu
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
     # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
