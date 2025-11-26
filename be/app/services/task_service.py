@@ -146,7 +146,7 @@ async def filter_raw_task(payload):
     if task_data["status"] == 20 or task_data["status"] == 3:
         await clear_monitor(group_id, task_data["order_id"])
     
-    if task_data["status"] == 40:
+    if task_data["status"] == 40 or task_data["status"] == 3:
         await tasks_collection.insert_one(task_data)
 
     return {"status": "success", "tasks": task_data}

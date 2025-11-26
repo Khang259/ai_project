@@ -3,7 +3,11 @@ from datetime import datetime, timedelta
 from app.core.database import get_collection
 from shared.logging import get_logger
 from typing import Optional
+import httpx
+from app.core.config import settings
 
+
+ics_url = f"http://{settings.ics_host}:7000"
 logger = get_logger("camera_ai_app")
 
 async def save_agv_data(payload: list):
@@ -85,15 +89,6 @@ async def get_agv_position(payload: list):
     return grouped_data
 
 async def get_battery_agv(group_id: Optional[str] = None):
-    """
-    Lấy dữ liệu battery của ngày hôm trước.
-    
-    Args:
-        group_id: Nếu có, chỉ lấy data của group_id đó. Nếu None, lấy hết.
-    
-    Returns:
-        dict: Danh sách battery data của ngày hôm trước
-    """
     try:
         battery_collection = get_collection("battery_collection")
         
@@ -147,10 +142,6 @@ async def get_battery_agv(group_id: Optional[str] = None):
         }
 
 async def save_agv_position_snapshot(grouped_data: dict = None):
-    """
-    Lưu snapshot vị trí và thông tin AGV vào database mỗi giờ.
-    Tối ưu: Batch check và batch insert để giảm số lượng queries.
-    """
     try:
         battery_collection = get_collection("battery_collection")
         snapshot_time = datetime.now().replace(minute=0, second=0, microsecond=0)
@@ -238,6 +229,85 @@ async def save_agv_position_snapshot(grouped_data: dict = None):
         logger.error(f"Error saving AGV position snapshot: {e}")
         return {"status": "error", "message": str(e)}
 
+async def filter_count_task(payload):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f'{ics_url}/ics/out/task/getOrderList', json=payload)
+            response.raise_for_status()
+            response_data = response.json()
+            
+            # Kiểm tra response code
+            if response_data.get("code") != 1000:
+                logger.warning(f"API returned code {response_data.get('code')}: {response_data.get('desc', 'Unknown error')}")
+                return {
+                    "status": "error",
+                    "message": response_data.get("desc", "API returned error code"),
+                    "tasks_with_end_time": [],
+                    "total_tasks": 0,
+                    "filtered_count": 0
+                }
+            
+            # Lấy danh sách tasks từ response
+            tasks = response_data.get("data", {}).get("Tasks", [])
+            total_tasks = len(tasks)
+            
+            # Lọc các task có ActualEndTime
+            tasks_with_end_time = [
+                task for task in tasks 
+                if task.get("ActualEndTime") is not None and task.get("ActualEndTime") != ""
+            ]
+            filtered_count = len(tasks_with_end_time)
+            
+            logger.info(f"Filtered {filtered_count} tasks with ActualEndTime out of {total_tasks} total tasks")
+            
+            return {
+                "status": "success",
+                "total_tasks": total_tasks,
+                "filtered_count": filtered_count
+            }
+
+    except httpx.HTTPError as e:
+        logger.error(f"HTTP error when calling get_in_progress_task: {e}")
+        return {
+            "status": "error",
+            "message": f"HTTP error: {str(e)}",
+            "tasks_with_end_time": [],
+            "total_tasks": 0,
+            "filtered_count": 0
+        }
+    except Exception as e:
+        logger.error(f"Error in get_in_progress_task: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "tasks_with_end_time": [],
+            "total_tasks": 0,
+            "filtered_count": 0
+        }
+
+async def get_in_progress_task(group_id: Optional[str] = None):
+    if group_id:
+        payload = {"areaId": group_id, "pageSize": "50"}
+        logger.info(f"Getting in progress task for group {group_id}")
+        result = await filter_count_task(payload)
+        return result
+    else:
+        area_collection = get_collection("area")
+        total_tasks = 0
+        filtered_count = 0
+        for area in await area_collection.find().to_list(length=None):
+            payload = {"areaId": area["area_id"], "pageSize": "50"}
+            result = await filter_count_task(payload)
+            logger.info(f"Getting in progress task for group {area['area_id']}: {result}")
+            if result["status"] == "success":
+                total_tasks += result["total_tasks"]
+                filtered_count += result["filtered_count"]
+        return {
+            "status": "success",
+            "total_tasks": total_tasks,
+            "filtered_count": filtered_count
+        }
+
 async def get_task_dashboard(group_id: Optional[str] = None):
     tasks_collection = get_collection("tasks")
     base_query = {}
@@ -249,6 +319,11 @@ async def get_task_dashboard(group_id: Optional[str] = None):
     month_ago = (datetime.now() - timedelta(days=30)).isoformat()
 
     if group_id:
+        result = await get_in_progress_task(group_id)
+        if result["status"] == "success":
+            in_progress_tasks = result["filtered_count"]
+        else:
+            in_progress_tasks = 0
         base_query["group_id"] = group_id
         query_by_week["group_id"] = group_id
         query_by_week["updated_at"] = {"$gte": week_ago}
@@ -256,6 +331,11 @@ async def get_task_dashboard(group_id: Optional[str] = None):
         query_by_month["updated_at"] = {"$gte": month_ago}
     else:
         # If no group_id, still filter by time for week/month queries
+        result = await get_in_progress_task()
+        if result["status"] == "success":
+            in_progress_tasks = result["filtered_count"]
+        else:
+            in_progress_tasks = 0
         query_by_week["updated_at"] = {"$gte": week_ago}
         query_by_month["updated_at"] = {"$gte": month_ago}
     
@@ -270,7 +350,6 @@ async def get_task_dashboard(group_id: Optional[str] = None):
     
     # Count tasks from list (not from collection)
     completed_tasks = len([task for task in tasks if task.get("status") == 20])
-    in_progress_tasks = len([task for task in tasks if task.get("status") == 10])
     cancelled_tasks = len([task for task in tasks if task.get("status") == 3])
     failed_tasks = len([task for task in tasks if task.get("status") == 4])
 
@@ -295,15 +374,56 @@ async def get_task_dashboard(group_id: Optional[str] = None):
         "failed_tasks_by_month": failed_tasks_by_month
     }
 
-async def reverse_dashboard_data():
-    """
-    Tính toán và lưu thống kê theo ngày của tất cả AGV vào database.
-    Hàm này tính toán cả payload statistics (có tải/không tải) và work status (InTask/Idle).
-    Chỉ lấy dữ liệu của NGÀY HÔM NAY (từ 00:00:00 đến 23:59:59)
+async def get_success_task_by_hour(group_id: Optional[str] = None):
+    tasks_collection = get_collection("tasks")
+    # Lấy ngày hôm qua
+    yesterday = datetime.now() - timedelta(days=1)
+    # Thời gian bắt đầu: 8:00:00 của ngày hôm qua
+    start_time = yesterday.replace(hour=8, minute=0, second=0, microsecond=0)
+    # Thời gian kết thúc: 19:59:59.999999 của ngày hôm qua
+    end_time = yesterday.replace(hour=19, minute=59, second=59, microsecond=999999)
     
-    Returns:
-        dict: Kết quả tính toán và số lượng bản ghi đã lưu
-    """
+    base_query = {
+        "updated_at": {"$gte": start_time, "$lte": end_time}
+    }
+    if group_id:
+        base_query["group_id"] = group_id
+    tasks = tasks_collection.find(base_query)
+    tasks = await tasks.to_list(length=None)
+    
+    # Group tasks theo group_id - luôn trả về format đồng nhất
+    tasks_by_group = {}
+    for task in tasks:
+        task_group_id = task.get("group_id")
+        if task_group_id:
+            if task_group_id not in tasks_by_group:
+                tasks_by_group[task_group_id] = []
+            tasks_by_group[task_group_id].append(task)
+    
+    # Count completed tasks by group và tính toán thống kê
+    groups_statistics = {}
+    for group_id, group_tasks in tasks_by_group.items():
+        total_tasks_in_group = len(group_tasks)
+        completed_tasks = [task for task in group_tasks if task.get("status") == 20]
+        completed_count = len(completed_tasks)
+        completion_rate = round((completed_count / total_tasks_in_group * 100), 2) if total_tasks_in_group > 0 else 0
+        
+        groups_statistics[group_id] = {
+            "total_tasks": total_tasks_in_group,
+            "completed_count": completed_count,
+            "completion_rate": completion_rate
+        }
+    
+    # Trả về format đồng nhất với metadata để frontend dễ render
+    return {
+        "data": groups_statistics,
+        "total_groups": len(groups_statistics),
+        "total_tasks": len(tasks),
+        "filtered_by_group_id": group_id if group_id else None
+    }
+
+
+async def reverse_dashboard_data():
     try:
         agv_collection = get_collection("agv_data")
         daily_stats_collection = get_collection("agv_daily_statistics")

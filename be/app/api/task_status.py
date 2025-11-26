@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, Query
 from app.services.task_service import filter_raw_task, get_tasks_from_db, put_to_service, track_task
 from app.services.websocket_service import manager
-from datetime import datetime
 import json
 from shared.logging import get_logger
 
@@ -15,7 +14,7 @@ async def receive_task_status(request: Request):
     data = await filter_raw_task(payload)
 
     if data["status"] == "success":
-        message = data["tasks"]
+        message = json.dumps(data["tasks"])
         await manager.broadcast_to_group(data["tasks"]["group_id"], message)
         await manager.broadcast_to_route(data["tasks"]["route_id"], message)
         logger.info(f"Task successfully updated to group {data['tasks']['group_id']} and route {data['tasks']['route_id']}")

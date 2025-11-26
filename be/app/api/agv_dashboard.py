@@ -7,6 +7,8 @@ from app.services.agv_dashboard_service import (
     get_all_robots_work_status,
     save_agv_position_snapshot,
     get_battery_agv,
+    get_task_dashboard,
+    get_success_task_by_hour
 )
 from app.services.websocket_service import manager
 import json
@@ -58,6 +60,19 @@ async def get_battery_agv_endpoint(group_id: Optional[str] = None):
         raise HTTPException(status_code=500, detail=result["message"])
     return result
 
+@router.get("/task-dashboard")
+async def get_task_dashboard_endpoint(group_id: Optional[str] = None):
+    result = await get_task_dashboard(group_id)
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
+
+@router.get("/success-task-by-hour")
+async def get_success_task_by_hour_endpoint(group_id: Optional[str] = None):
+    result = await get_success_task_by_hour(group_id)
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
 
 @router.get("/payload-statistics")
 async def get_payload_statistics(
@@ -172,20 +187,6 @@ async def get_all_robots_work_status_endpoint(
     time_filter: str = Query(..., description="Time filter: 'd', 'w', 'm'"),
     device_code: str = Query(None, description="Filter by specific device code (optional)")
 ):
-    """
-    Get work status statistics (InTask/Idle) for ALL robots
-    
-    This endpoint returns work status data for all robots in the system, with optional filtering
-    by device_code or device_name. Data is broken down by time unit (day/week/month).
-    
-    Args:
-        time_filter: Time range filter ("d"=7 days, "w"=7 weeks, "m"=7 months)
-        device_code: Optional filter by specific device code
-        device_name: Optional filter by specific device name
-    
-    Returns:
-        dict: Work status statistics for each robot separately, with time series data
-    """
     try:
         result = await get_all_robots_work_status(
             time_filter=time_filter,
@@ -201,4 +202,6 @@ async def get_all_robots_work_status_endpoint(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
 
