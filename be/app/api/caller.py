@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Query
 from typing import Optional
 from app.services.node_service import process_caller
+from app.services.monitor_service import increment_produced_quantity_by_node_end
 from app.schemas.node import ProcessCaller
 import httpx
 from shared.logging import get_logger

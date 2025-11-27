@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from 'react-router-dom';
 import DashboardLayout from './components/DashboardLayout';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/DashBoard';
 import Analytics from './pages/Analytics';
 import TaskManagement from './pages/TaskManagement';
 import Notification from './pages/Notification';
@@ -11,6 +11,7 @@ import LoginPage from './pages/Login';
 import Maintain from './pages/Maintain';
 import MonitorPackaged from './pages/MonitorPackaged';
 import MobileGridDisplay from './pages/MobileGridDisplay';
+import MonitorPage from './pages/Monitor';
 import Area from './pages/Area';
 import PrivateRoute from './components/PrivateRoute';
 import { AreaProvider } from './contexts/AreaContext';
@@ -46,15 +47,25 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<LoginPage />} />
 
-          {/* User routes - Mobile Grid Display */}
-          <Route
-            path="/mobile-grid-display"
-            element={
-              <PrivateRoute>
-                <MobileGridDisplay />
-              </PrivateRoute>
-            }
-          />
+      {/* User routes - Mobile Grid Display */}
+      <Route
+        path="/mobile-grid-display"
+        element={
+          <PrivateRoute>
+            <MobileGridDisplay />
+          </PrivateRoute>
+        }
+      />
+
+      {/* User routes - Production Monitor (read-only) */}
+      <Route
+        path="/monitor"
+        element={
+          // <PrivateRoute requiredRole="viewer">
+            <MonitorPage />
+          // </PrivateRoute>
+        }
+      />
 
           {/* Admin routes - Dashboard Layout */}
           <Route

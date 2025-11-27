@@ -5,6 +5,21 @@ import { useTranslation } from 'react-i18next';
 // lấy hook từ collection task_path_{username}_{khu}
 const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
   const rows = Math.ceil(cells.length / columns);
+  
+  // Color palette cho các lines
+  const LINE_COLORS = {
+    'Line 1': '#016B61',   // Teal Green
+    'Line 2': '#2563EB',   // Blue
+    'Line 3': '#DC2626',   // Red
+    'Line 4': '#9333EA',   // Purple
+    'Line 5': '#EA580C',   // Orange
+    'Line 6': '#059669',   // Emerald
+    'Line 7': '#DB2777',   // Pink
+    'Line 8': '#7C3AED',   // Violet
+    'Line 9': '#0891B2',   // Cyan
+    'Line 10': '#CA8A04',  // Yellow
+  };
+  
   const {t} = useTranslation();
   // Hàm xác định màu nền dựa trên node_type
   const getBackgroundColor = (nodeType) => {
@@ -15,6 +30,8 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
         return '#ADD8E6'; // Màu xanh nước biển nhạt
       case 'both':
         return '#1C9B9B'; // Màu #1C9B9B
+      case 'auto':
+        return '#FFD700'; // Màu vàng (Gold)
       default:
         return 'transparent';
     }
@@ -33,12 +50,20 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
         {cells.slice(0, rows * columns).map((cell, index) => (
           <div
             key={cell.id}
-            className="border-2 border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group"
+            className="border-2 border-border rounded flex flex-col items-center justify-center p-2 hover:border-primary transition-colors relative group overflow-hidden"
             style={{ 
               height: 130,
               backgroundColor: getBackgroundColor(cell.node_type)
             }}
           >
+            {/* Top Color Bar cho Line */}
+            {cell.line && (
+              <div 
+                className="absolute top-0 left-0 right-0 h-4 rounded-t"
+                style={{ backgroundColor: LINE_COLORS[cell.line] || '#016B61' }}
+              />
+            )}
+            
             {/* Nút xóa hiện khi hover */}
             {onDeleteCell && (
               <button
@@ -52,6 +77,17 @@ const GridPreview = ({ columns, cells, onDeleteCell, selectedNodeType }) => {
             
             <div className="text-center space-y-1">
               <p className="text-xs font-mono text-muted-foreground">{cell.node_name}</p>
+              
+              {/* Hiển thị Line text */}
+              {cell.line && (
+                <p className="text-xs font-semibold px-2 py-0.5 rounded" style={{ 
+                  color: LINE_COLORS[cell.line] || '#016B61',
+                  backgroundColor: `${LINE_COLORS[cell.line] || '#016B61'}15`
+                }}>
+                  {cell.line}
+                </p>
+              )}
+              
               <div className="flex flex-col gap-1 justify-center mt-2 gap-y-4">
                 <span className="px-2 py-0.5 bg-primary/30 text-primary text-xs font-semibold rounded">
                   {cell.start} → {cell.end}

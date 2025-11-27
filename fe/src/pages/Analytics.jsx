@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 import { useArea } from "@/contexts/AreaContext";
-import { getStatistics, getPayloadStatistics,convertWorkStatusToChartData, convertPayloadStatisticsToChartData } from "@/services/statistics";
+import { 
+  getStatistics, 
+  getPayloadStatistics, 
+  formatWorkStatusByDevice, 
+  formatPayloadByDevice, 
+  getWorkStatusSummary, 
+  getPayloadStatisticsSummary,
+  formatWorkStatusSummary,
+  formatPayloadSummary
+} from "@/services/statistics";
 import {
   BarChart,
   Bar,
@@ -14,83 +23,119 @@ import {
   ResponsiveContainer,
   Pie,
 } from "recharts";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTranslation } from 'react-i18next';
+import { DateFilter } from "@/components/Analytics/DateFilter";
+import { AMRFilter } from "@/components/Analytics/AMRFilter";
 
-
-const workflowDistribution = [
-  { name: "Product Sync", value: 35, color: "#8b5cf6" },
-  { name: "Data Processing", value: 25, color: "#3b82f6" },
-  { name: "Notifications", value: 20, color: "#10b981" },
-  { name: "Analytics", value: 15, color: "#f59e0b" },
-  { name: "Other", value: 5, color: "#ef4444" },
-]
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState("1d")
-  const [workStatusData, setWorkStatusData] = useState(null)
-  const [payloadData, setPayloadData] = useState(null)
+  const [dateFilter, setDateFilter] = useState({
+    startDate: new Date(),
+    endDate: new Date()
+  })
   const [workStatusChartData, setWorkStatusChartData] = useState([])
   const [payloadChartData, setPayloadChartData] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const { currAreaName, currAreaId } = useArea()
-  const {t} = useTranslation();
+  const [workStatusSummary, setWorkStatusSummary] = useState(null)
+  const [payloadSummary, setPayloadSummary] = useState(null)
+  const [selectedDeviceCodes, setSelectedDeviceCodes] = useState([])
+
+  // Helper: Date -> YYYY-MM-DD (tránh lệch múi giờ/locale)
+  const toYMD = (d) => {
+    if (!(d instanceof Date)) return null
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  // Tạo data cho pie chart work status
+  const getWorkStatusPieData = () => {
+    if (!workStatusSummary) return []
+    
+    return [
+      { 
+        name: "Làm việc", 
+        value: workStatusSummary.inTask_percentage, 
+        color: "#3b82f6" 
+      },
+      { 
+        name: "Nghỉ", 
+        value: workStatusSummary.idle_percentage, 
+        color: "#10b981" 
+      }
+    ]
+  }
+
+  // Tạo data cho pie chart payload
+  const getPayloadPieData = () => {
+    if (!payloadSummary) return []
+    
+    return [
+      { 
+        name: "Có hàng", 
+        value: payloadSummary.payLoad_1_0_percentage, 
+        color: "#ef4444" 
+      },
+      { 
+        name: "Không hàng", 
+        value: payloadSummary.payLoad_0_0_percentage, 
+        color: "#FFD600" // solid yellow
+      }
+    ]
+  }
+
+  // Hàm xử lý khi filter thay đổi
+  const handleFilterChange = (startDate, endDate) => {
+    setDateFilter({ startDate, endDate })
+  }
 
   // Hàm để lấy dữ liệu từ backend
   const fetchData = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      
-      // Chuyển đổi timeRange từ frontend sang backend format
-      const timeFilterMap = {
-        "1d": "d",
-        "7d": "w",
-        "30d": "m", 
+      // Chỉ fetch khi đã chọn range từ DateFilter
+      if (!dateFilter.startDate || !dateFilter.endDate) {
+        return
       }
-      const backendTimeFilter = timeFilterMap[timeRange] || "d"
-      // Lấy dữ liệu work status
-      const workStatusResponse = await getStatistics(backendTimeFilter)
-      setWorkStatusData(workStatusResponse)
+
+      const startDate = toYMD(dateFilter.startDate)
+      const endDate = toYMD(dateFilter.endDate)
+
+      // Lấy dữ liệu work status và payload statistics theo khoảng ngày
+      const workStatusResponse = await getStatistics(startDate, endDate, selectedDeviceCodes)
+      const payloadResponse = await getPayloadStatistics(startDate, endDate, selectedDeviceCodes)
       
-      // Lấy dữ liệu payload statistics
-      const payloadResponse = await getPayloadStatistics(backendTimeFilter, "InTask")
-      setPayloadData(payloadResponse)
+      const workStatusSummaryResponse = await getWorkStatusSummary(startDate, endDate, selectedDeviceCodes)
+      const formattedWorkStatusSummary = formatWorkStatusSummary(workStatusSummaryResponse)
+      setWorkStatusSummary(formattedWorkStatusSummary)
+      
+      const payloadSummaryResponse = await getPayloadStatisticsSummary(startDate, endDate, selectedDeviceCodes)
+      const formattedPayloadSummary = formatPayloadSummary(payloadSummaryResponse)
+      setPayloadSummary(formattedPayloadSummary)
       
       // Chuyển đổi sang format cho charts
-      const workStatusChartData = convertWorkStatusToChartData(workStatusResponse)
-      const payloadChartData = convertPayloadStatisticsToChartData(payloadResponse)
-      console.log("[Analytics] Chart data work status:", workStatusChartData)
-      console.log("[Analytics] Chart data payload:", payloadChartData)
+      const workStatusChartData = formatWorkStatusByDevice(workStatusResponse)
+      const payloadChartData = formatPayloadByDevice(payloadResponse)
       setWorkStatusChartData(workStatusChartData)
       setPayloadChartData(payloadChartData)
-      
+
     } catch (err) {
       console.error("[Analytics] Lỗi khi lấy dữ liệu:", err)
-      setError(err.message || "Có lỗi xảy ra khi tải dữ liệu")
-    } finally {
-      setLoading(false)
     }
   }
   useEffect(() => {
-    // Lấy dữ liệu lần đầu
     fetchData()
     
-    // Thiết lập interval để refresh mỗi 1'
+    // Thiết lập interval để refresh mỗi 10s
     const interval = setInterval(() => {
       fetchData()
-    }, 60000)
+    }, 10000)
     
     // Cleanup interval khi component unmount
     return () => {
       clearInterval(interval)
     }
-  }, [timeRange]) // Re-run khi timeRange thay đổi
+  }, [dateFilter, selectedDeviceCodes]) // Re-run khi filter thay đổi
 
   return (
       <div className="space-y-8">
@@ -101,20 +146,12 @@ export default function AnalyticsPage() {
           </div>
           {/* Filter */}
           <div className="flex items-center gap-3">
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1d">{t('analytics.1d')}</SelectItem>
-                <SelectItem value="7d">{t('analytics.7d')}</SelectItem>
-                <SelectItem value="30d">{t('analytics.30d')}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="gap-2 bg-transparent">
-              <Download className="w-4 h-4" />
-              {t('analytics.export')}
-            </Button>
+            <DateFilter onFilterChange={handleFilterChange} />
+            <AMRFilter
+              deviceList={workStatusChartData.map(d => ({ deviceCode: d.deviceCode, deviceName: d.deviceName }))}
+              selectedDevices={selectedDeviceCodes}
+              onFilterChange={setSelectedDeviceCodes}
+            />
           </div>
         </div>
 
@@ -125,34 +162,49 @@ export default function AnalyticsPage() {
           </TabsList>
 
           <TabsContent value="performance" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Execution Trends */}
               <Card className="border-gray-200">
                 <CardHeader>
                   <CardTitle>{t('analytics.timeRangeIdleAndTask')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={workStatusChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
-                        <YAxis 
-                        stroke="#6b7280" 
-                        fontSize={12} 
-                        domain={[0, 100]}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "white",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                          }}
-                        />
-                        <Bar dataKey="InTask_percentage" fill="#10b981" name="InTask %" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="overflow-x-auto">
+                    <div className="h-80" style={{ minWidth: `${workStatusChartData.length * 350}px` }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={workStatusChartData} key={workStatusChartData.length}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                          <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
+                          <YAxis 
+                          stroke="#6b7280" 
+                          fontSize={12} 
+                          domain={[0, 100]}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "white",
+                              border: "1px solid #e5e7eb",
+                              borderRadius: "8px",
+                              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                            }}
+                          />
+                          <Bar 
+                            dataKey="InTask_percentage" 
+                            fill="#3b82f6" 
+                            name="InTask %"
+                            isAnimationActive={true}
+                            animationDuration={800}
+                            animationEasing="ease-out"
+                            label={{ 
+                              position: 'top', 
+                              formatter: (value) => `${value}%`,
+                              fill: '#3b82f6',
+                              fontSize: 25 
+                            }}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -163,23 +215,38 @@ export default function AnalyticsPage() {
                   <CardTitle>{t('analytics.timeRangeWithPayloadandWithoutPayload')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={payloadChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
-                        <YAxis stroke="#6b7280" fontSize={12} domain={[0, 100]} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "white",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                          }}
-                        />
-                        <Bar dataKey="payLoad_1_0_percentage" fill="#ef4444" name="Payload %" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="overflow-x-auto">
+                    <div className="h-80" style={{ minWidth: `${payloadChartData.length * 350}px` }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={payloadChartData} key={payloadChartData.length}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                          <XAxis dataKey="deviceCode" stroke="#6b7280" fontSize={12} />
+                          <YAxis stroke="#6b7280" fontSize={12} domain={[0, 100]} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "white",
+                              border: "1px solid #e5e7eb",
+                              borderRadius: "8px",
+                              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                            }}
+                          />
+                          <Bar 
+                            dataKey="payLoad_1_0_percentage" 
+                            fill="#ef4444" 
+                            name="Payload %"
+                            isAnimationActive={true}
+                            animationDuration={800}
+                            animationEasing="ease-out"
+                            label={{ 
+                              position: 'top', 
+                              formatter: (value) => `${value}%`,
+                              fill: '#ef4444',
+                              fontSize: 25 
+                            }}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -191,22 +258,22 @@ export default function AnalyticsPage() {
               {/* Workflow Distribution */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>{t('analytics.workflowDistribution')}</CardTitle>
-                  <CardDescription>Execution breakdown by workflow type</CardDescription>
+                  <CardTitle>Thời gian làm việc</CardTitle>
+                  <CardDescription>Tý lệ làm việc/nghỉ</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
+                  <div className="h-160">
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPieChart>
                         <Pie
-                          data={workflowDistribution}
+                          data={getWorkStatusPieData()}
                           cx="50%"
                           cy="50%"
-                          outerRadius={80}
+                          outerRadius={200}
                           dataKey="value"
                           label={({ name, value }) => `${name}: ${value}%`}
                         >
-                          {workflowDistribution.map((entry, index) => (
+                          {getWorkStatusPieData().map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -214,29 +281,62 @@ export default function AnalyticsPage() {
                       </RechartsPieChart>
                     </ResponsiveContainer>
                   </div>
+                  
+                  {/* Chú thích */}
+                  <div className="mt-4 flex justify-center gap-6">
+                    {getWorkStatusPieData().map((item, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <span className="text-sm text-gray-600">
+                          {item.name}: {item.value}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Top Workflows */}
+              {/* Payload Statistics */}
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>{t('analytics.topPerformingWorkflows')}</CardTitle>
-                  <CardDescription>Most executed workflows this month</CardDescription>
+                  <CardTitle>Thời gian tải hàng</CardTitle>
+                  <CardDescription>Tỷ lệ có hàng/không hàng</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {workflowDistribution.map((workflow, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: workflow.color }}></div>
-                          <span className="font-medium text-gray-900">{workflow.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">{workflow.value}%</span>
-                          <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                            {Math.floor(workflow.value * 50)} runs
-                          </Badge>
-                        </div>
+                  <div className="h-160">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={getPayloadPieData()}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={200}
+                          dataKey="value"
+                          label={({ name, value }) => `${name}: ${value}%`}
+                        >
+                          {getPayloadPieData().map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Chú thích */}
+                  <div className="mt-4 flex justify-center gap-6">
+                    {getPayloadPieData().map((item, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <span className="text-sm text-gray-600">
+                          {item.name}: {item.value}%
+                        </span>
                       </div>
                     ))}
                   </div>

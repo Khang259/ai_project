@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import SidebarNavigation from '../components/Settings/SidebarNavigation';
 import ButtonSettings from '../components/Settings/ButtonSettings';
 import CameraSettings from '../components/Settings/CameraSettings';
+import MonitorSettings from '../components/Settings/MonitorSettings';
 import RouteSettings from '../components/Settings/RouteSettings/RouteTable';
 import { Settings2 } from 'lucide-react';
 import { useArea } from '../contexts/AreaContext';
@@ -20,6 +21,8 @@ const Settings = () => {
         return <ButtonSettings />;
       case 'camera':
         return <CameraSettings />;
+      case 'monitor':
+        return <MonitorSettings />;
       case 'route':
         return <RouteSettings />;
       default:

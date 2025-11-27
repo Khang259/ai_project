@@ -1,0 +1,152 @@
+2025-11-19 08:27:34,690 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 08:27:34,690 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-19 08:27:39,588 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 08:27:39,588 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 08:27:40,069 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 08:27:40,070 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 08:27:40,165 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 08:27:40,168 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 08:27:40,169 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 08:27:40,169 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 08:27:40,170 - camera_ai_app - INFO - Notification service started
+2025-11-19 08:28:18,332 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 08:28:27,379 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-19 08:28:27,476 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:28:48,773 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:28:49,108 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:28:49,112 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-19 08:28:49,184 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-19 08:29:19,014 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:29:19,344 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-19 08:29:19,354 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:29:19,420 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-19 08:31:42,779 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-19 08:34:09,581 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:34:09,907 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-19 08:34:09,985 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:34:10,038 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-19 08:34:18,805 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:34:19,241 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 08:34:19,951 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 08:34:19,954 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 08:34:53,574 - camera_ai_app - WARNING - Login failed: invalid password or username
+2025-11-19 08:34:53,575 - camera_ai_app - ERROR - Login attempt with invalid username='khang_operator'
+2025-11-19 08:37:28,989 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 08:38:02,245 - camera_ai_app - WARNING - Route creation failed: route_id '2' already exists
+2025-11-19 08:38:02,245 - camera_ai_app - ERROR - Route creation failed: Route ID already exists
+2025-11-19 08:38:07,106 - camera_ai_app - INFO - Route created successfully: 1 - Route_test_creator_by
+2025-11-19 08:38:21,046 - camera_ai_app - INFO - Route updated successfully: 691d1f7f353d5904ea1588a3
+2025-11-19 08:38:34,160 - camera_ai_app - INFO - Route updated successfully: 691bd355ddb9c19f522f7c5b
+2025-11-19 08:38:35,498 - camera_ai_app - INFO - Route updated successfully: 691d1f7f353d5904ea1588a3
+2025-11-19 08:38:37,286 - camera_ai_app - INFO - Route updated successfully: 691bd355ddb9c19f522f7c5b
+2025-11-19 08:38:41,651 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 08:38:41,654 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 08:39:51,484 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 08:39:51,487 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 08:39:55,193 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 08:39:55,196 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-19 09:08:12,500 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 09:25:40,735 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 09:27:28,766 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-19 09:27:28,863 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 09:29:30,047 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 09:29:45,559 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 09:31:37,490 - camera_ai_app - WARNING - Login failed: invalid password or username
+2025-11-19 09:31:37,490 - camera_ai_app - ERROR - Login attempt with invalid username='test_user_switch_area'
+2025-11-19 09:31:46,812 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 09:33:46,864 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 09:36:45,054 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 09:45:21,632 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 09:49:38,736 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 09:50:20,159 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 09:55:38,852 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 09:56:57,360 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:02:20,000 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:03:00,067 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 10:04:42,672 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:05:08,937 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:05:16,980 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 10:06:44,500 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:07:16,069 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:09:12,691 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:11:06,124 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:11:21,802 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:11:59,894 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:12:41,362 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:21:06,246 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:21:30,774 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:22:29,279 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:32:12,985 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:32:26,535 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:33:16,259 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:33:48,735 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 10:35:40,211 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:37:27,972 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:40:32,328 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:43:52,072 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:44:05,093 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:44:19,601 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 10:44:32,868 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:47:54,618 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:50:15,874 - camera_ai_app - INFO - Login success for username='test_switch_area_by_user'
+2025-11-19 10:50:27,554 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 11:02:21,445 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 11:30:53,778 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 11:59:25,174 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 12:27:57,797 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 12:56:29,391 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 13:25:02,228 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 13:52:43,034 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 13:52:43,109 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 13:53:34,913 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 14:21:37,891 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 14:21:37,943 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 14:22:07,448 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 14:29:13,367 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 14:29:20,749 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 14:29:20,800 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 14:29:25,676 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 14:29:25,729 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 14:35:14,443 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-19 14:35:14,539 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 14:35:33,946 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-19 14:50:40,167 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 15:19:12,823 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 15:28:25,187 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:28:25,235 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:28:26,753 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:29:50,357 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:29:50,405 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:29:51,893 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:29:51,945 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:29:54,063 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:29:54,115 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:01,499 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:01,549 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:46,045 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:46,093 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:47,301 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:47,349 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:48,757 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:30:48,805 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 15:47:44,312 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 16:16:16,646 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 16:44:48,848 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 17:13:21,563 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 17:15:08,896 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 17:15:08,946 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 17:41:54,334 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 18:10:26,876 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 18:12:34,440 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 18:12:34,491 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 18:12:43,583 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 18:12:43,635 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-19 18:38:58,767 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 19:07:30,846 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 19:39:32,107 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 20:22:46,448 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 20:51:56,508 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-19 20:51:56,509 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-19 20:51:56,509 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-19 20:51:56,510 - camera_ai_app - INFO - Notification service stopped
+2025-11-19 20:51:56,553 - camera_ai_app - INFO - Disconnected from MongoDB

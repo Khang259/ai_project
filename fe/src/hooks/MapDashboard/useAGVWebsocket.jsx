@@ -1,12 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
 
 const API_HTTP_URL = import.meta.env.VITE_API_URL || '';
-// Tự động chuyển http(s) -> ws(s) 11
+// Tự động chuyển http(s) -> ws(s)
 const DEFAULT_WS_URL = API_HTTP_URL
   ? API_HTTP_URL.replace(/^http/i, (m) => (m.toLowerCase() === 'https' ? 'wss' : 'ws')).replace(/^https/i, 'wss')
   : '';
 
-const WS_URL = 'ws://192.168.1.6:8001/ws/full-agv-data'
+// Sử dụng biến môi trường nếu có, fallback về IP cứng nếu không
+const WS_URL = DEFAULT_WS_URL 
+  ? `${DEFAULT_WS_URL}/ws/full-agv-data`
+  : 'ws://192.168.1.6:8001/ws/full-agv-data'
 
 const useAGVWebSocket = (url = WS_URL) => {
   const [socket, setSocket] = useState(null);

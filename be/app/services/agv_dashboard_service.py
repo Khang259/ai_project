@@ -948,7 +948,8 @@ def get_time_filter_complicated(time_filter: str):
 
 
 async def get_all_robots_payload_data(
-    time_filter: str,
+    start_date: str,
+    end_date: str,
     device_code: str = None
 ):
     """
@@ -967,22 +968,30 @@ async def get_all_robots_payload_data(
         dict: dữ liệu payload của từng robot riêng biệt
     """
     try:
-        start, end, collection_name = get_time_filter_complicated(time_filter)
+        # Parse date range
+        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
+        # Chọn collection phù hợp theo độ dài range
+        days_diff = (end - start).days
+        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
         collection = get_collection(collection_name)
 
         # Base query
-        base_query = {
-            "created_at": {"$gte": start, "$lt": end}
-        }
+        if collection_name == "agv_data":
+            base_query = {"created_at": {"$gte": start, "$lt": end}}
+        else:
+            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
-        # Lọc theo device_code nếu có
+        # Lọc theo device_code nếu có (hỗ trợ danh sách phân tách bằng dấu phẩy)
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         robots_data = {}
 
         # ===== LOGIC CHO FILTER THEO NGÀY ("d") - Query từ raw data =====
-        if time_filter == "d":
+        if collection_name == "agv_data":
             # Xác định format date
             date_format = "%Y-%m-%d"
             
@@ -1083,9 +1092,7 @@ async def get_all_robots_payload_data(
         # ===== TÍNH PHẦN TRĂM CHO SUMMARY (áp dụng cho cả 2 trường hợp) =====
         for device_code_key in robots_data:
             robot = robots_data[device_code_key]
-            
-            # Nếu filter "d", cần tính phần trăm cho time_series
-            if time_filter == "d":
+            if collection_name == "agv_data":
                 for date_key in robot["time_series"]:
                     total_daily = robot["time_series"][date_key]["total_records"]
                     if total_daily > 0:
@@ -1101,8 +1108,7 @@ async def get_all_robots_payload_data(
         
         return {
             "status": "success",
-            "time_range": f"{start} to {end}",
-            "time_unit": time_filter,
+            "time_range": f"{start_date} to {end_date}",
             "collection_used": collection_name,
             "total_robots": len(robots_data),
             "robots": list(robots_data.values())
@@ -1117,40 +1123,48 @@ async def get_all_robots_payload_data(
 
 
 async def get_all_robots_work_status(
-    time_filter: str,
+    start_date: str,
+    end_date: str,
     device_code: str = None
 ):
     """
     Lấy dữ liệu work status (InTask/Idle) của TẤT CẢ robot
     
-    Logic:
-    - "d": Query từ agv_data (raw data) và tính toán - data nhiều, nặng
-    - "w", "m": Query từ agv_daily_statistics (đã tính sẵn), chỉ tổng hợp lại
-    
     Args:
-        time_filter: "d", "w", "m"
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
         device_code: mã thiết bị để lọc (tùy chọn)
     
     Returns:
         dict: dữ liệu work status của từng robot riêng biệt
     """
     try:
-        start, end, collection_name = get_time_filter_complicated(time_filter)
+        # Parse date range
+        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # Chọn collection dựa theo độ dài range: <=7 ngày dùng raw, ngược lại dùng daily
+        days_diff = (end - start).days
+        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
         collection = get_collection(collection_name)
 
         # Base query
-        base_query = {
-            "created_at": {"$gte": start, "$lt": end}
-        }
+        if collection_name == "agv_data":
+            base_query = {"created_at": {"$gte": start, "$lt": end}}
+        else:
+            # daily stats dùng field 'date' dạng YYYY-MM-DD
+            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
-        # Lọc theo device_code nếu có
+        # Lọc theo device_code nếu có (hỗ trợ danh sách phân tách bằng dấu phẩy)
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         robots_data = {}
 
         # ===== LOGIC CHO FILTER THEO NGÀY ("d") - Query từ raw data =====
-        if time_filter == "d":
+        if collection_name == "agv_data":
             # Xác định format date
             date_format = "%Y-%m-%d"
             
@@ -1248,8 +1262,8 @@ async def get_all_robots_work_status(
         for device_code_key in robots_data:
             robot = robots_data[device_code_key]
             
-            # Nếu filter "d", cần tính phần trăm cho time_series
-            if time_filter == "d":
+            # Nếu dùng raw data, cần tính phần trăm cho time_series
+            if collection_name == "agv_data":
                 for date_key in robot["time_series"]:
                     total_daily = robot["time_series"][date_key]["total_records"]
                     if total_daily > 0:
@@ -1265,8 +1279,7 @@ async def get_all_robots_work_status(
         
         return {
             "status": "success",
-            "time_range": f"{start} to {end}",
-            "time_unit": time_filter,
+            "time_range": f"{start_date} to {end_date}",
             "collection_used": collection_name,
             "total_robots": len(robots_data),
             "robots": list(robots_data.values())

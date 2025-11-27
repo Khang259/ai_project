@@ -1,0 +1,42 @@
+2025-11-26 08:21:44,384 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-26 08:21:44,384 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-26 08:21:50,012 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-26 08:21:50,013 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 08:21:50,497 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 08:21:50,497 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 08:21:50,597 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 08:21:50,600 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-26 08:21:50,601 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-26 23:00:00+07:00
+2025-11-26 08:21:50,601 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-26 08:21:50,601 - camera_ai_app - INFO - Notification service started
+2025-11-26 08:31:31,629 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-26 08:31:31,756 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:47:48,473 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:47:48,809 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:47:48,819 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-26 08:47:48,895 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-26 08:48:09,201 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:48:09,573 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:48:52,066 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:48:52,403 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:48:53,922 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:48:54,257 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-26 08:48:54,258 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:48:54,349 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-26 08:52:21,484 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:52:21,820 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:52:21,823 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-26 08:52:21,914 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-26 08:52:32,858 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:52:33,262 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 08:57:59,726 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-26 08:57:59,842 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 09:09:18,644 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-26 09:09:18,769 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 09:26:16,954 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 09:38:38,473 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 09:55:13,879 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 10:24:13,865 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 10:53:13,955 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 11:22:13,857 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 11:30:19,475 - camera_ai_app - INFO - Login success for username='hau_admin'

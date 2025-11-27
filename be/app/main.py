@@ -12,9 +12,10 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions, agv_dashboard, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, route
+from app.api import auth, users, permissions, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, monitor, analytic, route, agv_dashboard, dashboard_performance
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.scheduler import start_scheduler, shutdown_scheduler
+from app.services.role_service import initialize_default_permissions, initialize_default_roles
 from app.routers.parts_summary import router as parts_router
 from app.routers.part_detail import router as part_detail_router
 from app.routers.update_parts import router as update_router
@@ -38,6 +39,18 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting CameraAI Backend...")
     await connect_to_mongo(settings.mongo_url, settings.mongo_db)
+    
+    # Khởi tạo default permissions và roles (nếu chưa có)
+    try:
+        logger.info("Initializing default permissions...")
+        await initialize_default_permissions()
+        logger.info("Default permissions initialized")
+        
+        logger.info("Initializing default roles...")
+        await initialize_default_roles()
+        logger.info("Default roles initialized")
+    except Exception as e:
+        logger.error(f"Error initializing default permissions/roles: {e}")
     
     # Khởi tạo default permissions và roles (nếu chưa có)
     try:
@@ -125,6 +138,7 @@ app.include_router(websocket_api.router, tags=["WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
 app.include_router(notification.router, tags=["Notification"])
 app.include_router(task_status.router, tags=["Task Status"])
+app.include_router(dashboard_performance.router, tags=["Dashboard Performance"])
 # Add Maintenance API
 app.include_router(parts_router, prefix="/api", tags=["Parts Summary"])
 app.include_router(part_detail_router, prefix="/api", tags=["Part Detail"])
@@ -135,6 +149,11 @@ app.include_router(maintenance_check_router, prefix="/api", tags=["Maintenance C
 app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name"])
 
 app.include_router(pdf_router, tags=["PDF"])
+app.include_router(notification.router, tags=["Notification"])
+app.include_router(task_status.router, tags=["Task Status"])
+app.include_router(monitor.router, prefix="/monitor", tags=["Monitor Management"])
+app.include_router(analytic.router, tags=["Analysis"])
+
 
 @app.get("/")
 async def root():

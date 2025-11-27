@@ -56,4 +56,3 @@ async def refresh_token(token_in: RefreshTokenRequest):
 async def get_me(current_user: UserOut = Depends(get_current_active_user)):
     """Get current user information"""
     return current_user
-

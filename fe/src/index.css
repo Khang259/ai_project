@@ -144,3 +144,22 @@
     background: transparent !important;
   }
 }
+@keyframes moveDot {
+  0%,
+  100% {
+    top: 0%;
+    right: 0%;
+  }
+  25% {
+    top: 0%;
+    right: calc(100% - 0.5%);
+  }
+  50% {
+    top: calc(100% - 0%);
+    right: calc(100% - 0.5%);
+  }
+  75% {
+    top: calc(100% - 0%);
+    right: 0%;
+  }
+}
