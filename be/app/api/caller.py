@@ -5,8 +5,10 @@ from app.services.monitor_service import increment_produced_quantity_by_node_end
 from app.schemas.node import ProcessCaller
 import httpx
 from shared.logging import get_logger
+from app.core.config import settings
 
 logger = get_logger("camera_ai_app")
+ics_url = f"http://{settings.ics_host}:7000"
 
 router = APIRouter()
 
@@ -15,11 +17,7 @@ async def manual_caller(node: ProcessCaller, priority: Optional[int] = Query(Non
     payload = await process_caller(node, priority)
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post('http://192.168.1.169:7000/ics/taskOrder/addTask', json=payload)
-        
-        if response.status_code == 200:
-            result = await increment_produced_quantity_by_node_end(node.end)
-           
+            response = await client.post(f'{ics_url}/ics/taskOrder/addTask', json=payload)
         return {"status": response.status_code, "payload": payload}
     except Exception as e:
         logger.error(f"Error calling process caller: {str(e)}")
@@ -32,7 +30,7 @@ async def manual_cancel(order_id: str, dest_position: Optional[int] = Query(None
         payload[0]["destPosition"] = dest_position
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post('http://192.168.1.169:7000/ics/out/task/cancelTask', json=payload)
+            response = await client.post(f'{ics_url}/ics/out/task/cancelTask', json=payload)
         return {"status": response.status_code, "payload": payload}
     except Exception as e:  
         logger.error(f"Error calling process caller: {str(e)}")

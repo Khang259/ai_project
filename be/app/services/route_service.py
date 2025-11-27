@@ -7,17 +7,28 @@ from bson import ObjectId
 
 logger = get_logger("camera_ai_app")
 
+async def validate_area_exists(area_id: int) -> bool:
+    """Kiểm tra xem area có tồn tại không theo area_id"""
+    areas = get_collection("areas")
+    area = await areas.find_one({"area_id": area_id})
+    return area is not None
+
 async def create_route(route_in: RouteCreate, created_by: str) -> RouteOut:
-    """Tạo area mới"""
+    """Tạo route mới"""
     routes = get_collection("routes")
     
-    # Kiểm tra xem area_id đã tồn tại chưa
+    # Validate area tồn tại
+    if not await validate_area_exists(route_in.area_id):
+        logger.warning(f"Route creation failed: area '{route_in.area_id}' does not exist")
+        raise ValueError("Area does not exist")
+    
+    # Kiểm tra xem route_id đã tồn tại chưa
     existing_id = await routes.find_one({"route_id": route_in.route_id})
     if existing_id:
         logger.warning(f"Route creation failed: route_id '{route_in.route_id}' already exists")
         raise ValueError("Route ID already exists")
     
-    # Kiểm tra xem area_name đã tồn tại chưa
+    # Kiểm tra xem route_name đã tồn tại chưa
     existing_name = await routes.find_one({"route_name": route_in.route_name})
     if existing_name:
         logger.warning(f"Route creation failed: route_name '{route_in.route_name}' already exists")
@@ -26,6 +37,7 @@ async def create_route(route_in: RouteCreate, created_by: str) -> RouteOut:
     route_data = {
         "route_id": route_in.route_id,
         "route_name": route_in.route_name,
+        "area_id": route_in.area_id,
         "group_id": route_in.group_id,
         "robot_list": route_in.robot_list,
         "created_by": created_by,
@@ -36,7 +48,7 @@ async def create_route(route_in: RouteCreate, created_by: str) -> RouteOut:
     result = await routes.insert_one(route_data)
     logger.info(f"Route created successfully: {route_in.route_id} - {route_in.route_name}")
     
-    # Lấy area vừa tạo để trả về
+    # Lấy route vừa tạo để trả về
     created_route = await routes.find_one({"_id": result.inserted_id})
     return RouteOut(**created_route, id=str(created_route["_id"]))
 
@@ -102,6 +114,12 @@ async def update_route(route_id: str, route_update: RouteUpdate) -> Optional[Rou
         if existing_name:
             logger.warning(f"Route update failed: route_name '{update_data['route_name']}' already exists")
             raise ValueError("Route name already exists")
+    
+    # Validate area nếu có thay đổi
+    if "area_id" in update_data:
+        if not await validate_area_exists(update_data["area_id"]):
+            logger.warning(f"Route update failed: area '{update_data['area_id']}' does not exist")
+            raise ValueError("Area does not exist")
     
     # Kiểm tra created_by có tồn tại không (nếu có thay đổi)
     if "created_by" in update_data:

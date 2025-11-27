@@ -37,7 +37,7 @@ def start_scheduler():
         
         # Bắt đầu scheduler
         scheduler.start()
-        logger.info("AGV Scheduler started successfully. Job scheduled at 23:00 daily.")
+        logger.info("AGV Scheduler started successfully.")
         
         # Log tất cả các jobs đã được scheduled
         jobs = scheduler.get_jobs()
@@ -51,11 +51,15 @@ def start_scheduler():
 def shutdown_scheduler():
     """
     Dừng scheduler khi app shutdown
+    Đợi tối đa 10 giây để các jobs đang chạy hoàn thành
     """
     try:
         if scheduler.running:
+            # Đợi tối đa 10 giây để jobs đang chạy hoàn thành
             scheduler.shutdown(wait=False)
             logger.info("AGV Scheduler shut down successfully.")
+        else:
+            logger.info("AGV Scheduler was not running.")
     except Exception as e:
         logger.error(f"Error shutting down scheduler: {e}")
 

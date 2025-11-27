@@ -2,7 +2,12 @@ import collections
 from datetime import datetime, timedelta
 from app.core.database import get_collection
 from shared.logging import get_logger
+from typing import Optional
+import httpx
+from app.core.config import settings
 
+
+ics_url = f"http://{settings.ics_host}:7000"
 logger = get_logger("camera_ai_app")
 
 async def save_agv_data(payload: list):
@@ -26,40 +31,427 @@ async def save_agv_data(payload: list):
                 }
                 agv_data.append(agv_record)
                 saved_count += 1
-        logger.info(f"Successfully saved {saved_count} AGV records")
+        
         if len(agv_data) > 0:
             await agv_collection.insert_many(agv_data)
+        logger.info(f"Successfully saved {saved_count} AGV records")
         return {"status": "success", "saved_count": saved_count}
 
     except Exception as e:
         logger.error(f"Error saving agv data: {e}")
         return {"status": "error", "message": str(e)}
 
-def get_agv_position(payload: list):
-    agv_info = [
-        {
-            "device_code": record.get("deviceCode"),
+
+async def get_group_id(device_code):
+    """Get group_id for device_code. Returns None if not found."""
+    if not device_code:
+        return None
+    routes_collection = get_collection("routes")
+    # Find route where device_code is in robot_list array
+    route = await routes_collection.find_one({"robot_list": {"$in": [device_code]}})
+    if not route or "group_id" not in route:
+        return None
+    return str(route.get("group_id")) if route.get("group_id") else None
+
+async def get_agv_position(payload: list):
+    """
+    Group AGV data theo group_id và return dict {group_id: [list of robots]}
+    """
+    grouped_data = {}
+    
+    for record in payload:
+        device_code = record.get("deviceCode")
+        if not device_code:
+            continue
+            
+        # Get group_id for this device
+        group_id = await get_group_id(device_code)
+        if not group_id or group_id == "None":
+            continue
+        
+        # Prepare robot info
+        robot_info = {
+            "device_code": device_code,
             "device_name": record.get("deviceName"),
             "battery": record.get("battery"),
             "speed": record.get("speed"),
             "devicePosition": record.get("devicePosition"),
             "orientation": record.get("orientation"),   
             "devicePositionReceived": record.get("devicePositionRec"),
+            "created_at": datetime.now().isoformat()
         }
-        for record in payload
-    ]
+        
+        # Group by group_id
+        if group_id not in grouped_data:
+            grouped_data[group_id] = []
+        grouped_data[group_id].append(robot_info)
+    
+    return grouped_data
 
-    return agv_info
+async def get_battery_agv(group_id: Optional[str] = None):
+    try:
+        battery_collection = get_collection("battery_collection")
+        
+        # Tính ngày hôm trước
+        now = datetime.now()
+        yesterday_start = (now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        yesterday_end = yesterday_start + timedelta(days=1)  # 00:00:00 của ngày hôm nay
+        
+        # Build query
+        query = {
+            "snapshot_time": {
+                "$gte": yesterday_start,
+                "$lt": yesterday_end
+            }
+        }
+        
+        # Thêm filter group_id nếu có
+        if group_id:
+            query["group_id"] = group_id
+        
+        # Query database
+        cursor = battery_collection.find(query).sort("snapshot_time", 1)  # Sort theo thời gian tăng dần
+        battery_data = await cursor.to_list(length=None)
+        
+        if not battery_data:
+            logger.info(f"No battery data found for yesterday (group_id: {group_id or 'all'})")
+            return {
+                "status": "success",
+                "data": [],
+                "date": yesterday_start.date().isoformat(),
+                "group_id": group_id,
+                "count": 0
+            }
+        
+        logger.info(f"Retrieved {len(battery_data)} battery records for yesterday (group_id: {group_id or 'all'})")
+        
+        return {
+            "status": "success",
+            "data": battery_data,
+            "date": yesterday_start.date().isoformat(),
+            "group_id": group_id,
+            "count": len(battery_data)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting battery AGV data: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "data": []
+        }
+
+async def save_agv_position_snapshot(grouped_data: dict = None):
+    try:
+        battery_collection = get_collection("battery_collection")
+        snapshot_time = datetime.now().replace(minute=0, second=0, microsecond=0)
+
+        current_hour = snapshot_time.hour
+        if current_hour < 8 or current_hour >= 19:  # < 8h hoặc >= 19h thì không chạy
+            logger.debug(f"Snapshot skipped: outside working hours (current hour: {current_hour})")
+            return {
+                "status": "skipped",
+                "message": f"Snapshot only runs between 8:00 and 19:00. Current hour: {current_hour}",
+                "snapshot_time": snapshot_time.isoformat()
+            }
+        
+        if not grouped_data:
+            logger.warning("No grouped_data provided")
+            return {"status": "error", "message": "No data provided"}
+        
+        # ✅ TỐI ƯU 1: Batch check tất cả groups cùng lúc (1 query thay vì N queries)
+        group_ids = list(grouped_data.keys())
+        existing_snapshots = await battery_collection.find({
+            "group_id": {"$in": group_ids},
+            "snapshot_time": snapshot_time
+        }).to_list(length=None)
+        
+        # Tạo set các group_ids đã có snapshot
+        existing_group_ids = {snapshot["group_id"] for snapshot in existing_snapshots}
+        
+        # Tính toán và chuẩn bị data cho các groups chưa có snapshot
+        battery_data_to_insert = []
+        saved_groups = []
+        skipped_groups = list(existing_group_ids)
+        
+        for group_id, robots_list in grouped_data.items():
+            if group_id in existing_group_ids:
+                logger.debug(f"Snapshot already exists for group {group_id}")
+                continue
+            
+            # Tính toán battery cho group này
+            if not robots_list or len(robots_list) == 0:
+                logger.warning(f"No robots in group {group_id}")
+                continue
+            
+            sum_battery = 0
+            valid_count = 0
+            
+            for robot in robots_list:
+                battery = robot.get("battery")
+                if battery is not None:
+                    try:
+                        sum_battery += float(battery)
+                        valid_count += 1
+                    except (ValueError, TypeError):
+                        continue
+            
+            if valid_count == 0:
+                logger.warning(f"No valid battery data for group {group_id}")
+                continue
+            
+            avg_battery = sum_battery / valid_count
+            
+            battery_data_to_insert.append({
+                "group_id": group_id,
+                "avg_battery": round(avg_battery, 2),
+                "snapshot_time": snapshot_time,
+                "robot_count": len(robots_list),
+                "valid_battery_count": valid_count,
+                "created_at": datetime.now().isoformat()
+            })
+            saved_groups.append(group_id)
+        
+        # ✅ TỐI ƯU 2: Batch insert tất cả cùng lúc (1 query thay vì N queries)
+        if battery_data_to_insert:
+            await battery_collection.insert_many(battery_data_to_insert)
+            logger.info(f"Saved {len(battery_data_to_insert)} battery snapshots at {snapshot_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        return {
+            "status": "success",
+            "saved_groups": saved_groups,
+            "skipped_groups": skipped_groups,
+            "total_groups": len(grouped_data),
+            "snapshot_time": snapshot_time.isoformat()
+        }
+            
+    except Exception as e:
+        logger.error(f"Error saving AGV position snapshot: {e}")
+        return {"status": "error", "message": str(e)}
+
+async def filter_count_task(payload):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f'{ics_url}/ics/out/task/getOrderList', json=payload)
+            response.raise_for_status()
+            response_data = response.json()
+            
+            # Kiểm tra response code
+            if response_data.get("code") != 1000:
+                logger.warning(f"API returned code {response_data.get('code')}: {response_data.get('desc', 'Unknown error')}")
+                return {
+                    "status": "error",
+                    "message": response_data.get("desc", "API returned error code"),
+                    "tasks_with_end_time": [],
+                    "total_tasks": 0,
+                    "filtered_count": 0
+                }
+            
+            # Lấy danh sách tasks từ response
+            tasks = response_data.get("data", {}).get("Tasks", [])
+            total_tasks = len(tasks)
+            
+            # Lọc các task có ActualEndTime
+            tasks_with_end_time = [
+                task for task in tasks 
+                if task.get("ActualEndTime") is not None and task.get("ActualEndTime") != ""
+            ]
+            filtered_count = len(tasks_with_end_time)
+            
+            logger.info(f"Filtered {filtered_count} tasks with ActualEndTime out of {total_tasks} total tasks")
+            
+            return {
+                "status": "success",
+                "total_tasks": total_tasks,
+                "filtered_count": filtered_count
+            }
+
+    except httpx.HTTPError as e:
+        logger.error(f"HTTP error when calling get_in_progress_task: {e}")
+        return {
+            "status": "error",
+            "message": f"HTTP error: {str(e)}",
+            "tasks_with_end_time": [],
+            "total_tasks": 0,
+            "filtered_count": 0
+        }
+    except Exception as e:
+        logger.error(f"Error in get_in_progress_task: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "tasks_with_end_time": [],
+            "total_tasks": 0,
+            "filtered_count": 0
+        }
+
+async def get_in_progress_task(group_id: Optional[str] = None):
+    if group_id:
+        payload = {"areaId": group_id, "pageSize": "50"}
+        logger.info(f"Getting in progress task for group {group_id}")
+        result = await filter_count_task(payload)
+        return result
+    else:
+        area_collection = get_collection("area")
+        total_tasks = 0
+        filtered_count = 0
+        for area in await area_collection.find().to_list(length=None):
+            payload = {"areaId": area["area_id"], "pageSize": "50"}
+            result = await filter_count_task(payload)
+            logger.info(f"Getting in progress task for group {area['area_id']}: {result}")
+            if result["status"] == "success":
+                total_tasks += result["total_tasks"]
+                filtered_count += result["filtered_count"]
+        return {
+            "status": "success",
+            "total_tasks": total_tasks,
+            "filtered_count": filtered_count
+        }
+
+async def get_task_dashboard(group_id: Optional[str] = None):
+    tasks_collection = get_collection("tasks")
+    base_query = {}
+    query_by_week = {}
+    query_by_month = {}
+
+    # Calculate time thresholds as ISO strings (since updated_at is stored as ISO string)
+    week_ago = (datetime.now() - timedelta(weeks=1)).isoformat()
+    month_ago = (datetime.now() - timedelta(days=30)).isoformat()
+
+    if group_id:
+        result = await get_in_progress_task(group_id)
+        if result["status"] == "success":
+            in_progress_tasks = result["filtered_count"]
+        else:
+            in_progress_tasks = 0
+        base_query["group_id"] = group_id
+        query_by_week["group_id"] = group_id
+        query_by_week["updated_at"] = {"$gte": week_ago}
+        query_by_month["group_id"] = group_id
+        query_by_month["updated_at"] = {"$gte": month_ago}
+    else:
+        # If no group_id, still filter by time for week/month queries
+        result = await get_in_progress_task()
+        if result["status"] == "success":
+            in_progress_tasks = result["filtered_count"]
+        else:
+            in_progress_tasks = 0
+        query_by_week["updated_at"] = {"$gte": week_ago}
+        query_by_month["updated_at"] = {"$gte": month_ago}
+    
+    tasks = tasks_collection.find(base_query)
+    tasks = await tasks.to_list(length=None)
+
+    tasks_by_week = tasks_collection.find(query_by_week)
+    tasks_by_week = await tasks_by_week.to_list(length=None)
+
+    tasks_by_month = tasks_collection.find(query_by_month)
+    tasks_by_month = await tasks_by_month.to_list(length=None)
+    
+    # Count tasks from list (not from collection)
+    completed_tasks = len([task for task in tasks if task.get("status") == 9])
+    cancelled_tasks = len([task for task in tasks if task.get("status") == 3])
+
+    completed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 9])
+    completed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 9])
+    total_tasks_by_week = len([task for task in tasks_by_week])
+    total_tasks_by_month = len([task for task in tasks_by_month])
+
+    
+    return {
+        "status": "success",
+        "completed_tasks": completed_tasks,
+        "in_progress_tasks": in_progress_tasks,
+        "cancelled_tasks": cancelled_tasks,
+        "completed_tasks_by_week": completed_tasks_by_week,
+        "completed_tasks_by_month": completed_tasks_by_month,
+        "total_tasks_by_week": total_tasks_by_week,
+        "total_tasks_by_month": total_tasks_by_month,
+    }
+
+async def get_success_task_by_hour(group_id: Optional[str] = None):
+    tasks_collection = get_collection("tasks")
+    # Lấy ngày hôm qua
+    yesterday = datetime.now() - timedelta(days=1)
+    # Thời gian bắt đầu: 8:00:00 của ngày hôm qua
+    start_time = yesterday.replace(hour=8, minute=0, second=0, microsecond=0)
+    # Thời gian kết thúc: 19:59:59.999999 của ngày hôm qua
+    end_time = yesterday.replace(hour=19, minute=59, second=59, microsecond=999999)
+    
+    base_query = {
+        "updated_at": {"$gte": start_time, "$lte": end_time}
+    }
+    if group_id:
+        base_query["group_id"] = group_id
+    tasks = tasks_collection.find(base_query)
+    tasks = await tasks.to_list(length=None)
+    
+    # Group tasks theo group_id và theo giờ - luôn trả về format đồng nhất
+    tasks_by_group_and_hour = {}
+    for task in tasks:
+        task_group_id = task.get("group_id")
+        if not task_group_id:
+            continue
+        
+        # Lấy giờ từ updated_at
+        updated_at = task.get("updated_at")
+        if isinstance(updated_at, str):
+            # Nếu là string, parse thành datetime
+            try:
+                # Xử lý cả ISO format và format khác
+                if 'T' in updated_at:
+                    updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+                else:
+                    updated_at = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
+            except:
+                continue
+        elif isinstance(updated_at, datetime):
+            # Đã là datetime object, giữ nguyên
+            pass
+        else:
+            continue
+        
+        hour = updated_at.hour
+        
+        # Chỉ tính từ 8h đến 19h
+        if hour < 8 or hour > 19:
+            continue
+        
+        # Khởi tạo structure nếu chưa có
+        if task_group_id not in tasks_by_group_and_hour:
+            tasks_by_group_and_hour[task_group_id] = {}
+        if hour not in tasks_by_group_and_hour[task_group_id]:
+            tasks_by_group_and_hour[task_group_id][hour] = {"total": 0, "completed": 0}
+        
+        # Đếm task
+        tasks_by_group_and_hour[task_group_id][hour]["total"] += 1
+        if task.get("status") == 22:
+            tasks_by_group_and_hour[task_group_id][hour]["completed"] += 1
+    
+    # Tính completion_rate cho từng giờ của mỗi group
+    groups_statistics = {}
+    for group_id, hours_data in tasks_by_group_and_hour.items():
+        groups_statistics[group_id] = {}
+        for hour in range(8, 20):  # Từ 8h đến 19h
+            if hour in hours_data:
+                total = hours_data[hour]["total"]
+                completed = hours_data[hour]["completed"]
+                completion_rate = round((completed / total * 100), 2) if total > 0 else 0
+                groups_statistics[group_id][str(hour)] = completion_rate
+            else:
+                # Nếu không có data cho giờ đó, set 0
+                groups_statistics[group_id][str(hour)] = 0
+    
+    # Trả về format đồng nhất với metadata để frontend dễ render
+    return {
+        "data": groups_statistics,
+        "total_groups": len(groups_statistics),
+        "total_tasks": len(tasks),
+        "filtered_by_group_id": group_id if group_id else None
+    }
+
 
 async def reverse_dashboard_data():
-    """
-    Tính toán và lưu thống kê theo ngày của tất cả AGV vào database.
-    Hàm này tính toán cả payload statistics (có tải/không tải) và work status (InTask/Idle).
-    Chỉ lấy dữ liệu của NGÀY HÔM NAY (từ 00:00:00 đến 23:59:59)
-    
-    Returns:
-        dict: Kết quả tính toán và số lượng bản ghi đã lưu
-    """
     try:
         agv_collection = get_collection("agv_data")
         daily_stats_collection = get_collection("agv_daily_statistics")
@@ -203,7 +595,6 @@ async def reverse_dashboard_data():
             # Payload statistics
             InTask_payload_0_0 = payload_data.get(key, {}).get("InTask_payLoad_0_0_count", 0)
             InTask_payload_1_0 = payload_data.get(key, {}).get("InTask_payLoad_1_0_count", 0)
-
             
             total_InTask_payload = InTask_payload_0_0 + InTask_payload_1_0
             
@@ -896,223 +1287,6 @@ async def get_all_robots_work_status(
 
     except Exception as e:
         logger.error(f"Error getting all robots work status: {e}")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-
-async def get_all_robots_work_status_summary(
-    start_date: str,
-    end_date: str,
-    device_code: str = None
-):
-    """
-    Lấy summary của work status (InTask/Idle) - AGGREGATE TẤT CẢ ROBOTS
-    
-    Args:
-        start_date: Ngày bắt đầu (YYYY-MM-DD)
-        end_date: Ngày kết thúc (YYYY-MM-DD)
-        device_code: mã thiết bị để lọc (tùy chọn)
-    
-    Returns:
-        dict: summary statistics - tổng hợp tất cả robots
-    """
-    try:
-        # Parse date range
-        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
-        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
-
-        # Chọn collection dựa theo độ dài range
-        days_diff = (end - start).days
-        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
-        collection = get_collection(collection_name)
-
-        # Base query
-        if collection_name == "agv_data":
-            base_query = {"created_at": {"$gte": start, "$lt": end}}
-        else:
-            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
-
-        if device_code:
-            codes = [c.strip() for c in device_code.split(",") if c.strip()]
-            if codes:
-                base_query["device_code"] = {"$in": codes}
-
-        # Aggregate tất cả robots lại
-        if collection_name == "agv_data":
-            # Query từ raw data và aggregate
-            pipeline = [
-                {"$match": base_query},
-                {
-                    "$group": {
-                        "_id": "$state",
-                        "count": {"$sum": 1}
-                    }
-                }
-            ]
-            cursor = collection.aggregate(pipeline)
-            result = await cursor.to_list(length=None)
-            
-            total_intask = 0
-            total_idle = 0
-            
-            for item in result:
-                if item["_id"] == "InTask":
-                    total_intask = item["count"]
-                elif item["_id"] == "Idle":
-                    total_idle = item["count"]
-            
-            total_records = total_intask + total_idle
-            intask_percentage = round((total_intask / total_records) * 100, 2) if total_records > 0 else 0
-            idle_percentage = round((total_idle / total_records) * 100, 2) if total_records > 0 else 0
-            
-            return {
-                "status": "success",
-                "time_range": f"{start_date} to {end_date}",
-                "collection_used": collection_name,
-                "summary": {
-                    "total_inTask_count": total_intask,
-                    "total_idle_count": total_idle,
-                    "total_records": total_records,
-                    "inTask_percentage": intask_percentage,
-                    "idle_percentage": idle_percentage
-                }
-            }
-        else:
-            # Query từ daily statistics và aggregate
-            cursor = collection.find(base_query)
-            daily_stats = await cursor.to_list(length=None)
-            
-            total_intask = sum(stat.get("InTask_count", 0) for stat in daily_stats)
-            total_idle = sum(stat.get("Idle_count", 0) for stat in daily_stats)
-            
-            total_records = total_intask + total_idle
-            intask_percentage = round((total_intask / total_records) * 100, 2) if total_records > 0 else 0
-            idle_percentage = round((total_idle / total_records) * 100, 2) if total_records > 0 else 0
-            
-            return {
-                "status": "success",
-                "time_range": f"{start_date} to {end_date}",
-                "collection_used": collection_name,
-                "summary": {
-                    "total_inTask_count": total_intask,
-                    "total_idle_count": total_idle,
-                    "total_records": total_records,
-                    "inTask_percentage": intask_percentage,
-                    "idle_percentage": idle_percentage
-                }
-            }
-
-    except Exception as e:
-        logger.error(f"Error getting all robots work status summary: {e}")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-
-async def get_all_robots_payload_statistics_summary(
-    start_date: str,
-    end_date: str,
-    device_code: str = None
-):
-    """
-    Lấy summary của payload statistics - AGGREGATE TẤT CẢ ROBOTS
-    
-    Args:
-        start_date: Ngày bắt đầu (YYYY-MM-DD)
-        end_date: Ngày kết thúc (YYYY-MM-DD)
-        device_code: mã thiết bị để lọc (tùy chọn)
-    
-    Returns:
-        dict: summary payload statistics - tổng hợp tất cả robots
-    """
-    try:
-        # Parse date range
-        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
-        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
-
-        days_diff = (end - start).days
-        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
-        collection = get_collection(collection_name)
-
-        if collection_name == "agv_data":
-            base_query = {"created_at": {"$gte": start, "$lt": end}}
-        else:
-            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
-
-        if device_code:
-            codes = [c.strip() for c in device_code.split(",") if c.strip()]
-            if codes:
-                base_query["device_code"] = {"$in": codes}
-
-        if collection_name == "agv_data":
-            # Query từ raw data và aggregate
-            pipeline = [
-                {"$match": {**base_query, "state": "InTask"}},
-                {
-                    "$group": {
-                        "_id": "$payLoad",
-                        "count": {"$sum": 1}
-                    }
-                }
-            ]
-            cursor = collection.aggregate(pipeline)
-            result = await cursor.to_list(length=None)
-            
-            total_0_0 = 0
-            total_1_0 = 0
-            
-            for item in result:
-                if item["_id"] == "0.0":
-                    total_0_0 = item["count"]
-                elif item["_id"] == "1.0":
-                    total_1_0 = item["count"]
-            
-            total_records = total_0_0 + total_1_0
-            payload_0_0_percentage = round((total_0_0 / total_records) * 100, 2) if total_records > 0 else 0
-            payload_1_0_percentage = round((total_1_0 / total_records) * 100, 2) if total_records > 0 else 0
-            
-            return {
-                "status": "success",
-                "time_range": f"{start_date} to {end_date}",
-                "collection_used": collection_name,
-                "summary": {
-                    "total_payLoad_0_0_count": total_0_0,
-                    "total_payLoad_1_0_count": total_1_0,
-                    "total_records": total_records,
-                    "payLoad_0_0_percentage": payload_0_0_percentage,
-                    "payLoad_1_0_percentage": payload_1_0_percentage
-                }
-            }
-        else:
-            # Query từ daily statistics và aggregate
-            cursor = collection.find(base_query)
-            daily_stats = await cursor.to_list(length=None)
-            
-            total_0_0 = sum(stat.get("InTask_payLoad_0_0_count", 0) for stat in daily_stats)
-            total_1_0 = sum(stat.get("InTask_payLoad_1_0_count", 0) for stat in daily_stats)
-            
-            total_records = total_0_0 + total_1_0
-            payload_0_0_percentage = round((total_0_0 / total_records) * 100, 2) if total_records > 0 else 0
-            payload_1_0_percentage = round((total_1_0 / total_records) * 100, 2) if total_records > 0 else 0
-            
-            return {
-                "status": "success",
-                "time_range": f"{start_date} to {end_date}",
-                "collection_used": collection_name,
-                "summary": {
-                    "total_payLoad_0_0_count": total_0_0,
-                    "total_payLoad_1_0_count": total_1_0,
-                    "total_records": total_records,
-                    "payLoad_0_0_percentage": payload_0_0_percentage,
-                    "payLoad_1_0_percentage": payload_1_0_percentage
-                }
-            }
-
-    except Exception as e:
-        logger.error(f"Error getting all robots payload statistics summary: {e}")
         return {
             "status": "error",
             "message": str(e)
