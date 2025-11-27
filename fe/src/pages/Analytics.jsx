@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Download } from "lucide-react";
 import { useArea } from "@/contexts/AreaContext";
 import { 
@@ -30,6 +31,7 @@ import { AMRFilter } from "@/components/Analytics/AMRFilter";
 
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation()
   const [dateFilter, setDateFilter] = useState({
     startDate: new Date(),
     endDate: new Date()

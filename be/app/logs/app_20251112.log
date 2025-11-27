@@ -1,0 +1,57 @@
+2025-11-12 14:58:49,762 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-12 14:58:49,763 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-12 14:58:54,785 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-12 14:58:54,785 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-12 14:58:55,594 - camera_ai_app - INFO - Default permissions initialized
+2025-11-12 14:58:55,594 - camera_ai_app - INFO - Initializing default roles...
+2025-11-12 14:58:55,753 - camera_ai_app - INFO - Default roles initialized
+2025-11-12 14:58:55,755 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-12 14:58:55,755 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-12 23:00:00+07:00
+2025-11-12 14:58:55,756 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-12 14:59:13,808 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-12 14:59:13,969 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 14:59:15,395 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-12 14:59:36,736 - camera_ai_app - WARNING - Map not found for area_id: 5
+2025-11-12 15:00:34,327 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 15:00:34,851 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 15:00:35,549 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-12 15:00:35,551 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-12 15:00:49,447 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 15:00:49,959 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 15:00:50,142 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-12 15:00:50,145 - camera_ai_app - WARNING - Invalid camera ID format: health-check
+2025-11-12 15:01:47,527 - camera_ai_app - WARNING - Map not found for area_id: 5
+2025-11-12 15:01:47,565 - camera_ai_app - WARNING - Map not found for area_id: 5
+2025-11-12 15:01:48,143 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-12 15:19:57,255 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
+2025-11-12 15:20:43,055 - camera_ai_app - INFO - WebSocket connected. Total connections: 4
+2025-11-12 15:28:13,492 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 15:58:07,560 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 16:21:11,662 - camera_ai_app - INFO - WebSocket connected. Total connections: 5
+2025-11-12 16:21:15,809 - camera_ai_app - INFO - WebSocket connected. Total connections: 6
+2025-11-12 16:25:38,259 - camera_ai_app - INFO - WebSocket connected. Total connections: 7
+2025-11-12 16:27:07,837 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 16:27:25,603 - camera_ai_app - INFO - WebSocket connected. Total connections: 8
+2025-11-12 16:32:50,833 - camera_ai_app - INFO - WebSocket connected. Total connections: 9
+2025-11-12 16:56:24,615 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 17:12:35,458 - camera_ai_app - INFO - WebSocket connected. Total connections: 10
+2025-11-12 17:25:24,550 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 17:48:03,506 - camera_ai_app - INFO - WebSocket connected. Total connections: 11
+2025-11-12 17:54:24,603 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 18:24:04,518 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 18:38:05,857 - camera_ai_app - INFO - WebSocket connected. Total connections: 12
+2025-11-12 18:53:04,586 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 19:00:02,882 - camera_ai_app - INFO - WebSocket connected. Total connections: 13
+2025-11-12 19:00:08,650 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 19:00:09,221 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-12 19:00:09,257 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 19:00:09,353 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-12 19:00:11,273 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 19:00:11,833 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 19:00:19,248 - camera_ai_app - INFO - WebSocket connected. Total connections: 14
+2025-11-12 19:09:36,006 - camera_ai_app - INFO - WebSocket connected. Total connections: 15
+2025-11-12 19:11:12,279 - camera_ai_app - INFO - WebSocket connected. Total connections: 16
+2025-11-12 19:20:20,313 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 19:20:20,734 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-12 19:20:24,875 - camera_ai_app - INFO - WebSocket connected. Total connections: 17
+2025-11-12 19:22:04,568 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions

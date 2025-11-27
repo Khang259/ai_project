@@ -1,0 +1,90 @@
+2025-11-27 15:37:08,710 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-27 15:37:08,710 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-27 15:37:09,350 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-27 15:37:09,351 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-27 15:37:09,986 - camera_ai_app - INFO - Default permissions initialized
+2025-11-27 15:37:09,986 - camera_ai_app - INFO - Initializing default roles...
+2025-11-27 15:37:10,106 - camera_ai_app - INFO - Default roles initialized
+2025-11-27 15:37:10,107 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-27 15:37:10,746 - camera_ai_app - INFO - Default permissions initialized
+2025-11-27 15:37:10,747 - camera_ai_app - INFO - Initializing default roles...
+2025-11-27 15:37:10,886 - camera_ai_app - INFO - Default roles initialized
+2025-11-27 15:37:10,894 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-27 15:37:10,895 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-27 23:00:00+07:00
+2025-11-27 15:37:10,896 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-27 15:37:10,897 - camera_ai_app - INFO - Notification service started
+2025-11-27 15:37:10,897 - camera_ai_app - INFO - Task service started
+2025-11-27 15:37:10,898 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-27 15:37:10,899 - camera_ai_app - INFO - Heartbeat service started
+2025-11-27 15:37:10,900 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-27 15:37:10,937 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-27 15:37:10,938 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-27 15:37:10,939 - camera_ai_app - INFO - Modbus device manager started
+2025-11-27 15:39:40,084 - camera_ai_app - INFO - Retrieved 5 battery records for yesterday (group_id: 1)
+2025-11-27 15:40:38,472 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-27 15:40:38,474 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-11-27 15:40:38,475 - camera_ai_app - INFO - Heartbeat service stopped
+2025-11-27 15:40:38,476 - camera_ai_app - INFO - No active WebSocket connections to close
+2025-11-27 15:40:38,477 - camera_ai_app - INFO - All WebSocket connections closed
+2025-11-27 15:40:38,478 - camera_ai_app - INFO - Notification service stopped
+2025-11-27 15:40:38,479 - camera_ai_app - INFO - Task service stopped
+2025-11-27 15:40:38,480 - camera_ai_app - INFO - Stopping Modbus Device Manager...
+2025-11-27 15:40:38,481 - camera_ai_app - INFO - Modbus Device Manager stopped
+2025-11-27 15:40:38,482 - camera_ai_app - INFO - Modbus device manager stopped
+2025-11-27 15:40:38,483 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-27 15:40:38,484 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-27 15:40:38,514 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-27 15:40:38,514 - camera_ai_app - INFO - MongoDB connection closed
+2025-11-27 15:40:38,514 - camera_ai_app - INFO - CameraAI Backend shutdown completed
+2025-11-27 15:40:43,125 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-27 15:40:43,125 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-27 15:40:43,727 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-27 15:40:43,727 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-27 15:40:44,361 - camera_ai_app - INFO - Default permissions initialized
+2025-11-27 15:40:44,362 - camera_ai_app - INFO - Initializing default roles...
+2025-11-27 15:40:44,493 - camera_ai_app - INFO - Default roles initialized
+2025-11-27 15:40:44,493 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-27 15:40:45,129 - camera_ai_app - INFO - Default permissions initialized
+2025-11-27 15:40:45,130 - camera_ai_app - INFO - Initializing default roles...
+2025-11-27 15:40:45,256 - camera_ai_app - INFO - Default roles initialized
+2025-11-27 15:40:45,263 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-27 15:40:45,263 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-27 23:00:00+07:00
+2025-11-27 15:40:45,263 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-27 15:40:45,263 - camera_ai_app - INFO - Notification service started
+2025-11-27 15:40:45,263 - camera_ai_app - INFO - Task service started
+2025-11-27 15:40:45,263 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-27 15:40:45,266 - camera_ai_app - INFO - Heartbeat service started
+2025-11-27 15:40:45,266 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-27 15:40:45,297 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-27 15:40:45,298 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-27 15:40:45,299 - camera_ai_app - INFO - Modbus device manager started
+2025-11-27 15:41:11,615 - camera_ai_app - INFO - No battery data found for yesterday (group_id: "1")
+2025-11-27 15:41:14,247 - camera_ai_app - INFO - Retrieved 5 battery records for yesterday (group_id: 1)
+2025-11-27 15:41:18,431 - camera_ai_app - INFO - No battery data found for yesterday (group_id: "1")
+2025-11-27 15:58:36,766 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-27 15:58:36,766 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-27 15:58:37,350 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-27 15:58:37,352 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-27 15:58:37,918 - camera_ai_app - INFO - Default permissions initialized
+2025-11-27 15:58:37,918 - camera_ai_app - INFO - Initializing default roles...
+2025-11-27 15:58:38,018 - camera_ai_app - INFO - Default roles initialized
+2025-11-27 15:58:38,018 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-27 15:58:38,503 - camera_ai_app - INFO - Default permissions initialized
+2025-11-27 15:58:38,504 - camera_ai_app - INFO - Initializing default roles...
+2025-11-27 15:58:38,603 - camera_ai_app - INFO - Default roles initialized
+2025-11-27 15:58:38,608 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-27 15:58:38,610 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-27 23:00:00+07:00
+2025-11-27 15:58:38,611 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-27 15:58:38,612 - camera_ai_app - INFO - Notification service started
+2025-11-27 15:58:38,613 - camera_ai_app - INFO - Task service started
+2025-11-27 15:58:38,614 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-27 15:58:38,615 - camera_ai_app - INFO - Heartbeat service started
+2025-11-27 15:58:38,616 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-27 15:58:38,643 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-27 15:58:38,644 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-27 15:58:38,645 - camera_ai_app - INFO - Modbus device manager started
+2025-11-27 15:59:20,969 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-27 15:59:21,078 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-27 16:28:31,753 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-27 16:53:49,231 - camera_ai_app - INFO - Getting in progress task for group 1
+2025-11-27 16:53:54,444 - camera_ai_app - ERROR - HTTP error when calling get_in_progress_task: 

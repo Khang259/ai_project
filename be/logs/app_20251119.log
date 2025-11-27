@@ -1,0 +1,163 @@
+2025-11-19 13:47:08,632 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 13:47:08,632 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-19 13:47:09,383 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 13:47:09,384 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 13:47:09,955 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 13:47:09,957 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 13:47:10,073 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 13:47:10,079 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 13:47:10,082 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 13:47:10,083 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 14:16:58,322 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-19 14:16:58,341 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-19 14:16:58,453 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
+2025-11-19 14:17:17,409 - camera_ai_app - INFO - WebSocket connected. Total connections: 4
+2025-11-19 14:17:17,433 - camera_ai_app - INFO - WebSocket connected. Total connections: 5
+2025-11-19 14:17:17,527 - camera_ai_app - INFO - WebSocket connected. Total connections: 6
+2025-11-19 14:59:07,269 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 15:00:35,611 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 15:00:35,612 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-19 15:00:36,197 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 15:00:36,198 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 15:00:36,761 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 15:00:36,761 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 15:00:36,861 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 15:00:36,867 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 15:00:36,869 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 15:00:36,870 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 15:00:37,247 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-19 15:04:19,223 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 15:04:19,224 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-19 15:04:19,671 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 15:04:19,672 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 15:04:20,348 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 15:04:20,349 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 15:04:20,468 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 15:04:20,473 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 15:04:20,474 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 15:04:20,475 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 15:05:23,202 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 15:12:36,359 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-19 15:12:36,360 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-19 15:12:36,361 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-19 15:12:36,393 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-19 15:12:39,116 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 15:12:39,116 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-19 15:12:39,719 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 15:12:39,719 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 15:12:40,392 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 15:12:40,393 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 15:12:40,522 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 15:12:40,528 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 15:12:40,530 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 15:12:40,531 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 15:28:08,767 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 15:30:09,823 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 15:34:07,182 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 15:48:04,222 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-19 15:48:04,233 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-19 15:48:04,411 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
+2025-11-19 15:48:04,440 - camera_ai_app - INFO - WebSocket connected. Total connections: 4
+2025-11-19 15:48:41,004 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-11-19 15:48:48,739 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-19 15:48:48,868 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 15:48:50,976 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 15:48:51,416 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-19 15:48:51,687 - camera_ai_app - INFO - WebSocket connected. Total connections: 5
+2025-11-19 15:48:51,700 - camera_ai_app - INFO - WebSocket connected. Total connections: 6
+2025-11-19 15:48:51,734 - camera_ai_app - INFO - WebSocket connected. Total connections: 7
+2025-11-19 15:48:51,767 - camera_ai_app - INFO - WebSocket connected. Total connections: 8
+2025-11-19 15:48:55,921 - camera_ai_app - INFO - WebSocket connected. Total connections: 9
+2025-11-19 15:49:01,757 - camera_ai_app - INFO - WebSocket connected. Total connections: 10
+2025-11-19 15:49:01,769 - camera_ai_app - INFO - WebSocket connected. Total connections: 11
+2025-11-19 15:49:01,862 - camera_ai_app - INFO - WebSocket connected. Total connections: 12
+2025-11-19 15:49:01,876 - camera_ai_app - INFO - WebSocket connected. Total connections: 13
+2025-11-19 16:25:15,674 - camera_ai_app - INFO - WebSocket connected. Total connections: 14
+2025-11-19 16:27:50,547 - camera_ai_app - INFO - WebSocket connected. Total connections: 15
+2025-11-19 16:27:50,559 - camera_ai_app - INFO - WebSocket connected. Total connections: 16
+2025-11-19 16:27:50,733 - camera_ai_app - INFO - WebSocket connected. Total connections: 17
+2025-11-19 16:27:50,745 - camera_ai_app - INFO - WebSocket connected. Total connections: 18
+2025-11-19 16:28:18,689 - camera_ai_app - INFO - WebSocket connected. Total connections: 19
+2025-11-19 16:28:18,701 - camera_ai_app - INFO - WebSocket connected. Total connections: 20
+2025-11-19 16:28:18,754 - camera_ai_app - INFO - WebSocket connected. Total connections: 21
+2025-11-19 16:28:18,796 - camera_ai_app - INFO - WebSocket connected. Total connections: 22
+2025-11-19 16:30:09,358 - camera_ai_app - INFO - WebSocket connected. Total connections: 23
+2025-11-19 16:30:09,370 - camera_ai_app - INFO - WebSocket connected. Total connections: 24
+2025-11-19 16:30:09,422 - camera_ai_app - INFO - WebSocket connected. Total connections: 25
+2025-11-19 16:30:09,457 - camera_ai_app - INFO - WebSocket connected. Total connections: 26
+2025-11-19 16:30:33,776 - camera_ai_app - INFO - WebSocket connected. Total connections: 27
+2025-11-19 16:30:33,788 - camera_ai_app - INFO - WebSocket connected. Total connections: 28
+2025-11-19 16:30:33,839 - camera_ai_app - INFO - WebSocket connected. Total connections: 29
+2025-11-19 16:30:33,873 - camera_ai_app - INFO - WebSocket connected. Total connections: 30
+2025-11-19 16:46:38,536 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-19 16:46:38,537 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-19 16:46:39,224 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-19 16:46:39,224 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-19 16:46:40,025 - camera_ai_app - INFO - Default permissions initialized
+2025-11-19 16:46:40,026 - camera_ai_app - INFO - Initializing default roles...
+2025-11-19 16:46:40,188 - camera_ai_app - INFO - Default roles initialized
+2025-11-19 16:46:40,194 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-19 16:46:40,195 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-19 23:00:00+07:00
+2025-11-19 16:46:40,196 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-19 16:47:00,577 - camera_ai_app - INFO - WebSocket connected. Total connections: 1
+2025-11-19 16:47:00,590 - camera_ai_app - INFO - WebSocket connected. Total connections: 2
+2025-11-19 16:47:00,639 - camera_ai_app - INFO - WebSocket connected. Total connections: 3
+2025-11-19 16:47:00,662 - camera_ai_app - INFO - WebSocket connected. Total connections: 4
+2025-11-19 16:47:03,534 - camera_ai_app - INFO - WebSocket connected. Total connections: 5
+2025-11-19 16:47:05,530 - camera_ai_app - INFO - WebSocket connected. Total connections: 6
+2025-11-19 16:47:05,540 - camera_ai_app - INFO - WebSocket connected. Total connections: 7
+2025-11-19 16:47:05,731 - camera_ai_app - INFO - WebSocket connected. Total connections: 8
+2025-11-19 16:48:19,445 - camera_ai_app - INFO - WebSocket connected. Total connections: 9
+2025-11-19 16:48:19,507 - camera_ai_app - INFO - WebSocket connected. Total connections: 10
+2025-11-19 16:48:27,067 - camera_ai_app - INFO - WebSocket connected. Total connections: 11
+2025-11-19 16:48:27,155 - camera_ai_app - INFO - WebSocket connected. Total connections: 12
+2025-11-19 16:48:31,057 - camera_ai_app - INFO - WebSocket connected. Total connections: 13
+2025-11-19 16:48:31,107 - camera_ai_app - INFO - WebSocket connected. Total connections: 14
+2025-11-19 16:48:34,343 - camera_ai_app - INFO - WebSocket connected. Total connections: 15
+2025-11-19 16:48:34,414 - camera_ai_app - INFO - WebSocket connected. Total connections: 16
+2025-11-19 16:48:40,059 - camera_ai_app - INFO - WebSocket connected. Total connections: 17
+2025-11-19 16:48:40,121 - camera_ai_app - INFO - WebSocket connected. Total connections: 18
+2025-11-19 16:48:52,060 - camera_ai_app - INFO - WebSocket connected. Total connections: 19
+2025-11-19 16:48:52,118 - camera_ai_app - INFO - WebSocket connected. Total connections: 20
+2025-11-19 16:49:02,049 - camera_ai_app - INFO - WebSocket connected. Total connections: 21
+2025-11-19 16:49:02,098 - camera_ai_app - INFO - WebSocket connected. Total connections: 22
+2025-11-19 16:49:34,623 - camera_ai_app - INFO - WebSocket connected. Total connections: 23
+2025-11-19 16:49:34,738 - camera_ai_app - INFO - WebSocket connected. Total connections: 24
+2025-11-19 16:50:24,929 - camera_ai_app - INFO - WebSocket connected. Total connections: 25
+2025-11-19 16:50:25,020 - camera_ai_app - INFO - WebSocket connected. Total connections: 26
+2025-11-19 16:50:36,745 - camera_ai_app - INFO - WebSocket connected. Total connections: 27
+2025-11-19 16:50:36,823 - camera_ai_app - INFO - WebSocket connected. Total connections: 28
+2025-11-19 16:51:08,760 - camera_ai_app - INFO - WebSocket connected. Total connections: 29
+2025-11-19 16:51:08,828 - camera_ai_app - INFO - WebSocket connected. Total connections: 30
+2025-11-19 16:51:13,377 - camera_ai_app - INFO - WebSocket connected. Total connections: 31
+2025-11-19 16:51:13,466 - camera_ai_app - INFO - WebSocket connected. Total connections: 32
+2025-11-19 16:51:17,058 - camera_ai_app - INFO - WebSocket connected. Total connections: 33
+2025-11-19 16:51:17,105 - camera_ai_app - INFO - WebSocket connected. Total connections: 34
+2025-11-19 16:51:20,497 - camera_ai_app - INFO - WebSocket connected. Total connections: 35
+2025-11-19 16:51:20,593 - camera_ai_app - INFO - WebSocket connected. Total connections: 36
+2025-11-19 16:58:34,909 - camera_ai_app - INFO - WebSocket connected. Total connections: 37
+2025-11-19 16:58:35,000 - camera_ai_app - INFO - WebSocket connected. Total connections: 38
+2025-11-19 17:00:19,921 - camera_ai_app - INFO - WebSocket connected. Total connections: 39
+2025-11-19 17:00:19,994 - camera_ai_app - INFO - WebSocket connected. Total connections: 40
+2025-11-19 17:08:15,870 - camera_ai_app - INFO - WebSocket connected. Total connections: 41
+2025-11-19 17:08:15,986 - camera_ai_app - INFO - WebSocket connected. Total connections: 42
+2025-11-19 17:08:20,055 - camera_ai_app - INFO - WebSocket connected. Total connections: 43
+2025-11-19 17:08:20,111 - camera_ai_app - INFO - WebSocket connected. Total connections: 44
+2025-11-19 17:08:24,991 - camera_ai_app - INFO - WebSocket connected. Total connections: 45
+2025-11-19 17:08:25,056 - camera_ai_app - INFO - WebSocket connected. Total connections: 46
+2025-11-19 17:11:54,059 - camera_ai_app - INFO - WebSocket connected. Total connections: 47
+2025-11-19 17:11:54,109 - camera_ai_app - INFO - WebSocket connected. Total connections: 48
+2025-11-19 17:12:02,062 - camera_ai_app - INFO - WebSocket connected. Total connections: 49
+2025-11-19 17:12:02,112 - camera_ai_app - INFO - WebSocket connected. Total connections: 50
+2025-11-19 17:12:16,478 - camera_ai_app - INFO - WebSocket connected. Total connections: 51
+2025-11-19 17:12:16,561 - camera_ai_app - INFO - WebSocket connected. Total connections: 52
+2025-11-19 17:13:14,064 - camera_ai_app - INFO - WebSocket connected. Total connections: 53
+2025-11-19 17:13:14,142 - camera_ai_app - INFO - WebSocket connected. Total connections: 54
+2025-11-19 17:13:25,064 - camera_ai_app - INFO - WebSocket connected. Total connections: 55
+2025-11-19 17:13:25,108 - camera_ai_app - INFO - WebSocket connected. Total connections: 56
+2025-11-19 17:13:38,062 - camera_ai_app - INFO - WebSocket connected. Total connections: 57
+2025-11-19 17:13:38,108 - camera_ai_app - INFO - WebSocket connected. Total connections: 58
+2025-11-19 17:15:34,062 - camera_ai_app - INFO - WebSocket connected. Total connections: 59
+2025-11-19 17:15:34,106 - camera_ai_app - INFO - WebSocket connected. Total connections: 60
+2025-11-19 17:15:37,614 - camera_ai_app - INFO - WebSocket connected. Total connections: 61
+2025-11-19 17:15:37,688 - camera_ai_app - INFO - WebSocket connected. Total connections: 62

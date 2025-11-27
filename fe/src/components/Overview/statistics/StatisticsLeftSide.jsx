@@ -6,7 +6,7 @@ import {
   Legend,
 } from "chart.js";
 import { useTranslation } from 'react-i18next';
-import { Card, Typography, Tag } from 'antd';
+import { Typography } from 'antd';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -52,18 +52,6 @@ export default function StatisticsLeftSide() {
       },
     ],
   };
-
-  // const rateData = {
-  //   labels: ["Completed", "Remaining"],
-  //   datasets: [
-  //     {
-  //       data: [43, 14],
-  //       backgroundColor: ["#3b82f6", "#e5e7eb"],
-  //       borderWidth: 3,
-  //       borderColor: "#ffffff",
-  //     },
-  //   ],
-  // };
 
   const options = {
     plugins: { 
