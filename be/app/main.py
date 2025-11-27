@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, monitor, analytic, route
+from app.api import auth, users, permissions, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, monitor, analytic, route, agv_dashboard, dashboard_performance
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.scheduler import start_scheduler, shutdown_scheduler
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
@@ -107,6 +107,7 @@ app.include_router(websocket_api.router, tags=["WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
 app.include_router(notification.router, tags=["Notification"])
 app.include_router(task_status.router, tags=["Task Status"])
+app.include_router(dashboard_performance.router, tags=["Dashboard Performance"])
 # Add Maintenance API
 app.include_router(parts_router, prefix="/api", tags=["Parts Summary"])
 app.include_router(part_detail_router, prefix="/api", tags=["Part Detail"])
