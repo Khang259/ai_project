@@ -28,7 +28,10 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     logger.info("Starting API Gateway...")
     yield
+    # Shutdown
     logger.info("Shutting down API Gateway...")
+    await client.aclose()
+    logger.info("HTTP client closed")
 
 # Create FastAPI Gateway
 gateway = FastAPI(

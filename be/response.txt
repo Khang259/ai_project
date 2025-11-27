@@ -1,0 +1,761 @@
+{
+  "code": 1000,
+  "data": {
+    "Tasks": [
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84030,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-XT-3—Xe_trong_PT_1",
+        "OrderNumber": "82071",
+        "OrderId": "D_2025-11-25_08:20:51.031486",
+        "steps": [
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "L4-XT-3"
+          },
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_PT_1"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Tra_xe_trong_PT",
+        "ReExecute": 1,
+        "OrderStatus": 6,
+        "ActualStartTime": "2025-11-25 08:17:25",
+        "FixedRobotId": "DJ62271AAK00004",
+        "createTime": "2025-11-25 08:17:24",
+        "TemplateName": "Tra_xe_trong_PT",
+        "subType": 1,
+        "TaskTime": "— —",
+        "AgvNum": "0004"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84027,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CPT-4—L4-PT-4",
+        "OrderNumber": "82072",
+        "OrderId": "D_2025-11-25_08:21:54.061177",
+        "steps": [
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "L4-CPT-4"
+          },
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "L4-PT-4"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_phu_tung",
+        "ReExecute": 1,
+        "OrderStatus": 6,
+        "ActualStartTime": "2025-11-25 08:16:34",
+        "FixedRobotId": "DJ62271AAK00003",
+        "createTime": "2025-11-25 08:15:09",
+        "TemplateName": "Cap_phu_tung",
+        "subType": 1,
+        "TaskTime": "— —",
+        "AgvNum": "0003"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84026,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CPT-3—L4-PT-3",
+        "OrderNumber": "82070",
+        "OrderId": "D_2025-11-25_08:20:51.031486",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CPT-3"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-PT-3"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_phu_tung",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:15:45",
+        "FixedRobotId": "DJ62271AAK00004",
+        "createTime": "2025-11-25 08:14:06",
+        "ShelfNum": "2000051",
+        "ActualEndTime": "2025-11-25 08:17:24",
+        "TemplateName": "Cap_phu_tung",
+        "subType": 1,
+        "TaskTime": "99",
+        "AgvNum": "0004"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84025,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L2-CVL-2abcde—L2-VL-2ab—Xe_trong_VL_4",
+        "OrderNumber": "82069",
+        "OrderId": "2025-11-25_08:19:10.382079",
+        "steps": [
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "L2-CVL-2abcde"
+          },
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "L2-VL-2ab"
+          },
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_VL_4"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_tra_xe_vat_lieu",
+        "ReExecute": 1,
+        "OrderStatus": 6,
+        "ActualStartTime": "2025-11-25 08:15:36",
+        "FixedRobotId": "DJ62271AAK00006",
+        "createTime": "2025-11-25 08:13:59",
+        "ShelfNum": "3000044",
+        "TemplateName": "Cap_tra_xe_vat_lieu",
+        "subType": 1,
+        "TaskTime": "— —",
+        "AgvNum": "0006"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84024,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CPT-1—L4-PT-1",
+        "OrderNumber": "82068",
+        "OrderId": "S_2025-11-25_08:19:48.052724",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CPT-1"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-PT-1"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_phu_tung",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:13:28",
+        "FixedRobotId": "DJ62271AAK00004",
+        "createTime": "2025-11-25 08:13:03",
+        "ShelfNum": "3200064",
+        "ActualEndTime": "2025-11-25 08:15:45",
+        "TemplateName": "Cap_phu_tung",
+        "subType": 1,
+        "TaskTime": "137",
+        "AgvNum": "0004"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84023,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CVL-1abc—L4-VL-1bc—Xe_trong_VL_2",
+        "OrderNumber": "82067",
+        "OrderId": "2025-11-25_08:17:26.203848",
+        "steps": [
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "L4-CVL-1abc"
+          },
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "L4-VL-1bc"
+          },
+          {
+            "flag": 1,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_VL_2"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_tra_xe_vat_lieu",
+        "ReExecute": 1,
+        "OrderStatus": 6,
+        "ActualStartTime": "2025-11-25 08:12:35",
+        "FixedRobotId": "DJ62271AAK00005",
+        "createTime": "2025-11-25 08:11:55",
+        "ShelfNum": "3000024",
+        "TemplateName": "Cap_tra_xe_vat_lieu",
+        "subType": 1,
+        "TaskTime": "— —",
+        "AgvNum": "0005"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84022,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CVL-2abcde—L4-VL-2ab—Xe_trong_VL_2",
+        "OrderNumber": "82066",
+        "OrderId": "2025-11-25_08:14:11.342547",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CVL-2abcde"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-VL-2ab"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_VL_2"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_tra_xe_vat_lieu",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:11:45",
+        "FixedRobotId": "DJ62271AAK00002",
+        "createTime": "2025-11-25 08:11:44",
+        "ShelfNum": "3000042",
+        "ActualEndTime": "2025-11-25 08:17:38",
+        "TemplateName": "Cap_tra_xe_vat_lieu",
+        "subType": 1,
+        "TaskTime": "353",
+        "AgvNum": "0002"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84021,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CVL-4abc—L4-VL-4ab—Xe_trong_VL_2",
+        "OrderNumber": "82065",
+        "OrderId": "2025-11-25_08:16:41.913838",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CVL-4abc"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-VL-4ab"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_VL_2"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_tra_xe_vat_lieu",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:11:28",
+        "FixedRobotId": "DJ62271AAK00003",
+        "createTime": "2025-11-25 08:11:28",
+        "ShelfNum": "3000002",
+        "ActualEndTime": "2025-11-25 08:16:34",
+        "TemplateName": "Cap_tra_xe_vat_lieu",
+        "subType": 1,
+        "TaskTime": "306",
+        "AgvNum": "0003"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84019,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L2-XT-6—Xe_trong_PT_4",
+        "OrderNumber": "82062",
+        "OrderId": "D_2025-11-25_08:13:04.161469",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L2-XT-6"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_PT_4"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Tra_xe_trong_PT",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:10:29",
+        "FixedRobotId": "DJ62271AAK00005",
+        "createTime": "2025-11-25 08:10:28",
+        "ShelfNum": "2000129",
+        "ActualEndTime": "2025-11-25 08:12:34",
+        "TemplateName": "Tra_xe_trong_PT",
+        "subType": 1,
+        "TaskTime": "125",
+        "AgvNum": "0005"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84018,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CVL-3abcde—L4-VL-3bc—Xe_trong_VL_2",
+        "OrderNumber": "82064",
+        "OrderId": "2025-11-25_07:45:55.965178",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CVL-3abcde"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-VL-3bc"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_VL_2"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_tra_xe_vat_lieu",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:09:33",
+        "FixedRobotId": "DJ62271AAK00006",
+        "createTime": "2025-11-25 08:08:51",
+        "ShelfNum": "3000011",
+        "ActualEndTime": "2025-11-25 08:15:36",
+        "TemplateName": "Cap_tra_xe_vat_lieu",
+        "subType": 1,
+        "TaskTime": "363",
+        "AgvNum": "0006"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84017,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-XT-5—Xe_trong_PT_1",
+        "OrderNumber": "82058",
+        "OrderId": "D_2025-11-25_08:09:02.241085",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-XT-5"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_PT_1"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Tra_xe_trong_PT",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:08:09",
+        "FixedRobotId": "DJ62271AAK00002",
+        "createTime": "2025-11-25 08:08:08",
+        "ShelfNum": "1300241",
+        "ActualEndTime": "2025-11-25 08:10:24",
+        "TemplateName": "Tra_xe_trong_PT",
+        "subType": 1,
+        "TaskTime": "135",
+        "AgvNum": "0002"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84016,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CVL-2abcde—L4-VL-2cd—Xe_trong_VL_2",
+        "OrderNumber": "82063",
+        "OrderId": "2025-11-25_07:58:52.059179",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CVL-2abcde"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-VL-2cd"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_VL_2"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_tra_xe_vat_lieu",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:08:59",
+        "FixedRobotId": "DJ62271AAK00004",
+        "createTime": "2025-11-25 08:06:40",
+        "ShelfNum": "3000009",
+        "ActualEndTime": "2025-11-25 08:13:27",
+        "TemplateName": "Cap_tra_xe_vat_lieu",
+        "subType": 1,
+        "TaskTime": "268",
+        "AgvNum": "0004"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84015,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L2-XT-5—Xe_trong_PT_4",
+        "OrderNumber": "82056",
+        "OrderId": "D_2025-11-25_08:06:32.681183",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L2-XT-5"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_PT_4"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Tra_xe_trong_PT",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:06:38",
+        "FixedRobotId": "DJ62271AAK00004",
+        "createTime": "2025-11-25 08:06:37",
+        "ShelfNum": "2000130",
+        "ActualEndTime": "2025-11-25 08:08:58",
+        "TemplateName": "Tra_xe_trong_PT",
+        "subType": 1,
+        "TaskTime": "140",
+        "AgvNum": "0004"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84014,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L2-CPT-6—L2-PT-6",
+        "OrderNumber": "82061",
+        "OrderId": "D_2025-11-25_08:13:04.161469",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L2-CPT-6"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L2-PT-6"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_phu_tung",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:08:27",
+        "FixedRobotId": "DJ62271AAK00005",
+        "createTime": "2025-11-25 08:06:19",
+        "ShelfNum": "2200010",
+        "ActualEndTime": "2025-11-25 08:10:27",
+        "TemplateName": "Cap_phu_tung",
+        "subType": 1,
+        "TaskTime": "120",
+        "AgvNum": "0005"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84013,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CVL-3abcde—L4-VL-3de—Xe_trong_VL_2",
+        "OrderNumber": "82060",
+        "OrderId": "2025-11-25_07:44:15.979525",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CVL-3abcde"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-VL-3de"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_VL_2"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_tra_xe_vat_lieu",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:06:22",
+        "FixedRobotId": "DJ62271AAK00003",
+        "createTime": "2025-11-25 08:04:10",
+        "ShelfNum": "3000036",
+        "ActualEndTime": "2025-11-25 08:11:28",
+        "TemplateName": "Cap_tra_xe_vat_lieu",
+        "subType": 1,
+        "TaskTime": "306",
+        "AgvNum": "0003"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84012,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CPT-1—L4-PT-1",
+        "OrderNumber": "82059",
+        "OrderId": "S_2025-11-25_08:10:19.109644",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CPT-1"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-PT-1"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_phu_tung",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:07:01",
+        "FixedRobotId": "DJ62271AAK00006",
+        "createTime": "2025-11-25 08:03:34",
+        "ShelfNum": "2000016",
+        "ActualEndTime": "2025-11-25 08:09:33",
+        "TemplateName": "Cap_phu_tung",
+        "subType": 1,
+        "TaskTime": "152",
+        "AgvNum": "0006"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84011,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-CPT-5—L4-PT-5",
+        "OrderNumber": "82057",
+        "OrderId": "D_2025-11-25_08:09:02.241085",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-CPT-5"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-PT-5"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_phu_tung",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:05:44",
+        "FixedRobotId": "DJ62271AAK00002",
+        "createTime": "2025-11-25 08:02:17",
+        "ShelfNum": "2000071",
+        "ActualEndTime": "2025-11-25 08:08:08",
+        "TemplateName": "Cap_phu_tung",
+        "subType": 1,
+        "TaskTime": "144",
+        "AgvNum": "0002"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84010,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-XT-1—Xe_trong_PT_1",
+        "OrderNumber": "82044",
+        "OrderId": "D_2025-11-25_08:01:09.304053",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-XT-1"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_PT_1"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Tra_xe_trong_PT",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:01:15",
+        "FixedRobotId": "DJ62271AAK00005",
+        "createTime": "2025-11-25 08:01:14",
+        "ShelfNum": "1400056",
+        "ActualEndTime": "2025-11-25 08:03:03",
+        "TemplateName": "Tra_xe_trong_PT",
+        "subType": 1,
+        "TaskTime": "108",
+        "AgvNum": "0005"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84009,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L4-XT-2—Xe_trong_PT_1",
+        "OrderNumber": "82047",
+        "OrderId": "D_2025-11-25_08:02:55.660980",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L4-XT-2"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "Xe_trong_PT_1"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Tra_xe_trong_PT",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:01:11",
+        "FixedRobotId": "DJ62271AAK00004",
+        "createTime": "2025-11-25 08:01:11",
+        "ShelfNum": "1400142",
+        "ActualEndTime": "2025-11-25 08:03:53",
+        "TemplateName": "Tra_xe_trong_PT",
+        "subType": 1,
+        "TaskTime": "162",
+        "AgvNum": "0004"
+      },
+      {
+        "AllowChangeDevice": 0,
+        "RobotType": "RTA-C060-LQ-2L2T-E-410",
+        "TaskId": 84008,
+        "ZoneId": 1,
+        "Priority": 6,
+        "advanceFinishTaskStrategy": 1,
+        "OrderPath": "L2-CPT-5—L2-PT-5",
+        "OrderNumber": "82055",
+        "OrderId": "D_2025-11-25_08:06:32.681183",
+        "steps": [
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L2-CPT-5"
+          },
+          {
+            "flag": 2,
+            "needTrigger": 0,
+            "qrContent": "L2-PT-5"
+          }
+        ],
+        "Materiel": "[]",
+        "TemplateCode": "Cap_phu_tung",
+        "ReExecute": 1,
+        "OrderStatus": 8,
+        "ActualStartTime": "2025-11-25 08:03:54",
+        "FixedRobotId": "DJ62271AAK00004",
+        "createTime": "2025-11-25 07:59:47",
+        "ShelfNum": "2200014",
+        "ActualEndTime": "2025-11-25 08:06:37",
+        "TemplateName": "Cap_phu_tung",
+        "subType": 1,
+        "TaskTime": "163",
+        "AgvNum": "0004"
+      }
+    ],
+    "TotalPage": 42,
+    "pageSize": 20,
+    "Page": 1,
+    "totalCount": 836
+  },
+  "desc": "请求成功"
+}

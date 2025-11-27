@@ -25,6 +25,10 @@ from app.routers.update_amr_name import router as update_amr_name_router
 from app.routers.pdf import router as pdf_router
 from app.services.role_service import initialize_default_permissions, initialize_default_roles
 from app.services.notification_service import notification_service
+from app.services.heartbeat_service import websocket_heartbeat_service
+from app.services.task_service import task_service
+from app.services.websocket_service import manager as websocket_manager
+from app.services.modbusTCP_service import modbus_device_manager
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -52,16 +56,43 @@ async def lifespan(app: FastAPI):
     logger.info("AGV Scheduler started")
     await notification_service.start()
     logger.info("Notification service started")
-    
+    await task_service.start()
+    logger.info("Task service started")
+    await websocket_heartbeat_service.start()
+    logger.info("Heartbeat service started")
+    await modbus_device_manager.start()
+    logger.info("Modbus device manager started")
     yield
     
-    # Shutdown
+    # Shutdown - Thứ tự quan trọng: đóng connections trước, sau đó stop services
     logger.info("Shutting down CameraAI Backend...")
-    shutdown_scheduler()
-    logger.info("AGV Scheduler stopped")
+    
+    # 1. Dừng heartbeat service trước (để tránh gửi heartbeat đến connections đang đóng)
+    await websocket_heartbeat_service.stop()
+    logger.info("Heartbeat service stopped")
+    
+    # 2. Đóng tất cả WebSocket connections
+    await websocket_manager.disconnect_all()
+    logger.info("All WebSocket connections closed")
+    
+    # 3. Dừng các background services (notification và task service)
     await notification_service.stop()
     logger.info("Notification service stopped")
+    await task_service.stop()
+    logger.info("Task service stopped")
+
+    await modbus_device_manager.stop()
+    logger.info("Modbus device manager stopped")
+    
+    # 4. Dừng scheduler (đợi jobs đang chạy hoàn thành với timeout)
+    shutdown_scheduler()
+    logger.info("AGV Scheduler stopped")
+    
+    # 5. Đóng database connection cuối cùng
     await close_mongo_connection()
+    logger.info("MongoDB connection closed")
+    
+    logger.info("CameraAI Backend shutdown completed")
 
 # Create FastAPI app
 app = FastAPI(
@@ -117,7 +148,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=8001,
+        host=settings.app_host,
+        port=settings.app_port,
         reload=settings.app_debug
     )
