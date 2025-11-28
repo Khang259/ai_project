@@ -10,32 +10,46 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useColumnChart } from '@/hooks/Dashboard/useColumnChart';
 
-const data = [
-  { thang: 'Tháng 1', Group_AE: 40, Group_DCC: 24, Group_MS2: 16 },
-  { thang: 'Tháng 2', Group_AE: 30, Group_DCC: 13, Group_MS2: 22 },
-  { thang: 'Tháng 3', Group_AE: 20, Group_DCC: 98, Group_MS2: 22 },
-  { thang: 'Tháng 4', Group_AE: 27, Group_DCC: 3, Group_MS2: 20 },
-  { thang: 'Tháng 5', Group_AE: 18, Group_DCC: 48, Group_MS2: 21 },
-  { thang: 'Tháng 6', Group_AE: 23, Group_DCC: 38, Group_MS2: 25 },
-  { thang: 'Tháng 7', Group_AE: 34, Group_DCC: 43, Group_MS2: 21 },
-  { thang: 'Tháng 8', Group_AE: 42, Group_DCC: 51, Group_MS2: 55 },
-  { thang: 'Tháng 9', Group_AE: 38, Group_DCC: 46, Group_MS2: 52 },
-  { thang: 'Tháng 10', Group_AE: 45, Group_DCC: 52, Group_MS2: 55 },
-  { thang: 'Tháng 11', Group_AE: 49, Group_DCC: 55, Group_MS2: 60 },
-  { thang: 'Tháng 12', Group_AE: 52, Group_DCC: 60, Group_MS2: 65 },
-];
+// Định nghĩa màu cho các group
+const GROUP_CONFIG = {
+  Group_AE: '#3b82f6',
+  Group_DCC: '#10b981',
+  Group_KD: '#f59e0b',
+  Group_MS: '#8b5cf6',
+};
+
+// Hàm lấy màu cho group
+const getGroupColor = (groupKey) => {
+  if (GROUP_CONFIG[groupKey]) {
+    return GROUP_CONFIG[groupKey];
+  }
+  // Random màu cho các group không định nghĩa trước
+  const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+  return randomColor;
+};
 
 const formatBattery = (value) => `${Math.round(Number(value) || 0)}%`;
 
 const ColumnChart = () => {
+  const data = useColumnChart();
+
+  // Tự động lấy danh sách group keys từ data
+  const getGroupKeys = () => {
+    if (!data || data.length === 0) return [];
+    const keys = Object.keys(data[0]).filter(key => key !== 'gio');
+    return keys;
+  };
+
+  const groupKeys = getGroupKeys();
+
   return (
     <div
       style={{
         width: '100%',
         maxWidth: '1000px',
         padding: '30px',
-        // backgroundColor: '#0E1838', // MÀU NỀN THEO YÊU CẦU
         borderRadius: '16px',
         boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
         fontFamily: 'Arial, sans-serif',
@@ -55,15 +69,13 @@ const ColumnChart = () => {
       </h2>
 
       <ResponsiveContainer width="100%" height={380}>
-        <BarChart
-          data={data}
-        >
+        <BarChart data={data}>
           {/* Lưới nền trong suốt hơn */}
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
 
           {/* Trục X */}
           <XAxis
-            dataKey="thang"
+            dataKey="gio"
             tick={{ fill: '#cbd5e1', fontSize: 14 }}
             axisLine={{ stroke: '#475569' }}
           />
@@ -93,29 +105,19 @@ const ColumnChart = () => {
             iconType="rect"
           />
 
-          {/* Cột 1: Doanh thu - XANH DƯƠNG */}
-          <Bar
-            dataKey="Group_AE"
-            fill="#3b82f6"
-            radius={[8, 8, 0, 0]}
-            name="Group_AE"
-          />
-
-          {/* Cột 2: Lợi nhuận - XANH LỤC */}
-          <Bar
-            dataKey="Group_DCC"
-            fill="#10b981"
-            radius={[8, 8, 0, 0]}
-            name="Group_DCC"
-          />
-
-          {/* Cột 3: Chi phí - TÍM */}
-          <Bar
-            dataKey="Group_MS2"
-            fill="#8b5cf6"
-            radius={[8, 8, 0, 0]}
-            name="Group_MS2"
-          />
+          {/* Dynamic render cho tất cả các group */}
+          {groupKeys.map((groupKey) => {
+            const color = getGroupColor(groupKey);
+            return (
+              <Bar
+                key={groupKey}
+                dataKey={groupKey}
+                fill={color}
+                radius={[8, 8, 0, 0]}
+                name={groupKey}
+              />
+            );
+          })}
         </BarChart>
       </ResponsiveContainer>
     </div>

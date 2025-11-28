@@ -1,5 +1,5 @@
 // GraphChart.jsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -12,40 +12,47 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { useGraphChart } from '@/hooks/Dashboard/useGraphChart';
 
 // Đăng ký Chart.js
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const GraphChart = () => {
-  // Dữ liệu
-  const data = {
-    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'],
-    datasets: [
-      {
-        label: 'Hiệu suất làm việc (%)',
-        data: [65, 78, 90, 81, 96, 115, 130, 142],
-        fill: true,
-        backgroundColor: (ctx) => {
-          const chart = ctx.chart;
-          const { ctx: canvasCtx, chartArea } = chart;
-          if (!chartArea) return null;
-          const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, 'rgba(0, 221, 235, 0.6)');
-          gradient.addColorStop(0.5, 'rgba(138, 43, 226, 0.4)');
-          gradient.addColorStop(1, 'rgba(138, 43, 226, 0.05)');
-          return gradient;
+  const { data: chartData } = useGraphChart();
+
+  // Merge data từ API với config styling
+  const data = useMemo(() => {
+    const baseData = chartData || { labels: [], datasets: [{ data: [] }] };
+    
+    return {
+      labels: baseData.labels,
+      datasets: [
+        {
+          label: 'Hiệu suất làm việc (%)',
+          data: baseData.datasets[0]?.data || [],
+          fill: true,
+          backgroundColor: (ctx) => {
+            const chart = ctx.chart;
+            const { ctx: canvasCtx, chartArea } = chart;
+            if (!chartArea) return null;
+            const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(0, 221, 235, 0.6)');
+            gradient.addColorStop(0.5, 'rgba(138, 43, 226, 0.4)');
+            gradient.addColorStop(1, 'rgba(138, 43, 226, 0.05)');
+            return gradient;
+          },
+          borderColor: '#8a2be2',
+          borderWidth: 3,
+          pointBackgroundColor: '#00ddeb',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 9,
+          tension: 0.4,
         },
-        borderColor: '#8a2be2',
-        borderWidth: 3,
-        pointBackgroundColor: '#00ddeb',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 9,
-        tension: 0.4,
-      },
-    ],
-  };
+      ],
+    };
+  }, [chartData]);
 
   // Cấu hình biểu đồ
   const options = {

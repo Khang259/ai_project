@@ -1,16 +1,15 @@
 import api from "../api";
+import { getGroupId } from "@/utils/get_groupidUtils";
 
 /**
  * Lấy dữ liệu hiệu suất làm việc cho GraphChart
- * @param {string} startDate - Ngày bắt đầu (YYYY-MM-DD)
- * @param {string} endDate - Ngày kết thúc (YYYY-MM-DD)
  * @returns {Promise} Dữ liệu hiệu suất
  */
-export const getGraphChartData = async (startDate, endDate) => {
+export const getGraphChartData = async () => {
   try {
+    const groupId = getGroupId();
     const params = new URLSearchParams();
-    params.set("start_date", startDate);
-    params.set("end_date", endDate);
+    params.set("group_id", groupId);
 
     const response = await api.get(`/dashboard/graph-chart?${params.toString()}`);
     return response.data;
@@ -22,29 +21,16 @@ export const getGraphChartData = async (startDate, endDate) => {
 
 /**
  * Format dữ liệu cho GraphChart
- * @param {Object} apiResponse - Response từ API
+ * @param {Array} apiResponse - Response từ API dạng array [{date, InTask_percentage}]
  * @returns {Object} Dữ liệu đã format
  */
 export const formatGraphChartData = (apiResponse) => {
-  if (!apiResponse?.data || !Array.isArray(apiResponse.data)) {
-    return {
-      labels: [],
-      datasets: [
-        {
-          label: "Hiệu suất làm việc (%)",
-          data: [],
-        },
-      ],
-    };
-  }
-
-  const data = apiResponse.data;
   return {
-    labels: data.map((item) => item.period || item.label || ""),
+    labels: apiResponse.map((item) => item.date),
     datasets: [
       {
         label: "Hiệu suất làm việc (%)",
-        data: data.map((item) => item.performance || item.value || 0),
+        data: apiResponse.map((item) => item.InTask_percentage),
       },
     ],
   };
