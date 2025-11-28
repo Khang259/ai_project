@@ -39,3 +39,7 @@ fe/package-lock.json
 fe/.vite/deps
 
 be/.env
+
+be/app/logs/
+
+.cursor/

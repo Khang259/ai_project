@@ -6,6 +6,13 @@ import { useTranslation } from "react-i18next";
 
 export default function UsersTable({ users, onDelete, onEdit, onCreateRoute }) {
   const {t} = useTranslation();
+
+  const formatVNTime = (isoString) => {
+    const date = new Date(isoString);
+    date.setHours(date.getHours() + 7);
+    return date.toLocaleString('vi-VN');
+  };
+  
   return (
     <div className="glass rounded-lg border border-gray-200 overflow-hidden shadow-md text-white">
       <Table>
@@ -23,7 +30,7 @@ export default function UsersTable({ users, onDelete, onEdit, onCreateRoute }) {
           {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{user.id}</TableCell>
-              <TableCell>{new Date(user.created_at).toLocaleString('vi-VN')}</TableCell>
+              <TableCell>{formatVNTime(user.created_at)}</TableCell>
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.is_active ? t('users.active') : t('users.inactive')}</TableCell>
               <TableCell>

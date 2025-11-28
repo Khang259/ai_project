@@ -1,5 +1,5 @@
 // src/pages/Users.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { toast } from "sonner";
 import UsersHeader from "@/components/Users/UsersHeader";
 import UsersFilters from "@/components/Users/UsersFilters";
@@ -10,13 +10,15 @@ import CreateRouteModal from "@/components/Users/CreateRouteModal";
 import { useUsers } from "@/hooks/Users/useUsers";
 import Username from "@/components/Users/username";
 import { useTranslation } from 'react-i18next';
+import { useAuth } from "@/hooks/useAuth";
 
 export default function UserDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isCreateRouteModalOpen, setIsCreateRouteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const { t } = useTranslation();  
+  const { t } = useTranslation();
+  const { auth } = useAuth();
   const {
     search,
     setSearch,
@@ -29,6 +31,22 @@ export default function UserDashboard() {
     loading,
     error,
   } = useUsers();
+
+  // Lọc users dựa trên role của current user
+  const displayUsers = React.useMemo(() => {
+    const currentUserRoles = auth?.user?.roles || [];
+    const isOperator = currentUserRoles.includes('operator');
+    
+    // Nếu là operator (và không phải admin), chỉ hiển thị users có role "user"
+    if (isOperator ) {
+      return filteredUsers.filter(user => 
+        user.roles && user.roles.includes('user')
+      );
+    }
+    
+    // Admin hoặc role khác thì hiển thị tất cả
+    return filteredUsers;
+  }, [filteredUsers, auth?.user?.roles]);
 
   if (loading) return <div className="p-6">{t('users.loading')}</div>;
   if (error) return <div className="p-6 text-red-500">{error}</div>;
@@ -77,7 +95,7 @@ export default function UserDashboard() {
       />
 
       <UsersTable
-        users={filteredUsers.map((u) => ({ 
+        users={displayUsers.map((u) => ({ 
           ...u, 
           name: <Username name={u.username} />,
           // Giữ nguyên roles array để UsersTable có thể hiển thị đúng
