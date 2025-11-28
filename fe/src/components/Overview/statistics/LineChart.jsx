@@ -10,24 +10,39 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useLineChart } from '@/hooks/Dashboard/useLineChart';
+
+// Định nghĩa màu và style cho các group
+const GROUP_CONFIG = {
+  Group_AE: { color: '#3b82f6', activeColor: '#1d4ed8' },
+  Group_DCC: { color: '#10b981', activeColor: '#059669' },
+  Group_KD: { color: '#f59e0b', activeColor: '#d97706' },
+  Group_MS: { color: '#ef4444', activeColor: '#dc2626' },
+};
+
+// Hàm lấy màu cho group
+const getGroupColor = (groupKey) => {
+  if (GROUP_CONFIG[groupKey]) {
+    return GROUP_CONFIG[groupKey];
+  }
+  // Random màu cho các group không định nghĩa trước
+  const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+  return { color: randomColor, activeColor: randomColor };
+};
 
 const LineChartComponent = () => {
-  const data = [
-    { thang: '1', Group_AE: 40, Group_DCC: 24 },
-    { thang: '2', Group_AE: 30, Group_DCC: 13 },
-    { thang: '3', Group_AE: 20, Group_DCC: 98 },
-    { thang: '4', Group_AE: 27, Group_DCC: 3 },
-    { thang: '5', Group_AE: 18, Group_DCC: 48 },
-    { thang: '6', Group_AE: 23, Group_DCC: 38 },
-    { thang: '7', Group_AE: 34, Group_DCC: 43 },
-    { thang: '8', Group_AE: 42, Group_DCC: 51 },
-    { thang: '9', Group_AE: 38, Group_DCC: 46 },
-    { thang: '10', Group_AE: 45, Group_DCC: 52 },
-    { thang: '11', Group_AE: 49, Group_DCC: 55 },
-    { thang: '12', Group_AE: 52, Group_DCC: 60 },
-  ];
+  const data = useLineChart();
 
   const formatBattery = (value) => `${Math.round(Number(value) || 0)}%`;
+
+  // Tự động lấy danh sách group keys từ data
+  const getGroupKeys = () => {
+    if (!data || data.length === 0) return [];
+    const keys = Object.keys(data[0]).filter(key => key !== 'thang');
+    return keys;
+  };
+
+  const groupKeys = getGroupKeys();
 
   return (
     <div
@@ -85,27 +100,22 @@ const LineChartComponent = () => {
             iconType="line"
           />
 
-          {/* Đường Group_AE - Xanh dương */}
-          <Line
-            type="monotone"
-            dataKey="Group_AE"
-            stroke="#3b82f6"
-            strokeWidth={3}
-            dot={{ fill: '#3b82f6', r: 6 }}
-            activeDot={{ r: 8, stroke: '#1d4ed8', strokeWidth: 2 }}
-            name="Group_AE"
-          />
-
-          {/* Đường Lợi nhuận - Xanh lục */}
-          <Line
-            type="monotone"
-            dataKey="Group_DCC"
-            stroke="#10b981"
-            strokeWidth={3}
-            dot={{ fill: '#10b981', r: 6 }}
-            activeDot={{ r: 8, stroke: '#059669', strokeWidth: 2 }}
-            name="Group_DCC"
-          />
+          {/* Dynamic render cho tất cả các group */}
+          {groupKeys.map((groupKey) => {
+            const { color, activeColor } = getGroupColor(groupKey);
+            return (
+              <Line
+                key={groupKey}
+                type="monotone"
+                dataKey={groupKey}
+                stroke={color}
+                strokeWidth={3}
+                dot={{ fill: color, r: 6 }}
+                activeDot={{ r: 8, stroke: activeColor, strokeWidth: 2 }}
+                name={groupKey}
+              />
+            );
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>

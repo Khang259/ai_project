@@ -1,47 +1,28 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { getLineChartData, formatLineChartData } from "@/services/Dashboard/lineChart";
 
 /**
  * Hook để lấy dữ liệu biểu đồ đường cho LineChart
- * @param {Object} options - Các tùy chọn
- * @param {string} options.startDate - Ngày bắt đầu (YYYY-MM-DD)
- * @param {string} options.endDate - Ngày kết thúc (YYYY-MM-DD)
- * @returns {Object} Dữ liệu và trạng thái
+ * @returns {Array} Dữ liệu đã format
  */
-export function useLineChart({ startDate, endDate }) {
+export function useLineChart() {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchData = useCallback(async () => {
-    if (!startDate || !endDate) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getLineChartData(startDate, endDate);
-      const formattedData = formatLineChartData(response);
-      setData(formattedData);
-    } catch (err) {
-      console.error("[useLineChart] Error fetching data:", err);
-      setError(err.message || "Lỗi khi tải dữ liệu biểu đồ đường");
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [startDate, endDate]);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getLineChartData();
+        const formattedData = formatLineChartData(response);
+        setData(formattedData);
+      } catch (err) {
+        console.error("[useLineChart] Error:", err);
+        setData([]);
+      }
+    };
+    
     fetchData();
-  }, [fetchData]);
+  }, []);
 
-  return {
-    data,
-    loading,
-    error,
-    refetch: fetchData,
-  };
+  return data;
 }
 
