@@ -24,6 +24,8 @@ videos/
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
 
 # Output files
 output_*.mp4

@@ -321,7 +321,7 @@ def parse_args():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(description="YOLO Object Detection với video stream")
     # parser.add_argument("--model", type=str, default="model/model-hanam_0506.pt", 
-    parser.add_argument("--model", type=str, default="model/yolov8boxdetectV2run2.pt", 
+    parser.add_argument("--model", type=str, default="model/run3.pt", 
                        help="Đường dẫn đến file model YOLO")
     parser.add_argument("--camera-id", type=str, default="cam-1", 
                        help="ID của camera (chỉ dùng với --single-camera)")
@@ -363,9 +363,9 @@ def main():
             
             # Cấu hình camera
             camera_configs = {
-                "cam-1": "rtsp://localhost:8554/cam33",
-                "cam-2": "rtsp://localhost:8554/cam34",
-                "cam-3": "rtsp://localhost:8554/cam1"
+                # "cam-1": "rtsp://localhost:8554/cam33",
+                # "cam-2": "rtsp://localhost:8554/cam34",
+                "cam-3": "rtsp://localhost:8554/cam101"
                 # "cam-2": "rtsp://localhost:8554/cam2"
             }
             

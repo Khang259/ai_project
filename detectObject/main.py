@@ -125,8 +125,9 @@ class CameraOrchestrator:
 def main():
 
     camera_urls = [
-        ("cam-1","rtsp://localhost:8554/cam1"),
-        ("cam-2","rtsp://localhost:8554/cam2")
+        ("cam-99","rtsp://localhost:8554/cam99"),
+        ("cam-100","rtsp://localhost:8554/cam100")
+        # ("cam-101","rtsp://localhost:8554/cam101")
         # ("cam-3","rtsp://localhost:8554/cam3")
         #   ("cam-1","rtsp://192.168.1.202:8554/live/cam1"),
         #   ("cam-2","rtsp://192.168.1.202:8554/live/cam2"),
@@ -209,7 +210,7 @@ def main():
     NUM_PROCESSES = 5  # Có thể thay đổi số này
     MAX_RETRY_ATTEMPTS = 5  # Số lần thử kết nối lại tối đa
     USE_AI = True  # Bật/tắt AI detection
-    MODEL_PATH = "weights/yolov8boxdetectV2run2.pt"  # Đường dẫn model YOLO
+    MODEL_PATH = "weights/run2.pt"  # Đường dẫn model YOLO
     
     # Cấu hình FPS - có thể thay đổi ở đây
     FPS_PRESET = "low"  # Chọn preset: "very_low", "low", "normal", "high", "very_high"

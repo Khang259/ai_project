@@ -84,26 +84,20 @@ def setup_block_unblock_logger(log_dir: str = "../logs") -> logging.Logger:
 
 
 def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
-    """Ray casting algorithm to test if a point is inside a polygon."""
+    """Kiểm tra điểm có nằm trong hình chữ nhật hay không."""
     x, y = point
-    n = len(polygon)
-    if n < 3:
+    if len(polygon) < 4:
         return False
-    inside = False
-    p1x, p1y = polygon[0]
-    for i in range(1, n + 1):
-        p2x, p2y = polygon[i % n]
-        if y > min(p1y, p2y):
-            if y <= max(p1y, p2y):
-                if x <= max(p1x, p2x):
-                    if p1y != p2y:
-                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                    else:
-                        xinters = p1x
-                    if p1x == p2x or x <= xinters:
-                        inside = not inside
-        p1x, p1y = p2x, p2y
-    return inside
+    
+    # Lấy min/max của tất cả các điểm trong polygon (hình chữ nhật)
+    x_coords = [p[0] for p in polygon]
+    y_coords = [p[1] for p in polygon]
+    
+    min_x, max_x = min(x_coords), max(x_coords)
+    min_y, max_y = min(y_coords), max(y_coords)
+    
+    # Kiểm tra điểm có nằm trong khoảng
+    return min_x <= x <= max_x and min_y <= y <= max_y
 
 
 class StablePairProcessor:
@@ -257,7 +251,33 @@ class StablePairProcessor:
                 # only mark empty if hang not seen for that slot in this batch
                 status_by_slot[int(slot_num)] = "empty"
         return status_by_slot
+    # def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
+    #     """
+    #     Tính trạng thái slot:
+    #     - Nếu thấy class "hang" -> status = "shelf" (Ưu tiên cao nhất)
+    #     - Nếu thấy class "qr" (hoặc khác) mà KHÔNG thấy "hang" -> status = "empty"
+    #     """
+    #     status_by_slot: Dict[int, str] = {}
+    
+    #     for det in roi_detections:
+    #         slot_num = det.get("slot_number")
+    #         if slot_num is None:
+    #             continue
+                
+    #         slot_idx = int(slot_num)
+    #         cls = det.get("class_name")
 
+    #         if cls == "hang":
+    #             # Gặp hàng -> Chốt luôn là SHELF (ghi đè bất kể trước đó là gì)
+    #             status_by_slot[slot_idx] = "shelf"
+                
+    #         else: 
+    #             # Trường hợp còn lại (ví dụ class "qr")
+    #             # Chỉ gán là EMPTY nếu slot này CHƯA được xác định là SHELF
+    #             if status_by_slot.get(slot_idx) != "shelf":
+    #                 status_by_slot[slot_idx] = "empty"
+                    
+    #     return status_by_slot
     def _update_slot_state(self, camera_id: str, status_by_slot: Dict[int, str]) -> None:
         now = time.time()
         for slot_num, status in status_by_slot.items():
@@ -304,8 +324,8 @@ class StablePairProcessor:
         
         self.published_by_minute[pair_id][minute_key] = True
 
-    def _maybe_publish_dual(self, dual_config: Dict[str, int], stable_since_epoch: float, is_four_points: bool) -> None:
-        """Publish dual pair based on configuration and stability"""
+    def _maybe_publish_dual(self, dual_config: Dict[str, int], stable_since_epoch: float, is_four_points: bool) -> bool:
+        """Publish dual pair dựa trên configuration, trả True nếu thực sự publish"""
         start_qr = dual_config["start_qr"]
         end_qrs = dual_config["end_qrs"]
         start_qr_2 = dual_config["start_qr_2"]
@@ -318,13 +338,13 @@ class StablePairProcessor:
         
         # Check if already published in the same minute
         if self._is_dual_already_published_this_minute(dual_id, stable_since_epoch):
-            return
+            return False
         
         # Check cooldown period
         last_pub = self.dual_published_at.get(dual_id, 0.0)
         now = time.time()
         if now - last_pub < self.cooldown_seconds:
-            return
+            return False
         
         # Mark as published for this minute and update cooldown
         self._mark_dual_published_this_minute(dual_id, stable_since_epoch)
@@ -352,12 +372,20 @@ class StablePairProcessor:
         
         # Log successful publish
         if is_four_points:
-            self.pair_logger.info(f"STABLE_DUAL_4P_PUBLISHED: dual_id={dual_id}, start_slot={start_qr}, end_slot={end_qrs}, start_slot_2={start_qr_2}, end_slot_2={end_qrs_2}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
+            console_msg = f"[DUAL_LOGIC] Publish 4P: dual_id={dual_id}"
+            self.pair_logger.info(
+                f"STABLE_DUAL_4P_PUBLISHED: dual_id={dual_id}, start_slot={start_qr}, end_slot={end_qrs}, start_slot_2={start_qr_2}, end_slot_2={end_qrs_2}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z"
+            )
         else:
-            self.pair_logger.info(f"STABLE_DUAL_2P_PUBLISHED: dual_id={dual_id}, start_slot={start_qr}, end_slot={end_qrs}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z")
+            console_msg = f"[DUAL_LOGIC] Publish 2P: dual_id={dual_id}, start_qr={start_qr}, end_qrs={end_qrs}"
+            self.pair_logger.info(
+                f"STABLE_DUAL_2P_PUBLISHED: dual_id={dual_id}, start_slot={start_qr}, end_slot={end_qrs}, stable_since={datetime.utcfromtimestamp(stable_since_epoch).isoformat()}Z"
+            )
+        print(console_msg)
         
         # Block start_qr sau khi publish dual
         self._publish_dual_block(dual_config, dual_id)
+        return True
 
     def _is_dual_already_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> bool:
         """Check if this dual pair was already published in the same minute"""
@@ -718,13 +746,9 @@ class StablePairProcessor:
             if not end_ok or end_since is None:
                 continue  # end_qrs không phải empty stable → Bỏ qua
             
-            # Cặp (start_qr, end_qrs) = (shelf, empty) ✅
-            print(f"[DUAL_LOGIC] Cặp chính OK: start_qr={start_qr} (shelf), end_qrs={end_qrs} (empty)")
-            
             # BƯỚC 2: Xét start_qr_2
             if not start_cam_slot_2:
                 # Không có start_qr_2 trong config → Publish 2P
-                print(f"[DUAL_LOGIC] Không có start_qr_2 → Publish 2P")
                 stable_since_epoch = max(start_since, end_since)
                 self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=False)
                 continue
@@ -736,7 +760,6 @@ class StablePairProcessor:
             
             if start_2_shelf_ok and start_2_shelf_since is not None:
                 # start_qr_2 == shelf (stable) → PUBLISH 4P
-                print(f"[DUAL_LOGIC] start_qr_2={start_qr_2} == shelf → Publish 4P")
                 stable_since_epoch = max(start_since, end_since, start_2_shelf_since)
                 self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=True)
             else:
@@ -745,12 +768,11 @@ class StablePairProcessor:
                 
                 if start_2_empty_ok and start_2_empty_since is not None:
                     # start_qr_2 == empty (stable) → PUBLISH 2P
-                    print(f"[DUAL_LOGIC] start_qr_2={start_qr_2} == empty → Publish 2P")
                     stable_since_epoch = max(start_since, end_since, start_2_empty_since)
                     self._maybe_publish_dual(dual_config, stable_since_epoch, is_four_points=False)
                 else:
                     # start_qr_2 không phải shelf stable cũng không phải empty stable → Không publish
-                    print(f"[DUAL_LOGIC] start_qr_2={start_qr_2} không stable → Không publish")
+                    return False
 
     def run(self) -> None:
         # Start dual unblock trigger subscription thread

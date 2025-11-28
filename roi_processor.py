@@ -971,7 +971,7 @@ class ROIProcessor:
                 "end_qrs": end_qrs,
                 "action": "unblock",
                 "reason": "end_shelf_stable_roi_processor",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                # "timestamp": datetime.utcnow().isoformat() + "Z",
                 "end_slot": f"{end_slot[0]}:{end_slot[1]}"
             }
             
@@ -1059,12 +1059,12 @@ class ROIProcessor:
         # Tạo payload cho roi_detection_queue
         roi_detection_payload = {
             "camera_id": camera_id,
-            "frame_id": detection_data["frame_id"],
-            "timestamp": detection_data["timestamp"],
-            "frame_shape": detection_data["frame_shape"],
+            # "frame_id": detection_data["frame_id"],
+            # "timestamp": detection_data["timestamp"],
+            # "frame_shape": detection_data["frame_shape"],
             "roi_detections": filtered_detections,
-            "roi_detection_count": len(filtered_detections),
-            "original_detection_count": len(detections)
+            # "roi_detection_count": len(filtered_detections),
+            # "original_detection_count": len(detections)
         }
         
         return roi_detection_payload
@@ -1074,7 +1074,7 @@ class ROIProcessor:
         Vẽ ROI lên frame (delegate to roi_visualizer)
         
         Args:
-            frame: Frame gốc
+            frame: Frame gốcs
             camera_id: ID của camera
             
         Returns:
@@ -1104,36 +1104,36 @@ class ROIProcessor:
         return self.roi_visualizer.draw_detections_on_frame(frame, detections, camera_id, roi_slots)
     
     
-    def get_video_capture(self, camera_id: str) -> Optional[cv2.VideoCapture]:
-        """
-        Lấy video capture cho camera
+    # def get_video_capture(self, camera_id: str) -> Optional[cv2.VideoCapture]:
+    #     """
+    #     Lấy video capture cho camera
         
-        Args:
-            camera_id: ID của camera
+    #     Args:
+    #         camera_id: ID của camera
             
-        Returns:
-            VideoCapture object hoặc None
-        """
-        if camera_id not in self.video_captures:
-            # Mapping camera_id với video source tương ứng
-            video_mapping = {
-                "cam-1": "video/hanam.mp4",
-                "cam-2": "video/vinhPhuc.mp4"
-            }
+    #     Returns:
+    #         VideoCapture object hoặc None
+    #     """
+    #     if camera_id not in self.video_captures:
+    #         # Mapping camera_id với video source tương ứng
+    #         video_mapping = {
+    #             "cam-1": "video/hanam.mp4",
+    #             "cam-2": "video/vinhPhuc.mp4"
+    #         }
             
-            # Lấy video source cho camera này
-            video_source = video_mapping.get(camera_id, "video/hanam.mp4")
+    #         # Lấy video source cho camera này
+    #         video_source = video_mapping.get(camera_id, "video/hanam.mp4")
             
-            cap = cv2.VideoCapture(video_source)
-            if cap.isOpened():
-                self.video_captures[camera_id] = cap
-                print(f"Đã kết nối video source cho camera {camera_id}: {video_source}")
-            else:
-                cap.release()
-                print(f"Không thể kết nối video source cho camera {camera_id}: {video_source}")
-                return None
+    #         cap = cv2.VideoCapture(video_source)
+    #         if cap.isOpened():
+    #             self.video_captures[camera_id] = cap
+    #             print(f"Đã kết nối video source cho camera {camera_id}: {video_source}")
+    #         else:
+    #             cap.release()
+    #             print(f"Không thể kết nối video source cho camera {camera_id}: {video_source}")
+    #             return None
         
-        return self.video_captures[camera_id]
+    #     return self.video_captures[camera_id]
     
     def update_frame_cache(self, camera_id: str) -> bool:
         """
@@ -1190,7 +1190,7 @@ class ROIProcessor:
 
             time.sleep(1.0)
     
-    def subscribe_raw_detection(self) -> None:
+    # def subscribe_raw_detection(self) -> None:
         """
         Subscribe raw detection queue và xử lý
         """
@@ -1251,14 +1251,10 @@ class ROIProcessor:
                         self.queue.publish("roi_detection", camera_id, roi_detection_payload)
                         
                         # Đếm số shelf và empty
-                        shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'hang')
-                        empty_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'empty')
+                        # shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'hang')
+                        # empty_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'empty')
                         
-                        # Hiển thị thông tin với video source
-                        video_mapping = {
-                            "cam-1": "hanam.mp4",
-                            "cam-2": "vinhPhuc.mp4"
-                        }
+                       
                         video_name = video_mapping.get(camera_id, "unknown")
                         
                         # print(f"Camera {camera_id} ({video_name}) - Frame {detection_data['frame_id']}: "
@@ -1270,6 +1266,92 @@ class ROIProcessor:
                 print(f"Lỗi khi subscribe raw detection: {e}")
                 time.sleep(1)
     
+    def subscribe_raw_detection(self) -> None:
+        """
+        Subscribe raw detection queue và xử lý
+        """
+        print("Bắt đầu subscribe raw detection queue...")
+        
+        # Lấy tất cả camera IDs
+        with self.queue._connect() as conn:
+            cur = conn.execute(
+                "SELECT DISTINCT key FROM messages WHERE topic = 'raw_detection' ORDER BY key"
+            )
+            camera_ids = [row[0] for row in cur.fetchall()]
+        
+        if not camera_ids:
+            print("Không tìm thấy camera nào trong raw_detection queue")
+            return
+        
+        # Track last processed ID cho mỗi camera
+        last_detection_ids = {}
+        for camera_id in camera_ids:
+            detection_data = self.queue.get_latest_row("raw_detection", camera_id)
+            if detection_data:
+                last_detection_ids[camera_id] = detection_data["id"]
+        
+        print(f"Đang monitor {len(camera_ids)} cameras: {camera_ids}")
+        
+        while self.running:
+            try:
+                for camera_id in camera_ids:
+                    # Chỉ xử lý camera có ROI config
+                    with self.cache_lock:
+                        if camera_id not in self.roi_cache:
+                            continue
+                    
+                    # Lấy detections mới
+                    new_detections = self.queue.get_after_id(
+                        "raw_detection", 
+                        camera_id, 
+                        last_detection_ids.get(camera_id, 0),
+                        limit=10
+                    )
+                    
+                    for detection_row in new_detections:
+                        detection_data = detection_row["payload"]
+                        last_detection_ids[camera_id] = detection_row["id"]
+                        
+                        # Lưu detection data gốc để hiển thị video (vẽ bounding box YOLO gốc)
+                        with self.cache_lock:
+                            self.latest_detections[camera_id] = detection_data
+                        
+                        # Xử lý detection - Hàm này trả về dữ liệu CÓ chứa bbox/center
+                        roi_detection_payload = self.process_detection(detection_data)
+                        
+                        # 1. CẬP NHẬT CACHE HIỂN THỊ (Giữ nguyên bbox/center để vẽ video)
+                        with self.cache_lock:
+                            self.latest_roi_detections[camera_id] = roi_detection_payload
+                        
+                        # 2. TẠO PAYLOAD SẠCH ĐỂ PUBLISH (Loại bỏ bbox/center)
+                        clean_detections = []
+                        if roi_detection_payload and "roi_detections" in roi_detection_payload:
+                            for d in roi_detection_payload["roi_detections"]:
+                                clean_detections.append({
+                                    "class_name": d.get("class_name"),
+                                    "class_id": d.get("class_id"),
+                                    # "confidence": d.get("confidence"),
+                                    "slot_number": d.get("slot_number")
+                                    # Đã loại bỏ "bbox" và "center" ở đây để giảm tải cho DB/Queue
+                                })
+
+                        clean_payload = {
+                            "camera_id": roi_detection_payload.get("camera_id"),
+                            "roi_detections": clean_detections
+                        }
+                        
+                        # 3. Publish payload sạch vào roi_detection_queue
+                        self.queue.publish("roi_detection", camera_id, clean_payload)
+                        
+                        
+                        video_name = "unknown" # Bạn có thể map lại nếu cần
+                        # print(f"Published roi_detection for {camera_id}")
+                
+                time.sleep(0.1)  # Check mỗi 100ms
+                
+            except Exception as e:
+                print(f"Lỗi khi subscribe raw detection: {e}")
+                time.sleep(1)
     def run(self) -> None:
         """
         Chạy ROI processor

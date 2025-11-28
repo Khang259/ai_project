@@ -121,7 +121,7 @@ class YOLOInference:
             "objects": objects
         }
 
-def ai_inference_worker(shared_dict, result_dict, model_path="weights/yolov8boxdetectV2run2.pt", target_fps=2.0):
+def ai_inference_worker(shared_dict, result_dict, model_path="weights/run2.pt", target_fps=2.0):
     """
 AI Inference worker process
     
@@ -150,7 +150,7 @@ shared_dict: Dict chứa frame từ camera
     queue = SQLiteQueue(queue_db_path)
     print(f"Đã khởi tạo SQLiteQueue để lưu kết quả detection vào raw_detection topic tại: {queue_db_path}")
 
-    def build_detection_payload(cam_name: str, frame: np.ndarray, results, frame_id: int) -> dict:
+    def build_detection_payload(cam_name: str, frame: np.ndarray, results) -> dict:
         """Chuẩn hoá payload theo định dạng yêu cầu."""
         # frame shape
         h, w = (frame.shape[0], frame.shape[1]) if frame is not None else (0, 0)
@@ -185,15 +185,15 @@ shared_dict: Dict chứa frame từ camera
 
         payload = {
             "camera_id": cam_name,
-            "frame_id": frame_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "frame_shape": {
-                "height": int(h),
-                "width": int(w),
-                "channels": int(c)
-            },
+            # "frame_id": frame_id,
+            # "timestamp": datetime.now(timezone.utc).isoformat(),
+            # "frame_shape": {
+            #     "height": int(h),
+            #     "width": int(w),
+            #     "channels": int(c)
+            # },
             "detections": detections,
-            "detection_count": len(detections)
+            # "detection_count": len(detections)
         }
         return payload
     
@@ -241,7 +241,7 @@ shared_dict: Dict chứa frame từ camera
                         if frame is not None:
                             valid_frames[cam_name] = {
                                 'frame': frame,
-                                'timestamp': current_time,
+                                # 'timestamp': current_time,
                                 'original_data': cam_data
                             }
                     except Exception as e:
@@ -269,7 +269,7 @@ shared_dict: Dict chứa frame từ camera
                         frame_data = valid_frames[cam_name]
                         frame = frames_list[i]
                         frame_count += 1
-                        payload = build_detection_payload(cam_name, frame, results, frame_id=frame_count)
+                        payload = build_detection_payload(cam_name, frame, results)
                         
                         # # In ra stdout (mỗi dòng 1 JSON) - để debug
                         # try:
