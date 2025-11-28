@@ -1,0 +1,85 @@
+2025-11-26 11:51:15,996 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-26 11:51:15,996 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-26 11:51:16,996 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-26 11:51:16,996 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 11:51:17,817 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 11:51:17,818 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 11:51:17,993 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 11:51:17,994 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 11:51:18,804 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 11:51:18,805 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 11:51:18,973 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 11:51:18,980 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-26 11:51:18,982 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-26 23:00:00+07:00
+2025-11-26 11:51:18,983 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-26 11:51:18,984 - camera_ai_app - INFO - Notification service started
+2025-11-26 11:52:57,547 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-26 11:52:57,548 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-26 11:52:57,548 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-26 11:52:57,549 - camera_ai_app - INFO - Notification service stopped
+2025-11-26 11:52:57,592 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-26 13:18:48,397 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-26 13:18:48,398 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-26 13:18:49,164 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-26 13:18:49,165 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 13:18:49,884 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 13:18:49,884 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 13:18:50,020 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 13:18:50,020 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 13:18:50,752 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 13:18:50,753 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 13:18:50,891 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 13:18:50,891 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-26 13:18:50,891 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-26 23:00:00+07:00
+2025-11-26 13:18:50,891 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-26 13:18:50,891 - camera_ai_app - INFO - Notification service started
+2025-11-26 13:19:13,600 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-26 13:19:13,601 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-26 13:19:13,603 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-26 13:19:13,604 - camera_ai_app - INFO - Notification service stopped
+2025-11-26 13:19:13,644 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-26 13:19:56,007 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-26 13:19:56,007 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-26 13:19:56,582 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-26 13:19:56,582 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 13:19:57,154 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 13:19:57,154 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 13:19:57,267 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 13:19:57,268 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 13:19:57,839 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 13:19:57,840 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 13:19:57,964 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 13:19:57,969 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-26 13:19:57,970 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-26 23:00:00+07:00
+2025-11-26 13:19:57,971 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-26 13:19:57,972 - camera_ai_app - INFO - Notification service started
+2025-11-26 13:20:34,543 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-26 13:20:34,543 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-26 13:20:34,543 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-26 13:20:34,543 - camera_ai_app - INFO - Notification service stopped
+2025-11-26 13:20:34,576 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-26 13:20:35,801 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-26 13:20:35,802 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+2025-11-26 13:20:36,263 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-26 13:20:36,264 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 13:20:36,899 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 13:20:36,900 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 13:20:37,027 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 13:20:37,028 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-26 13:20:37,661 - camera_ai_app - INFO - Default permissions initialized
+2025-11-26 13:20:37,661 - camera_ai_app - INFO - Initializing default roles...
+2025-11-26 13:20:37,794 - camera_ai_app - INFO - Default roles initialized
+2025-11-26 13:20:37,794 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-26 13:20:37,794 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-26 23:00:00+07:00
+2025-11-26 13:20:37,794 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-26 13:20:37,794 - camera_ai_app - INFO - Notification service started
+2025-11-26 13:42:35,903 - camera_ai_app - WARNING - Login failed: invalid password or username
+2025-11-26 13:42:35,903 - camera_ai_app - ERROR - Login attempt with invalid username='admin'
+2025-11-26 13:42:46,259 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-26 13:42:46,408 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 14:12:37,177 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 14:42:37,208 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 15:12:37,143 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 15:41:37,447 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 16:11:37,110 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-26 16:41:37,144 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions

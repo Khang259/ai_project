@@ -1,33 +1,32 @@
 // src/components/RobotTable.jsx
 import React from 'react';
+import { useRobotTableWS } from '@/hooks/Dashboard/useRobotTableWS';
 
 const RobotTable = () => {
-  const robots = [
-    { id: 'RB-001', name: 'Robot Alpha', status: 'active', battery: 85 },
-    { id: 'RB-002', name: 'Robot Beta', status: 'maintenance', battery: 45 },
-    { id: 'RB-003', name: 'Robot Gamma', status: 'stopped', battery: 15 },
-    { id: 'RB-004', name: 'Robot Delta', status: 'active', battery: 100 },
-    { id: 'RB-005', name: 'Robot Epsilon', status: 'active', battery: 72 },
-    { id: 'RB-006', name: 'Robot Zeta', status: 'maintenance', battery: 30 },
-  ];
+  const { data, isConnected, error } = useRobotTableWS();
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'active': return { backgroundColor: '#10b981', color: 'white' };
-      case 'maintenance': return { backgroundColor: '#f59e0b', color: 'white' };
-      case 'stopped': return { backgroundColor: '#ef4444', color: 'white' };
-      default: return { backgroundColor: '#6b7280', color: 'white' };
+  // Xử lý dữ liệu từ WebSocket
+  const robots = React.useMemo(() => {
+    if (!data) return [];
+    
+    // Dữ liệu có cấu trúc: { type: "agv_info", data: [...] }
+    if (data.data && Array.isArray(data.data)) {
+      return data.data.map((item) => ({
+        id: item.device_code || 'Unknown',
+        name: item.device_name || 'Unknown',
+        speed: item.speed || 0,
+        battery: item.battery || 0,
+      }));
     }
+    
+    return [];
+  }, [data]);
+
+  const getSpeedStyle = (speed) => {
+    if (speed > 0) return { backgroundColor: '#10b981', color: 'white' };
+    return { backgroundColor: '#ef4444', color: 'white' };
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'active': return 'Hoạt động';
-      case 'maintenance': return 'Bảo trì';
-      case 'stopped': return 'Dừng';
-      default: return 'Không xác định';
-    }
-  };
 
   const getProgressColor = (percent) => {
     if (percent >= 70) return '#10b981';
@@ -54,20 +53,37 @@ const RobotTable = () => {
         }}
       >
         Danh sách Robot
+        {!isConnected && (
+          <span style={{ fontSize: '14px', color: '#f59e0b', marginLeft: '10px' }}>
+            (Đang kết nối...)
+          </span>
+        )}
       </h2>
 
+      {error && (
+        <div style={{ padding: '12px', backgroundColor: '#ef4444', color: 'white', borderRadius: '4px', marginBottom: '16px' }}>
+          Lỗi: {error}
+        </div>
+      )}
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{}}>
               <th style={thStyle}>Tên Robot</th>
               <th style={thStyle}>ID</th>
-              <th style={thStyle}>Trạng thái</th>
+              <th style={thStyle}>Tốc độ</th>
               <th style={thStyle}>Pin (%)</th>
             </tr>
           </thead>
           <tbody>
-            {robots.map((robot) => (
+            {robots.length === 0 ? (
+              <tr>
+                <td colSpan="4" style={{ ...tdStyle, textAlign: 'center', color: '#94a3b8' }}>
+                  Không có dữ liệu
+                </td>
+              </tr>
+            ) : (
+              robots.map((robot) => (
               <tr key={robot.id}>
                 {/* Tên Robot */}
                 <td style={tdStyle}>
@@ -87,10 +103,10 @@ const RobotTable = () => {
                       borderRadius: '999px',
                       fontSize: '13px',
                       fontWeight: 'bold',
-                      ...getStatusStyle(robot.status),
+                      ...getSpeedStyle(robot.speed),
                     }}
                   >
-                    {getStatusText(robot.status)}
+                    {robot.speed} km/h
                   </span>
                 </td>
 
@@ -122,7 +138,8 @@ const RobotTable = () => {
                   </div>
                 </td>
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>

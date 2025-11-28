@@ -1,18 +1,23 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 
-const data = [
-  { name: 'Hoàn thành', value: 70, color: '#3cb170' }, // emerald-500
-  { name: 'Chưa hoàn thành', value: 30, color: '#a5b2bd' }, // gray-200
+// Data mặc định khi chưa có data từ API
+const defaultData = [
+  { name: 'Hoàn thành', value: 0, color: '#3cb170' },
+  { name: 'Chưa hoàn thành', value: 0, color: '#a5b2bd' },
 ];
 
-const SemiPieChart = () => {
+const SemiPieChart = ({ data }) => {
+  // Sử dụng data từ props hoặc defaultData
+  const chartData = data?.chartData || defaultData;
+  const percentage = data?.percentage || 0;
+
   return (
     <div className="w-full h-65 md:h-40 relative">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            data={data}
+            data={chartData}
             cx="50%"
             cy="75%" // Đẩy xuống dưới để tạo hiệu ứng semi
             innerRadius={60}
@@ -22,7 +27,7 @@ const SemiPieChart = () => {
             dataKey="value"
             cornerRadius={8}
           >
-            {data.map((entry, index) => (
+            {chartData.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
                 fill={entry.color} 
@@ -46,10 +51,9 @@ const SemiPieChart = () => {
         <div className="text-center ">
           <div className="text-4xl font-bold text-gray-100 ">
             <div className="">
-                {data[0].value}%
+                {percentage}%
             </div>
           </div>
-          {/* <div className="text-sm text-gray-600">{data[0].name}</div> */}
         </div>
       </div>
     </div>

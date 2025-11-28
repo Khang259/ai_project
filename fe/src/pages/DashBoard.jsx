@@ -2,7 +2,7 @@
 import AMRWarehouseMap from "@/components/Overview/map/AMRWarehouseMap/AMRWarehouseMap"
 import StatisticsLeftSide from "@/components/Overview/statistics/StatisticsLeftSide"
 import GraphChart from "@/components/Overview/statistics/Graph_Chart"
-import SemiPieChart from "@/components/Overview/statistics/SemiPieChart"
+import SemiPieChartGroup from "@/components/Overview/statistics/SemiPieChartGroup"
 import ColumnChart from "@/components/Overview/statistics/ColumnChart"
 import RobotTable from "@/components/Overview/statistics/RobotTable"
 import LineChart from "@/components/Overview/statistics/LineChart"
@@ -18,28 +18,7 @@ export default function Dashboard() {
           <div className="card-purple">
               <StatisticsLeftSide />
           </div>
-          <div className="grid grid-cols-2 mb-4 mt-4">
-            <div className="card-purple-specific">
-              <span className="text-white font-medium mb-2 pr-30">7 ngày gần nhất</span>
-              <div className="" 
-              style={{
-                borderRadius: '16px',
-              }}>
-                <SemiPieChart />
-              </div>
-            </div>
-            <div className="">
-              <div className="card-purple-specific">
-                <span className="text-white font-medium mb-2 pr-30">30 ngày gần nhất</span>
-                <div className="" 
-                  style={{
-                    borderRadius: '16px',
-                  }}>
-                  <SemiPieChart />
-                </div>
-              </div>
-            </div>
-          </div>
+          <SemiPieChartGroup />
           <div className="">
               <GraphChart />
           </div>
