@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import bgMonitorImage from '../assets/bg8.jpg';
+// import bgMonitorImage from '../assets/bg8.jpg';
 import logoImage from '../assets/logo2.png';
 
 // API configuration
@@ -21,7 +21,7 @@ const initialLineData = [
   },
   {
     name: 'LINE 3',
-    color: '#772EBF', // Violet (tối hơn)
+    color: '#035575',
     boxes: [
       { id: 1, text: '' },
       { id: 2, text: '' },
@@ -31,7 +31,7 @@ const initialLineData = [
   },
   {
     name: 'LINE 4',
-    color: '#AC0090', // Fuchsia (tối hơn)
+    color: '#002C3A',
     boxes: [
       { id: 1, text: '' },
       { id: 2, text: '' },
@@ -114,6 +114,7 @@ const StorageBox = ({ lineIndex, boxId }) => (
     data-line={lineIndex} 
     data-box={boxId}
   >
+    <div className="dots_border"></div>
     <span className="box-id">{boxId}</span>
     <span className="box-text" data-content></span>
   </div>
@@ -601,10 +602,7 @@ const MonitorPackaged = () => {
           overflow: hidden;
           display: flex;
           flex-direction: column;
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          background-attachment: fixed;
+          background: black;
         }
 
         /* --- Header Styles --- */
@@ -620,9 +618,9 @@ const MonitorPackaged = () => {
           position: relative;
           background-image: linear-gradient(
             90deg,
-            #008FBF,
-            #772EBF,
-            #AC0090
+#008FBF,
+#035575,
+#002C3A
           );
         }
 
@@ -731,27 +729,20 @@ const MonitorPackaged = () => {
           box-shadow: 0 0 15px var(--line-color), inset 0 0 8px rgba(255, 255, 255, 0.5);
           aspect-ratio: auto;
         }
-        
-        .storage-box:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 8px 25px var(--line-color), inset 0 0 12px rgba(255, 255, 255, 0.7);
-        }
-
         .storage-box.active {
           animation: pulse 2s ease-in-out infinite;
-          border: 2px solid #FFD700;
-          box-shadow: 0 0 25px var(--line-color), 0 0 15px #FFD700, inset 0 0 12px rgba(255, 215, 0, 0.7);
+          border: 2px solid #4FFFB0;
+          box-shadow: 0 0 5px var(--line-color), 0 0 5px #4FFFB0, inset 0 0 5px rgba(79, 255, 176, 0.5);
         }
 
         @keyframes pulse {
           0%, 100% {
-            box-shadow: 0 0 25px var(--line-color), 0 0 15px #FFD700, inset 0 0 12px rgba(255, 215, 0, 0.7);
+            box-shadow: 0 0 5px var(--line-color), 0 0 5px #4FFFB0, inset 0 0 5px rgba(79, 255, 176, 0.5);
           }
           50% {
-            box-shadow: 0 0 35px var(--line-color), 0 0 25px #FFD700, inset 0 0 20px rgba(255, 215, 0, 0.9);
+            box-shadow: 0 0 15px var(--line-color), 0 0 15px #4FFFB0, inset 0 0 5px rgba(79, 255, 176, 0.7);
           }
         }
-
         .ws-status {
           position: fixed;
           top: 10px;
@@ -837,9 +828,9 @@ const MonitorPackaged = () => {
       {/* Phần render chính */}
       <div 
         className="monitor-container"
-        style={{
-          backgroundImage: `url(${bgMonitorImage})`
-        }}
+        // style={{
+        //   backgroundImage: `url(${bgMonitorImage})`
+        // }}
       >
         {/* WebSocket Connection Status */}
         {/* <div className={`ws-status ${isConnected ? 'connected' : 'disconnected'}`}>
