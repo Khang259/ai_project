@@ -124,39 +124,45 @@ class ROIProcessor:
             print(f"Bắt đầu load QR mapping từ {self.pairing_config_path}")
             with open(self.pairing_config_path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
-                
-            mapping: Dict[int, Tuple[str, int]] = {}
-            starts_count = 0
-            ends_count = 0
             
-            for item in cfg.get("starts", []):
-                try:
-                    qr_code = int(item["qr_code"])
-                    camera_id = str(item["camera_id"])
-                    slot_number = int(item["slot_number"])
-                    mapping[qr_code] = (camera_id, slot_number)
-                    starts_count += 1
-                except Exception as e:
-                    print(f"Lỗi parse start item {item}: {e}")
-                    continue
-                    
-            for item in cfg.get("ends", []):
-                try:
-                    qr_code = int(item["qr_code"])
-                    camera_id = str(item["camera_id"])
-                    slot_number = int(item["slot_number"])
-                    mapping[qr_code] = (camera_id, slot_number)
-                    ends_count += 1
-                except Exception as e:
-                    print(f"Lỗi parse end item {item}: {e}")
-                    continue
-                    
+            mapping, starts_count = self._parse_qr_slots(cfg)
             self.qr_to_slot = mapping
-            print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count}, ends: {ends_count})")
+            print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count})")
             
         except Exception as e:
             print(f"Lỗi khi load pairing config: {e}")
-            print(f"Lỗi khi load pairing config: {e}")
+    
+    def _parse_qr_slots(self, cfg: dict) -> Tuple[Dict[int, Tuple[str, int]], int]:
+        """
+        Parse QR code mapping từ config.
+        Returns: (mapping dictionary, số lượng starts)
+        """
+        mapping: Dict[int, Tuple[str, int]] = {}
+        starts_count = 0
+        
+        for item in cfg.get("starts", []):
+            try:
+                qr_code = int(item["qr_code"])
+                camera_id = str(item["camera_id"])
+                slot_number = int(item["slot_number"])
+                mapping[qr_code] = (camera_id, slot_number)
+                starts_count += 1
+            except Exception as e:
+                print(f"Lỗi parse start item {item}: {e}")
+                continue
+        
+        # Ends đã bị comment out trong code gốc
+        # for item in cfg.get("ends", []):
+        #     try:
+        #         qr_code = int(item["qr_code"])
+        #         camera_id = str(item["camera_id"])
+        #         slot_number = int(item["slot_number"])
+        #         mapping[qr_code] = (camera_id, slot_number)
+        #     except Exception as e:
+        #         print(f"Lỗi parse end item {item}: {e}")
+        #         continue
+        
+        return mapping, starts_count
     
     def _setup_end_to_start_mapping(self) -> None:
         """Thiết lập mapping từ end slot đến start slot dựa trên pairs config"""
@@ -166,18 +172,8 @@ class ROIProcessor:
             with open(self.pairing_config_path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
             
-            # Tạo mapping từ QR code đến (camera_id, slot_number)
-            qr_to_slot = {}
-            for item in cfg.get("starts", []):
-                try:
-                    qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
-                except Exception:
-                    continue
-            for item in cfg.get("ends", []):
-                try:
-                    qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
-                except Exception:
-                    continue
+            # Sử dụng hàm chung để parse QR slots
+            qr_to_slot, _ = self._parse_qr_slots(cfg)
             
             # Tạo mapping end_slot -> start_slot từ pairs
             end_to_start = {}
@@ -199,7 +195,7 @@ class ROIProcessor:
                 print(f"  End {end_slot} -> Start {start_slot}")
         except Exception as e:
             print(f"Lỗi khi thiết lập end_to_start mapping: {e}")
-    
+            
     def _add_end_slot_monitoring(self, end_qr: int) -> None:
         """Thêm end slot vào danh sách theo dõi"""
         end_slot = self.qr_to_slot.get(end_qr)

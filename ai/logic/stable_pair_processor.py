@@ -84,26 +84,20 @@ def setup_block_unblock_logger(log_dir: str = "../logs") -> logging.Logger:
 
 
 def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
-    """Ray casting algorithm to test if a point is inside a polygon."""
+    """Kiểm tra điểm có nằm trong hình chữ nhật hay không."""
     x, y = point
-    n = len(polygon)
-    if n < 3:
+    if len(polygon) < 4:
         return False
-    inside = False
-    p1x, p1y = polygon[0]
-    for i in range(1, n + 1):
-        p2x, p2y = polygon[i % n]
-        if y > min(p1y, p2y):
-            if y <= max(p1y, p2y):
-                if x <= max(p1x, p2x):
-                    if p1y != p2y:
-                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                    else:
-                        xinters = p1x
-                    if p1x == p2x or x <= xinters:
-                        inside = not inside
-        p1x, p1y = p2x, p2y
-    return inside
+    
+    # Lấy min/max của tất cả các điểm trong polygon (hình chữ nhật)
+    x_coords = [p[0] for p in polygon]
+    y_coords = [p[1] for p in polygon]
+    
+    min_x, max_x = min(x_coords), max(x_coords)
+    min_y, max_y = min(y_coords), max(y_coords)
+    
+    # Kiểm tra điểm có nằm trong khoảng
+    return min_x <= x <= max_x and min_y <= y <= max_y
 
 
 class StablePairProcessor:
@@ -169,12 +163,12 @@ class StablePairProcessor:
         for item in cfg.get("starts", []):
             self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
             starts_count += 1
-        for item in cfg.get("starts_2", []):
-            self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
-            starts_2_count += 1
-        for item in cfg.get("ends", []):
-            self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
-            ends_count += 1
+        # for item in cfg.get("starts_2", []):
+        #     self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+        #     starts_2_count += 1
+        # for item in cfg.get("ends", []):
+        #     self.qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+        #     ends_count += 1
 
         # Normalize pairs: ensure list for end_qrs, and load end_qrs_2
         self.pairs.clear()

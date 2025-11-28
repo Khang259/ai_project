@@ -1,0 +1,9 @@
+1. Hàm def "_load_qr_mapping"
+Đọc file config 
+...
+2 Hàm def "_setup_end_to_start_mapping"
+Đang bị lặp logic mapping với hàm trên (đã Sửa)
+
+2 HÀM này để mapping các điểm có logic với nhau trong file json
+
+3. Hàm 

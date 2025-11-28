@@ -122,6 +122,19 @@ const MobileGridDisplay = () => {
     }, {});
   }, [filteredNodes]);
 
+  const autoNodesByLine = React.useMemo(() => {
+    return autoNodes.reduce((acc, node) => {
+      const line = node.line;
+      if (line && ['Line 2', 'Line 3', 'Line 4'].includes(line)) {
+        if (!acc[line]) {
+          acc[line] = [];
+        }
+        acc[line].push(node);
+      }
+      return acc;
+    }, {});
+  }, [autoNodes]);
+
   // Clear Monitor function
   const sendClearMonitor = useCallback(
     async (nodePayload) => {
@@ -206,13 +219,11 @@ const MobileGridDisplay = () => {
       setCommandLogs((prev) => [logEntry, ...prev]);
 
       if (result.success) {
-        alert(`✅ Yêu cầu thành công!\nNode: ${selectedNode?.node_name}\nEnd QR: ${selectedEndQr}`);
         setShowConfirmModal(false);
-        setSelectedEndQr(null);
         setSelectedNode(null);
       } else {
-        alert(`❌ Yêu cầu thất bại!\n${result.error || 'Lỗi không xác định'}`);
-      }
+        console.error("Gửi lệnh thất bại:", result.error || "Lỗi không xác định");
+      }      
       return;
     }
 
@@ -250,11 +261,10 @@ const MobileGridDisplay = () => {
     setCommandLogs((prev) => [logEntry, ...prev]);
 
     if (result.success) {
-      alert(`✅ Gửi lệnh thành công!\nNode: ${selectedNode.node_name}\nStart: ${selectedNode.start} → End: ${selectedNode.end}`);
       setShowConfirmModal(false);
       setSelectedNode(null);
     } else {
-      alert(`❌ Gửi lệnh thất bại: ${result.error || 'Lỗi không xác định'}`);
+      console.error(` Gửi lệnh thất bại: ${result.error || 'Lỗi không xác định'}`);
     }
   };
 
@@ -381,30 +391,43 @@ const MobileGridDisplay = () => {
 
             {selectedNodeType === 'auto' && autoNodes.length > 0 && (
               <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
+                {/* <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                   Danh sách lệnh tự động ({autoNodes.length}):
-                </h2>
-                <div className="grid gap-2 sm:gap-3 grid-cols-1 min-[350px]:grid-cols-2 min-[730px]:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {autoNodes.map((node, index) => (
-                    <div 
-                      key={node.id || index}
-                      className={`bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer transition-colors duration-200 border-2 ${
-                        selectedEndQr === node.end && selectedNode?.id === node.id
-                          ? 'border-[#016B61] bg-[#016B61]/10' 
-                          : 'border-gray-200 hover:border-[#016B61] hover:bg-gray-100'
-                      }`}
-                      onClick={() => handleAutoQrSelect(node)}
-                    >
-                      <div className="text-center">
-                        <h3 className="font-bold text-gray-800 text-xl sm:text-2xl">
-                          {node.node_name || `Node ${index + 1}`}
+                </h2> */}
+                <div className="space-y-4">
+                  {Object.keys(autoNodesByLine)
+                    .sort()
+                    .map((line) => (
+                      <div key={line}>
+                        <h3
+                          className="text-sm sm:text-base font-semibold text-white py-1 px-3 rounded-md inline-block mb-2"
+                          style={{ backgroundColor: LINE_COLORS[line] || '#5C9A94' }}
+                        >
+                          {line}
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          End: {node.end || 0}
-                        </p>
+                        <div className="grid gap-1 max-sm:grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10">
+                          {autoNodesByLine[line].map((node, index) => {
+                            const isSelected = selectedEndQr === node.end && selectedNode?.id === node.id;
+                            const backgroundColor = LINE_COLORS[line] || '#5C9A94';
+                            return (
+                              <div
+                                key={node.id || `${line}-${index}`}
+                                className={`rounded-lg cursor-pointer transition-all duration-200 border-2 h-[80px] flex items-center justify-center text-white ${
+                                  isSelected ? 'ring-4 ring-offset-2 ring-yellow-400' : 'hover:opacity-80'
+                                }`}
+                                style={{ backgroundColor }}
+                                onClick={() => handleAutoQrSelect(node)}
+                              >
+                                <div className="text-center p-1">
+                                  <p className="text-xs sm:text-xl font-semibold truncate">{node.node_name}</p>
+                                  {/* <p className="text-xs opacity-90">End: {node.end || 0}</p> */}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -417,7 +440,7 @@ const MobileGridDisplay = () => {
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-[#016B61]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✅</span>
+                <span className="text-2xl"></span>
               </div>
               
               <h3 className="text-lg font-bold text-gray-800 mb-2">

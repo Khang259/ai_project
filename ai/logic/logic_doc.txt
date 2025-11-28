@@ -1,0 +1,25 @@
+1. Hàm def "is_point_in_polygon"
+Xác định xem 1 điểm có nằm trong ROI hình chữ nhật không
+Nếu điểm đó (x,y) nằm trong min/max của toạ độ ROI
+
+2. Hàm def "_load_pairing_config"
+Đọc file slot_pairing_config.json
+    Tìm từ khoá "starts", trong đó có các item chứa các thông tin : "slot_number", "camera_id", "qr_code"
+    Tương tự với "pair" và "dual"
+Sau đó map các dữ liệu đó để được dữ liệu mong muốn. (Làm giàu dữ liệu)
+Ví dụ: trong các cặp "pair" cần biết được điểm QR code đó nằm ở camera nào, slot mấy,...
+
+3. Hàm def "_compute_slot_statuses"
+Nhận Input trả ra từ Yolo, gán status cho từng slot
+
+4. Hàm def "_update_slot_state"
+Cập nhật trạng thái cho slot
+
+5. Hàm def "_is_slot_stable"
+Xác định xem slot có state ổn định hay không bằng biến "stable_seconds"
+
+5. Hàm def "_get_minute_key" và Hàm "_is_already_published_this_minute"
+Chuẩn hoá định dạng thời gian
+Phân tích sau, chưa hiểu rõ phần này
+
+6. 

@@ -147,11 +147,11 @@ const MonitorPackaged = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const initialGroupId = urlParams.get('group_id') || '1';
   
-  console.log('╔═══════════════════════════════════════════════════════════════╗');
-  console.log('║           MonitorPackaged Component Started                  ║');
-  console.log('╚═══════════════════════════════════════════════════════════════╝');
-  console.log("[MonitorPackaged] 🔑 Initial connection group_id:", initialGroupId);
-  console.log('');
+  // console.log('╔═══════════════════════════════════════════════════════════════╗');
+  // console.log('║           MonitorPackaged Component Started                  ║');
+  // console.log('╚═══════════════════════════════════════════════════════════════╝');
+  // console.log("[MonitorPackaged] 🔑 Initial connection group_id:", initialGroupId);
+  // console.log('');
   
   // ==================== DOM MANIPULATION FUNCTIONS ====================
   
@@ -224,8 +224,8 @@ const MonitorPackaged = () => {
         // Xóa giá trị cụ thể khỏi stack
         newStack = currentStack.filter(item => item !== valueToRemove);
         console.log(`[STACK] Remove "${valueToRemove}" from [L${lineIndex + 2}, Box${boxId}]`);
-        console.log(`[STACK] Stack was: [${currentStack.join(', ')}]`);
-        console.log(`[STACK] Stack now: [${newStack.join(', ')}]`);
+        // console.log(`[STACK] Stack was: [${currentStack.join(', ')}]`);
+        // console.log(`[STACK] Stack now: [${newStack.join(', ')}]`);
       }
       
       // Render lại phần tử ĐẦU TIÊN (hoặc rỗng nếu stack trống)
@@ -239,7 +239,7 @@ const MonitorPackaged = () => {
           // Lấy phần tử ĐẦU TIÊN thay vì cuối
           const firstValue = newStack.length > 0 ? newStack[0] : '';
           textElement.innerHTML = firstValue;
-          console.log(`[DOM] ✓ Re-render FIRST element: "${firstValue}" at Line ${lineIndex + 2}, Box ${boxId}`);
+          // console.log(`[DOM] ✓ Re-render FIRST element: "${firstValue}" at Line ${lineIndex + 2}, Box ${boxId}`);
         }
         
         // Xóa active class nếu stack rỗng
@@ -393,45 +393,45 @@ const MonitorPackaged = () => {
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🔌 WEBSOCKET CONNECTED');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(`[WebSocket] Connected to group ${initialGroupId}`);
-      console.log('  - Timestamp:', new Date().toISOString());
-      console.log('');
+      // console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // console.log('🔌 WEBSOCKET CONNECTED');
+      // console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // console.log(`[WebSocket] Connected to group ${initialGroupId}`);
+      // console.log('  - Timestamp:', new Date().toISOString());
+      // console.log('');
       
       setIsConnected(true);
       setError(null);
     };
 
-    // ⚡ XỬ LÝ socket.onmessage - Data sẽ được ghi trực tiếp vào DOM
+    //  XỬ LÝ socket.onmessage - Data sẽ được ghi trực tiếp vào DOM
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
 
-    console.log('╔═══════════════════════════════════════════════════════════════╗');
-    console.log('║           📨 NEW WEBSOCKET MESSAGE RECEIVED                   ║');
-    console.log('╚═══════════════════════════════════════════════════════════════╝');
-    console.log('⏰ Timestamp:', new Date().toISOString());
-        console.log('📋 Message Type:', data.type || 'NO TYPE');
-        console.log('📄 Full Data:', JSON.stringify(data, null, 2));
-        console.log('');
+    // console.log('╔═══════════════════════════════════════════════════════════════╗');
+    // console.log('║           📨 NEW WEBSOCKET MESSAGE RECEIVED                   ║');
+    // console.log('╚═══════════════════════════════════════════════════════════════╝');
+    // console.log('⏰ Timestamp:', new Date().toISOString());
+    //     console.log('📋 Message Type:', data.type || 'NO TYPE');
+    //     console.log('📄 Full Data:', JSON.stringify(data, null, 2));
+    //     console.log('');
 
         // Lấy group_id từ message
         if (data.group_id !== undefined) {
-          console.log('🎯 Setting group_id:', data.group_id);
+          console.log(' Setting group_id:', data.group_id);
           setCurrentGroupId(data.group_id);
         }
 
         // Xử lý theo TYPE
         if (data.type === 'Initial') {
-      console.log('┌─────────────────────────────────────────────────────────────┐');
-      console.log('│ 🔄 ACTION: INITIAL (Render Node to Grid)                   │');
-      console.log('└─────────────────────────────────────────────────────────────┘');
-          console.log('  ├─ Group ID:', data.group_id);
-          console.log('  ├─ Node Name:', data.node_name);
-          console.log('  └─ Line:', data.line);
-      console.log('');
+      // console.log('┌─────────────────────────────────────────────────────────────┐');
+      // console.log('│ 🔄 ACTION: INITIAL (Render Node to Grid)                   │');
+      // console.log('└─────────────────────────────────────────────────────────────┘');
+      //     console.log('  ├─ Group ID:', data.group_id);
+      //     console.log('  ├─ Node Name:', data.node_name);
+      //     console.log('  └─ Line:', data.line);
+      // console.log('');
       
           if (data.node_name) {
             updateFromNodeName(data.node_name);
@@ -440,13 +440,13 @@ const MonitorPackaged = () => {
       }
           
         } else if (data.type === 'Clear') {
-      console.log('┌─────────────────────────────────────────────────────────────┐');
-      console.log('│ 🗑️  ACTION: CLEAR ORDER                                     │');
-      console.log('└─────────────────────────────────────────────────────────────┘');
-          console.log('  ├─ Order ID:', data.order_id);
-          console.log('  ├─ Group ID:', data.group_id);
-          console.log('  └─ End QRS:', data.end_qrs);
-      console.log('');
+      // console.log('┌─────────────────────────────────────────────────────────────┐');
+      // console.log('│ 🗑️  ACTION: CLEAR ORDER                                     │');
+      // console.log('└─────────────────────────────────────────────────────────────┘');
+      //     console.log('  ├─ Order ID:', data.order_id);
+      //     console.log('  ├─ Group ID:', data.group_id);
+      //     console.log('  └─ End QRS:', data.end_qrs);
+      // console.log('');
           
           // Xử lý end_qrs: có thể là single value hoặc array
           if (data.end_qrs !== undefined) {
@@ -462,30 +462,30 @@ const MonitorPackaged = () => {
           }
           
         } else if (data.type === 'TaskUpdate' && data.tasks) {
-      console.log('┌─────────────────────────────────────────────────────────────┐');
-      console.log('│ 📋 ACTION: UPDATE TASKS (TaskUpdate)                        │');
-      console.log('└─────────────────────────────────────────────────────────────┘');
-          console.log('  ├─ Group ID:', data.group_id);
-          console.log('  └─ Number of tasks:', data.tasks.length);
-      console.log('');
+      // console.log('┌─────────────────────────────────────────────────────────────┐');
+      // console.log('│ 📋 ACTION: UPDATE TASKS (TaskUpdate)                        │');
+      // console.log('└─────────────────────────────────────────────────────────────┘');
+      //     console.log('  ├─ Group ID:', data.group_id);
+      //     console.log('  └─ Number of tasks:', data.tasks.length);
+      // console.log('');
           updateFromTasks(data.tasks);
           
         } else if (Array.isArray(data)) {
-      console.log('┌─────────────────────────────────────────────────────────────┐');
-      console.log('│ 📋 ACTION: UPDATE TASKS (Array)                             │');
-      console.log('└─────────────────────────────────────────────────────────────┘');
-          console.log('  └─ Number of tasks:', data.length);
-      console.log('');
+      // console.log('┌─────────────────────────────────────────────────────────────┐');
+      // console.log('│ 📋 ACTION: UPDATE TASKS (Array)                             │');
+      // console.log('└─────────────────────────────────────────────────────────────┘');
+      //     console.log('  └─ Number of tasks:', data.length);
+      // console.log('');
           updateFromTasks(data);
           
         } else if (data.type === 'heartbeat') {
           // Heartbeat - bỏ qua
       return;
     } else {
-          console.log('⚠️  WARNING: UNKNOWN DATA FORMAT');
+          console.log('  WARNING: UNKNOWN DATA FORMAT');
         }
         
-        console.log('✅ Message processing complete');
+        console.log(' Message processing complete');
         console.log('');
         
       } catch (err) {
@@ -495,11 +495,11 @@ const MonitorPackaged = () => {
     };
 
     socket.onclose = (event) => {
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🔌 WEBSOCKET DISCONNECTED');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(`[WebSocket] Connection closed (Code: ${event.code})`);
-      console.log('');
+      // console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // console.log('🔌 WEBSOCKET DISCONNECTED');
+      // console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // console.log(`[WebSocket] Connection closed (Code: ${event.code})`);
+      // console.log('');
       
       setIsConnected(false);
       socketRef.current = null;
@@ -738,7 +738,7 @@ const MonitorPackaged = () => {
         .ws-status {
           position: fixed;
           top: 10px;
-          right: 10px;
+          left: 10px;
           padding: 8px 15px;
           border-radius: 20px;
           font-size: 0.9rem;
@@ -789,7 +789,7 @@ const MonitorPackaged = () => {
         }
 
         .box-text {
-          font-size: 2.5vw; /* Kích thước chữ co dãn theo màn hình */
+          font-size: 4.2vw; /* Kích thước chữ co dãn theo màn hình */
           font-weight: bold;
           color: #FFFFFF; /* Chữ màu trắng */
           text-align: center;
@@ -825,10 +825,10 @@ const MonitorPackaged = () => {
         }}
       >
         {/* WebSocket Connection Status */}
-        <div className={`ws-status ${isConnected ? 'connected' : 'disconnected'}`}>
+        {/* <div className={`ws-status ${isConnected ? 'connected' : 'disconnected'}`}>
           <span className="ws-status-dot"></span>
           {isConnected ? 'Connected' : error ? `Disconnected: ${error}` : 'Connecting...'}
-        </div>
+        </div> */}
 
         <MonitorHeader date={currentDate} time={currentTime} groupId={currentGroupId} />
         <main className="main-content">
