@@ -28,7 +28,7 @@ export const NotificationProvider = ({ children }) => {
 
                 // ✅ CHẶN toast nếu đang ở excluded route
                 if (EXCLUDED_ROUTES.includes(location.pathname)) {
-                    console.log("[NOTIFICATION] Toast blocked at route:", location.pathname);
+                    //console.log("[NOTIFICATION] Toast blocked at route:", location.pathname);
                     return;
                 }
 
@@ -46,7 +46,7 @@ export const NotificationProvider = ({ children }) => {
                     position: "top-right",
                 });
 
-                console.log("[NOTIFICATION] Toast displayed:", notification);
+                //console.log("[NOTIFICATION] Toast displayed:", notification);
             } catch (error) {
                 console.error("[NOTIFICATION] Error parsing websocket message:", error);
             }

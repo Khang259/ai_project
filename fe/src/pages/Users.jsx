@@ -9,7 +9,6 @@ import UpdateUserModal from "@/components/Users/UpdateUserModal";
 import CreateRouteModal from "@/components/Users/CreateRouteModal";
 import { useUsers } from "@/hooks/Users/useUsers";
 import Username from "@/components/Users/username";
-import { useArea } from "@/contexts/AreaContext";
 import { useTranslation } from 'react-i18next';
 
 export default function UserDashboard() {

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 import {
   Table,
@@ -14,13 +14,17 @@ import { Input } from '../../ui/input';
 import { Plus, Route, Trash2, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRoute } from '@/hooks/Setting/useRoute';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import UpdateRoutes from './UpdateRoutes';
 import RobotList from './RobotList';
 
 const RouteSettings = () => {
   const { t } = useTranslation();
-  const { routes, loading, createRoute, updateRoute, deleteRoute } = useRoute();
+  const { auth } = useAuth();
+  const isAdmin = auth?.user?.roles?.includes('admin');
+  const isOperator = auth?.user?.roles?.includes('operator');
+  const { routes, loading, createRoute, updateRoute, deleteRoute, getRoutesByCreator, fetchRoutes } = useRoute();
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     route_name: '',
@@ -31,6 +35,30 @@ const RouteSettings = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newlyAddedId, setNewlyAddedId] = useState(null);
   const tableRef = useRef(null);
+
+  // Fetch routes dựa trên role của user
+  useEffect(() => {
+    const loadRoutes = async () => {
+      if (!auth?.user) return;
+      
+      try {
+        if (isOperator && !isAdmin) {
+          // Operator: chỉ lấy routes của chính họ
+          await getRoutesByCreator(auth.user.username);
+          console.log('[DEBUG-RouteList]', getRoutesByCreator)
+        } else if (isAdmin) {
+          // Admin: lấy tất cả routes
+          await fetchRoutes();
+        }
+      } catch (error) {
+        console.error('Error fetching routes:', error);
+        toast.error(t('settings.loadRoutesError') || 'Có lỗi xảy ra khi tải routes');
+      }
+    };
+    
+    loadRoutes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth?.user?.username, auth?.user?.roles, isAdmin, isOperator]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({

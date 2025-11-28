@@ -27,9 +27,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateFilter } from "@/components/Analytics/DateFilter";
 import { AMRFilter } from "@/components/Analytics/AMRFilter";
+import { useTranslation } from "react-i18next";
 
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const [dateFilter, setDateFilter] = useState({
     startDate: new Date(),
     endDate: new Date()

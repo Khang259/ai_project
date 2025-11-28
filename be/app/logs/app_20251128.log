@@ -1,0 +1,586 @@
+2025-11-28 08:23:47,996 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:23:47,997 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:23:52,949 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:23:52,950 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:23:53,485 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:23:53,486 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:23:53,586 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:23:53,586 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:23:54,070 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:23:54,070 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:23:54,166 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:23:54,169 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:23:54,169 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:23:54,170 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:23:54,170 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:23:54,170 - camera_ai_app - INFO - Task service started
+2025-11-28 08:23:54,171 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:23:54,171 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:23:54,171 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:23:54,198 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:23:54,198 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:23:54,198 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:28:30,119 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-28 08:28:30,227 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:31:26,304 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:31:26,622 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:31:26,643 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:31:26,649 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:31:26,660 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-28 08:31:26,757 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-28 08:31:44,698 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:31:45,041 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:32:36,591 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:32:36,931 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:33:12,781 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:33:12,809 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:34:11,746 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:12,085 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:15,130 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:15,470 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:16,338 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:34:16,366 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:34:22,089 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:22,429 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:22,439 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-28 08:34:22,503 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:34:22,567 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-11-28 08:34:22,632 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:34:24,547 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:24,888 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:27,683 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:34:28,029 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:40:57,341 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:40:57,681 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:42:23,435 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:42:23,774 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:42:48,445 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:42:48,894 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:43:48,627 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:43:48,661 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:43:53,582 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:43:54,073 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:46:43,744 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-28 08:46:43,744 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-11-28 08:46:43,745 - camera_ai_app - INFO - Heartbeat service stopped
+2025-11-28 08:46:43,745 - camera_ai_app - INFO - No active WebSocket connections to close
+2025-11-28 08:46:43,745 - camera_ai_app - INFO - All WebSocket connections closed
+2025-11-28 08:46:43,746 - camera_ai_app - INFO - Notification service stopped
+2025-11-28 08:46:43,746 - camera_ai_app - INFO - Task service stopped
+2025-11-28 08:46:43,746 - camera_ai_app - INFO - Stopping Modbus Device Manager...
+2025-11-28 08:46:43,746 - camera_ai_app - INFO - Modbus Device Manager stopped
+2025-11-28 08:46:43,747 - camera_ai_app - INFO - Modbus device manager stopped
+2025-11-28 08:46:43,747 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-28 08:46:43,747 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-28 08:46:43,777 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-28 08:46:43,778 - camera_ai_app - INFO - MongoDB connection closed
+2025-11-28 08:46:43,778 - camera_ai_app - INFO - CameraAI Backend shutdown completed
+2025-11-28 08:46:46,755 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:46:46,755 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:46:51,348 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:46:51,349 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:46:51,828 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:46:51,829 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:46:51,929 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:46:51,929 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:46:52,424 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:46:52,424 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:46:52,520 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:46:52,523 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:46:52,524 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:46:52,524 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:46:52,524 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:46:52,525 - camera_ai_app - INFO - Task service started
+2025-11-28 08:46:52,525 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:46:52,525 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:46:52,525 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:46:52,549 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:46:52,549 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:46:52,549 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:46:54,596 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-28 08:46:54,597 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-11-28 08:46:54,597 - camera_ai_app - INFO - Heartbeat service stopped
+2025-11-28 08:46:54,597 - camera_ai_app - INFO - No active WebSocket connections to close
+2025-11-28 08:46:54,598 - camera_ai_app - INFO - All WebSocket connections closed
+2025-11-28 08:46:54,598 - camera_ai_app - INFO - Notification service stopped
+2025-11-28 08:46:54,598 - camera_ai_app - INFO - Task service stopped
+2025-11-28 08:46:54,599 - camera_ai_app - INFO - Stopping Modbus Device Manager...
+2025-11-28 08:46:54,599 - camera_ai_app - INFO - Modbus Device Manager stopped
+2025-11-28 08:46:54,599 - camera_ai_app - INFO - Modbus device manager stopped
+2025-11-28 08:46:54,599 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-28 08:46:54,600 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-28 08:46:54,624 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-28 08:46:54,624 - camera_ai_app - INFO - MongoDB connection closed
+2025-11-28 08:46:54,625 - camera_ai_app - INFO - CameraAI Backend shutdown completed
+2025-11-28 08:46:57,585 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:46:57,586 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:47:02,147 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:47:02,147 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:47:02,627 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:47:02,628 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:47:02,724 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:47:02,724 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:47:03,223 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:47:03,224 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:47:03,319 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:47:03,323 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:47:03,324 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:47:03,324 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:47:03,325 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:47:03,325 - camera_ai_app - INFO - Task service started
+2025-11-28 08:47:03,326 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:47:03,326 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:47:03,326 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:47:03,381 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:47:03,381 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:47:03,382 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:51:19,025 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:51:19,369 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 08:51:25,818 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:51:25,846 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:52:35,481 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-28 08:52:35,482 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-11-28 08:52:35,482 - camera_ai_app - INFO - Heartbeat service stopped
+2025-11-28 08:52:35,483 - camera_ai_app - INFO - No active WebSocket connections to close
+2025-11-28 08:52:35,483 - camera_ai_app - INFO - All WebSocket connections closed
+2025-11-28 08:52:35,483 - camera_ai_app - INFO - Notification service stopped
+2025-11-28 08:52:35,483 - camera_ai_app - INFO - Task service stopped
+2025-11-28 08:52:35,484 - camera_ai_app - INFO - Stopping Modbus Device Manager...
+2025-11-28 08:52:35,484 - camera_ai_app - INFO - Modbus Device Manager stopped
+2025-11-28 08:52:35,484 - camera_ai_app - INFO - Modbus device manager stopped
+2025-11-28 08:52:35,485 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-28 08:52:35,485 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-28 08:52:35,509 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-28 08:52:35,510 - camera_ai_app - INFO - MongoDB connection closed
+2025-11-28 08:52:35,510 - camera_ai_app - INFO - CameraAI Backend shutdown completed
+2025-11-28 08:52:38,571 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:52:38,571 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:52:43,190 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:52:43,190 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:52:43,750 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:52:43,751 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:52:43,866 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:52:43,867 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:52:44,430 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:52:44,430 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:52:44,542 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:52:44,545 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:52:44,545 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:52:44,545 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:52:44,546 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:52:44,546 - camera_ai_app - INFO - Task service started
+2025-11-28 08:52:44,546 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:52:44,547 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:52:44,547 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:52:44,578 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:52:44,578 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:52:44,579 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:52:47,640 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:52:47,641 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:52:52,212 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:52:52,213 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:52:52,693 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:52:52,693 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:52:52,788 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:52:52,789 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:52:53,268 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:52:53,269 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:52:53,364 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:52:53,367 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:52:53,367 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:52:53,368 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:52:53,368 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:52:53,369 - camera_ai_app - INFO - Task service started
+2025-11-28 08:52:53,369 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:52:53,369 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:52:53,369 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:52:53,393 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:52:53,393 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:52:53,393 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:52:57,304 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:52:57,305 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:53:01,907 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:53:01,908 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:02,556 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:02,556 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:02,683 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:02,684 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:03,323 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:03,324 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:03,451 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:03,454 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:53:03,454 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:53:03,454 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:53:03,454 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:53:03,455 - camera_ai_app - INFO - Task service started
+2025-11-28 08:53:03,455 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:53:03,455 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:53:03,456 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:53:03,487 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:53:03,487 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:53:03,488 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:53:06,517 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:53:06,518 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:53:11,129 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:53:11,129 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:11,763 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:11,764 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:11,904 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:11,905 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:12,543 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:12,543 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:12,684 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:12,687 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:53:12,687 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:53:12,688 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:53:12,688 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:53:12,688 - camera_ai_app - INFO - Task service started
+2025-11-28 08:53:12,688 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:53:12,689 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:53:12,689 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:53:12,720 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:53:12,720 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:53:12,720 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:53:16,222 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:53:16,223 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:53:20,841 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:53:20,842 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:21,366 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:21,366 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:21,461 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:21,462 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:22,001 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:22,002 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:22,098 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:22,100 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:53:22,101 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:53:22,101 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:53:22,101 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:53:22,102 - camera_ai_app - INFO - Task service started
+2025-11-28 08:53:22,102 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:53:22,102 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:53:22,102 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:53:22,127 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:53:22,127 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:53:22,127 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:53:33,486 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 08:53:33,486 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 08:53:38,012 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 08:53:38,012 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:38,493 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:38,493 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:38,593 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:38,593 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 08:53:39,072 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 08:53:39,073 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 08:53:39,168 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 08:53:39,171 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-11-28 08:53:39,171 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 08:53:39,171 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 08:53:39,172 - camera_ai_app - INFO - Notification service started
+2025-11-28 08:53:39,172 - camera_ai_app - INFO - Task service started
+2025-11-28 08:53:39,172 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 08:53:39,173 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 08:53:39,173 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-11-28 08:53:39,196 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-11-28 08:53:39,196 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-11-28 08:53:39,198 - camera_ai_app - INFO - Modbus device manager started
+2025-11-28 08:54:05,649 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 08:57:31,451 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 09:05:55,540 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-28 09:06:03,370 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 09:06:03,395 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 09:08:25,750 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 09:08:25,777 - camera_ai_app - ERROR - Error getting routes: 1 validation error for RouteOut
+area_id
+  Field required [type=missing, input_value={'_id': ObjectId('691d1f7...1d1f7f353d5904ea1588a3'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+2025-11-28 10:37:00,429 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:37:00,478 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:37:22,333 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:37:22,381 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:38:00,234 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:38:00,282 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:38:26,033 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:38:48,005 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:40:38,448 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:40:56,547 - camera_ai_app - INFO - New user registered: test_user_group_operator (id=692919c8cf80209bf9c30387)
+2025-11-28 10:40:56,547 - camera_ai_app - INFO - Signup success for username='test_user_group_operator'
+2025-11-28 10:40:57,132 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:40:57,183 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:52:25,558 - camera_ai_app - INFO - Login success for username='hau_operator'
+2025-11-28 10:52:41,265 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:52:41,314 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:52:44,358 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:53:00,194 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:53:05,897 - camera_ai_app - INFO - New user registered: 123456 (id=69291ca1cf80209bf9c30388)
+2025-11-28 10:53:05,898 - camera_ai_app - INFO - Signup success for username='123456'
+2025-11-28 10:53:06,850 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:53:06,927 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:56:22,388 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 10:56:22,437 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:01:34,589 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:01:43,145 - camera_ai_app - INFO - New user registered: 123567 (id=69291ea7cf80209bf9c30389)
+2025-11-28 11:01:43,145 - camera_ai_app - INFO - Signup success for username='123567'
+2025-11-28 11:01:43,777 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:01:43,829 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:03:19,719 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:03:19,770 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:03:30,049 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:09:15,843 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:09:15,894 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:09:23,526 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:20:52,054 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:20:52,106 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:23:24,014 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:23:24,061 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:25:11,143 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:25:11,195 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:25:13,636 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:25:19,602 - camera_ai_app - INFO - New user registered: 555555 (id=6929242fcf80209bf9c3038a)
+2025-11-28 11:25:19,603 - camera_ai_app - INFO - Signup success for username='555555'
+2025-11-28 11:25:20,313 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:25:20,361 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:26:12,795 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:26:27,106 - camera_ai_app - INFO - New user registered: 6666 (id=69292473cf80209bf9c3038b)
+2025-11-28 11:26:27,106 - camera_ai_app - INFO - Signup success for username='6666'
+2025-11-28 11:26:27,832 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:26:27,883 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:27:52,416 - camera_ai_app - INFO - User 69292473cf80209bf9c3038b deleted by hau_operator
+2025-11-28 11:27:54,568 - camera_ai_app - INFO - User 6929242fcf80209bf9c3038a deleted by hau_operator
+2025-11-28 11:27:59,255 - camera_ai_app - INFO - User 69291ea7cf80209bf9c30389 deleted by hau_operator
+2025-11-28 11:28:01,055 - camera_ai_app - INFO - User 69291ca1cf80209bf9c30388 deleted by hau_operator
+2025-11-28 11:28:03,224 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:28:12,484 - camera_ai_app - INFO - New user registered: 444444 (id=692924dccf80209bf9c3038c)
+2025-11-28 11:28:12,485 - camera_ai_app - INFO - Signup success for username='444444'
+2025-11-28 11:28:13,144 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:28:13,192 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:35:28,866 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:35:37,956 - camera_ai_app - INFO - New user registered: 666666 (id=69292699cf80209bf9c3038d)
+2025-11-28 11:35:37,956 - camera_ai_app - INFO - Signup success for username='666666'
+2025-11-28 11:35:38,625 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:35:38,678 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:36:24,330 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:37:07,238 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:38:57,596 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 11:38:57,644 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:10:37,637 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:10:45,811 - camera_ai_app - INFO - New user registered: 456789 (id=69294af5cf80209bf9c3038e)
+2025-11-28 14:10:45,812 - camera_ai_app - INFO - Signup success for username='456789'
+2025-11-28 14:10:46,519 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:10:46,572 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:12:26,124 - camera_ai_app - INFO - User 69294af5cf80209bf9c3038e deleted by hau_operator
+2025-11-28 14:12:28,140 - camera_ai_app - INFO - User 69292699cf80209bf9c3038d deleted by hau_operator
+2025-11-28 14:14:57,141 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:15:31,593 - camera_ai_app - INFO - New user registered: asd (id=69294c13cf80209bf9c3038f)
+2025-11-28 14:15:31,594 - camera_ai_app - INFO - Signup success for username='asd'
+2025-11-28 14:15:32,281 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:15:32,333 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:20:51,028 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:20:51,080 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:21:23,559 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:21:23,608 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:21:35,607 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:21:35,658 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:21:38,103 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:21:48,439 - camera_ai_app - INFO - New user registered: tyu (id=69294d8ccf80209bf9c30390)
+2025-11-28 14:21:48,439 - camera_ai_app - INFO - Signup success for username='tyu'
+2025-11-28 14:21:49,151 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:21:49,199 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:23:00,365 - camera_ai_app - INFO - User 69294d8ccf80209bf9c30390 deleted by hau_operator
+2025-11-28 14:23:06,460 - camera_ai_app - INFO - User 69294c13cf80209bf9c3038f deleted by hau_operator
+2025-11-28 14:23:07,505 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:23:23,058 - camera_ai_app - INFO - New user registered: asd (id=69294debcf80209bf9c30391)
+2025-11-28 14:23:23,059 - camera_ai_app - INFO - Signup success for username='asd'
+2025-11-28 14:23:23,741 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:23:23,793 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:25:10,448 - camera_ai_app - INFO - User 69294debcf80209bf9c30391 deleted by hau_operator
+2025-11-28 14:30:41,580 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:30:52,766 - camera_ai_app - INFO - New user registered: 45678 (id=69294faccf80209bf9c30392)
+2025-11-28 14:30:52,767 - camera_ai_app - INFO - Signup success for username='45678'
+2025-11-28 14:30:53,460 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:30:53,512 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:37:14,657 - camera_ai_app - INFO - User 69294faccf80209bf9c30392 deleted by hau_operator
+2025-11-28 14:37:16,291 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:37:23,470 - camera_ai_app - INFO - New user registered: 123678 (id=69295133cf80209bf9c30393)
+2025-11-28 14:37:23,471 - camera_ai_app - INFO - Signup success for username='123678'
+2025-11-28 14:37:24,155 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:37:24,207 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:38:51,524 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:38:57,985 - camera_ai_app - INFO - New user registered: ipop (id=69295191cf80209bf9c30394)
+2025-11-28 14:38:57,985 - camera_ai_app - INFO - Signup success for username='ipop'
+2025-11-28 14:38:58,700 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:38:58,753 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:41:22,842 - camera_ai_app - INFO - User 69295191cf80209bf9c30394 deleted by hau_operator
+2025-11-28 14:41:24,103 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:41:31,854 - camera_ai_app - INFO - New user registered:       onSubmit(formData); (id=6929522bcf80209bf9c30395)
+2025-11-28 14:41:31,855 - camera_ai_app - INFO - Signup success for username='      onSubmit(formData);'
+2025-11-28 14:41:32,571 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:41:32,619 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:41:48,410 - camera_ai_app - INFO - User 6929522bcf80209bf9c30395 deleted by hau_operator
+2025-11-28 14:41:50,954 - camera_ai_app - INFO - User 69295133cf80209bf9c30393 deleted by hau_operator
+2025-11-28 14:57:07,793 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:57:07,845 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:57:11,450 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:57:31,262 - camera_ai_app - INFO - New user registered: asdgh (id=692955ebcf80209bf9c30396)
+2025-11-28 14:57:31,262 - camera_ai_app - INFO - Signup success for username='asdgh'
+2025-11-28 14:57:31,938 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 14:57:31,991 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:19:42,982 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:21:17,394 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:26:29,585 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:26:29,636 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:26:31,701 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:26:39,319 - camera_ai_app - INFO - New user registered: 1234566 (id=69295cbfcf80209bf9c30397)
+2025-11-28 15:26:39,320 - camera_ai_app - INFO - Signup success for username='1234566'
+2025-11-28 15:26:39,977 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:26:40,029 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:33:38,328 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:33:44,441 - camera_ai_app - INFO - New user registered: 145687 (id=69295e68cf80209bf9c30398)
+2025-11-28 15:33:44,442 - camera_ai_app - INFO - Signup success for username='145687'
+2025-11-28 15:33:45,127 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:33:45,179 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:33:58,226 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:34:17,157 - camera_ai_app - INFO - User 69295cbfcf80209bf9c30397 deleted by hau_operator
+2025-11-28 15:34:51,625 - camera_ai_app - INFO - User 692955ebcf80209bf9c30396 deleted by hau_operator
+2025-11-28 15:34:53,364 - camera_ai_app - INFO - User 69295e68cf80209bf9c30398 deleted by hau_operator
+2025-11-28 15:34:57,701 - camera_ai_app - INFO - User 692924dccf80209bf9c3038c deleted by hau_operator
+2025-11-28 15:34:58,866 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:35:04,876 - camera_ai_app - INFO - New user registered: 31543456 (id=69295eb8cf80209bf9c30399)
+2025-11-28 15:35:04,877 - camera_ai_app - INFO - Signup success for username='31543456'
+2025-11-28 15:35:05,477 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:35:05,530 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:51:16,613 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:51:16,952 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:51:50,078 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:51:50,131 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:51:55,633 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:54:33,305 - camera_ai_app - INFO - New user registered: 123546 (id=69296349cf80209bf9c3039a)
+2025-11-28 15:54:33,306 - camera_ai_app - INFO - Signup success for username='123546'
+2025-11-28 15:54:33,995 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:54:34,046 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:55:27,480 - camera_ai_app - INFO - User 69296349cf80209bf9c3039a deleted by hau_operator
+2025-11-28 15:55:29,088 - camera_ai_app - INFO - User 69295eb8cf80209bf9c30399 deleted by hau_operator
+2025-11-28 15:55:29,550 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:56:10,787 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:56:10,838 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:56:14,091 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:56:20,121 - camera_ai_app - INFO - New user registered: 6547 (id=692963b4cf80209bf9c3039b)
+2025-11-28 15:56:20,121 - camera_ai_app - INFO - Signup success for username='6547'
+2025-11-28 15:56:20,807 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:56:20,859 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 15:58:02,247 - camera_ai_app - INFO - User 692963b4cf80209bf9c3039b deleted by hau_operator
+2025-11-28 15:58:08,724 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:05:19,491 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:05:36,125 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:05:36,205 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:05:37,097 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:06:21,461 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:06:21,537 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:06:23,084 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:07:25,297 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:07:25,349 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:08:36,170 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:08:48,330 - camera_ai_app - WARNING - Signup failed: username '456' already exists
+2025-11-28 16:08:48,330 - camera_ai_app - ERROR - Signup failed for username='456': User already exists
+2025-11-28 16:09:00,166 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:09:00,217 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:09:05,681 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:10:57,937 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:10:57,989 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:10:59,713 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:13:36,769 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:13:36,821 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:13:37,899 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:13:44,907 - camera_ai_app - INFO - New user registered: 456879 (id=692967c8cf80209bf9c3039c)
+2025-11-28 16:13:44,908 - camera_ai_app - INFO - Signup success for username='456879'
+2025-11-28 16:13:45,569 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:13:45,621 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:14:49,966 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:15:30,638 - camera_ai_app - INFO - New user registered: 452112 (id=69296832cf80209bf9c3039d)
+2025-11-28 16:15:30,638 - camera_ai_app - INFO - Signup success for username='452112'
+2025-11-28 16:15:31,331 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:15:31,384 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:16:57,398 - camera_ai_app - INFO - User 69296832cf80209bf9c3039d deleted by hau_operator
+2025-11-28 16:16:59,818 - camera_ai_app - INFO - User 692967c8cf80209bf9c3039c deleted by hau_operator
+2025-11-28 16:17:01,561 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:17:08,476 - camera_ai_app - INFO - New user registered: 354676 (id=69296894cf80209bf9c3039e)
+2025-11-28 16:17:08,477 - camera_ai_app - INFO - Signup success for username='354676'
+2025-11-28 16:17:09,146 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:17:09,198 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:25:38,581 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:26:53,285 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:32:37,970 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:32:38,021 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:32:38,937 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:37:23,922 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:37:23,970 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:37:26,063 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:37:33,487 - camera_ai_app - INFO - New user registered: 43547 (id=69296d5dcf80209bf9c3039f)
+2025-11-28 16:37:33,487 - camera_ai_app - INFO - Signup success for username='43547'
+2025-11-28 16:37:34,159 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:37:34,212 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:37:56,739 - camera_ai_app - WARNING - Admin access denied: User 'hau_operator' is not admin
+2025-11-28 16:40:25,401 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-11-28 16:40:25,401 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-11-28 16:40:25,402 - camera_ai_app - INFO - Heartbeat service stopped
+2025-11-28 16:40:25,402 - camera_ai_app - INFO - No active WebSocket connections to close
+2025-11-28 16:40:25,402 - camera_ai_app - INFO - All WebSocket connections closed
+2025-11-28 16:40:25,403 - camera_ai_app - INFO - Notification service stopped
+2025-11-28 16:40:25,403 - camera_ai_app - INFO - Task service stopped
+2025-11-28 16:40:25,403 - camera_ai_app - INFO - Stopping Modbus Device Manager...
+2025-11-28 16:40:25,403 - camera_ai_app - INFO - Modbus Device Manager stopped
+2025-11-28 16:40:25,404 - camera_ai_app - INFO - Modbus device manager stopped
+2025-11-28 16:40:25,404 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-11-28 16:40:25,404 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-11-28 16:40:25,429 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-11-28 16:40:25,429 - camera_ai_app - INFO - MongoDB connection closed
+2025-11-28 16:40:25,429 - camera_ai_app - INFO - CameraAI Backend shutdown completed

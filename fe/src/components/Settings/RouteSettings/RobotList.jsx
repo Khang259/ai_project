@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import { Plus, Trash2, Edit2, X } from 'lucide-react';
 
 const RobotList = ({ route, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [robotList, setRobotList] = useState(route.robotList || []);
+  const [robotList, setRobotList] = useState(route.robot_list || []);
 
   const handleAddRobot = () => {
     setRobotList([...robotList, '']);
@@ -29,9 +29,14 @@ const RobotList = ({ route, onUpdate }) => {
   };
 
   const handleCancel = () => {
-    setRobotList(route.robotList || []);
+    setRobotList(route.robot_list || []);
     setIsEditing(false);
   };
+
+  // Cập nhật robotList khi route.robot_list thay đổi
+  useEffect(() => {
+    setRobotList(route.robot_list || []);
+  }, [route.robot_list]);
 
   if (isEditing) {
     return (

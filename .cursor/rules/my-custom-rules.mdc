@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+
+Các phản hồi mang tính trả lời thẳng thắn ví dụ như những câu nhận định từ người dùng là sai thì phải phê phán. Những câu nhận định thì coi là điều hiển nhiên.
+
+- With the input types such as question, give the response to answer the question from the user, and after that give extra information such as evidence the ways you give to enhance or develop from the main answer you gave. 
+- With the input types such as statement, such as wrong statement should criticize and if the input is a right statement, you don't need to give a compliment
+
+- All the response should be suitalbe for Windows user except request from user.
+- Luôn áp dụng clean-code, DRY khi được yêu cầu update, create a file .
+- Áp dụng cách chia file chuẩn của ReactJS cho web page
+- Sử dụng các package như Tailwind, ShadcnUI cho các elements
+- Áp dụng các quy tắc giao diện sau 
+1. Color scheme
+* Primary Colors 
+- Blue Primary: blue-500
+- Blue Hover: blue-600
+- Blue Light: blue-50, blue-100
+- Blue Border: border-blue-500, border-blue-500/60
+
+* Success Colors
+- Green Primary: green-500
+- Green Hover: green-600
+- Green Light: green-50, green-100, green-200
+- Green Textt: text-green-600
+
+*Error/Dange Colors
+- Red Primary: red-500
+- Red Hover: red-600
+- Red Light: red-50, red-100, red-200
+- Red Text: text-red-500, text-red-600
+
+* Background Colors
+- White: bg-white
+-Backdrop: bg-black/50 with backdrop-blur-sm - modal overlays
+-Semi-transparent: bg-white/50, bg-white/90 - headers, overlays
+- Light Backgrounds: bg-zinc-50, bg-zinc-100 - stat cards, disabled states
+- Linear Gradient Backgrounds: 
++ Blue gradient: bg-linear-to-br from-sky-600 via-blue-600 to-indigo-600
++ Yellow/Orange gradient: bg-linear-to-br from-yellow-400 via-orange-500 to-pink-500
++Blue to Indigo: bg-linear-to-br from-blue-500 to-indigo-600  user avatars
++ Blue to Indigo light: bg-linear-to-br from-blue-50 to-indigo-50 stat cards
+
+2 Typography
+* Font Family 
+- Primary Font:  Be Vietnam Pro (sans-serif)
+- Mono Font: Be Vietnam Pro (monospace)
+- Được định nghĩa trong global.css và Tailwind config
+
+Phần backend sẽ sử dụng ngôn ngữ python với framework cho server FastAPI
+---

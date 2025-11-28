@@ -14,10 +14,16 @@ import { useArea } from "@/contexts/AreaContext";
 export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
   const { t } = useTranslation();
   const { auth } = useAuth();
+
   const currentUsername = auth?.user?.username || "";
   const currentUser = auth?.user || {};
+
   const { routes, loading: routesLoading, getRoutesByCreator } = useRoute();
   const { areaData, loading: areaLoading } = useArea();
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -26,33 +32,12 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     group_id: 0, // group_id sẽ được lấy theo currentUsername hoặc admin chọn
     route: [] // route sẽ được lấy theo người dùng operator tạo trước đó
   });
-
-  // Logic tự động set fields dựa trên role:
-  // - Operator: tự động set area, group_id từ currentUser, có routes
-  // - Admin: hiển thị UI để chọn area, group_id, route để trống 
   
   const isAdmin = auth.user?.roles?.includes('admin');
   const isOperator = auth.user?.roles?.includes('operator');
-  const [roles, setRoles] = useState([]);
-  const [rolesLoading, setRolesLoading] = useState(false);
-  const [errors, setErrors] = useState({});
 
-  // Tự động set fields cho operator và admin
-  useEffect(() => {
-    if (isOperator && !isAdmin) {
-      // Operator: tự động set role "user", area và group_id từ currentUser
-      const userRole = roles.find(role => role.name === 'user');
-      if (userRole) {
-        setFormData(prev => ({
-          ...prev,
-          roles: [userRole.id],
-          area: currentUser.area || 0,
-          group_id: currentUser.group_id || 0,
-          route: [] // Operator sẽ chọn route sau
-        }));
-      }
-    }
-  }, [isOperator, isAdmin, roles, currentUser]);
+  const valueGroupID = auth.user?.group_id;
+  const valueAreaID = auth.user?.area;
 
   // Load roles khi modal mở
   useEffect(() => {
@@ -83,7 +68,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     const fetchRoutes = async () => {
       if (!isOpen || !currentUsername || !isOperator || isAdmin) return;
       try {
-        await getRoutesByCreator(currentUsername);
+        const fetchedRoutes = await getRoutesByCreator(currentUsername);
       } catch (error) {
         console.error("[AddUserModal] Error loading routes:", error);
       }
@@ -91,6 +76,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
 
     fetchRoutes();
   }, [isOpen, currentUsername, isOperator, isAdmin]);
+
 
   const validateForm = () => {
     const newErrors = {};
@@ -121,13 +107,6 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
-    }
-  };
-
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -143,16 +122,21 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      const valueRouteId = formData.route?.[0] || "";
+      console.log("[AddUserModal] Value Route ID:", valueRouteId);
+      onSubmit({
+        ...formData,
+        group_id: valueGroupID,
+        area_id: valueAreaID,
+        route_id: valueRouteId
+      });
+    }
+  };
+
   const handleClose = () => {
-    setFormData({
-      username: "",
-      password: "",
-      roles: [],
-      permissions: [],
-      area: 0,
-      group_id: 0,
-      route: []
-    });
     setErrors({});
     onClose();
   };
@@ -214,9 +198,9 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
             {/* Route Select - Chỉ hiển thị cho Operator */}
             {isOperator && !isAdmin && (
               <div className="space-y-2">
-                <Label htmlFor="routes">{t('users.route') || 'Tuyến đường'}</Label>
+                <Label htmlFor="routes">{t('users.route')}</Label>
                 <Select
-                  value={formData.route?.[0] || ""}
+                  value={formData.route?.[0]?.toString() || ""}
                   onValueChange={(value) => handleInputChange("route", [value])}
                   disabled={routesLoading || routes.length === 0}
                 >
@@ -224,16 +208,16 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
                     <SelectValue
                       placeholder={
                         routesLoading
-                          ? t('users.loadingRoutes') || 'Đang tải routes...'
+                          ? t('users.loadingRoutes')
                           : routes.length === 0
-                            ? t('users.noRoutes') || 'Không có routes'
-                            : t('users.selectRoute') || 'Chọn route'
+                            ? t('users.noRoutes')
+                            : t('users.selectRoute')
                       }
                     />
                   </SelectTrigger>
                   <SelectContent>
                     {routes.map((route) => (
-                      <SelectItem key={route.id} value={String(route.route_name)}>
+                      <SelectItem key={route.id} value={String(route.route_id)}>
                         {route.route_name}
                       </SelectItem>
                     ))}

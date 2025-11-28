@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getRoutes, 
         createRoute as createRouteService, 
         updateRoute as updateRouteService, 
@@ -7,22 +7,7 @@ import { getRoutes,
 
 export const useRoute = () => {
     const [routes, setRoutes] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchRoutes = async () => {
-            try {
-                setLoading(true);
-                const data = await getRoutes();
-                setRoutes(data || []);
-            } catch (error) {
-                console.log("[DEBUG-useRoute]:", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchRoutes();
-    }, []);
+    const [loading, setLoading] = useState(false);
 
     const createRoute = async (routeData) => {
         try {
@@ -62,13 +47,30 @@ export const useRoute = () => {
 
     const getRoutesByCreator = async (creator) => {
         try {
+            setLoading(true);
             const data = await getRoutesByCreatorService(creator);
             setRoutes(data || []);
+            return data;
         } catch (error) {
             console.log("[DEBUG-useRoute-getRoutesByCreator]:", error);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
-    return { routes, loading, createRoute, updateRoute, deleteRoute, getRoutesByCreator };
+    const fetchRoutes = async () => {
+        try {
+            setLoading(true);
+            const data = await getRoutes();
+            setRoutes(data || []);
+        } catch (error) {
+            console.log("[DEBUG-useRoute-fetchRoutes]:", error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { routes, loading, createRoute, updateRoute, deleteRoute, getRoutesByCreator, fetchRoutes };
 };
