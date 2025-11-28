@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import bgMonitorImage from '../assets/bg8.jpg';
+import logoImage from '../assets/logo2.png';
 
 // API configuration
 const API_HTTP_URL = import.meta.env.VITE_API_URL || 'http://192.168.1.110:8001';
@@ -82,8 +83,14 @@ const END_QRS_NODE_CONFIG = {
 // Component cho phần Header
 const MonitorHeader = ({ date, time, groupId }) => (
   <header className="monitor-header">
-    <div className="header-left">
+    {/* <div className="header-left">
       THADOSOFT
+      {groupId && (
+        <span className="group-badge">Group: {groupId}</span>
+      )}
+    </div> */}
+    <div className="header-left">
+      <img src={logoImage} alt="Logo" className="logo-image" />
       {groupId && (
         <span className="group-badge">Group: {groupId}</span>
       )}
@@ -610,6 +617,7 @@ const MonitorPackaged = () => {
           margin-bottom: 10px;
           flex-shrink: 0;
           border-radius: 15px;
+          position: relative;
           background-image: linear-gradient(
             90deg,
             #008FBF,
@@ -622,9 +630,10 @@ const MonitorPackaged = () => {
           font-size: 2.1rem;
           font-weight: bold;
           display: flex;
-          flex-direction: column;
-          align-items: flex-start;
+          flex-direction: row;
+          align-items: center;
           line-height: 1;
+          flex: 1;
         }
 
         .group-badge {
@@ -636,7 +645,11 @@ const MonitorPackaged = () => {
           margin-top: 8px;
           border: 1px solid rgba(255, 255, 255, 0.3);
         }
-
+        .logo-image {
+          width: 350px;
+          height: auto;
+          object-fit: contain;
+        }
         .post-text {
           font-size: 0.8rem;
           font-weight: normal;
@@ -644,6 +657,9 @@ const MonitorPackaged = () => {
         }
 
         .header-center {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
           flex-grow: 1;
           text-align: center;
         }
@@ -661,6 +677,7 @@ const MonitorPackaged = () => {
           font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
           font-weight: bold;
           letter-spacing: 1px;
+          flex: 1;
         }
 
         /* --- Content Styles --- */
@@ -848,3 +865,9 @@ const MonitorPackaged = () => {
 };
 
 export default MonitorPackaged;
+
+
+/* Ý tưởng để clear Monitor khi huỷ lệnh trên frontend:
+ Cần 2 thao tác:
+ 1. Huỷ lệnh trên RCS 
+*/

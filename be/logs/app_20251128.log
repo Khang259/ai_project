@@ -1,0 +1,42 @@
+2025-11-28 09:28:13,205 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-11-28 09:28:13,206 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-11-28 09:28:18,846 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-11-28 09:28:18,847 - camera_ai_app - INFO - Initializing default permissions...
+2025-11-28 09:28:19,437 - camera_ai_app - INFO - Default permissions initialized
+2025-11-28 09:28:19,438 - camera_ai_app - INFO - Initializing default roles...
+2025-11-28 09:28:19,557 - camera_ai_app - INFO - Default roles initialized
+2025-11-28 09:28:19,562 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-11-28 09:28:19,563 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-11-28 23:00:00+07:00
+2025-11-28 09:28:19,563 - camera_ai_app - INFO - AGV Scheduler started
+2025-11-28 09:28:19,564 - camera_ai_app - INFO - Notification service started
+2025-11-28 09:28:19,564 - camera_ai_app - INFO - Task service started
+2025-11-28 09:28:19,564 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-11-28 09:28:19,565 - camera_ai_app - INFO - Heartbeat service started
+2025-11-28 09:28:42,065 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-11-28 09:28:42,177 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-11-28 09:28:50,078 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 1
+2025-11-28 09:28:53,099 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 2
+2025-11-28 09:29:19,569 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:29:19,570 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:29:49,579 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:29:49,580 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:30:19,571 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:30:19,572 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:30:49,581 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:30:49,582 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:31:19,602 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:31:19,603 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:31:49,626 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:31:49,627 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:32:19,629 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:32:19,631 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:32:49,656 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:32:49,657 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:33:19,632 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:33:19,633 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:33:49,636 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:33:49,637 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:34:19,632 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:34:19,633 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
+2025-11-28 09:34:49,639 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3E990>
+2025-11-28 09:34:49,640 - camera_ai_app - INFO - Sent heartbeat to connection: <starlette.websockets.WebSocket object at 0x000002A0B4C3EC60>
