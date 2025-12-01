@@ -69,8 +69,8 @@ async def get_task_dashboard_endpoint(group_id: Optional[str] = None):
 @router.get("/success-task-by-hour")
 async def get_success_task_by_hour_endpoint(group_id: Optional[str] = None):
     result = await get_success_task_by_hour(group_id)
-    if result["status"] == "error":
-        raise HTTPException(status_code=500, detail=result["message"])
+    # if result["status"] == "error":
+    #     raise HTTPException(status_code=500, detail=result["message"])
     return result
 
 @router.get("/payload-statistics")

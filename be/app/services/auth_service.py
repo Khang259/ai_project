@@ -4,8 +4,10 @@ from app.schemas.user import UserCreate, UserOut
 from app.services.role_service import get_user_permissions
 from shared.logging import get_logger
 from typing import Optional, Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import ObjectId
+from jose import jwt
+from app.core.config import settings
 
 logger = get_logger("camera_ai_app")
 
@@ -205,3 +207,79 @@ async def get_users_for_operator(group_id: int) -> List[UserOut]:
         ))
     
     return result
+
+async def logout_user(access_token: str, refresh_token: Optional[str] = None) -> bool:
+    """Blacklist tokens when user logs out"""
+    try:
+        # Decode token to get expiration time (allow expired tokens for cleanup)
+        try:
+            payload = jwt.decode(access_token, settings.jwt_secret, algorithms=[settings.jwt_algorithm], options={"verify_exp": False})
+            exp = payload.get("exp")
+            
+            # Calculate expiration datetime
+            if exp:
+                expires_at = datetime.utcfromtimestamp(exp)
+            else:
+                # Default to 30 minutes from now if no exp in token
+                expires_at = datetime.utcnow() + timedelta(minutes=30)
+        except Exception as e:
+            # If token can't be decoded, still blacklist it with a default expiration
+            logger.warning(f"Could not decode access token, using default expiration: {str(e)}")
+            expires_at = datetime.utcnow() + timedelta(minutes=30)
+        
+        # Store blacklisted token in database
+        blacklist = get_collection("token_blacklist")
+        blacklist_data = {
+            "token": access_token,
+            "type": "access",
+            "expires_at": expires_at,
+            "blacklisted_at": datetime.utcnow()
+        }
+        await blacklist.insert_one(blacklist_data)
+        
+        # If refresh token is provided, blacklist it too
+        if refresh_token:
+            try:
+                refresh_payload = jwt.decode(refresh_token, settings.jwt_secret, algorithms=[settings.jwt_algorithm], options={"verify_exp": False})
+                refresh_exp = refresh_payload.get("exp")
+                if refresh_exp:
+                    refresh_expires_at = datetime.utcfromtimestamp(refresh_exp)
+                else:
+                    refresh_expires_at = datetime.utcnow() + timedelta(days=7)
+                
+                refresh_blacklist_data = {
+                    "token": refresh_token,
+                    "type": "refresh",
+                    "expires_at": refresh_expires_at,
+                    "blacklisted_at": datetime.utcnow()
+                }
+                await blacklist.insert_one(refresh_blacklist_data)
+            except Exception as e:
+                logger.warning(f"Error blacklisting refresh token: {str(e)}")
+                # Still try to blacklist with default expiration
+                refresh_blacklist_data = {
+                    "token": refresh_token,
+                    "type": "refresh",
+                    "expires_at": datetime.utcnow() + timedelta(days=7),
+                    "blacklisted_at": datetime.utcnow()
+                }
+                await blacklist.insert_one(refresh_blacklist_data)
+        
+        logger.info(f"Token blacklisted successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Error during logout: {str(e)}")
+        return False
+
+async def is_token_blacklisted(token: str) -> bool:
+    """Check if a token is in the blacklist"""
+    blacklist = get_collection("token_blacklist")
+    blacklisted = await blacklist.find_one({"token": token})
+    return blacklisted is not None
+
+async def cleanup_expired_blacklist_tokens():
+    """Clean up expired tokens from blacklist (can be called periodically)"""
+    blacklist = get_collection("token_blacklist")
+    result = await blacklist.delete_many({"expires_at": {"$lt": datetime.utcnow()}})
+    if result.deleted_count > 0:
+        logger.info(f"Cleaned up {result.deleted_count} expired blacklist tokens")

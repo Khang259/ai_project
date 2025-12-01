@@ -10,9 +10,8 @@ logger = get_logger("camera_ai_app")
 @router.post("/task-status")
 async def receive_task_status(request: Request):
     payload = await request.json()
-
+    print(payload)
     data = await filter_raw_task(payload)
-
     return {"status": "success", "data": data}
 
     # if data["status"] == "success":
@@ -31,7 +30,6 @@ async def get_tasks(page: int = 1, limit: int = 20):
         return await get_tasks_from_db(page, limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.post("/clear-monitor")
 async def clear_monitor(request: Request):

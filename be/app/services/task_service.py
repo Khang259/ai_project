@@ -143,8 +143,6 @@ async def filter_raw_task(payload):
     await extract_task_by_group_id(task_data)
     group_id = task_data["group_id"]
 
-    print(task_data)
-
     if task_data["status"] == 20 or task_data["status"] == 3:
         await clear_monitor(group_id, task_data["order_id"])
     

@@ -282,13 +282,19 @@ async def get_nodes_advanced(owner: str) -> dict:
         "vl_nodes": vl_nodes,  # type = 1 -> { node_type: { line: [...] } }
     }
 
+async def get_nodes_by_owner(owner: str) -> List[NodeOut]:
+    """Lấy danh sách nodes theo owner"""
+    nodes = get_collection("nodes")
+    cursor = nodes.find({"owner": owner})
+    node_list = await cursor.to_list(length=None)
+    return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
+
 
 async def process_caller(node: ProcessCaller, priority: Optional[int] = None) -> str:
     """Gọi process caller"""
     # # Nếu priority là None, sử dụng giá trị mặc định (ví dụ: 5)
-    # if priority is None:
-    #     priority = 5  # Giá trị mặc định, có thể thay đổi theo yêu cầu
-    
+    if priority is None:
+        priority = 6  # Giá trị mặc định, có thể thay đổi theo yêu cầu
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
     # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
@@ -306,7 +312,7 @@ async def process_caller(node: ProcessCaller, priority: Optional[int] = None) ->
                 "orderId": order_id,  # Gán orderId bằng timestamp
                 "taskOrderDetail": [ 
                     {    
-                        "taskPath": f"{node.start},{node.end}", 
+                        "taskPath": f"{node.start},{node.end}"
                     } 
                 ] 
             }
@@ -318,10 +324,10 @@ async def process_caller(node: ProcessCaller, priority: Optional[int] = None) ->
                 "orderId": order_id,  # Gán orderId bằng timestamp
                 "taskOrderDetail": [ 
                     {    
-                        "taskPath": f"{node.start},{node.end}", 
+                        "taskPath": f"{node.start},{node.end}"
                     }, 
                     {    
-                        "taskPath": f"{node.next_start},{node.next_end}", 
+                        "taskPath": f"{node.next_start},{node.next_end}"
                     } 
                 ] 
             }
@@ -334,7 +340,7 @@ async def process_caller(node: ProcessCaller, priority: Optional[int] = None) ->
             "orderId": order_id,  # Gán orderId bằng timestamp
             "taskOrderDetail": [ 
                 {    
-                    "taskPath": f"{node.start},{node.end},{node.next_start}", 
+                    "taskPath": f"{node.start},{node.end},{node.next_start}"
                 } 
             ] 
         }

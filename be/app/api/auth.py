@@ -1,12 +1,22 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from app.schemas.user import UserCreate, Token, UserLogin, UserOut, RoleOut, PermissionOut, RoleCreate, RoleUpdate, RefreshTokenRequest
-from app.services.auth_service import register_user, authenticate_user, create_user_token, get_current_user_info, refresh_access_token
+from fastapi import APIRouter, HTTPException, status, Depends, Body
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from app.schemas.user import UserCreate, Token, UserLogin, UserOut, RoleOut, PermissionOut, RoleCreate, RoleUpdate, RefreshTokenRequest, LogoutRequest, LogoutResponse
+from app.services.auth_service import register_user, authenticate_user, create_user_token, get_current_user_info, refresh_access_token, logout_user
 from app.core.permissions import get_current_active_user
 from shared.logging import get_logger
-from typing import List
+from typing import List, Optional
 
 router = APIRouter()
 logger = get_logger("camera_ai_app")
+
+# Optional security for logout (allows expired tokens)
+optional_security = HTTPBearer(auto_error=False)
+
+async def get_optional_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security)) -> Optional[str]:
+    """Get token from Authorization header if provided, but don't validate it"""
+    if credentials:
+        return credentials.credentials
+    return None
 
 @router.post("/signup", response_model=Token)
 async def signup(user_in: UserCreate):
@@ -56,4 +66,34 @@ async def refresh_token(token_in: RefreshTokenRequest):
 async def get_me(current_user: UserOut = Depends(get_current_active_user)):
     """Get current user information"""
     return current_user
+
+@router.post("/logout", response_model=LogoutResponse)
+async def logout(
+    logout_request: Optional[LogoutRequest] = Body(None),
+    access_token: Optional[str] = Depends(get_optional_token)
+):
+    """Logout user and blacklist tokens. Token can be expired."""
+    refresh_token = None
+    
+    # Get refresh token from request body if provided
+    if logout_request:
+        refresh_token = logout_request.refresh_token
+    
+    # At least one token should be provided
+    if not access_token and not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Access token (in Authorization header) or refresh token (in request body) is required"
+        )
+    
+    success = await logout_user(access_token or "", refresh_token)
+    if not success:
+        logger.error("Failed to logout user")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to logout"
+        )
+    
+    logger.info("User logged out successfully")
+    return LogoutResponse(message="Logged out successfully", success=True)
 

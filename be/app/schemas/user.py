@@ -82,3 +82,10 @@ class TokenData(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+class LogoutRequest(BaseModel):
+    refresh_token: Optional[str] = None
+
+class LogoutResponse(BaseModel):
+    message: str
+    success: bool = True

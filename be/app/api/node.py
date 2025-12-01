@@ -8,6 +8,7 @@ from app.services.node_service import (
     delete_node,
     get_nodes_by_owner_and_type,
     get_nodes_advanced,
+    get_nodes_by_owner,
 )
 from shared.logging import get_logger
 from typing import List
@@ -124,6 +125,20 @@ async def get_nodes_by_owner_and_type_endpoint(
     """Lấy danh sách nodes theo owner và type"""
     try:
         return await get_nodes_by_owner_and_type(owner, node_type)
+    except Exception as e:
+        logger.error(f"Error getting nodes by owner {owner}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+@router.get("/owner/{owner}", response_model=List[NodeOut])
+async def get_nodes_by_owner_endpoint(
+    owner: str,
+):
+    """Lấy danh sách nodes theo owner"""
+    try:
+        return await get_nodes_by_owner(owner)
     except Exception as e:
         logger.error(f"Error getting nodes by owner {owner}: {str(e)}")
         raise HTTPException(
