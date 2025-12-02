@@ -118,7 +118,7 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => onDelete(area.area_id)}
+                      onClick={() => onDelete(area.id)}
                     >
                       {t('area.delete')}
                     </Button>

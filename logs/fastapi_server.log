@@ -1,0 +1,18 @@
+2025-11-28 11:42:09 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=test_1764304929419, modelProcessCode=lenhDon, taskCount=1, client_ip=127.0.0.1
+2025-11-28 11:42:09 - fastapi_server - INFO - TASK_PATHS: ['QR001,QR002']
+2025-11-28 11:42:09 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=test_1764304929419, taskCount=1
+2025-11-28 11:43:13 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=12345, modelProcessCode=checking_camera_work, taskCount=1, client_ip=127.0.0.1
+2025-11-28 11:43:13 - fastapi_server - INFO - TASK_PATHS: ['101,201']
+2025-11-28 11:43:13 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=12345, taskCount=1
+2025-11-28 11:44:42 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=12345, modelProcessCode=checking_camera_work, taskCount=1, client_ip=127.0.0.1
+2025-11-28 11:44:42 - fastapi_server - INFO - TASK_PATHS: ['101,201']
+2025-11-28 11:44:42 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=12345, taskCount=1
+2025-11-28 11:48:29 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=12345, modelProcessCode=checking_camera_work, taskCount=1, client_ip=127.0.0.1
+2025-11-28 11:48:29 - fastapi_server - INFO - TASK_PATHS: ['101,201']
+2025-11-28 11:48:29 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=12345, taskCount=1
+2025-11-28 11:50:48 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=12345, modelProcessCode=checking_camera_work, taskCount=1, client_ip=127.0.0.1
+2025-11-28 11:50:48 - fastapi_server - INFO - TASK_PATHS: ['101,201']
+2025-11-28 11:50:48 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=12345, taskCount=1
+2025-11-28 14:20:18 - fastapi_server - INFO - POST_REQUEST_RECEIVED: orderId=12345, modelProcessCode=checking_camera_work, taskCount=1, client_ip=127.0.0.1
+2025-11-28 14:20:18 - fastapi_server - INFO - TASK_PATHS: ['101,201']
+2025-11-28 14:20:18 - fastapi_server - INFO - POST_REQUEST_PROCESSED_SUCCESS: orderId=12345, taskCount=1
