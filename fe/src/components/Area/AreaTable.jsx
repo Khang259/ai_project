@@ -84,11 +84,11 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
         <Table>
           <TableHeader>
             <TableRow className="text-white">
-              <TableHead className="font-semibold text-white">{t('area.areaId')}</TableHead>
-              <TableHead className="font-semibold text-white">{t('area.areaName')}</TableHead>
-              <TableHead className="font-semibold text-white">{t('area.createdBy')}</TableHead>
-              <TableHead className="font-semibold text-white">{t('area.createdAt')}</TableHead>
-              <TableHead className="font-semibold text-white">{t('area.operation')}</TableHead>
+              <TableHead className="font-semibold text-white">{t('Area Id')}</TableHead>
+              <TableHead className="font-semibold text-white">{t('Tên')}</TableHead>
+              <TableHead className="font-semibold text-white">{t('Tạo bởi')}</TableHead>
+              <TableHead className="font-semibold text-white">{t('Thời gian tạo')}</TableHead>
+              <TableHead className="font-semibold text-white">{t('Hành động')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -113,14 +113,14 @@ const AreaTable = ({ areas, onEdit, onDelete }) => {
                       size="sm"
                       onClick={() => handleEditClick(area)} // Sử dụng function mới
                     >
-                      {t('area.edit')}
+                      {t('Sửa')}
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => onDelete(area.id)}
                     >
-                      {t('area.delete')}
+                      {t('Xoá')}
                     </Button>
                   </div>
                 </TableCell>

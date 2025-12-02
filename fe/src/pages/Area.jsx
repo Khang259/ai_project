@@ -50,9 +50,13 @@ export default function AreaDashboard() {
   };
 
   const handleDeleteArea = async (areaId) => {
+    
+    const ok = window.confirm(`Bạn có chắc muốn xóa khu vực ${areaId} không?`);
+    if (!ok) return;
+
     try {
       await handleDelete(areaId);
-      toast.success("Xóa khu vực thành công");
+      toast.success(`Xóa khu vực ${areaId} thành công`);
     } catch (error) {
       console.error("Lỗi khi xóa area:", error);
       toast.error(error?.message || "Xóa khu vực thất bại");
