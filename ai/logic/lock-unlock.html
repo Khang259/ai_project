@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Slot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        /* CSS cho bảng */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        th, td {
+            border: 2px solid black; /* Viền đậm như hình */
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #fff;
+            font-weight: bold;
+        }
+
+        /* CSS cho nút bấm */
+        button {
+            padding: 5px 15px;
+            cursor: pointer;
+            border: 1px solid #999;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .btn-lock {
+            background-color: #ffcccc; /* Màu đỏ nhạt cho Khoá */
+            color: #d32f2f;
+        }
+        .btn-lock:hover {
+            background-color: #ff9999;
+        }
+
+        .btn-unlock {
+            background-color: #ccffcc; /* Màu xanh nhạt cho Mở khoá */
+            color: #2e7d32;
+        }
+        .btn-unlock:hover {
+            background-color: #99ff99;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align: center;">Quản lý trạng thái Điểm</h2>
+
+    <table id="slotTable">
+        <thead>
+            <tr>
+                <th rowspan="2">STT</th>
+                <th rowspan="2">Tên nút</th>
+                <th rowspan="2">QR code</th>
+                <th colspan="2">Thao tác</th>
+            </tr>
+            <tr>
+                <th>Mở khoá</th>
+                <th>Khoá</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            </tbody>
+    </table>
+
+    <script>
+        // 1. Dữ liệu mẫu giống trong hình ảnh
+        const data = [
+            { stt: 1, name: 'L1-1', qr: 911 },
+            { stt: 2, name: 'L1-2', qr: 922 },
+            { stt: 3, name: 'L2-1', qr: 103 },
+            { stt: 4, name: 'L2-2', qr: 104 },
+            { stt: 5, name: 'L1-3', qr: 105 },
+            { stt: 6, name: 'L1-4', qr: 106 },
+            { stt: 7, name: 'L2-3', qr: 107 },
+            { stt: 8, name: 'L2-4', qr: 108 },
+            { stt: 9, name: 'L1-5', qr: 109 },
+            { stt: 10, name: 'L1-6', qr: 110 },
+            { stt: 11, name: 'L2-5', qr: 111 },
+            { stt: 12, name: 'L2-6', qr: 112 },
+        ];
+
+        // 2. Render dữ liệu ra bảng
+        const tableBody = document.getElementById('tableBody');
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td>${item.stt}</td>
+                <td>${item.name}</td>
+                <td>${item.qr}</td>
+                <td>
+                    <button class="btn-unlock" onclick="handleAction('unblock', ${item.qr})">Mở khoá</button>
+                </td>
+                <td>
+                    <button class="btn-lock" onclick="handleAction('block', ${item.qr})">Khoá</button>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+
+        // 3. Hàm xử lý API
+        async function handleAction(type, qrCode) {
+            // Xác định URL endpoint dựa trên hành động
+            const endpoint = type === 'block' 
+                ? 'http://localhost:8001/api/slot/block' 
+                : 'http://localhost:8001/api/slot/unblock';
+
+            // Tạo payload
+            const payload = {
+                qr_code: qrCode
+            };
+
+            console.log(`Đang gửi yêu cầu ${type} cho QR: ${qrCode}...`);
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert(`Thành công: Đã ${type === 'block' ? 'Khoá' : 'Mở khoá'} mã QR ${qrCode}`);
+                } else {
+                    alert(`Lỗi: Server phản hồi không thành công cho mã QR ${qrCode}`);
+                }
+
+            } catch (error) {
+                console.error('Lỗi kết nối:', error);
+                alert(`Lỗi kết nối: Không thể gọi tới API ${endpoint}. Hãy chắc chắn server đang chạy.`);
+            }
+        }
+    </script>
+</body>
+</html>

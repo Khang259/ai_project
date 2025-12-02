@@ -124,45 +124,39 @@ class ROIProcessor:
             print(f"Bắt đầu load QR mapping từ {self.pairing_config_path}")
             with open(self.pairing_config_path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
+                
+            mapping: Dict[int, Tuple[str, int]] = {}
+            # starts_count = 0
+            # ends_count = 0
             
-            mapping, starts_count = self._parse_qr_slots(cfg)
+            for item in cfg.get("starts", []):
+                try:
+                    qr_code = int(item["qr_code"])
+                    camera_id = str(item["camera_id"])
+                    slot_number = int(item["slot_number"])
+                    mapping[qr_code] = (camera_id, slot_number)
+                    # starts_count += 1
+                except Exception as e:
+                    print(f"Lỗi parse start item {item}: {e}")
+                    continue
+                    
+            # for item in cfg.get("ends", []):
+            #     try:
+            #         qr_code = int(item["qr_code"])
+            #         camera_id = str(item["camera_id"])
+            #         slot_number = int(item["slot_number"])
+            #         mapping[qr_code] = (camera_id, slot_number)
+            #         ends_count += 1
+            #     except Exception as e:
+            #         print(f"Lỗi parse end item {item}: {e}")
+            #         continue
+                    
             self.qr_to_slot = mapping
-            print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count})")
+            # print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count}, ends: {ends_count})")
             
         except Exception as e:
             print(f"Lỗi khi load pairing config: {e}")
-    
-    def _parse_qr_slots(self, cfg: dict) -> Tuple[Dict[int, Tuple[str, int]], int]:
-        """
-        Parse QR code mapping từ config.
-        Returns: (mapping dictionary, số lượng starts)
-        """
-        mapping: Dict[int, Tuple[str, int]] = {}
-        starts_count = 0
-        
-        for item in cfg.get("starts", []):
-            try:
-                qr_code = int(item["qr_code"])
-                camera_id = str(item["camera_id"])
-                slot_number = int(item["slot_number"])
-                mapping[qr_code] = (camera_id, slot_number)
-                starts_count += 1
-            except Exception as e:
-                print(f"Lỗi parse start item {item}: {e}")
-                continue
-        
-        # Ends đã bị comment out trong code gốc
-        # for item in cfg.get("ends", []):
-        #     try:
-        #         qr_code = int(item["qr_code"])
-        #         camera_id = str(item["camera_id"])
-        #         slot_number = int(item["slot_number"])
-        #         mapping[qr_code] = (camera_id, slot_number)
-        #     except Exception as e:
-        #         print(f"Lỗi parse end item {item}: {e}")
-        #         continue
-        
-        return mapping, starts_count
+            # print(f"Lỗi khi load pairing config: {e}")
     
     def _setup_end_to_start_mapping(self) -> None:
         """Thiết lập mapping từ end slot đến start slot dựa trên pairs config"""
@@ -172,8 +166,18 @@ class ROIProcessor:
             with open(self.pairing_config_path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
             
-            # Sử dụng hàm chung để parse QR slots
-            qr_to_slot, _ = self._parse_qr_slots(cfg)
+            # Tạo mapping từ QR code đến (camera_id, slot_number)
+            qr_to_slot = {}
+            for item in cfg.get("starts", []):
+                try:
+                    qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+                except Exception:
+                    continue
+            # for item in cfg.get("ends", []):
+            #     try:
+            #         qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+            #     except Exception:
+            #         continue
             
             # Tạo mapping end_slot -> start_slot từ pairs
             end_to_start = {}
@@ -195,7 +199,7 @@ class ROIProcessor:
                 print(f"  End {end_slot} -> Start {start_slot}")
         except Exception as e:
             print(f"Lỗi khi thiết lập end_to_start mapping: {e}")
-            
+    
     def _add_end_slot_monitoring(self, end_qr: int) -> None:
         """Thêm end slot vào danh sách theo dõi"""
         end_slot = self.qr_to_slot.get(end_qr)
@@ -286,84 +290,49 @@ class ROIProcessor:
     
     def _unlock_start_by_qr(self, start_qr: int, reason: str = "manual") -> None:
         """
-        Unlock start slot theo QR code
+        Unlock start slot theo QR code (dùng cho unlock sau khi POST thất bại)
+        Tương tự _unblock_slot_by_qr nhưng dành riêng cho stable_pair flow
         
         Args:
             start_qr: QR code của ô start
             reason: Lý do unlock (để log)
         """
-        # Load lại mapping để đảm bảo mới nhất
-        self._load_qr_mapping()
+        # Sử dụng lại logic đã cải thiện của _unblock_slot_by_qr
+        self._unblock_slot_by_qr(start_qr, reason=reason)
         
-        # Lấy thông tin camera_id và slot_number từ QR code
-        cam_slot = self.qr_to_slot.get(start_qr)
-        if not cam_slot:
-            print(f"[UNLOCK_FAILED] Không tìm thấy slot cho start_qr={start_qr}")
-            return
+    # def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
+    #     """
+    #     Tính IoU giữa 2 bounding box
         
-        camera_id, slot_number = cam_slot
-        
-        # Unlock start slot
-        with self.cache_lock:
-            if camera_id in self.blocked_slots:
-                if slot_number in self.blocked_slots[camera_id]:
-                    del self.blocked_slots[camera_id][slot_number]
-                    self.block_logger.info(f"UNLOCK_BY_QR_SUCCESS: camera={camera_id}, slot={slot_number}, qr={start_qr}, reason={reason}")
-                    print(f"[UNLOCK_BY_QR] Đã unlock start slot {slot_number} trên {camera_id} "
-                          f"(QR: {start_qr}, reason: {reason})")
-                    
-                    # Xóa end slot khỏi monitoring để tránh unlock lại
-                    # Tìm end slot tương ứng với start slot này
-                    start_slot_tuple = (camera_id, slot_number)
-                    end_slot_to_remove = None
-                    for end_slot, start_slot in self.end_to_start_mapping.items():
-                        if start_slot == start_slot_tuple:
-                            end_slot_to_remove = end_slot
-                            break
-                    
-                    if end_slot_to_remove and end_slot_to_remove in self.end_slot_states:
-                        del self.end_slot_states[end_slot_to_remove]
-                        print(f"[UNLOCK_BY_QR] Đã xóa end slot {end_slot_to_remove} khỏi monitoring")
-                else:
-                    self.block_logger.warning(f"UNLOCK_BY_QR_FAILED: camera={camera_id}, slot={slot_number}, qr={start_qr}, reason=not_blocked")
-                    print(f"[UNLOCK_BY_QR] Start slot {slot_number} trên {camera_id} không bị block")
-            else:
-                self.block_logger.warning(f"UNLOCK_BY_QR_FAILED: camera={camera_id}, qr={start_qr}, reason=no_blocked_slots")
-                print(f"[UNLOCK_BY_QR] Camera {camera_id} không có slot nào bị block")
-        
-    def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
-        """
-        Tính IoU giữa 2 bounding box
-        
-        Args:
-            bbox1: Bounding box 1 {x1, y1, x2, y2}
-            bbox2: Bounding box 2 {x1, y1, x2, y2}
+    #     Args:
+    #         bbox1: Bounding box 1 {x1, y1, x2, y2}
+    #         bbox2: Bounding box 2 {x1, y1, x2, y2}
             
-        Returns:
-            IoU value (0.0 - 1.0)
-        """
-        # Tính intersection
-        x1 = max(bbox1["x1"], bbox2["x1"])
-        y1 = max(bbox1["y1"], bbox2["y1"])
-        x2 = min(bbox1["x2"], bbox2["x2"])
-        y2 = min(bbox1["y2"], bbox2["y2"])
+    #     Returns:
+    #         IoU value (0.0 - 1.0)
+    #     """
+    #     # Tính intersection
+    #     x1 = max(bbox1["x1"], bbox2["x1"])
+    #     y1 = max(bbox1["y1"], bbox2["y1"])
+    #     x2 = min(bbox1["x2"], bbox2["x2"])
+    #     y2 = min(bbox1["y2"], bbox2["y2"])
         
-        if x2 <= x1 or y2 <= y1:
-            return 0.0
+    #     if x2 <= x1 or y2 <= y1:
+    #         return 0.0
         
-        intersection = (x2 - x1) * (y2 - y1)
+    #     intersection = (x2 - x1) * (y2 - y1)
         
-        # Tính area của mỗi bbox
-        area1 = (bbox1["x2"] - bbox1["x1"]) * (bbox1["y2"] - bbox1["y1"])
-        area2 = (bbox2["x2"] - bbox2["x1"]) * (bbox2["y2"] - bbox2["y1"])
+    #     # Tính area của mỗi bbox
+    #     area1 = (bbox1["x2"] - bbox1["x1"]) * (bbox1["y2"] - bbox1["y1"])
+    #     area2 = (bbox2["x2"] - bbox2["x1"]) * (bbox2["y2"] - bbox2["y1"])
         
-        # Tính union
-        union = area1 + area2 - intersection
+    #     # Tính union
+    #     union = area1 + area2 - intersection
         
-        if union <= 0:
-            return 0.0
+    #     if union <= 0:
+    #         return 0.0
         
-        return intersection / union
+    #     return intersection / union
     
     
     def is_detection_in_roi(self, detection: Dict[str, Any], roi_slots: List[Dict[str, Any]]) -> bool:
@@ -536,7 +505,7 @@ class ROIProcessor:
                         # Đảm bảo mapping mới nhất
                         self._load_qr_mapping()
                         # Thêm end slot vào danh sách theo dõi (nếu cần unlock mechanism)
-                        self._add_end_slot_monitoring(end_qr)
+                        # self._add_end_slot_monitoring(end_qr)
                         
                 time.sleep(0.2)
             except Exception as e:
@@ -692,7 +661,10 @@ class ROIProcessor:
                 time.sleep(1.0)
     
     def _block_slot_by_qr(self, qr_code: int, reason: str = "manual") -> None:
-        """Block slot theo QR code"""
+        """
+        Block slot theo QR code
+        Chỉ block thủ công, không tạo dual monitoring
+        """
         try:
             # Load lại mapping để đảm bảo mới nhất
             self._load_qr_mapping()
@@ -701,20 +673,28 @@ class ROIProcessor:
             cam_slot = self.qr_to_slot.get(qr_code)
             if not cam_slot:
                 print(f"[BLOCK_FAILED] Không tìm thấy slot cho QR code={qr_code}")
+                self.block_logger.warning(f"BLOCK_SLOT_FAILED: qr_code={qr_code}, reason=qr_not_found")
                 return
             
             camera_id, slot_number = cam_slot
             
-            # Block ROI slot
+            # Kiểm tra xem slot đã bị block chưa
             with self.cache_lock:
                 if camera_id not in self.blocked_slots:
                     self.blocked_slots[camera_id] = {}
                 
+                was_blocked = slot_number in self.blocked_slots[camera_id]
+                
+                # Block ROI slot
                 self.blocked_slots[camera_id][slot_number] = math.inf  # Vô thời hạn
-            
-            log_msg = f"[BLOCK_SLOT] Đã block slot {slot_number} trên {camera_id} (QR: {qr_code}, reason: {reason})"
-            self.block_logger.info(f"BLOCK_SLOT_SUCCESS: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}")
-            print(log_msg)
+                
+                if was_blocked:
+                    log_msg = f"[BLOCK_SLOT] Slot {slot_number} trên {camera_id} đã bị block trước đó, cập nhật lại (QR: {qr_code}, reason: {reason})"
+                else:
+                    log_msg = f"[BLOCK_SLOT] Đã block slot {slot_number} trên {camera_id} (QR: {qr_code}, reason: {reason})"
+                
+                self.block_logger.info(f"BLOCK_SLOT_SUCCESS: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}, was_blocked={was_blocked}")
+                print(log_msg)
             
         except Exception as e:
             error_msg = f"Lỗi khi block slot theo QR code: {e}"
@@ -722,7 +702,10 @@ class ROIProcessor:
             self.block_logger.error(f"BLOCK_SLOT_ERROR: qr_code={qr_code}, error={str(e)}")
     
     def _unblock_slot_by_qr(self, qr_code: int, reason: str = "manual") -> None:
-        """Unblock slot theo QR code"""
+        """
+        Unblock slot theo QR code
+        Hoạt động với cả slot bị lock tự động (dual) và lock thủ công
+        """
         try:
             # Load lại mapping để đảm bảo mới nhất
             self._load_qr_mapping()
@@ -731,22 +714,74 @@ class ROIProcessor:
             cam_slot = self.qr_to_slot.get(qr_code)
             if not cam_slot:
                 print(f"[UNBLOCK_FAILED] Không tìm thấy slot cho QR code={qr_code}")
+                self.block_logger.warning(f"UNBLOCK_SLOT_FAILED: qr_code={qr_code}, reason=qr_not_found")
                 return
             
             camera_id, slot_number = cam_slot
+            slot_was_blocked = False
+            dual_id_found = None
             
-            # Unblock ROI slot
+            # Bước 1: Kiểm tra và unblock từ blocked_slots
             with self.cache_lock:
                 if camera_id in self.blocked_slots:
                     if slot_number in self.blocked_slots[camera_id]:
                         del self.blocked_slots[camera_id][slot_number]
+                        slot_was_blocked = True
                         log_msg = f"[UNBLOCK_SLOT] Đã unblock slot {slot_number} trên {camera_id} (QR: {qr_code}, reason: {reason})"
                         self.block_logger.info(f"UNBLOCK_SLOT_SUCCESS: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}")
                         print(log_msg)
-                    else:
-                        print(f"[UNBLOCK_SLOT] Slot {slot_number} trên {camera_id} (QR: {qr_code}) không bị block")
-                else:
-                    print(f"[UNBLOCK_SLOT] Camera {camera_id} không có slot nào bị block")
+                
+                # Bước 2: Kiểm tra xem slot này có phải là dual blocked không
+                # Tìm dual_id tương ứng với qr_code này
+                for dual_id, pair_info in list(self.dual_blocked_pairs.items()):
+                    if pair_info.get("start_qr") == qr_code:
+                        dual_id_found = dual_id
+                        break
+                
+                # Bước 3: Nếu là dual blocked, cleanup toàn bộ dual monitoring
+                if dual_id_found:
+                    # Xóa khỏi dual_blocked_pairs
+                    if dual_id_found in self.dual_blocked_pairs:
+                        end_qrs = self.dual_blocked_pairs[dual_id_found].get("end_qrs")
+                        del self.dual_blocked_pairs[dual_id_found]
+                        print(f"[UNBLOCK_SLOT] Đã xóa dual pair {dual_id_found} khỏi dual_blocked_pairs")
+                    
+                    # Xóa khỏi dual_end_monitoring
+                    for (cam, slot), monitored_dual_id in list(self.dual_end_monitoring.items()):
+                        if monitored_dual_id == dual_id_found:
+                            del self.dual_end_monitoring[(cam, slot)]
+                            print(f"[UNBLOCK_SLOT] Đã xóa end monitoring cho dual {dual_id_found} tại slot {slot} camera {cam}")
+                    
+                    # Xóa khỏi end_slot_states nếu có
+                    end_slot_to_remove = []
+                    for end_slot, state in self.end_slot_states.items():
+                        if state.get('dual_id') == dual_id_found:
+                            end_slot_to_remove.append(end_slot)
+                    
+                    for end_slot in end_slot_to_remove:
+                        del self.end_slot_states[end_slot]
+                        print(f"[UNBLOCK_SLOT] Đã xóa end_slot_states cho {end_slot}")
+                    
+                    self.block_logger.info(f"UNBLOCK_DUAL_CLEANUP: dual_id={dual_id_found}, camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}")
+                
+                # Bước 4: Cleanup regular pair monitoring (nếu có)
+                start_slot_tuple = (camera_id, slot_number)
+                end_slot_to_remove = None
+                for end_slot, start_slot in self.end_to_start_mapping.items():
+                    if start_slot == start_slot_tuple:
+                        end_slot_to_remove = end_slot
+                        break
+                
+                if end_slot_to_remove and end_slot_to_remove in self.end_slot_states:
+                    # Chỉ xóa nếu không phải dual monitoring
+                    if not self.end_slot_states[end_slot_to_remove].get('dual_id'):
+                        del self.end_slot_states[end_slot_to_remove]
+                        print(f"[UNBLOCK_SLOT] Đã xóa regular end slot {end_slot_to_remove} khỏi monitoring")
+                
+                # Thông báo kết quả
+                if not slot_was_blocked and not dual_id_found:
+                    print(f"[UNBLOCK_SLOT] Slot {slot_number} trên {camera_id} (QR: {qr_code}) không bị block")
+                    self.block_logger.warning(f"UNBLOCK_SLOT_NOT_BLOCKED: camera={camera_id}, slot={slot_number}, qr_code={qr_code}")
             
         except Exception as e:
             error_msg = f"Lỗi khi unblock slot theo QR code: {e}"
@@ -967,7 +1002,7 @@ class ROIProcessor:
                 "end_qrs": end_qrs,
                 "action": "unblock",
                 "reason": "end_shelf_stable_roi_processor",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                # "timestamp": datetime.utcnow().isoformat() + "Z",
                 "end_slot": f"{end_slot[0]}:{end_slot[1]}"
             }
             
@@ -1055,12 +1090,12 @@ class ROIProcessor:
         # Tạo payload cho roi_detection_queue
         roi_detection_payload = {
             "camera_id": camera_id,
-            "frame_id": detection_data["frame_id"],
-            "timestamp": detection_data["timestamp"],
-            "frame_shape": detection_data["frame_shape"],
+            # "frame_id": detection_data["frame_id"],
+            # "timestamp": detection_data["timestamp"],
+            # "frame_shape": detection_data["frame_shape"],
             "roi_detections": filtered_detections,
-            "roi_detection_count": len(filtered_detections),
-            "original_detection_count": len(detections)
+            # "roi_detection_count": len(filtered_detections),
+            # "original_detection_count": len(detections)
         }
         
         return roi_detection_payload
@@ -1070,7 +1105,7 @@ class ROIProcessor:
         Vẽ ROI lên frame (delegate to roi_visualizer)
         
         Args:
-            frame: Frame gốc
+            frame: Frame gốcs
             camera_id: ID của camera
             
         Returns:
@@ -1100,36 +1135,36 @@ class ROIProcessor:
         return self.roi_visualizer.draw_detections_on_frame(frame, detections, camera_id, roi_slots)
     
     
-    def get_video_capture(self, camera_id: str) -> Optional[cv2.VideoCapture]:
-        """
-        Lấy video capture cho camera
+    # def get_video_capture(self, camera_id: str) -> Optional[cv2.VideoCapture]:
+    #     """
+    #     Lấy video capture cho camera
         
-        Args:
-            camera_id: ID của camera
+    #     Args:
+    #         camera_id: ID của camera
             
-        Returns:
-            VideoCapture object hoặc None
-        """
-        if camera_id not in self.video_captures:
-            # Mapping camera_id với video source tương ứng
-            video_mapping = {
-                "cam-1": "video/hanam.mp4",
-                "cam-2": "video/vinhPhuc.mp4"
-            }
+    #     Returns:
+    #         VideoCapture object hoặc None
+    #     """
+    #     if camera_id not in self.video_captures:
+    #         # Mapping camera_id với video source tương ứng
+    #         video_mapping = {
+    #             "cam-1": "video/hanam.mp4",
+    #             "cam-2": "video/vinhPhuc.mp4"
+    #         }
             
-            # Lấy video source cho camera này
-            video_source = video_mapping.get(camera_id, "video/hanam.mp4")
+    #         # Lấy video source cho camera này
+    #         video_source = video_mapping.get(camera_id, "video/hanam.mp4")
             
-            cap = cv2.VideoCapture(video_source)
-            if cap.isOpened():
-                self.video_captures[camera_id] = cap
-                print(f"Đã kết nối video source cho camera {camera_id}: {video_source}")
-            else:
-                cap.release()
-                print(f"Không thể kết nối video source cho camera {camera_id}: {video_source}")
-                return None
+    #         cap = cv2.VideoCapture(video_source)
+    #         if cap.isOpened():
+    #             self.video_captures[camera_id] = cap
+    #             print(f"Đã kết nối video source cho camera {camera_id}: {video_source}")
+    #         else:
+    #             cap.release()
+    #             print(f"Không thể kết nối video source cho camera {camera_id}: {video_source}")
+    #             return None
         
-        return self.video_captures[camera_id]
+    #     return self.video_captures[camera_id]
     
     def update_frame_cache(self, camera_id: str) -> bool:
         """
@@ -1186,7 +1221,7 @@ class ROIProcessor:
 
             time.sleep(1.0)
     
-    def subscribe_raw_detection(self) -> None:
+    # def subscribe_raw_detection(self) -> None:
         """
         Subscribe raw detection queue và xử lý
         """
@@ -1247,14 +1282,10 @@ class ROIProcessor:
                         self.queue.publish("roi_detection", camera_id, roi_detection_payload)
                         
                         # Đếm số shelf và empty
-                        shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'hang')
-                        empty_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'empty')
+                        # shelf_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'hang')
+                        # empty_count = sum(1 for d in roi_detection_payload['roi_detections'] if d['class_name'] == 'empty')
                         
-                        # Hiển thị thông tin với video source
-                        video_mapping = {
-                            "cam-1": "hanam.mp4",
-                            "cam-2": "vinhPhuc.mp4"
-                        }
+                       
                         video_name = video_mapping.get(camera_id, "unknown")
                         
                         # print(f"Camera {camera_id} ({video_name}) - Frame {detection_data['frame_id']}: "
@@ -1266,6 +1297,92 @@ class ROIProcessor:
                 print(f"Lỗi khi subscribe raw detection: {e}")
                 time.sleep(1)
     
+    def subscribe_raw_detection(self) -> None:
+        """
+        Subscribe raw detection queue và xử lý
+        """
+        print("Bắt đầu subscribe raw detection queue...")
+        
+        # Lấy tất cả camera IDs
+        with self.queue._connect() as conn:
+            cur = conn.execute(
+                "SELECT DISTINCT key FROM messages WHERE topic = 'raw_detection' ORDER BY key"
+            )
+            camera_ids = [row[0] for row in cur.fetchall()]
+        
+        if not camera_ids:
+            print("Không tìm thấy camera nào trong raw_detection queue")
+            return
+        
+        # Track last processed ID cho mỗi camera
+        last_detection_ids = {}
+        for camera_id in camera_ids:
+            detection_data = self.queue.get_latest_row("raw_detection", camera_id)
+            if detection_data:
+                last_detection_ids[camera_id] = detection_data["id"]
+        
+        print(f"Đang monitor {len(camera_ids)} cameras: {camera_ids}")
+        
+        while self.running:
+            try:
+                for camera_id in camera_ids:
+                    # Chỉ xử lý camera có ROI config
+                    with self.cache_lock:
+                        if camera_id not in self.roi_cache:
+                            continue
+                    
+                    # Lấy detections mới
+                    new_detections = self.queue.get_after_id(
+                        "raw_detection", 
+                        camera_id, 
+                        last_detection_ids.get(camera_id, 0),
+                        limit=10
+                    )
+                    
+                    for detection_row in new_detections:
+                        detection_data = detection_row["payload"]
+                        last_detection_ids[camera_id] = detection_row["id"]
+                        
+                        # Lưu detection data gốc để hiển thị video (vẽ bounding box YOLO gốc)
+                        with self.cache_lock:
+                            self.latest_detections[camera_id] = detection_data
+                        
+                        # Xử lý detection - Hàm này trả về dữ liệu CÓ chứa bbox/center
+                        roi_detection_payload = self.process_detection(detection_data)
+                        
+                        # 1. CẬP NHẬT CACHE HIỂN THỊ (Giữ nguyên bbox/center để vẽ video)
+                        with self.cache_lock:
+                            self.latest_roi_detections[camera_id] = roi_detection_payload
+                        
+                        # 2. TẠO PAYLOAD SẠCH ĐỂ PUBLISH (Loại bỏ bbox/center)
+                        clean_detections = []
+                        if roi_detection_payload and "roi_detections" in roi_detection_payload:
+                            for d in roi_detection_payload["roi_detections"]:
+                                clean_detections.append({
+                                    "class_name": d.get("class_name"),
+                                    "class_id": d.get("class_id"),
+                                    # "confidence": d.get("confidence"),
+                                    "slot_number": d.get("slot_number")
+                                    # Đã loại bỏ "bbox" và "center" ở đây để giảm tải cho DB/Queue
+                                })
+
+                        clean_payload = {
+                            "camera_id": roi_detection_payload.get("camera_id"),
+                            "roi_detections": clean_detections
+                        }
+                        
+                        # 3. Publish payload sạch vào roi_detection_queue
+                        self.queue.publish("roi_detection", camera_id, clean_payload)
+                        
+                        
+                        video_name = "unknown" # Bạn có thể map lại nếu cần
+                        # print(f"Published roi_detection for {camera_id}")
+                
+                time.sleep(0.1)  # Check mỗi 100ms
+                
+            except Exception as e:
+                print(f"Lỗi khi subscribe raw detection: {e}")
+                time.sleep(1)
     def run(self) -> None:
         """
         Chạy ROI processor

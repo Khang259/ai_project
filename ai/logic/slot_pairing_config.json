@@ -404,6 +404,26 @@
       "slot_number": 1,
       "camera_id": "cam-88",
       "qr_code": 555555
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-99",
+      "qr_code": 911
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-99",
+      "qr_code": 922
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-100",
+      "qr_code": 1011
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-100",
+      "qr_code": 1022
     }
   ],
   "pairs": [
@@ -513,14 +533,21 @@
         "88"
       ],
       "end_qrs_2": 99999
+    },
+    {
+      "start_qr": 922,
+      "end_qrs": [
+        "88"
+      ],
+      "end_qrs_2": 4546
     }
   ],
   "dual": [
     {
-      "start_qr": 333,
-      "end_qrs": 111,
-      "start_qr_2": 222,
-      "end_qrs_2": 666
+      "start_qr": 911,
+      "end_qrs": 1011,
+      "start_qr_2": 1022,
+      "end_qrs_2": 45546
     },
     {
       "start_qr": 10000628,
@@ -2683,6 +2710,94 @@
         [
           809,
           571
+        ]
+      ]
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-99",
+      "points": [
+        [
+          689,
+          125
+        ],
+        [
+          903,
+          125
+        ],
+        [
+          903,
+          290
+        ],
+        [
+          689,
+          290
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-99",
+      "points": [
+        [
+          670,
+          306
+        ],
+        [
+          882,
+          306
+        ],
+        [
+          882,
+          450
+        ],
+        [
+          670,
+          450
+        ]
+      ]
+    },
+    {
+      "slot_number": 1,
+      "camera_id": "cam-100",
+      "points": [
+        [
+          489,
+          469
+        ],
+        [
+          593,
+          469
+        ],
+        [
+          593,
+          617
+        ],
+        [
+          489,
+          617
+        ]
+      ]
+    },
+    {
+      "slot_number": 2,
+      "camera_id": "cam-100",
+      "points": [
+        [
+          837,
+          90
+        ],
+        [
+          1004,
+          90
+        ],
+        [
+          1004,
+          304
+        ],
+        [
+          837,
+          304
         ]
       ]
     }

@@ -1,0 +1,26 @@
+2025-12-01 08:38:04,009 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-01 08:38:04,009 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-01 08:38:09,637 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-01 08:38:09,637 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-01 08:38:10,222 - camera_ai_app - INFO - Default permissions initialized
+2025-12-01 08:38:10,222 - camera_ai_app - INFO - Initializing default roles...
+2025-12-01 08:38:10,346 - camera_ai_app - INFO - Default roles initialized
+2025-12-01 08:38:10,350 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-01 08:38:10,351 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-01 23:00:00+07:00
+2025-12-01 08:38:10,351 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-01 08:38:10,352 - camera_ai_app - INFO - Notification service started
+2025-12-01 08:38:10,352 - camera_ai_app - INFO - Task service started
+2025-12-01 08:38:10,353 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-01 08:38:10,353 - camera_ai_app - INFO - Heartbeat service started
+2025-12-01 08:39:05,841 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-01 08:39:05,957 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-01 08:39:24,593 - camera_ai_app - ERROR - Cannot open camera stream for streaming: Chưa được cấu hình
+2025-12-01 08:52:58,391 - camera_ai_app - WARNING - Map not found for area_id: 5
+2025-12-01 15:37:09,229 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-01 15:37:09,230 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-01 15:37:09,230 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-01 15:37:09,232 - camera_ai_app - INFO - Task service stopped
+2025-12-01 15:37:09,232 - camera_ai_app - INFO - Notification service stopped
+2025-12-01 15:37:09,233 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-01 15:37:09,233 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-01 15:37:09,480 - camera_ai_app - INFO - Disconnected from MongoDB

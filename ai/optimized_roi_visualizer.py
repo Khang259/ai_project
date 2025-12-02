@@ -513,39 +513,34 @@ class VideoDisplayManager:
         except Exception as e:
             print(f"[VISUAL-QR] Lỗi khi load QR mapping: {e}")
     
-    def _subscribe_dual_blocking(self):
-        """Subscribe dual_block và dual_unblock topics"""
+    def _subscribe_all_blocking(self):
+        """Subscribe tất cả block/unblock topics (dual + manual API)"""
         if not self.queue:
             return
         
-        print("[VISUAL-DUAL] Bắt đầu subscribe dual blocking...")
+        print("[VISUAL-BLOCK] Bắt đầu subscribe all blocking topics...")
         
-        # Track last processed IDs
-        last_block_id = 0
-        last_unblock_id = 0
+        # Track last processed IDs cho tất cả topics
+        last_ids = {
+            "dual_block": 0,
+            "dual_unblock": 0,
+            "block_slot": 0,
+            "unblock_slot": 0
+        }
         
         # Get latest IDs
         try:
             with self.queue._connect() as conn:
-                # dual_block
-                cur = conn.execute(
-                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
-                    ("dual_block",),
-                )
-                row = cur.fetchone()
-                if row:
-                    last_block_id = row[0]
-                
-                # dual_unblock
-                cur = conn.execute(
-                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
-                    ("dual_unblock",),
-                )
-                row = cur.fetchone()
-                if row:
-                    last_unblock_id = row[0]
+                for topic in last_ids.keys():
+                    cur = conn.execute(
+                        "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+                        (topic,),
+                    )
+                    row = cur.fetchone()
+                    if row:
+                        last_ids[topic] = row[0]
         except Exception as e:
-            print(f"[VISUAL-DUAL] Lỗi khi khởi tạo cursors: {e}")
+            print(f"[VISUAL-BLOCK] Lỗi khi khởi tạo cursors: {e}")
         
         while self.running:
             try:
@@ -558,16 +553,14 @@ class VideoDisplayManager:
                         ORDER BY id ASC
                         LIMIT 50
                         """,
-                        ("dual_block", last_block_id),
+                        ("dual_block", last_ids["dual_block"]),
                     )
                     rows = cur.fetchall()
                 
                 for r in rows:
                     msg_id = r[0]
                     payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
-                    last_block_id = msg_id
-                    
-                    # Process block message
+                    last_ids["dual_block"] = msg_id
                     self._handle_dual_block(payload)
                 
                 # Process dual_unblock messages
@@ -579,22 +572,58 @@ class VideoDisplayManager:
                         ORDER BY id ASC
                         LIMIT 50
                         """,
-                        ("dual_unblock", last_unblock_id),
+                        ("dual_unblock", last_ids["dual_unblock"]),
                     )
                     rows = cur.fetchall()
                 
                 for r in rows:
                     msg_id = r[0]
                     payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
-                    last_unblock_id = msg_id
-                    
-                    # Process unblock message
+                    last_ids["dual_unblock"] = msg_id
                     self._handle_dual_unblock(payload)
+                
+                # Process block_slot messages (manual API)
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("block_slot", last_ids["block_slot"]),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_ids["block_slot"] = msg_id
+                    self._handle_manual_block(payload)
+                
+                # Process unblock_slot messages (manual API)
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("unblock_slot", last_ids["unblock_slot"]),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_ids["unblock_slot"] = msg_id
+                    self._handle_manual_unblock(payload)
                 
                 time.sleep(0.2)
                 
             except Exception as e:
-                print(f"[VISUAL-DUAL] Lỗi khi subscribe: {e}")
+                print(f"[VISUAL-BLOCK] Lỗi khi subscribe: {e}")
                 time.sleep(1.0)
     
     def _handle_dual_block(self, payload: Dict[str, Any]):
@@ -647,6 +676,62 @@ class VideoDisplayManager:
             
         except Exception as e:
             print(f"[VISUAL-DUAL] Lỗi khi xử lý unblock: {e}")
+    
+    def _handle_manual_block(self, payload: Dict[str, Any]):
+        """Xử lý manual block message từ API"""
+        try:
+            qr_code = int(payload.get("qr_code", 0))
+            reason = payload.get("reason", "manual_api")
+            
+            # Tìm camera và slot tương ứng với qr_code
+            cam_slot = self.qr_to_slot.get(qr_code)
+            if not cam_slot:
+                print(f"[VISUAL-MANUAL] Không tìm thấy slot cho qr_code={qr_code}")
+                return
+            
+            camera_id, slot_number = cam_slot
+            
+            # Block ROI
+            if camera_id not in self.blocked_rois:
+                self.blocked_rois[camera_id] = {}
+            
+            self.blocked_rois[camera_id][slot_number] = {
+                "qr_code": qr_code,
+                "reason": reason,
+                "blocked_at": time.time()
+            }
+            
+            print(f"[VISUAL-MANUAL] Đã block ROI {camera_id}:slot_{slot_number} (QR: {qr_code}, reason: {reason})")
+            
+        except Exception as e:
+            print(f"[VISUAL-MANUAL] Lỗi khi xử lý block: {e}")
+    
+    def _handle_manual_unblock(self, payload: Dict[str, Any]):
+        """Xử lý manual unblock message từ API"""
+        try:
+            qr_code = int(payload.get("qr_code", 0))
+            reason = payload.get("reason", "manual_api")
+            
+            # Tìm camera và slot tương ứng với qr_code
+            cam_slot = self.qr_to_slot.get(qr_code)
+            if not cam_slot:
+                print(f"[VISUAL-MANUAL] Không tìm thấy slot cho qr_code={qr_code}")
+                return
+            
+            camera_id, slot_number = cam_slot
+            
+            # Unblock ROI
+            if camera_id in self.blocked_rois:
+                if slot_number in self.blocked_rois[camera_id]:
+                    del self.blocked_rois[camera_id][slot_number]
+                    print(f"[VISUAL-MANUAL] Đã unblock ROI {camera_id}:slot_{slot_number} (QR: {qr_code}, reason: {reason})")
+                else:
+                    print(f"[VISUAL-MANUAL] Slot {slot_number} trên {camera_id} không bị block")
+            else:
+                print(f"[VISUAL-MANUAL] Camera {camera_id} không có slot nào bị block")
+            
+        except Exception as e:
+            print(f"[VISUAL-MANUAL] Lỗi khi xử lý unblock: {e}")
     
     def _load_cam_config(self, cam_config_path: str):
         """Load camera RTSP URLs"""
@@ -723,11 +808,11 @@ class VideoDisplayManager:
             thread.start()
             print(f"[DISPLAY] Khởi động thread {camera_id} (FPS: {target_fps})")
         
-        # Khởi động dual blocking subscription thread
+        # Khởi động blocking subscription thread (dual + manual API)
         if self.queue:
-            dual_thread = threading.Thread(target=self._subscribe_dual_blocking, daemon=True)
-            dual_thread.start()
-            print("[DISPLAY] Khởi động dual blocking subscription")
+            blocking_thread = threading.Thread(target=self._subscribe_all_blocking, daemon=True)
+            blocking_thread.start()
+            print("[DISPLAY] Khởi động blocking subscription (dual + manual API)")
         
         # Vòng lặp update local_dict (giống camera_process.py update loop)
         try:

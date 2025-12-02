@@ -25,6 +25,7 @@ from app.api import (
     camera,
     task_status,
     request_end_slot,
+    slot_block,
     route,
     websocket as websocket_api,
 )
@@ -130,6 +131,7 @@ app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name
 app.include_router(pdf_router, tags=["PDF"])
 #API monitor
 app.include_router(request_end_slot.router, prefix="/api", tags=["End Slot Management"])
+app.include_router(slot_block.router, prefix="/api", tags=["Slot Block Management"])
 
 @app.get("/")
 async def root():
