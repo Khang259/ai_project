@@ -1,0 +1,66 @@
+1. Các hàm "_load_qr_mapping" và "_setup_end_to_start_mapping"
+Mapping các điểm QR code (start, end) với cam_id và slot_id theo file config
+
+2. Hàm "_add_end_slot_monitoring"
+Đúng như tên gọi. Chức năng: thêm điểm end vào danh sách theo dõi
+Được gọi khi post lệnh dual
+
+3. Hàm "_update_end_slot_state"
+Theo dõi trạng thái của end. State thay đổi từ 0 -> 1 sẽ gửi unlock 
+
+4. Hàm "_unlock_start_slot"
+Truy vết điểm start dựa trên điểm end:
+    start_slot = self.end_to_start_mapping.get(end_slot)
+Thực hiện unlock:
+    if start_camera_id in self.blocked_slots:
+        if start_slot_number in self.blocked_slots[start_camera_id]:
+            del self.blocked_slots[start_camera_id][start_slot_number]  # XÓA KHÓA
+            (Hành động del chính là hành động mở khóa. Khi ID của slot không còn trong danh sách blocked_slots, hệ thống điều phối sẽ hiểu là slot đó đang rảnh và có thể cấp phát nhiệm vụ mới)
+
+5. Hàm "_unlock_start_by_qr"
+Hàm này để mở khoá thủ công 
+
+6. Hàm "filter_detections_by_roi"
+Gán vật thể mà YOLO trả ra về địa chỉ cụ thể: slot nào, Camera nào
+
+7. Hàm "_subscribe_block_unblock_slot":
+8. Hàm "_subscribe_block_unblock_slot":
+Truy vấn vào topic "unblock_slot" / "block_slot" để lấy QR code. Sau đó gọi "_unblock/block_slot_by_qr" để thực hiện
+Khi cần bl/ulock thủ công. Chỉ cần viết API insert QR code vào topic trong sqlite
+
+9. Hai hàm:
+1. Hàm _subscribe_dual_blocking
+Đây là hàm chạy nền, nhiệm vụ là lắng nghe lệnh từ trên gửi xuống Database.
+    Bước 1: 
+        Truy vấn Database: Lấy last_id về việc block/unblock 
+        Mục đích: Bỏ qua tất cả các lệnh cũ từ quá khứ. Chỉ nhận lệnh mới phát sinh từ bây giờ trở đi.
+    Bước 2: (Polling Loop)
+        Cứ mỗi 0.2 giây, xem Database
+            Có lệnh Khóa (dual_block)?
+            Có lệnh Mở (dual_unblock)?
+    Bước 3: Điều phối
+        Nếu có lệnh Khóa: Nó gọi ngay _handle_dual_block(payload).
+        Nếu có lệnh Mở: Nó gọi ngay _handle_dual_unblock(payload).
+        Nếu tin nhắn lỗi: Nó ghi log và bỏ qua, không làm sập hệ thống.
+2. Hàm _handle_dual_block 
+Hàm thực hiện khi nhận được lệnh "Khóa" từ hàm trên.
+    Bước 1: 
+        Mở gói tin ra xem.
+        Bắt buộc phải có đủ 3 thứ: dual_id (Mã nhiệm vụ), start_qr (Điểm đi), end_qrs (Điểm đến).
+        Thiếu 1 trong 3 → Hủy bỏ, báo lỗi.
+    Bước 2: 
+        Tải lại file cấu hình qr_mapping.
+        Mục đích: Đảm bảo biết chính xác start_qr đang nằm ở Camera nào, Slot nào 
+    Bước 3: Khóa điểm xuất phát 
+        Truy cập vào biến self.blocked_slots (có dùng khóa cache_lock để an toàn).
+        Gán trạng thái cho Slot xuất phát là math.inf (Vô cực).
+    Bước 4: 
+        Ghi vào self.dual_blocked_pairs: Đã khoá A trên tuyến A->B
+    Bước 5: 
+        Kích hoạt Camera tại điểm đích (end_qrs) để theo dõi điều kiện mở khoá
+        
+
+10. Hàm "_trigger_dual_unblock"
+self.queue.publish("dual_unblock_trigger", dual_id, unblock_payload)
+Topic: dual_unblock_trigger.
+Đây chính là topic mà hàm _subscribe_dual_unblock_trigger đang lắng nghe

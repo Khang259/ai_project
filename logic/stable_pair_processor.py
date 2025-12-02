@@ -102,7 +102,7 @@ def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) ->
 
 class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
-                 stable_seconds: float = 15.0, cooldown_seconds: float = 10.0) -> None:
+                 stable_seconds: float = 15.0, cooldown_seconds: float = 60.0) -> None:
         print(f"Khởi tạo StablePairProcessor - DB: {db_path}, Config: {config_path}, Stable: {stable_seconds}s, Cooldown: {cooldown_seconds}s")
         
         # Thiết lập loggers
@@ -200,13 +200,13 @@ class StablePairProcessor:
             }
             self.dual_pairs.append(dual_config)
         
-        # Log thông tin config đã load
-        print(f"Loaded config - QR mappings: {len(self.qr_to_slot)} (starts: {starts_count}, starts_2: {starts_2_count}, ends: {ends_count})")
-        print(f"Loaded config - Pairs: {len(self.pairs)}, Dual pairs: {len(self.dual_pairs)}")
+        # # Log thông tin config đã load
+        # print(f"Loaded config - QR mappings: {len(self.qr_to_slot)} (starts: {starts_count}, starts_2: {starts_2_count}, ends: {ends_count})")
+        # print(f"Loaded config - Pairs: {len(self.pairs)}, Dual pairs: {len(self.dual_pairs)}")
         
-        if self.dual_pairs:
-            for dual in self.dual_pairs:
-                print(f"Dual pair: {dual['start_qr']} -> {dual['end_qrs']} + {dual['start_qr_2']} -> {dual['end_qrs_2']}")
+        # if self.dual_pairs:
+        #     for dual in self.dual_pairs:
+        #         print(f"Dual pair: {dual['start_qr']} -> {dual['end_qrs']} + {dual['start_qr_2']} -> {dual['end_qrs_2']}")
 
     def _initialize_end_slots_as_shelf(self) -> None:
         """
@@ -306,23 +306,23 @@ class StablePairProcessor:
         dt = datetime.utcfromtimestamp(epoch_seconds)
         return dt.strftime("%Y-%m-%d %H:%M")
     
-    def _is_already_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> bool:
-        """Check if this pair was already published in the same minute"""
-        minute_key = self._get_minute_key(stable_since_epoch)
+    # def _is_already_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> bool:
+    #     """Check if this pair was already published in the same minute"""
+    #     minute_key = self._get_minute_key(stable_since_epoch)
         
-        if pair_id not in self.published_by_minute:
-            self.published_by_minute[pair_id] = {}
+    #     if pair_id not in self.published_by_minute:
+    #         self.published_by_minute[pair_id] = {}
         
-        return minute_key in self.published_by_minute[pair_id]
+    #     return minute_key in self.published_by_minute[pair_id]
     
-    def _mark_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> None:
-        """Mark this pair as published for this minute"""
-        minute_key = self._get_minute_key(stable_since_epoch)
+    # def _mark_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> None:
+    #     """Mark this pair as published for this minute"""
+    #     minute_key = self._get_minute_key(stable_since_epoch)
         
-        if pair_id not in self.published_by_minute:
-            self.published_by_minute[pair_id] = {}
+    #     if pair_id not in self.published_by_minute:
+    #         self.published_by_minute[pair_id] = {}
         
-        self.published_by_minute[pair_id][minute_key] = True
+    #     self.published_by_minute[pair_id][minute_key] = True
 
     def _maybe_publish_dual(self, dual_config: Dict[str, int], stable_since_epoch: float, is_four_points: bool) -> bool:
         """Publish dual pair dựa trên configuration, trả True nếu thực sự publish"""
@@ -337,8 +337,8 @@ class StablePairProcessor:
             dual_id = f"{start_qr}-> {end_qrs}"
         
         # Check if already published in the same minute
-        if self._is_dual_already_published_this_minute(dual_id, stable_since_epoch):
-            return False
+        # if self._is_dual_already_published_this_minute(dual_id, stable_since_epoch):
+        #     return False
         
         # Check cooldown period
         last_pub = self.dual_published_at.get(dual_id, 0.0)
@@ -347,7 +347,7 @@ class StablePairProcessor:
             return False
         
         # Mark as published for this minute and update cooldown
-        self._mark_dual_published_this_minute(dual_id, stable_since_epoch)
+        # self._mark_dual_published_this_minute(dual_id, stable_since_epoch)
         self.dual_published_at[dual_id] = now
 
         if is_four_points:
@@ -387,23 +387,23 @@ class StablePairProcessor:
         self._publish_dual_block(dual_config, dual_id)
         return True
 
-    def _is_dual_already_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> bool:
-        """Check if this dual pair was already published in the same minute"""
-        minute_key = self._get_minute_key(stable_since_epoch)
+    # def _is_dual_already_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> bool:
+    #     """Check if this dual pair was already published in the same minute"""
+    #     minute_key = self._get_minute_key(stable_since_epoch)
         
-        if dual_id not in self.dual_published_by_minute:
-            self.dual_published_by_minute[dual_id] = {}
+    #     if dual_id not in self.dual_published_by_minute:
+    #         self.dual_published_by_minute[dual_id] = {}
         
-        return minute_key in self.dual_published_by_minute[dual_id]
+    #     return minute_key in self.dual_published_by_minute[dual_id]
     
-    def _mark_dual_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> None:
-        """Mark this dual pair as published for this minute"""
-        minute_key = self._get_minute_key(stable_since_epoch)
+    # def _mark_dual_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> None:
+    #     """Mark this dual pair as published for this minute"""
+    #     minute_key = self._get_minute_key(stable_since_epoch)
         
-        if dual_id not in self.dual_published_by_minute:
-            self.dual_published_by_minute[dual_id] = {}
+    #     if dual_id not in self.dual_published_by_minute:
+    #         self.dual_published_by_minute[dual_id] = {}
         
-        self.dual_published_by_minute[dual_id][minute_key] = True
+    #     self.dual_published_by_minute[dual_id][minute_key] = True
     
     def _publish_dual_block(self, dual_config: Dict[str, int], dual_id: str) -> None:
         """Publish message để block start_qr sau khi dual pair được phát hiện"""
@@ -551,7 +551,7 @@ class StablePairProcessor:
                         SELECT id, payload FROM messages
                         WHERE topic = ? AND id > ?
                         ORDER BY id ASC
-                        LIMIT 50
+                        LIMIT 20
                         """,
                         ("end_slot_request", last_request_id),
                     )
@@ -579,7 +579,7 @@ class StablePairProcessor:
                         SELECT id, payload FROM messages
                         WHERE topic = ? AND id > ?
                         ORDER BY id ASC
-                        LIMIT 50
+                        LIMIT 20
                         """,
                         ("end_slot_cancel", last_cancel_id),
                     )
@@ -896,5 +896,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

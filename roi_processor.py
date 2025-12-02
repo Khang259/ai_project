@@ -126,8 +126,8 @@ class ROIProcessor:
                 cfg = json.load(f)
                 
             mapping: Dict[int, Tuple[str, int]] = {}
-            starts_count = 0
-            ends_count = 0
+            # starts_count = 0
+            # ends_count = 0
             
             for item in cfg.get("starts", []):
                 try:
@@ -135,28 +135,28 @@ class ROIProcessor:
                     camera_id = str(item["camera_id"])
                     slot_number = int(item["slot_number"])
                     mapping[qr_code] = (camera_id, slot_number)
-                    starts_count += 1
+                    # starts_count += 1
                 except Exception as e:
                     print(f"Lỗi parse start item {item}: {e}")
                     continue
                     
-            for item in cfg.get("ends", []):
-                try:
-                    qr_code = int(item["qr_code"])
-                    camera_id = str(item["camera_id"])
-                    slot_number = int(item["slot_number"])
-                    mapping[qr_code] = (camera_id, slot_number)
-                    ends_count += 1
-                except Exception as e:
-                    print(f"Lỗi parse end item {item}: {e}")
-                    continue
+            # for item in cfg.get("ends", []):
+            #     try:
+            #         qr_code = int(item["qr_code"])
+            #         camera_id = str(item["camera_id"])
+            #         slot_number = int(item["slot_number"])
+            #         mapping[qr_code] = (camera_id, slot_number)
+            #         ends_count += 1
+            #     except Exception as e:
+            #         print(f"Lỗi parse end item {item}: {e}")
+            #         continue
                     
             self.qr_to_slot = mapping
-            print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count}, ends: {ends_count})")
+            # print(f"Đã load qr_to_slot: {len(self.qr_to_slot)} entries (starts: {starts_count}, ends: {ends_count})")
             
         except Exception as e:
             print(f"Lỗi khi load pairing config: {e}")
-            print(f"Lỗi khi load pairing config: {e}")
+            # print(f"Lỗi khi load pairing config: {e}")
     
     def _setup_end_to_start_mapping(self) -> None:
         """Thiết lập mapping từ end slot đến start slot dựa trên pairs config"""
@@ -173,11 +173,11 @@ class ROIProcessor:
                     qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
                 except Exception:
                     continue
-            for item in cfg.get("ends", []):
-                try:
-                    qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
-                except Exception:
-                    continue
+            # for item in cfg.get("ends", []):
+            #     try:
+            #         qr_to_slot[int(item["qr_code"])] = (str(item["camera_id"]), int(item["slot_number"]))
+            #     except Exception:
+            #         continue
             
             # Tạo mapping end_slot -> start_slot từ pairs
             end_to_start = {}
@@ -335,39 +335,39 @@ class ROIProcessor:
                 self.block_logger.warning(f"UNLOCK_BY_QR_FAILED: camera={camera_id}, qr={start_qr}, reason=no_blocked_slots")
                 print(f"[UNLOCK_BY_QR] Camera {camera_id} không có slot nào bị block")
         
-    def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
-        """
-        Tính IoU giữa 2 bounding box
+    # def calculate_iou(self, bbox1: Dict[str, float], bbox2: Dict[str, float]) -> float:
+    #     """
+    #     Tính IoU giữa 2 bounding box
         
-        Args:
-            bbox1: Bounding box 1 {x1, y1, x2, y2}
-            bbox2: Bounding box 2 {x1, y1, x2, y2}
+    #     Args:
+    #         bbox1: Bounding box 1 {x1, y1, x2, y2}
+    #         bbox2: Bounding box 2 {x1, y1, x2, y2}
             
-        Returns:
-            IoU value (0.0 - 1.0)
-        """
-        # Tính intersection
-        x1 = max(bbox1["x1"], bbox2["x1"])
-        y1 = max(bbox1["y1"], bbox2["y1"])
-        x2 = min(bbox1["x2"], bbox2["x2"])
-        y2 = min(bbox1["y2"], bbox2["y2"])
+    #     Returns:
+    #         IoU value (0.0 - 1.0)
+    #     """
+    #     # Tính intersection
+    #     x1 = max(bbox1["x1"], bbox2["x1"])
+    #     y1 = max(bbox1["y1"], bbox2["y1"])
+    #     x2 = min(bbox1["x2"], bbox2["x2"])
+    #     y2 = min(bbox1["y2"], bbox2["y2"])
         
-        if x2 <= x1 or y2 <= y1:
-            return 0.0
+    #     if x2 <= x1 or y2 <= y1:
+    #         return 0.0
         
-        intersection = (x2 - x1) * (y2 - y1)
+    #     intersection = (x2 - x1) * (y2 - y1)
         
-        # Tính area của mỗi bbox
-        area1 = (bbox1["x2"] - bbox1["x1"]) * (bbox1["y2"] - bbox1["y1"])
-        area2 = (bbox2["x2"] - bbox2["x1"]) * (bbox2["y2"] - bbox2["y1"])
+    #     # Tính area của mỗi bbox
+    #     area1 = (bbox1["x2"] - bbox1["x1"]) * (bbox1["y2"] - bbox1["y1"])
+    #     area2 = (bbox2["x2"] - bbox2["x1"]) * (bbox2["y2"] - bbox2["y1"])
         
-        # Tính union
-        union = area1 + area2 - intersection
+    #     # Tính union
+    #     union = area1 + area2 - intersection
         
-        if union <= 0:
-            return 0.0
+    #     if union <= 0:
+    #         return 0.0
         
-        return intersection / union
+    #     return intersection / union
     
     
     def is_detection_in_roi(self, detection: Dict[str, Any], roi_slots: List[Dict[str, Any]]) -> bool:
@@ -481,72 +481,72 @@ class ROIProcessor:
         
         return filtered_detections
 
-    def _subscribe_stable_pairs(self) -> None:
-        """Subscribe topic stable_pairs để track end slot. KHÔNG block cho normal pairs - chỉ block cho dual."""
-        print("Bắt đầu subscribe stable_pairs (KHÔNG block - chỉ track end slot cho normal pairs)...")
+    # def _subscribe_stable_pairs(self) -> None:
+    #     """Subscribe topic stable_pairs để track end slot. KHÔNG block cho normal pairs - chỉ block cho dual."""
+    #     print("Bắt đầu subscribe stable_pairs (KHÔNG block - chỉ track end slot cho normal pairs)...")
         
-        # Thiết lập end_to_start mapping
-        self._setup_end_to_start_mapping()
+    #     # Thiết lập end_to_start mapping
+    #     self._setup_end_to_start_mapping()
         
-        # track latest global id for the topic
-        last_global_id: int = 0
-        try:
-            with self.queue._connect() as conn:
-                cur = conn.execute(
-                    "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
-                    ("stable_pairs",),
-                )
-                row = cur.fetchone()
-                if row:
-                    last_global_id = row[0]
-        except Exception as e:
-            print(f"Lỗi khi khởi tạo stable_pairs cursor: {e}")
+    #     # track latest global id for the topic
+    #     last_global_id: int = 0
+    #     try:
+    #         with self.queue._connect() as conn:
+    #             cur = conn.execute(
+    #                 "SELECT id FROM messages WHERE topic = ? ORDER BY id DESC LIMIT 1",
+    #                 ("stable_pairs",),
+    #             )
+    #             row = cur.fetchone()
+    #             if row:
+    #                 last_global_id = row[0]
+    #     except Exception as e:
+    #         print(f"Lỗi khi khởi tạo stable_pairs cursor: {e}")
 
-        while self.running:
-            try:
-                with self.queue._connect() as conn:
-                    cur = conn.execute(
-                        """
-                        SELECT id, payload FROM messages
-                        WHERE topic = ? AND id > ?
-                        ORDER BY id ASC
-                        LIMIT 200
-                        """,
-                        ("stable_pairs", last_global_id),
-                    )
-                    rows = cur.fetchall()
-                for r in rows:
-                    msg_id = r[0]
-                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
-                    last_global_id = msg_id
+    #     while self.running:
+    #         try:
+    #             with self.queue._connect() as conn:
+    #                 cur = conn.execute(
+    #                     """
+    #                     SELECT id, payload FROM messages
+    #                     WHERE topic = ? AND id > ?
+    #                     ORDER BY id ASC
+    #                     LIMIT 200
+    #                     """,
+    #                     ("stable_pairs", last_global_id),
+    #                 )
+    #                 rows = cur.fetchall()
+    #             for r in rows:
+    #                 msg_id = r[0]
+    #                 payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+    #                 last_global_id = msg_id
                     
-                    # stable_pairs payload: { pair_id, start_slot: str(start_qr), end_slot: str(end_qr), ... }
-                    start_qr_str = payload.get("start_slot")
-                    end_qr_str = payload.get("end_slot")
+    #                 # stable_pairs payload: { pair_id, start_slot: str(start_qr), end_slot: str(end_qr), ... }
+    #                 start_qr_str = payload.get("start_slot")
+    #                 end_qr_str = payload.get("end_slot")
                     
-                    # KHÔNG BLOCK cho normal pairs - CHỈ track end_slot
-                    # Block chỉ áp dụng cho dual 2P và dual 4P
+    #                 # KHÔNG BLOCK cho normal pairs - CHỈ track end_slot
+    #                 # Block chỉ áp dụng cho dual 2P và dual 4P
                     
-                    pair_id = payload.get("pair_id", "")
-                    if start_qr_str and end_qr_str:
-                        print(f"[NORMAL_PAIR] Nhận normal pair {pair_id}: start_qr={start_qr_str} → end_qr={end_qr_str} (KHÔNG block)")
+    #                 pair_id = payload.get("pair_id", "")
+    #                 if start_qr_str and end_qr_str:
+    #                     print(f"[NORMAL_PAIR] Nhận normal pair {pair_id}: start_qr={start_qr_str} → end_qr={end_qr_str} (KHÔNG block)")
                     
-                    # Xử lý end_qr (bắt đầu theo dõi) - OPTIONAL cho normal pairs
-                    if end_qr_str:
-                        try:
-                            end_qr = int(end_qr_str)
-                        except Exception:
-                            continue
-                        # Đảm bảo mapping mới nhất
-                        self._load_qr_mapping()
-                        # Thêm end slot vào danh sách theo dõi (nếu cần unlock mechanism)
-                        self._add_end_slot_monitoring(end_qr)
+    #                 # Xử lý end_qr (bắt đầu theo dõi) - OPTIONAL cho normal pairs
+    #                 if end_qr_str:
+    #                     try:
+    #                         end_qr = int(end_qr_str)
+    #                     except Exception:
+    #                         continue
+    #                     # Đảm bảo mapping mới nhất
+    #                     self._load_qr_mapping()
+    #                     # Thêm end slot vào danh sách theo dõi (nếu cần unlock mechanism)
+    #                     # self._add_end_slot_monitoring(end_qr)
                         
-                time.sleep(0.2)
-            except Exception as e:
-                error_msg = f"Lỗi khi subscribe stable_pairs: {e}"
-                print(error_msg)
-                time.sleep(1.0)
+    #             time.sleep(0.2)
+    #         except Exception as e:
+    #             error_msg = f"Lỗi khi subscribe stable_pairs: {e}"
+    #             print(error_msg)
+    #             time.sleep(1.0)
     
     def _subscribe_unlock_start_slot(self) -> None:
         """Subscribe topic unlock_start_slot để nhận lệnh unlock ROI sau khi POST thất bại."""

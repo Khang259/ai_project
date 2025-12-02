@@ -1,0 +1,95 @@
+1. Hàm def "is_point_in_polygon"
+Xác định xem 1 điểm có nằm trong ROI hình chữ nhật không
+Nếu điểm đó (x,y) nằm trong min/max của toạ độ ROI
+
+2. Hàm def "_load_pairing_config"
+Đọc file slot_pairing_config.json
+    Tìm từ khoá "starts", trong đó có các item chứa các thông tin : "slot_number", "camera_id", "qr_code"
+    Tương tự với "pair" và "dual"
+Sau đó map các dữ liệu đó để được dữ liệu mong muốn. (Làm giàu dữ liệu)
+Ví dụ: trong các cặp "pair" cần biết được điểm QR code đó nằm ở camera nào, slot mấy,...
+
+3. Hàm def "_compute_slot_statuses"
+Nhận Input trả ra từ Yolo, gán status cho từng slot
+
+4. Hàm def "_update_slot_state"
+Cập nhật trạng thái cho slot
+
+5. Hàm def "_is_slot_stable"
+Xác định xem slot có state ổn định hay không bằng biến "stable_seconds"
+
+5. Hàm def "_get_minute_key" 
+Chuẩn hoá định dạng thời gian
+
+6. Hàm "_is_already_published_this_minute" và "_mark_published_this_minute"
+Không cần, đây là cho cặp pair 2 điểm (Bỏ qua)
+
+7. Hàm "_maybe_publish_dual":
+- Tạo dual_id (2P hoặc 4P)
+- Cơ chế chặn để tránh gửi lệnh trùng lặp:
+    Tính now - last_pub. Nếu thời gian trôi qua chưa đủ self.cooldown_seconds -> return False
+    Sau đó cập nhật self.dual_published_at[dual_id] = now: Reset đồng hồ cooldown cho lần sau.
+- Tạo payload và publish vào topic "stable_dual" trong sqlite -> Để postAPI lấy ra và gửi lệnh
+- Sau đó gọi hàm "_publish_dual_block" để gửi payload block điểm "start" vào topic "dual_block"
+
+8. Hàm "_monitor_dual_end_states":
+Theo dõi trạng thái của điểm "end": nếu thay đổi từ 0 -> 1 và ổn định >= "stable_time"
+Sẽ gọi _unblock_dual_start(dual_id): Mở khóa điểm đi.
+        del self.dual_end_states[...]: Ngừng theo dõi nhiệm vụ này
+
+9. Hàm "_unblock_dual_start":
+Chức năng giải phóng điểm start. Cụ thể:
+- Kiểm tra trạng thái điểm có đang bị block không qua "dual_id"
+- Tạo payload và thực hiện self.queue.publish("dual_unblock", dual_id, unblock_payload)
+- Clear điểm : del self.dual_blocked_pairs[dual_id]
+
+10. Hàm "_subscribe_end_slot_requests"
+Query theo chu kỳ 0.2s 
+Tìm các tin nhắn có topic = 'end_slot_request' và id > last_request_id
+Để gán end -> status: empty
+
+Tương tự với cancel: gán end -> status: shelf
+Sau khi xong sẽ gán last_request_id = msg_id. Lần lặp tiếp theo, câu lệnh SQL (WHERE id > ?) sẽ chỉ lấy những tin nhắn mới hơn ID này
+
+11. Hàm "_subscribe_dual_unblock_trigger" 
+Để phục vụ chức năng unlock cho nút (giao diện), chỉ cần trigger vào hàm này là được
+
+12. Hàm "_maybe_publish_pair"
+Pub cặp 3 điểm vào queue, sau đó reset trạng thái của điểm end về "shelf"
+
+13. Hàm "_evaluate_dual_pairs"
+Quyết định 2P hay 4P
+- Điều kiện tiên quyết: start1 và end1 thoả mãn
+- Điều kiện quyết định:
+    start_qr_2 == shelf -> gửi 4P
+    start_qr_2 == empty -> gửi 2P
+    start_qr_2 không phải shelf stable cũng không phải empty stable → Không publish (NẾU LỖI KHÔNG POST LỆNH DUAL THÌ CÓ THỂ ĐIỀU CHỈNH ĐỂ RETURN POST 2P TẠI ĐÂY)
+
+14. Hàm "run(self)"
+1: Khởi tạo luồng nghe
+dual_trigger_thread = threading.Thread(..., target=self._subscribe_dual_unblock_trigger)
+end_slot_thread = threading.Thread(..., target=self._subscribe_end_slot_requests)
+        Việc lắng nghe Database (để lấy lệnh user hoặc trigger) có thể mất thời gian hoặc cần chờ đợi. Nếu để chung trong vòng lặp chính, nó sẽ làm chậm quá trình xử lý hình ảnh AI.
+        daemon=True: Đảm bảo khi chương trình chính tắt, các luồng này cũng tự tắt theo, không bị treo ngầm.
+2: Cập nhật "Thị giác" 
+
+# ... read new roi_detection per camera ...
+status_by_slot = self._compute_slot_statuses(cam, roi_detections)
+self._update_slot_state(cam, status_by_slot)
+    Hàm liên tục đọc dữ liệu mới nhất từ Camera AI (roi_detection).
+    Dữ liệu này được dùng để cập nhật biến self.slot_states trong RAM. Đây là cơ sở để biết điểm nào đang shelf (có hàng), điểm nào empty (trống).
+3: Logic 3P
+    Start (AI quyết định):
+        _is_slot_stable(..., "shelf"): Robot chỉ xuất phát khi AI xác nhận chắc chắn có kệ hàng tại điểm đi.
+    End (Con người quyết định):
+        Thay vì hỏi AI "Điểm đích có trống không?", hệ thống hỏi biến self.user_end_slot_states.
+        Biến này được cập nhật bởi luồng end_slot_thread (khi người dùng bấm nút).
+4. Auto Reset (Cơ chế an toàn):
+    self.user_end_slot_states[end_qr] = { "status": "shelf", ... }
+        Ngay sau khi lệnh được gửi đi (Publish), hệ thống tự động đánh dấu điểm đích là "Bận" (shelf).
+        Mục đích: Để ngăn việc người dùng bấm 1 lần nhưng hệ thống gửi 10 con robot đến cùng 1 chỗ. Nó "tiêu thụ" (consume) yêu cầu của người dùng ngay lập tức.
+
+5. Logic dual
+self._evaluate_dual_pairs()
+    Logic này được tách biệt hoàn toàn. Nó dựa 100% vào cảm biến/AI cho cả điểm đầu và điểm cuối 
+    Lưu ý comment: Dual end state monitoring is now handled by roi_processor. Điều này xác nhận việc unblock điểm xuất phát của Dual Pairs giờ đây phụ thuộc vào luồng dual_trigger_thread đã khởi tạo ở trên
