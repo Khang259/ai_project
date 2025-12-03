@@ -121,61 +121,13 @@ def point_in_roi(center_x: float, center_y: float, roi_rect: List[int]) -> bool:
     return x <= center_x <= (x + w) and y <= center_y <= (y + h)
 
 
-def calculate_iou(bbox: List[float], roi_rect: List[int]) -> float:
-    """
-    Tính IoU (Intersection over Union) giữa bbox detection và ROI rect
-    
-    QUAN TRỌNG: bbox và roi_rect PHẢI cùng không gian tọa độ (cùng độ phân giải)
-    
-    Args:
-        bbox: Bounding box detection dạng [x1, y1, x2, y2] ở độ phân giải 1280x720
-        roi_rect: ROI rectangle dạng [x, y, w, h] ở độ phân giải 1280x720
-        
-    Returns:
-        IoU value (0.0 - 1.0)
-    """
-    # Chuyển bbox và roi_rect sang dict format để tính toán rõ ràng hơn
-    bbox_dict = {
-        "x1": bbox[0],
-        "y1": bbox[1],
-        "x2": bbox[2],
-        "y2": bbox[3]
-    }
-    
-    # Chuyển roi_rect [x, y, w, h] sang dict [x1, y1, x2, y2]
-    roi_dict = {
-        "x1": roi_rect[0],
-        "y1": roi_rect[1],
-        "x2": roi_rect[0] + roi_rect[2],
-        "y2": roi_rect[1] + roi_rect[3]
-    }
-    
-    # Tính intersection
-    x1 = max(bbox_dict["x1"], roi_dict["x1"])
-    y1 = max(bbox_dict["y1"], roi_dict["y1"])
-    x2 = min(bbox_dict["x2"], roi_dict["x2"])
-    y2 = min(bbox_dict["y2"], roi_dict["y2"])
-    
-    # Kiểm tra có giao nhau không
-    if x2 <= x1 or y2 <= y1:
-        return 0.0
-    
-    # Tính diện tích intersection
-    intersection = (x2 - x1) * (y2 - y1)
-    
-    # Tính area của mỗi bbox
-    area_bbox = (bbox_dict["x2"] - bbox_dict["x1"]) * (bbox_dict["y2"] - bbox_dict["y1"])
-    area_roi = (roi_dict["x2"] - roi_dict["x1"]) * (roi_dict["y2"] - roi_dict["y1"])
-    
-    # Tính union
-    union = area_bbox + area_roi - intersection
-    
-    if union <= 0:
-        return 0.0
-    
-    iou = intersection / union
-    
-    return iou
+# def calculate_iou(bbox: List[float], roi_rect: List[int]) -> float:
+#     """
+#     [DEPRECATED - KHÔNG DÙNG NỮA]
+#     Hàm IoU cũ, được giữ lại chỉ để tương thích nhưng
+#     TOÀN BỘ LOGIC HIỆN TẠI ĐÃ CHUYỂN SANG DÙNG CENTER-IN-ROI.
+#     """
+#     return 0.0
 
 
 def classify_object(class_id: int, confidence: float, conf_threshold: float = 0.5) -> str:
@@ -244,7 +196,7 @@ def check_detection_in_roi(
     # Kiểm tra center point trong ROI
     if point_in_roi(center_x, center_y, roi_rect):
         is_position_match = True
-        score = 1.0  # dùng làm 'iou' tương thích downstream
+        # score = 1.0  # dùng làm 'iou' tương thích downstream
     
     # Phân loại shelf/empty theo confidence
     class_id = detection.get("class", -1)
@@ -286,7 +238,6 @@ def process_detection_result(
             "slot_id": "ROI_1",
             "object_type": "shelf",  # hoặc "empty"
             "confidence": 0.95,
-            "iou": 1.0,  # 1.0 nếu center match, 0.0 nếu không
             "bbox": [10, 15, 50, 60]
           }
         ]
@@ -322,7 +273,7 @@ def process_detection_result(
                         "detection": detection,
                         "object_type": object_type,
                         "confidence": det_confidence,
-                        "iou": score
+                        # "iou": score
                     }
     
     # Bước 2: Tạo kết quả cho tất cả ROI
@@ -338,7 +289,7 @@ def process_detection_result(
                 "slot_id": slot_id,
                 "object_type": det_info["object_type"],
                 "confidence": det_info["confidence"],
-                "iou": det_info["iou"],  # 1.0 nếu center match
+                # "iou": det_info["iou"],  # 1.0 nếu center match
                 "bbox": det_info["detection"].get("bbox", [])
             }
         else:
@@ -349,7 +300,7 @@ def process_detection_result(
                 "slot_id": slot_id,
                 "object_type": "empty",
                 "confidence": 0.0,
-                "iou": 0.0,
+                # "iou": 0.0,
                 "bbox": []
             }
         

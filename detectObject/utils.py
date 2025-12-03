@@ -11,9 +11,6 @@ from datetime import datetime, timezone
 from config import camera_config, ai_config
 
 
-
-
-
 def decode_jpeg_frame(jpeg_bytes: bytes) -> Optional[np.ndarray]:
     """
     Decode JPEG bytes thành OpenCV frame

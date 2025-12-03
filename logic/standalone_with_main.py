@@ -28,7 +28,7 @@ def output_consumer_worker(output_queue: Queue):
     """
     Consumer để xử lý outputs từ Logic Processor
     """
-    print("📤 Output Consumer started\n")
+    print(" Output Consumer started\n")
     
     trigger_count = 0
     
@@ -39,7 +39,7 @@ def output_consumer_worker(output_queue: Queue):
                 trigger_count += 1
                 
                 print(f"\n{'='*60}")
-                print(f"🎯 LOGIC TRIGGER #{trigger_count}")
+                print(f" LOGIC TRIGGER #{trigger_count}")
                 print(f"{'='*60}")
                 print(f"Rule: {output['rule_name']}")
                 print(f"Type: {output['rule_type']}")
@@ -70,7 +70,7 @@ def output_consumer_worker(output_queue: Queue):
                 time.sleep(0.01)
                 
     except KeyboardInterrupt:
-        print(f"\n👋 Output Consumer stopped. Total triggers: {trigger_count}")
+        print(f"\n Output Consumer stopped. Total triggers: {trigger_count}")
 
 
 def main():
@@ -84,7 +84,7 @@ def main():
     """
     
     print("\n" + "="*60)
-    print("🚀 STANDALONE LOGIC PROCESSOR")
+    print("STANDALONE LOGIC PROCESSOR")
     print("="*60)
     print("\nKiến trúc:")
     print("  main.py (roi_checker) → roi_result_queue → Logic Processor → output_queue")
@@ -100,7 +100,7 @@ def main():
     roi_result_queue = manager.Queue(maxsize=1000)  # Queue 1 (giống main.py)
     logic_output_queue = manager.Queue(maxsize=1000)  # Queue 2
     
-    print("⚠️  CHẠY Ở CHẾ ĐỘ SIMULATION")
+    print(" CHẠY Ở CHẾ ĐỘ SIMULATION")
     print("    Nếu muốn kết nối với main.py thật, cần dùng named pipes/sockets\n")
     
     # Khởi động Logic Processor Worker
@@ -113,7 +113,7 @@ def main():
         args=(roi_result_queue, logic_output_queue, config_path)
     )
     logic_process.start()
-    print(f"✅ Logic Processor started (PID: {logic_process.pid})\n")
+    print(f" Logic Processor started (PID: {logic_process.pid})\n")
     
     # Khởi động Output Consumer
     consumer_process = Process(
@@ -121,26 +121,26 @@ def main():
         args=(logic_output_queue,)
     )
     consumer_process.start()
-    print(f"✅ Output Consumer started (PID: {consumer_process.pid})\n")
+    print(f" Output Consumer started (PID: {consumer_process.pid})\n")
     
     # Chờ processes khởi động
     time.sleep(2)
     
     print("="*60)
-    print("✅ SYSTEM READY")
+    print(" SYSTEM READY")
     print("="*60)
-    print("\n💡 Đang chạy ở chế độ SIMULATION:")
+    print("\n Đang chạy ở chế độ SIMULATION:")
     print("   - Logic Processor đang đợi events từ roi_result_queue")
     print("   - Bạn có thể gửi test events hoặc kết nối với main.py thật")
-    print("\n📝 Test simulation:")
+    print("\n Test simulation:")
     print("   - Sẽ tự động gửi 1 vài test events sau 3 giây...")
-    print("\n⏹️  Press Ctrl+C to stop\n")
+    print("\n  Press Ctrl+C to stop\n")
     print("="*60 + "\n")
     
     # Simulate một vài events sau 3s để test
     time.sleep(3)
     
-    print("📨 Gửi test events...\n")
+    print(" Gửi test events...\n")
     
     # Simulate events giống output từ roi_checker
     base_time = time.time()
@@ -195,30 +195,30 @@ def main():
             elapsed = i * 0.1
             print(f"📊 Đã giả lập {elapsed:.1f}s...")
     
-    print("\n✅ Test events đã gửi xong!")
-    print("⏳ Chờ xử lý...")
+    print("\n Test events đã gửi xong!")
+    print(" Chờ xử lý...")
     time.sleep(3)
     
     try:
         # Giữ process chạy
-        print("\n💤 Entering idle mode. Press Ctrl+C to stop.\n")
+        print("\n Entering idle mode. Press Ctrl+C to stop.\n")
         while True:
             time.sleep(1)
             
     except KeyboardInterrupt:
-        print("\n\n🛑 Shutting down...")
+        print("\n\n Shutting down...")
     
     finally:
-        print("🧹 Cleaning up processes...")
+        print(" Cleaning up processes...")
         logic_process.terminate()
         consumer_process.terminate()
         
         logic_process.join(timeout=3)
         consumer_process.join(timeout=3)
         
-        print("✅ All processes stopped")
+        print(" All processes stopped")
         print("\n" + "="*60)
-        print("👋 System shutdown complete")
+        print(" System shutdown complete")
         print("="*60 + "\n")
 
 

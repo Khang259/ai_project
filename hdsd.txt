@@ -1,0 +1,2 @@
+1. Vẽ ROI
+python roi_tool --cam cam-99 --save

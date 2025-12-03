@@ -81,13 +81,13 @@ class HashTables:
                     "stable_since": 0  # Thời điểm bắt đầu trạng thái ổn định
                 }
             
-            print(f"✅ Hash Tables đã nạp {len(points)} points vào RAM")
+            print(f"Hash Tables đã nạp {len(points)} points vào RAM")
             print(f"   - key_to_qr_map: {len(self.key_to_qr_map)} entries")
             print(f"   - qr_to_key_map: {len(self.qr_to_key_map)} entries")
             print(f"   - state_tracker: {len(self.state_tracker)} entries")
             
         except Exception as e:
-            print(f"❌ Lỗi khi load config vào Hash Tables: {e}")
+            print(f"Lỗi khi load config vào Hash Tables: {e}")
             import traceback
             traceback.print_exc()
     
@@ -167,7 +167,7 @@ class HashTables:
     
     def reload_config(self):
         """Reload lại config từ file (hot-reload)"""
-        print("🔄 Đang reload config...")
+        print(" Đang reload config...")
         self._load_config()
     
     def get_statistics(self) -> Dict[str, Any]:
@@ -182,7 +182,7 @@ class HashTables:
     def print_statistics(self):
         """In thống kê Hash Tables ra console"""
         stats = self.get_statistics()
-        print("\n📊 Hash Tables Statistics:")
+        print("\n Hash Tables Statistics:")
         print(f"   - Total points: {stats['total_points']}")
         print(f"   - QR codes with triggers: {stats['total_qr_codes_with_triggers']}")
         print(f"   - Total rule registrations: {stats['total_rules_registered']}")

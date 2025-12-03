@@ -1,11 +1,9 @@
-"""
-Main với Logic Processor đã tích hợp
-Đây là phiên bản main.py có thêm Logic Processor
-
-Cách chạy:
-    cd D:\WORK\ROI_LOGIC_version2\detectObject
-    python main_with_logic.py [options]
-"""
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    category=FutureWarning,
+    message="You are using `torch.load` with `weights_only=False`"
+)
 
 import multiprocessing as mp
 from multiprocessing import Manager, Process, Queue
@@ -198,7 +196,7 @@ class CameraOrchestrator:
             logger.info("AI Inference Worker started")
             
             # ROI Checker Worker
-            # Thông số: iou_threshold=0.5 (tăng từ 0.3), conf_threshold=0.4 (giảm từ 0.6)
+            # Logic: dùng center-in-ROI, chỉ dùng ngưỡng confidence cho class "hang"
             roi_checker_process = Process(
                 target=roi_checker_worker,
                 args=(self.detection_queue, self.roi_result_queue, "../logic/roi_config.json", 0.5)

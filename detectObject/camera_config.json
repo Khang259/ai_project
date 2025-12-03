@@ -1,20 +1,20 @@
 {
   "cameras": [
     {
-      "name": "cam-1",
-      "url": "rtsp://localhost:8554/cam33",
+      "name": "cam-99",
+      "url": "rtsp://localhost:8554/cam99",
       "enabled": true
     },
     {
-      "name": "cam-2",
-      "url": "rtsp://localhost:8554/cam34",
+      "name": "cam-100",
+      "url": "rtsp://localhost:8554/cam100",
       "enabled": true
     }
   ],
   "system": {
     "num_processes": 5,
     "use_ai": true,
-    "model_path": "weights/yolov8boxdetectV2.pt"
+    "model_path": "weights/run3.pt"
   },
   "camera_settings": {
     "target_fps": 1.0,
