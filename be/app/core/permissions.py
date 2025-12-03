@@ -4,6 +4,7 @@ from jose import JWTError, jwt
 from app.core.config import settings
 from app.core.database import get_collection
 from app.services.role_service import check_permission, get_user_permissions
+from app.services.auth_service import is_token_blacklisted
 from app.schemas.user import UserOut
 from shared.logging import get_logger
 from typing import List, Optional
@@ -21,11 +22,24 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     )
     
     try:
-        payload = jwt.decode(credentials.credentials, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        token = credentials.credentials
+        
+        # Check if token is blacklisted
+        if await is_token_blacklisted(token):
+            logger.warning("Attempted to use blacklisted token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been revoked",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         username: str = payload.get("sub")
         user_id: str = payload.get("user_id")
         if username is None or user_id is None:
             raise credentials_exception
+    except HTTPException:
+        raise
     except JWTError:
         raise credentials_exception
     

@@ -10,7 +10,7 @@ logger = get_logger("camera_ai_app")
 @router.post("/task-status")
 async def receive_task_status(request: Request):
     payload = await request.json()
-    print(payload)
+    # print(payload)
     data = await filter_raw_task(payload)
     return {"status": "success", "data": data}
 

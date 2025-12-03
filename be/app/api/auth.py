@@ -86,7 +86,7 @@ async def logout(
             detail="Access token (in Authorization header) or refresh token (in request body) is required"
         )
     
-    success = await logout_user(access_token or "", refresh_token)
+    success = await logout_user(access_token, refresh_token)
     if not success:
         logger.error("Failed to logout user")
         raise HTTPException(
