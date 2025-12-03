@@ -193,7 +193,7 @@ def main():
         
         if i % 50 == 0 and i > 0:
             elapsed = i * 0.1
-            print(f"📊 Đã giả lập {elapsed:.1f}s...")
+            print(f" Đã giả lập {elapsed:.1f}s...")
     
     print("\n Test events đã gửi xong!")
     print(" Chờ xử lý...")
@@ -223,16 +223,9 @@ def main():
 
 
 if __name__ == "__main__":
-    print("""
-╔══════════════════════════════════════════════════════════╗
-║                                                          ║
-║    STANDALONE LOGIC PROCESSOR - SIMULATION MODE         ║
-║                                                          ║
-║  Chạy Logic Processor độc lập để test                   ║
-║  Simulation: Tự tạo test events                         ║
-║                                                          ║
-╚══════════════════════════════════════════════════════════╝
-    """)
-    
     main()
+
+
+
+
 

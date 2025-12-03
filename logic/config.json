@@ -6,9 +6,23 @@
     "333": { "camera_id": "cam-1", "slot_id": 4 },
     "444": { "camera_id": "cam-2", "slot_id": 1 },
     "555": { "camera_id": "cam-2", "slot_id": 2 },
-    "666": { "camera_id": "cam-2", "slot_id": 3 }
+    "666": { "camera_id": "cam-2", "slot_id": 3 },
+    "911": { "camera_id": "cam-99", "slot_id": 1 },
+    "1011": { "camera_id": "cam-100", "slot_id": 1 }
   },
   "rules": [
+    {
+      "rule_name": "logic_2diem",
+      "logic_type": "2point",
+      "config": {
+        "s": "911",
+        "e": "1011"
+      },
+      "params": {
+        "stability_time_sec": 10,
+        "output_queue": "Queue_A"
+      }
+    },
     {
       "rule_name": "logic_3diem",
       "logic_type": "Pairs",
@@ -19,7 +33,7 @@
       },
       "params": {
         "stability_time_sec": 10,
-        "output_queue": "Queue_A"
+        "output_queue": "Queue_B"
       }
     },
     {
@@ -33,7 +47,7 @@
       },
       "params": {
         "stability_time_sec": 5,
-        "output_queue": "Queue_B"
+        "output_queue": "Queue_C"
       }
     }
   ]

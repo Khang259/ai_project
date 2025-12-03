@@ -124,6 +124,13 @@ class LogicProcessor:
             return PairsLogic(rule_name, rule_cfg, params, self.hash_tables)
         elif logic_type == "Dual":
             return DualLogic(rule_name, rule_cfg, params, self.hash_tables)
+        elif logic_type == "2point":
+            # Import động vì tên file là '2point.py' (không phải identifier hợp lệ)
+            import importlib
+
+            module = importlib.import_module("logic.2point")
+            TwoPointLogic = getattr(module, "TwoPointLogic")
+            return TwoPointLogic(rule_name, rule_cfg, params, self.hash_tables)
         else:
             # Có thể thêm các logic types khác ở đây
             return None
@@ -371,6 +378,14 @@ def logic_processor_worker(
                                 qr_codes.append(s_qr)
                             if e_qr:
                                 qr_codes.append(e_qr)
+                        elif rule_type == '2point':
+                            # 2point: s, e
+                            s_qr = output.get('s', {}).get('qr_code')
+                            e_qr = output.get('e', {}).get('qr_code')
+                            if s_qr:
+                                qr_codes.append(s_qr)
+                            if e_qr:
+                                qr_codes.append(e_qr)
                         
                         # Tạo phần tử đơn giản chứa QR codes
                         queue_item = {
@@ -383,6 +398,9 @@ def logic_processor_worker(
                         # Put vào queue (chỉ QR codes)
                         output_queue.put(queue_item, block=False)
                         output_count += 1
+                        
+                        # In ra nội dung đưa vào queue (yêu cầu thêm)
+                        print(f"Queue put: {queue_item}")
                         
                         # Log ngắn gọn: Time - Put (QR1, QR2, ...)
                         qr_codes_str = ", ".join(qr_codes) if qr_codes else "N/A"

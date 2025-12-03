@@ -1,2 +1,4 @@
 1. Vẽ ROI
 python roi_tool --cam cam-99 --save
+
+2. conda activate ai_conda
