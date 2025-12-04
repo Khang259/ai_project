@@ -23,7 +23,7 @@ class ROIVisualizer:
         
         # Pre-computed colors và styles
         self.COLOR_ROI = (0, 255, 0)
-        self.COLOR_ROI_BLOCKED = (0, 0, 255)  # Red cho ROI bị blocked
+        self.COLOR_ROI_BLOCKED = (128, 0, 128)  # Tím cho ROI bị blocked
         self.COLOR_SHELF_IN_ROI = (0, 0, 255)
         self.COLOR_EMPTY = (128, 0, 0)
         self.COLOR_OUTSIDE_ROI = (128, 128, 128)
@@ -518,14 +518,15 @@ class VideoDisplayManager:
         if not self.queue:
             return
         
-        print("[VISUAL-BLOCK] Bắt đầu subscribe all blocking topics...")
+        print("[VISUAL-BLOCK] Bắt đầu subscribe all blocking topics (dual + manual API + unlock_start_slot)...")
         
         # Track last processed IDs cho tất cả topics
         last_ids = {
             "dual_block": 0,
             "dual_unblock": 0,
             "block_slot": 0,
-            "unblock_slot": 0
+            "unblock_slot": 0,
+            "unlock_start_slot": 0
         }
         
         # Get latest IDs
@@ -619,6 +620,25 @@ class VideoDisplayManager:
                     payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
                     last_ids["unblock_slot"] = msg_id
                     self._handle_manual_unblock(payload)
+                
+                # Process unlock_start_slot messages (từ postAPI sau khi POST thất bại)
+                with self.queue._connect() as conn:
+                    cur = conn.execute(
+                        """
+                        SELECT id, payload FROM messages
+                        WHERE topic = ? AND id > ?
+                        ORDER BY id ASC
+                        LIMIT 50
+                        """,
+                        ("unlock_start_slot", last_ids["unlock_start_slot"]),
+                    )
+                    rows = cur.fetchall()
+                
+                for r in rows:
+                    msg_id = r[0]
+                    payload = json.loads(r[1]) if isinstance(r[1], str) else r[1]
+                    last_ids["unlock_start_slot"] = msg_id
+                    self._handle_unlock_start_slot(payload)
                 
                 time.sleep(0.2)
                 
@@ -732,6 +752,43 @@ class VideoDisplayManager:
             
         except Exception as e:
             print(f"[VISUAL-MANUAL] Lỗi khi xử lý unblock: {e}")
+    
+    def _handle_unlock_start_slot(self, payload: Dict[str, Any]):
+        """Xử lý unlock_start_slot message từ postAPI (sau khi POST thất bại)"""
+        try:
+            start_slot_str = payload.get("start_slot", "")
+            reason = payload.get("reason", "post_failed_after_retries")
+            
+            if not start_slot_str:
+                print(f"[VISUAL-UNLOCK] Không có start_slot trong payload: {payload}")
+                return
+            
+            try:
+                start_qr = int(start_slot_str)
+            except (ValueError, TypeError):
+                print(f"[VISUAL-UNLOCK] Invalid start_slot: {start_slot_str}")
+                return
+            
+            # Tìm camera và slot tương ứng với start_qr
+            cam_slot = self.qr_to_slot.get(start_qr)
+            if not cam_slot:
+                print(f"[VISUAL-UNLOCK] Không tìm thấy slot cho start_qr={start_qr}")
+                return
+            
+            camera_id, slot_number = cam_slot
+            
+            # Unblock ROI
+            if camera_id in self.blocked_rois:
+                if slot_number in self.blocked_rois[camera_id]:
+                    del self.blocked_rois[camera_id][slot_number]
+                    print(f"[VISUAL-UNLOCK] Đã unblock ROI {camera_id}:slot_{slot_number} (QR: {start_qr}, reason: {reason})")
+                else:
+                    print(f"[VISUAL-UNLOCK] Slot {slot_number} trên {camera_id} không bị block")
+            else:
+                print(f"[VISUAL-UNLOCK] Camera {camera_id} không có slot nào bị block")
+            
+        except Exception as e:
+            print(f"[VISUAL-UNLOCK] Lỗi khi xử lý unlock_start_slot: {e}")
     
     def _load_cam_config(self, cam_config_path: str):
         """Load camera RTSP URLs"""

@@ -1,0 +1,18 @@
+2025-12-04 09:47:56,183 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-04 09:47:56,183 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-04 09:48:01,850 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-04 09:48:01,851 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-04 09:48:02,448 - camera_ai_app - INFO - Default permissions initialized
+2025-12-04 09:48:02,448 - camera_ai_app - INFO - Initializing default roles...
+2025-12-04 09:48:02,599 - camera_ai_app - INFO - Default roles initialized
+2025-12-04 09:48:02,604 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-04 09:48:02,605 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-04 23:00:00+07:00
+2025-12-04 09:48:02,606 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-04 09:48:02,606 - camera_ai_app - INFO - Notification service started
+2025-12-04 09:48:02,606 - camera_ai_app - INFO - Task service started
+2025-12-04 09:48:02,607 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-04 09:48:02,607 - camera_ai_app - INFO - Heartbeat service started
+2025-12-04 09:48:05,929 - camera_ai_app - INFO - MANUAL_UNBLOCK_SLOT: qr_code=911, reason=manual_api
+2025-12-04 09:50:45,599 - camera_ai_app - INFO - MANUAL_BLOCK_SLOT: qr_code=911, reason=manual_api
+2025-12-04 09:51:02,781 - camera_ai_app - INFO - MANUAL_UNBLOCK_SLOT: qr_code=911, reason=manual_api
+2025-12-04 10:46:51,951 - camera_ai_app - INFO - MANUAL_UNBLOCK_SLOT: qr_code=911, reason=manual_api

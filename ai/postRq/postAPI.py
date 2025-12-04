@@ -221,7 +221,7 @@ def send_tracking_api(order_id: str, end_qrs: str, logger: logging.Logger) -> bo
             json.dumps(tracking_payload, ensure_ascii=False),
         )
         
-        resp = requests.post(TRACKING_API_URL, headers=headers, json=tracking_payload, timeout=60)
+        resp = requests.post(TRACKING_API_URL, headers=headers, json=tracking_payload, timeout=15)
         resp_text = resp.text
         
         status_ok = (200 <= resp.status_code < 300)
@@ -336,7 +336,7 @@ def send_post(payload: Dict[str, Any], logger: logging.Logger) -> bool:
         resp = session.post(
             API_URL, 
             data=body_bytes, 
-            # timeout=None       
+            timeout=15       
         )
 
         # 6. Xử lý Response
