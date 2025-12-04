@@ -5,11 +5,19 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
 from logging.handlers import RotatingFileHandler
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import uvicorn
+from dotenv import load_dotenv
+
+# define db and collection being used
+load_dotenv()
+client = AsyncIOMotorClient(os.getenv("MONGODB_URL"))
+db = client["CamAI_Honda"] # Replace with your database name
+slot_status_collection=db["slot_status"]
 
 # Thêm path để import queue_store
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -37,7 +45,6 @@ class BlockSlotRequest(BaseModel):
 
 class UnblockSlotRequest(BaseModel):
     qr_code: int = Field(..., description="QR code của slot cần unblock")
-
 
 def setup_server_logger(log_dir: str = "../logs") -> logging.Logger:
     """Thiết lập logger cho FastAPI server"""
@@ -234,17 +241,27 @@ async def manual_block_slot(request: BlockSlotRequest):
     """
     API để block một slot thủ công theo QR code
     
-    Publish message vào topic "block_slot" để roi_processor xử lý
+    Publish message vào topic "block_slot" để roi_processor xử lý và cập nhật vào mongodb slot_status
     """
     try:
         qr_code = request.qr_code
-        
+
+        # add block info to db
+        # filter by qr_code field
+        new_slot_status = {
+            "qr_code": qr_code,
+            "is_blocked": True,
+            "timestamp":datetime.now(),
+            "reason":"manual api"
+        }
+        result = await slot_status_collection.insert_one(new_slot_status)
+
         # Tạo block payload
         block_payload = {
             "qr_code": qr_code,
             "action": "block",
             "reason": "manual_api",
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "timestamp": datetime.now().isoformat() + "Z"
         }
         
         # Publish vào queue (key là QR code dạng string)
@@ -252,15 +269,14 @@ async def manual_block_slot(request: BlockSlotRequest):
         
         logger.info(f"MANUAL_BLOCK_SLOT: qr_code={qr_code}")
         
+
         return {
             "code": 1000,
             "message": f"Đã gửi block request cho slot QR {qr_code}",
             "data": {
                 "qr_code": qr_code,
-                "timestamp": datetime.now().isoformat()
-                # define mongodb
-                # define schema for qr info
-                # add block info to db
+                "is_blocked": True,
+                "timestamp": datetime.now().isoformat(),
             }
         }
     except Exception as e:
@@ -277,13 +293,23 @@ async def manual_unblock_slot(request: UnblockSlotRequest):
     """
     try:
         qr_code = request.qr_code
-        
+
+        # add block info to db
+        # filter by qr_code field
+        new_slot_status = {
+            "qr_code": qr_code,
+            "is_blocked": False,
+            "timestamp":datetime.now(),
+            "reason":"manual api"
+        }
+        result = await slot_status_collection.insert_one(new_slot_status)
+
         # Tạo unblock payload
         unblock_payload = {
             "qr_code": qr_code,
             "action": "unblock",
             "reason": "manual_api",
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "timestamp": datetime.now().isoformat() + "Z"
         }
         
         # Publish vào queue (key là QR code dạng string)
@@ -296,7 +322,9 @@ async def manual_unblock_slot(request: UnblockSlotRequest):
             "message": f"Đã gửi unblock request cho slot QR {qr_code}",
             "data": {
                 "qr_code": qr_code,
-                "timestamp": datetime.now().isoformat()
+                "is_blocked": False,
+                "timestamp": datetime.now().isoformat(),
+                
             }
         }
     except Exception as e:
@@ -305,6 +333,13 @@ async def manual_unblock_slot(request: UnblockSlotRequest):
 
 
 if __name__ == "__main__":
+    uvicorn.run(
+        "fastapi_server:app",
+        # host="localhost",
+        port=7001,
+        reload=True,
+        # log_level="info"
+    )
     print("Khởi động FastAPI Server...")
     print("Server sẽ chạy tại: http://localhost:7000")
     print("Endpoint chính: http://localhost:7000/ics/taskOrder/addTask")
@@ -313,10 +348,3 @@ if __name__ == "__main__":
     print("Block slot: POST http://localhost:7000/api/slot/block")
     print("Unblock slot: POST http://localhost:7000/api/slot/unblock")
     
-    uvicorn.run(
-        "fastapi_server:app",
-        host="0.0.0.0",
-        port=7000,
-        reload=True,
-        log_level="info"
-    )
