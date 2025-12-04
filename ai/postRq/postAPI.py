@@ -16,8 +16,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
-API_URL = "http://10.250.161.134:7000/ics/taskOrder/addTask"
-#API_URL = "http://192.168.1.110:7000/ics/taskOrder/addTask"
+# API_URL = "http://10.250.161.134:7000/ics/taskOrder/addTask"
+API_URL = "http://192.168.1.64:7000/ics/taskOrder/addTask"
 
 TRACKING_API_URL = "http://192.168.50.39:6868/track-task"
 DB_PATH = "../queues.db"  # relative to this script folder

@@ -1,0 +1,52 @@
+2025-12-01 16:05:03,726 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-01 16:05:03,726 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-01 16:05:04,200 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-01 16:05:04,201 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-01 16:05:04,762 - camera_ai_app - INFO - Default permissions initialized
+2025-12-01 16:05:04,763 - camera_ai_app - INFO - Initializing default roles...
+2025-12-01 16:05:04,875 - camera_ai_app - INFO - Default roles initialized
+2025-12-01 16:05:04,875 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-01 16:05:05,434 - camera_ai_app - INFO - Default permissions initialized
+2025-12-01 16:05:05,435 - camera_ai_app - INFO - Initializing default roles...
+2025-12-01 16:05:05,546 - camera_ai_app - INFO - Default roles initialized
+2025-12-01 16:05:05,550 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-12-01 16:05:05,550 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-01 23:00:00+07:00
+2025-12-01 16:05:05,550 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-01 16:05:05,550 - camera_ai_app - INFO - Notification service started
+2025-12-01 16:05:05,550 - camera_ai_app - INFO - Task service started
+2025-12-01 16:05:05,550 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-01 16:05:05,551 - camera_ai_app - INFO - Heartbeat service started
+2025-12-01 16:05:05,551 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-12-01 16:05:05,577 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-12-01 16:05:05,578 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-12-01 16:05:05,578 - camera_ai_app - INFO - Modbus device manager started
+2025-12-01 16:05:35,785 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-12-01 16:05:57,197 - camera_ai_app - WARNING - Login failed: invalid password or username
+2025-12-01 16:05:57,198 - camera_ai_app - ERROR - Login attempt with invalid username='khang_admin'
+2025-12-01 16:06:08,253 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-01 16:06:08,365 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-01 16:06:17,164 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 16:06:45,730 - camera_ai_app - WARNING - Map not found for area_id: 5
+2025-12-01 16:09:02,396 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-01 16:09:02,884 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-01 16:35:13,897 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-01 17:00:27,640 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:27,777 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:27,946 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:28,095 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:28,281 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:28,449 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:28,615 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:34,080 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:36,417 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:36,611 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:36,796 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:36,961 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:37,145 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:37,346 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:37,528 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:37,711 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:38,635 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:41,798 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:00:44,967 - camera_ai_app - WARNING - Invalid area ID format: 2
+2025-12-01 17:04:14,107 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions

@@ -258,6 +258,9 @@ async def manual_block_slot(request: BlockSlotRequest):
             "data": {
                 "qr_code": qr_code,
                 "timestamp": datetime.now().isoformat()
+                # define mongodb
+                # define schema for qr info
+                # add block info to db
             }
         }
     except Exception as e:
