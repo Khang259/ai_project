@@ -17,3 +17,5 @@ class SlotBlockResponse(BaseModel):
     message: str = Field(default="Success", description="Thông báo trả về")
     data: Optional[Dict[str, Any]] = Field(default=None, description="Dữ liệu trả về")
 
+
+

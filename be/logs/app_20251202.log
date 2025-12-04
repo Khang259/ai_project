@@ -354,3 +354,25 @@
 2025-12-02 14:08:16,934 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
 2025-12-02 14:08:16,934 - camera_ai_app - INFO - Heartbeat service stopped
 2025-12-02 14:08:16,977 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-02 16:21:29,182 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-02 16:21:29,183 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-02 16:21:34,629 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-02 16:21:34,630 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-02 16:21:35,214 - camera_ai_app - INFO - Default permissions initialized
+2025-12-02 16:21:35,215 - camera_ai_app - INFO - Initializing default roles...
+2025-12-02 16:21:35,334 - camera_ai_app - INFO - Default roles initialized
+2025-12-02 16:21:35,338 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-02 16:21:35,338 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-02 23:00:00+07:00
+2025-12-02 16:21:35,338 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-02 16:21:35,339 - camera_ai_app - INFO - Notification service started
+2025-12-02 16:21:35,339 - camera_ai_app - INFO - Task service started
+2025-12-02 16:21:35,340 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-02 16:21:35,340 - camera_ai_app - INFO - Heartbeat service started
+2025-12-02 16:56:15,969 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-02 16:56:16,123 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-02 16:56:29,199 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 1
+2025-12-02 16:56:32,225 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 2
+2025-12-02 16:56:36,833 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-12-02 16:56:36,833 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 1
+2025-12-02 16:56:36,834 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-12-02 16:56:36,835 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 0

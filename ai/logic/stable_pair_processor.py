@@ -83,21 +83,21 @@ def setup_block_unblock_logger(log_dir: str = "../logs") -> logging.Logger:
     return logger
 
 
-def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
-    """Kiểm tra điểm có nằm trong hình chữ nhật hay không."""
-    x, y = point
-    if len(polygon) < 4:
-        return False
+# def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
+#     """Kiểm tra điểm có nằm trong hình chữ nhật hay không."""
+#     x, y = point
+#     if len(polygon) < 4:
+#         return False
     
-    # Lấy min/max của tất cả các điểm trong polygon (hình chữ nhật)
-    x_coords = [p[0] for p in polygon]
-    y_coords = [p[1] for p in polygon]
+#     # Lấy min/max của tất cả các điểm trong polygon (hình chữ nhật)
+#     x_coords = [p[0] for p in polygon]
+#     y_coords = [p[1] for p in polygon]
     
-    min_x, max_x = min(x_coords), max(x_coords)
-    min_y, max_y = min(y_coords), max(y_coords)
+#     min_x, max_x = min(x_coords), max(x_coords)
+#     min_y, max_y = min(y_coords), max(y_coords)
     
-    # Kiểm tra điểm có nằm trong khoảng
-    return min_x <= x <= max_x and min_y <= y <= max_y
+#     # Kiểm tra điểm có nằm trong khoảng
+#     return min_x <= x <= max_x and min_y <= y <= max_y
 
 
 class StablePairProcessor:
@@ -232,52 +232,79 @@ class StablePairProcessor:
             cur = conn.execute("SELECT DISTINCT key FROM messages WHERE topic = 'roi_detection' ORDER BY key")
             return [row[0] for row in cur.fetchall()]
 
-    def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
-        """
-        Tính trạng thái slot dựa trên trường slot_number gắn tại roi_processor.
-        Quy ước: mỗi frame có đủ các slot empty nếu không thấy hang.
-        Ở đây, chúng ta tạo status_by_slot từ các detection hiện có: nếu có hang ở slot X thì slot X=shelf, các slot khác giữ nguyên theo state cũ hoặc không cập nhật.
-        """
-        status_by_slot: Dict[int, str] = {}
-        # mark shelf by present detections (class "hang" = shelf có hàng)
-        for det in roi_detections:
-            cls = det.get("class_name")
-            slot_num = det.get("slot_number")
-            if slot_num is None:
-                continue
-            if cls == "hang":
-                status_by_slot[int(slot_num)] = "shelf"
-            elif cls == "empty" and int(slot_num) not in status_by_slot:
-                # only mark empty if hang not seen for that slot in this batch
-                status_by_slot[int(slot_num)] = "empty"
-        return status_by_slot
     # def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
     #     """
-    #     Tính trạng thái slot:
-    #     - Nếu thấy class "hang" -> status = "shelf" (Ưu tiên cao nhất)
-    #     - Nếu thấy class "qr" (hoặc khác) mà KHÔNG thấy "hang" -> status = "empty"
+    #     Tính trạng thái slot dựa trên trường slot_number gắn tại roi_processor.
+    #     Quy ước: mỗi frame có đủ các slot empty nếu không thấy hang.
+    #     Ở đây, chúng ta tạo status_by_slot từ các detection hiện có: nếu có hang ở slot X thì slot X=shelf, các slot khác giữ nguyên theo state cũ hoặc không cập nhật.
     #     """
     #     status_by_slot: Dict[int, str] = {}
-    
+    #     # mark shelf by present detections (class "hang" = shelf có hàng)
     #     for det in roi_detections:
+    #         cls = det.get("class_name")
     #         slot_num = det.get("slot_number")
     #         if slot_num is None:
     #             continue
-                
-    #         slot_idx = int(slot_num)
-    #         cls = det.get("class_name")
-
     #         if cls == "hang":
-    #             # Gặp hàng -> Chốt luôn là SHELF (ghi đè bất kể trước đó là gì)
-    #             status_by_slot[slot_idx] = "shelf"
-                
-    #         else: 
-    #             # Trường hợp còn lại (ví dụ class "qr")
-    #             # Chỉ gán là EMPTY nếu slot này CHƯA được xác định là SHELF
-    #             if status_by_slot.get(slot_idx) != "shelf":
-    #                 status_by_slot[slot_idx] = "empty"
-                    
+    #             status_by_slot[int(slot_num)] = "shelf"
+    #         elif cls == "empty" and int(slot_num) not in status_by_slot:
+    #             # only mark empty if hang not seen for that slot in this batch
+    #             status_by_slot[int(slot_num)] = "empty"
     #     return status_by_slot
+    # # def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
+    # #     """
+    # #     Tính trạng thái slot:
+    # #     - Nếu thấy class "hang" -> status = "shelf" (Ưu tiên cao nhất)
+    # #     - Nếu thấy class "qr" (hoặc khác) mà KHÔNG thấy "hang" -> status = "empty"
+    # #     """
+    # #     status_by_slot: Dict[int, str] = {}
+    
+    # #     for det in roi_detections:
+    # #         slot_num = det.get("slot_number")
+    # #         if slot_num is None:
+    # #             continue
+                
+    # #         slot_idx = int(slot_num)
+    # #         cls = det.get("class_name")
+
+    # #         if cls == "hang":
+    # #             # Gặp hàng -> Chốt luôn là SHELF (ghi đè bất kể trước đó là gì)
+    # #             status_by_slot[slot_idx] = "shelf"
+                
+    # #         else: 
+    # #             # Trường hợp còn lại (ví dụ class "qr")
+    # #             # Chỉ gán là EMPTY nếu slot này CHƯA được xác định là SHELF
+    # #             if status_by_slot.get(slot_idx) != "shelf":
+    # #                 status_by_slot[slot_idx] = "empty"
+                    
+    # #     return status_by_slot
+    def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
+        """
+        Tính trạng thái slot:
+        - Nếu thấy class "hang" -> status = "shelf" (Ưu tiên cao nhất)
+        - Nếu thấy class "qr" (hoặc khác) mà KHÔNG thấy "hang" -> status = "empty"
+        """
+        status_by_slot: Dict[int, str] = {}
+    
+        for det in roi_detections:
+            slot_num = det.get("slot_number")
+            if slot_num is None:
+                continue
+                
+            slot_idx = int(slot_num)
+            cls = det.get("class_name")
+
+            if cls == "hang":
+                # Gặp hàng -> Chốt luôn là SHELF (ghi đè bất kể trước đó là gì)
+                status_by_slot[slot_idx] = "shelf"
+                
+            else: 
+                # Trường hợp còn lại (ví dụ class "qr")
+                # Chỉ gán là EMPTY nếu slot này CHƯA được xác định là SHELF
+                if status_by_slot.get(slot_idx) != "shelf":
+                    status_by_slot[slot_idx] = "empty"
+                    
+        return status_by_slot
     def _update_slot_state(self, camera_id: str, status_by_slot: Dict[int, str]) -> None:
         now = time.time()
         for slot_num, status in status_by_slot.items():

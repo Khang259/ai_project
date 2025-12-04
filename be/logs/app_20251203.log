@@ -1,0 +1,421 @@
+2025-12-03 09:34:48,955 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 09:34:48,956 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 09:34:54,737 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 09:34:54,737 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 09:34:55,233 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 09:34:55,234 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 09:34:55,330 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 09:34:55,368 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 09:34:55,370 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 09:34:55,370 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 09:34:55,371 - camera_ai_app - INFO - Notification service started
+2025-12-03 09:34:55,372 - camera_ai_app - INFO - Task service started
+2025-12-03 09:34:55,372 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 09:34:55,372 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 09:34:55,620 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-03 09:34:55,717 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-03 09:40:43,500 - camera_ai_app - INFO - MANUAL_BLOCK_SLOT: qr_code=911, reason=manual_api
+2025-12-03 09:40:53,513 - camera_ai_app - INFO - MANUAL_UNBLOCK_SLOT: qr_code=911, reason=manual_api
+2025-12-03 09:43:45,346 - camera_ai_app - INFO - MANUAL_BLOCK_SLOT: qr_code=922, reason=manual_api
+2025-12-03 13:29:27,630 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:29:27,631 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:29:27,631 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:29:27,633 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:29:27,633 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:29:27,634 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:29:27,634 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:29:27,662 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:29:31,671 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:29:31,672 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:29:37,253 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:29:37,254 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:29:37,842 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:29:37,843 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:29:37,957 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:29:37,961 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:29:37,962 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:29:37,962 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:29:37,963 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:29:37,963 - camera_ai_app - INFO - Task service started
+2025-12-03 13:29:37,964 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:29:37,964 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:32:26,416 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:32:26,416 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:32:26,416 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:32:26,417 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:32:26,417 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:32:26,418 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:32:26,418 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:32:26,447 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:32:30,042 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:32:30,043 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:32:35,301 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:32:35,302 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:32:35,879 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:32:35,879 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:32:35,974 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:32:35,977 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:32:35,977 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:32:35,978 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:32:35,978 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:32:35,978 - camera_ai_app - INFO - Task service started
+2025-12-03 13:32:35,979 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:32:35,979 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:32:40,460 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:32:40,460 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:32:40,461 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:32:40,462 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:32:40,462 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:32:40,462 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:32:40,463 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:32:40,486 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:32:46,066 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:32:46,067 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:32:51,402 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:32:51,403 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:32:51,899 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:32:51,899 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:32:51,998 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:32:52,002 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:32:52,003 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:32:52,003 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:32:52,004 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:32:52,004 - camera_ai_app - INFO - Task service started
+2025-12-03 13:32:52,005 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:32:52,005 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:45:02,657 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:45:02,657 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:45:02,657 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:45:02,658 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:45:02,658 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:45:02,659 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:45:02,659 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:45:02,702 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:45:06,134 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:45:06,135 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:45:11,338 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:45:11,338 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:45:11,851 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:45:11,851 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:45:11,959 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:45:11,962 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:45:11,962 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:45:11,962 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:45:11,963 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:45:11,963 - camera_ai_app - INFO - Task service started
+2025-12-03 13:45:11,964 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:45:11,964 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:45:14,899 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:45:14,899 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:45:14,900 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:45:14,901 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:45:14,901 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:45:14,901 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:45:14,902 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:45:14,927 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:45:18,271 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:45:18,271 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:45:23,638 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:45:23,638 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:45:24,405 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:45:24,405 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:45:24,550 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:45:24,554 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:45:24,555 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:45:24,556 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:45:24,556 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:45:24,557 - camera_ai_app - INFO - Task service started
+2025-12-03 13:45:24,557 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:45:24,558 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:47:14,599 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:47:14,599 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:47:14,599 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:47:14,600 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:47:14,600 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:47:14,601 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:47:14,601 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:47:14,642 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:47:18,738 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:47:18,740 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:47:24,232 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:47:24,233 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:47:24,829 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:47:24,829 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:47:24,953 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:47:24,956 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:47:24,956 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:47:24,957 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:47:24,957 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:47:24,958 - camera_ai_app - INFO - Task service started
+2025-12-03 13:47:24,958 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:47:24,958 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:47:27,896 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:47:27,896 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:47:27,897 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:47:27,898 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:47:27,898 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:47:27,899 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:47:27,899 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:47:27,929 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:47:32,014 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:47:32,015 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:47:37,277 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:47:37,278 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:47:37,762 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:47:37,763 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:47:37,859 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:47:37,862 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:47:37,862 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:47:37,863 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:47:37,863 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:47:37,864 - camera_ai_app - INFO - Task service started
+2025-12-03 13:47:37,864 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:47:37,864 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:54:36,132 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:54:36,132 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:54:36,132 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:54:36,134 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:54:36,134 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:54:36,135 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:54:36,135 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:54:36,161 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:54:39,758 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:54:39,759 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:54:45,125 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:54:45,126 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:54:45,865 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:54:45,865 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:54:46,022 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:54:46,024 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:54:46,025 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:54:46,025 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:54:46,026 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:54:46,026 - camera_ai_app - INFO - Task service started
+2025-12-03 13:54:46,026 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:54:46,027 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:54:49,490 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:54:49,490 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:54:54,625 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:54:54,626 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:54:55,115 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:54:55,115 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:54:55,210 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:54:55,213 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:54:55,213 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:54:55,214 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:54:55,214 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:54:55,214 - camera_ai_app - INFO - Task service started
+2025-12-03 13:54:55,215 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:54:55,215 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:54:59,897 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:54:59,897 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:54:59,898 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:54:59,899 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:54:59,899 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:54:59,899 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:54:59,900 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:54:59,923 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:55:03,694 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:55:03,695 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:55:09,088 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:55:09,089 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:55:09,680 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:55:09,681 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:55:09,807 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:55:09,811 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:55:09,811 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:55:09,812 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:55:09,813 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:55:09,813 - camera_ai_app - INFO - Task service started
+2025-12-03 13:55:09,814 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:55:09,814 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:55:13,514 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:55:13,514 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:55:18,937 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:55:18,937 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:55:19,861 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:55:19,861 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:55:20,043 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:55:20,047 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:55:20,047 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:55:20,048 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:55:20,048 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:55:20,048 - camera_ai_app - INFO - Task service started
+2025-12-03 13:55:20,048 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:55:20,049 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 13:55:28,115 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 13:55:28,116 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 13:55:28,116 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 13:55:28,117 - camera_ai_app - INFO - Task service stopped
+2025-12-03 13:55:28,118 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 13:55:28,118 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 13:55:28,119 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 13:55:28,162 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 13:55:31,701 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 13:55:31,702 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 13:55:37,117 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 13:55:37,117 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 13:55:37,844 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 13:55:37,844 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 13:55:37,992 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 13:55:37,995 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 13:55:37,996 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 13:55:37,996 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 13:55:37,996 - camera_ai_app - INFO - Notification service started
+2025-12-03 13:55:37,997 - camera_ai_app - INFO - Task service started
+2025-12-03 13:55:37,997 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 13:55:37,998 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 14:06:50,498 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 14:06:50,498 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 14:06:50,499 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 14:06:50,500 - camera_ai_app - INFO - Task service stopped
+2025-12-03 14:06:50,500 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 14:06:50,501 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 14:06:50,501 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 14:06:50,537 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 14:06:54,362 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 14:06:54,364 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 14:06:59,908 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 14:06:59,909 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 14:07:00,516 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 14:07:00,516 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 14:07:00,633 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 14:07:00,636 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 14:07:00,636 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 14:07:00,637 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 14:07:00,637 - camera_ai_app - INFO - Notification service started
+2025-12-03 14:07:00,638 - camera_ai_app - INFO - Task service started
+2025-12-03 14:07:00,638 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 14:07:00,638 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 14:07:33,408 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 14:07:33,408 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 14:07:33,409 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 14:07:33,410 - camera_ai_app - INFO - Task service stopped
+2025-12-03 14:07:33,410 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 14:07:33,410 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 14:07:33,411 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 14:07:33,441 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 14:07:37,204 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 14:07:37,205 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 14:07:42,573 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 14:07:42,574 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 14:07:43,181 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 14:07:43,182 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 14:07:43,305 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 14:07:43,311 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 14:07:43,312 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 14:07:43,312 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 14:07:43,313 - camera_ai_app - INFO - Notification service started
+2025-12-03 14:07:43,314 - camera_ai_app - INFO - Task service started
+2025-12-03 14:07:43,315 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 14:07:43,315 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 14:07:56,842 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 14:07:56,842 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 14:07:56,843 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 14:07:56,843 - camera_ai_app - INFO - Task service stopped
+2025-12-03 14:07:56,844 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 14:07:56,844 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 14:07:56,845 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 14:07:56,875 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 14:08:00,469 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 14:08:00,470 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 14:08:05,882 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 14:08:05,882 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 14:08:06,471 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 14:08:06,471 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 14:08:06,586 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 14:08:06,589 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 14:08:06,589 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 14:08:06,589 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 14:08:06,590 - camera_ai_app - INFO - Notification service started
+2025-12-03 14:08:06,590 - camera_ai_app - INFO - Task service started
+2025-12-03 14:08:06,590 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 14:08:06,590 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 14:08:08,129 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 14:08:08,129 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 14:08:08,130 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 14:08:08,130 - camera_ai_app - INFO - Task service stopped
+2025-12-03 14:08:08,131 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 14:08:08,131 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 14:08:08,132 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 14:08:08,160 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 14:08:12,296 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 14:08:12,298 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 14:08:17,662 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 14:08:17,662 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 14:08:18,261 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 14:08:18,261 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 14:08:18,384 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 14:08:18,389 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 14:08:18,389 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 14:08:18,390 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 14:08:18,391 - camera_ai_app - INFO - Notification service started
+2025-12-03 14:08:18,391 - camera_ai_app - INFO - Task service started
+2025-12-03 14:08:18,391 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 14:08:18,392 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 14:08:21,665 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 14:08:21,666 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 14:08:21,666 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 14:08:21,667 - camera_ai_app - INFO - Task service stopped
+2025-12-03 14:08:21,667 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 14:08:21,667 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 14:08:21,668 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 14:08:21,696 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 14:08:25,593 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 14:08:25,594 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 14:08:30,904 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 14:08:30,905 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 14:08:31,469 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 14:08:31,469 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 14:08:31,582 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 14:08:31,586 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 14:08:31,587 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 14:08:31,587 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 14:08:31,588 - camera_ai_app - INFO - Notification service started
+2025-12-03 14:08:31,588 - camera_ai_app - INFO - Task service started
+2025-12-03 14:08:31,588 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 14:08:31,589 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 15:23:56,703 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 15:23:56,703 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 15:23:56,704 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 15:23:56,704 - camera_ai_app - INFO - Task service stopped
+2025-12-03 15:23:56,705 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 15:23:56,705 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 15:23:56,705 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 15:23:56,734 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 15:24:00,583 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 15:24:00,584 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 15:24:05,984 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 15:24:05,985 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 15:24:06,580 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 15:24:06,580 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 15:24:06,712 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 15:24:06,715 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 15:24:06,716 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 15:24:06,716 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 15:24:06,716 - camera_ai_app - INFO - Notification service started
+2025-12-03 15:24:06,718 - camera_ai_app - INFO - Task service started
+2025-12-03 15:24:06,718 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 15:24:06,718 - camera_ai_app - INFO - Heartbeat service started
+2025-12-03 15:24:55,470 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-03 15:24:55,471 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-03 15:24:55,472 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-03 15:24:55,473 - camera_ai_app - INFO - Task service stopped
+2025-12-03 15:24:55,474 - camera_ai_app - INFO - Notification service stopped
+2025-12-03 15:24:55,475 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-03 15:24:55,476 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-03 15:24:55,504 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-03 15:24:59,468 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-03 15:24:59,469 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-03 15:25:04,827 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-03 15:25:04,829 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-03 15:25:05,579 - camera_ai_app - INFO - Default permissions initialized
+2025-12-03 15:25:05,579 - camera_ai_app - INFO - Initializing default roles...
+2025-12-03 15:25:05,723 - camera_ai_app - INFO - Default roles initialized
+2025-12-03 15:25:05,726 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-03 15:25:05,726 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-03 23:00:00+07:00
+2025-12-03 15:25:05,727 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-03 15:25:05,727 - camera_ai_app - INFO - Notification service started
+2025-12-03 15:25:05,728 - camera_ai_app - INFO - Task service started
+2025-12-03 15:25:05,728 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-03 15:25:05,729 - camera_ai_app - INFO - Heartbeat service started
