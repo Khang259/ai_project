@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
+from bson import ObjectId
 from logging.handlers import RotatingFileHandler
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -40,11 +41,83 @@ class TaskOrderResponse(BaseModel):
     data: Optional[Dict[str, Any]] = Field(default=None, description="Dữ liệu trả về")
 
 # Models cho Block/Unblock API
-class BlockSlotRequest(BaseModel):
-    qr_code: int = Field(..., description="QR code của slot cần block")
+class SlotStatusModel(BaseModel):
+    qr_code: int
+# class BlockSlotRequest(BaseModel):
+#     qr_code: int = Field(..., description="QR code của slot cần block")
 
-class UnblockSlotRequest(BaseModel):
-    qr_code: int = Field(..., description="QR code của slot cần unblock")
+# class UnblockSlotRequest(BaseModel):
+#     qr_code: int = Field(..., description="QR code của slot cần unblock")
+
+# fix ObjectId not iterable for FastAPI
+def fix_mongo_ids(data):
+    if isinstance(data, list):
+        return [fix_mongo_ids(item) for item in data]
+    if isinstance(data, dict):
+        return {key: fix_mongo_ids(value) for key, value in data.items()}
+    if isinstance(data, ObjectId):
+        return str(data)
+    return data
+
+async def add_slot_status_to_db(action:str, qr_code:int):
+
+    qr_code = qr_code
+
+    latest_record = await slot_status_collection.find_one(
+        {"qr_code": qr_code},
+        sort=[("timestamp", -1)]
+    )
+
+    # if latest_record exists
+    #   find is_blocked and return its value (T/F)
+    #   can't find is_blocked return False
+    # else 
+    #   return false
+    is_currently_blocked = latest_record.get("is_blocked", False) if latest_record else False
+
+    if action == "block":
+        # check if action is "block" -> check in db if the most recent addition of qr_code is unblocked, if unblocked -> block, if blocked -> print already blocked
+        if is_currently_blocked:
+            return {"status":"skipped", "message": f"Slot {qr_code} is already blocked"}
+        status = True
+
+    elif action == "unblock":
+        # check if action is "unblock" -> check in db if the most recent addition of qr_code is blocked, if blocked -> unblock, if unblocked -> print already unblocked
+        if not is_currently_blocked:
+            return {"status": "skipped", "message": f"Slot {qr_code} is already unblocked."}
+        status = False
+    else:
+        return {"status": "error", "message": "Invalid actions, use 'block' or 'unblock'"}
+    
+    new_slot_status = {
+        "qr_code": qr_code,
+        "is_blocked": status,
+        "timestamp": datetime.now(),
+        "action": action
+    }
+
+    result = await slot_status_collection.insert_one(new_slot_status)
+
+    return {
+        "status": "success",
+        "message": f"Slot {qr_code} has been {action}ed",
+        "slot info": str(result.inserted_id)
+    }
+
+def check_skipped_status(slot_res: dict, qr_code: str):
+    if slot_res["status"] == "skipped":
+        logger.warning(f"SLOT IS SKIPPED: {slot_res['message']}")
+
+        return {
+            "code": 400,
+            "message": slot_res["message"],
+            "data": {
+                "qr_code": qr_code,
+                "status": "skipped"
+            }
+        }
+    return None
+
 
 def setup_server_logger(log_dir: str = "../logs") -> logging.Logger:
     """Thiết lập logger cho FastAPI server"""
@@ -237,7 +310,7 @@ async def add_task_raw(request: Request):
 
 
 @app.post("/api/slot/block")
-async def manual_block_slot(request: BlockSlotRequest):
+async def manual_block_slot(request: SlotStatusModel):
     """
     API để block một slot thủ công theo QR code
     
@@ -246,15 +319,12 @@ async def manual_block_slot(request: BlockSlotRequest):
     try:
         qr_code = request.qr_code
 
-        # add block info to db
-        # filter by qr_code field
-        new_slot_status = {
-            "qr_code": qr_code,
-            "is_blocked": True,
-            "timestamp":datetime.now(),
-            "reason":"manual api"
-        }
-        result = await slot_status_collection.insert_one(new_slot_status)
+        slot_result = await add_slot_status_to_db(action="block", qr_code=qr_code)
+
+        # Assign skip_status to slot result dict
+        # If check_skipped_status return anything, return that, else pass
+        if skip_status := check_skipped_status(slot_res=slot_result, qr_code=qr_code):
+            return skip_status
 
         # Tạo block payload
         block_payload = {
@@ -285,7 +355,7 @@ async def manual_block_slot(request: BlockSlotRequest):
 
 
 @app.post("/api/slot/unblock")
-async def manual_unblock_slot(request: UnblockSlotRequest):
+async def manual_unblock_slot(request: SlotStatusModel):
     """
     API để unblock một slot thủ công theo QR code
     
@@ -294,16 +364,12 @@ async def manual_unblock_slot(request: UnblockSlotRequest):
     try:
         qr_code = request.qr_code
 
-        # add block info to db
-        # filter by qr_code field
-        new_slot_status = {
-            "qr_code": qr_code,
-            "is_blocked": False,
-            "timestamp":datetime.now(),
-            "reason":"manual api"
-        }
-        result = await slot_status_collection.insert_one(new_slot_status)
+        slot_result = await add_slot_status_to_db(action="unblock", qr_code=qr_code)
 
+        # Check existence of qr_code, if yes --> skip (no adding to db)
+        if skip_status := check_skipped_status(slot_res=slot_result, qr_code=qr_code):
+            return skip_status
+        
         # Tạo unblock payload
         unblock_payload = {
             "qr_code": qr_code,
@@ -331,6 +397,13 @@ async def manual_unblock_slot(request: UnblockSlotRequest):
         logger.error(f"MANUAL_UNBLOCK_SLOT_ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Lỗi khi unblock: {str(e)}")
 
+@app.get("/api/slot/all-status")
+async def get_slot_status():
+    status = await slot_status_collection.find().to_list(length=100)
+
+    clean_status = fix_mongo_ids(status)
+
+    return clean_status
 
 if __name__ == "__main__":
     uvicorn.run(
