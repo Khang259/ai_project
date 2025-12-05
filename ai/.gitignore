@@ -57,3 +57,5 @@ Thumbs.db
 *.7z
 *.tar
 *.bin
+
+.env

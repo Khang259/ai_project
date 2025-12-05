@@ -123,8 +123,8 @@
         async function handleAction(type, qrCode) {
             // Xác định URL endpoint dựa trên hành động
             const endpoint = type === 'block' 
-                ? 'http://localhost:8001/api/slot/block' 
-                : 'http://localhost:8001/api/slot/unblock';
+                ? 'http://127.0.0.1:7001/api/slot/block' 
+                : 'http://127.0.0.1:7001/api/slot/unblock';
 
             // Tạo payload
             const payload = {
