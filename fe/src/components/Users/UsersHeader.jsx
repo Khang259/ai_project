@@ -9,10 +9,10 @@ export default function UsersHeader({ onAdd }) {
     <div className="flex justify-between items-center">
       <h1 className="text-4xl font-semibold text-white">{t('users.userManagement')}</h1>
       <Button
-        className="glass w-30 h-10 text-white"
+        className="glass w-40 h-10 text-white"
         onClick={onAdd}
       >
-        <Plus className="w-4 h-4 mr-2" />
+        <Plus className="w-4 h-4 mr-1" />
         {t('users.addUser')}
       </Button>
     </div>

@@ -16,8 +16,8 @@ export async function getNotifications({ page = 1, limit = 20, filters = {} }) {
         const dataArray = responseData.data || responseData.items || responseData || [];
         const totalCount = responseData.total_items;
 
-        console.log("[NOTIFICATION] Raw response:", responseData);
-        console.log("[NOTIFICATION] Parsed - dataArray.length:", dataArray.length, "| total:", totalCount);
+        // console.log("[NOTIFICATION] Raw response:", responseData);
+        // console.log("[NOTIFICATION] Parsed - dataArray.length:", dataArray.length, "| total:", totalCount);
 
         return {
             data: dataArray,
@@ -37,7 +37,7 @@ export async function getNotificationsByGroupId() {
     try {
         const respone = await api.get("/n")
     } catch (error) {
-        console.log("[DEBUG-getNotificationByGroupID]", error)
+        //console.log("[DEBUG-getNotificationByGroupID]", error)
         throw error
     }
 }

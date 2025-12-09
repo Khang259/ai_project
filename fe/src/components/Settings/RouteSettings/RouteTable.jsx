@@ -40,7 +40,7 @@ const RouteSettings = () => {
   useEffect(() => {
     const loadRoutes = async () => {
       if (!auth?.user) return;
-      
+
       try {
         if (isOperator && !isAdmin) {
           // Operator: chỉ lấy routes của chính họ
@@ -52,10 +52,10 @@ const RouteSettings = () => {
         }
       } catch (error) {
         console.error('Error fetching routes:', error);
-        toast.error(t('settings.loadRoutesError') || 'Có lỗi xảy ra khi tải routes');
+        toast.error(t('settings.loadRoutesError'));
       }
     };
-    
+
     loadRoutes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth?.user?.username, auth?.user?.roles, isAdmin, isOperator]);
@@ -65,7 +65,7 @@ const RouteSettings = () => {
       ...prev,
       [field]: value
     }));
-    
+
     // Clear error when user starts typing
     if (localErrors[field]) {
       setLocalErrors(prev => ({
@@ -77,15 +77,15 @@ const RouteSettings = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.route_name?.trim()) {
       newErrors.route_name = t('settings.routeNameRequired') || 'Route Name là bắt buộc';
     }
-    
+
     if (!formData.route_id?.trim()) {
       newErrors.route_id = t('settings.routeIdRequired') || 'Route ID là bắt buộc';
     }
-    
+
     setLocalErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -105,9 +105,9 @@ const RouteSettings = () => {
       };
 
       const createdRoute = await createRoute(routeData);
-      
+
       toast.success(t('settings.addRouteSuccess') || 'Thêm route thành công');
-      
+
       setNewlyAddedId(createdRoute.id);
       setShowAddForm(false);
       setFormData({
@@ -117,7 +117,7 @@ const RouteSettings = () => {
         robot_list: [],
       });
       setLocalErrors({});
-      
+
       setTimeout(() => {
         if (tableRef.current) {
           tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -161,7 +161,7 @@ const RouteSettings = () => {
     try {
       const route = routes.find(r => r.id === routeId);
       if (!route) return;
-      
+
       await updateRoute(routeId, {
         route_id: route.route_id,
         route_name: route.route_name,
@@ -179,7 +179,7 @@ const RouteSettings = () => {
     try {
       const route = routes.find(r => r.id === routeId);
       if (!route) return;
-      
+
       await updateRoute(routeId, {
         route_id: parseInt(formData.route_id) || formData.route_id,
         route_name: formData.route_name.trim(),
@@ -197,7 +197,7 @@ const RouteSettings = () => {
     try {
       const route = routes.find(r => r.id === routeId);
       if (!route) return;
-      
+
       // Lưu tất cả thay đổi hiện tại của route
       await updateRoute(routeId, {
         route_id: route.route_id,
@@ -256,17 +256,16 @@ const RouteSettings = () => {
                   </TableRow>
                 ) : (
                   routes.map((route) => (
-                    <TableRow 
-                      key={route.id} 
-                      className={`text-white transition-all duration-500 ${
-                        newlyAddedId === route.id 
-                          ? 'bg-green-500/20 border-green-500 border-2' 
+                    <TableRow
+                      key={route.id}
+                      className={`text-white transition-all duration-500 ${newlyAddedId === route.id
+                          ? 'bg-green-500/20 border-green-500 border-2'
                           : 'hover:bg-white/5'
-                      }`}
+                        }`}
                     >
                       <TableCell className="font-medium">
-                        <UpdateRoutes 
-                          route={route} 
+                        <UpdateRoutes
+                          route={route}
                           onUpdate={handleUpdateRoute}
                         />
                       </TableCell>
@@ -275,21 +274,21 @@ const RouteSettings = () => {
                       </TableCell>
                       <TableCell>{route.user || '-'}</TableCell>
                       <TableCell>
-                        <RobotList 
-                          route={route} 
+                        <RobotList
+                          route={route}
                           onUpdate={handleUpdateRobotList}
                         />
                       </TableCell>
                       <TableCell>
-                        {route.created_at 
+                        {route.created_at
                           ? new Date(route.created_at).toLocaleString('vi-VN', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit'
-                            })
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          })
                           : '-'}
                       </TableCell>
                       <TableCell>{route.created_by || '-'}</TableCell>

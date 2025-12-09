@@ -12,15 +12,15 @@ export function LoginForm() {
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+    e.preventDefault(); // Prevent default form submission
+    setError(null); // Reset error message if there is a login failure before
+    setIsLoading(true); // Set loading state to true to disable user spam the submit button
 
     try {
       const response = await login({ username, password });
       console.log("Login successful for user:", response.user?.username);
 
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard"; //Navigate to the dashboard route
     } catch (err) {
       setError(err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
       setIsLoading(false);

@@ -5,6 +5,13 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    host: '0.0.0.0', // Bind to all interfaces for Docker container
+    port: 5173,      // Vite default port
+    watch: {
+      usePolling: true, // Enable polling for file changes in Docker
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

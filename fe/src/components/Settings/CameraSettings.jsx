@@ -22,15 +22,11 @@ import { useHandleSaveCameras } from '@/hooks/Setting/Camera/usehandleSaveCamera
 const CameraSettings = () => {
   const { t } = useTranslation();
   const { currAreaId, currAreaName } = useArea();
-  
-  // Sử dụng custom hook để load cameras
   const { cameras, setCameras, loading, refetch: loadCamerasFromDatabase } = useLoadCameraFromDatabase(currAreaId, t);
-  
-  // Sử dụng custom hook để save cameras
   const { handleSaveCameras, saving, validateRTSPUrl, validateROI } = useHandleSaveCameras(cameras, loadCamerasFromDatabase, t);
-  
-  const [healthCheckStatus, setHealthCheckStatus] = useState([]);
-  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [ healthCheckStatus, setHealthCheckStatus ] = useState([]);
+  const [ selectedCamera, setSelectedCamera ] = useState(null);
+  const [loadingStream, setLoadingStream] = useState(false);
 
   // useEffect(() => {
   //   const fetchHealthCheckStatus = async () => {

@@ -28,7 +28,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
     username: "",
     password: "",
     roles: [], // Sẽ được set từ API
-    area: 0, // area sẽ được lấy theo currentUsername hoặc admin chọn
+    area_id: 0, // area sẽ được lấy theo currentUsername hoặc admin chọn
     group_id: 0, // group_id sẽ được lấy theo currentUsername hoặc admin chọn
     route: [] // route sẽ được lấy theo người dùng operator tạo trước đó
   });
@@ -124,15 +124,18 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (validateForm() && isOperator) {
       const valueRouteId = formData.route?.[0] || "";
-      console.log("[AddUserModal] Value Route ID:", valueRouteId);
       onSubmit({
         ...formData,
         group_id: valueGroupID,
         area_id: valueAreaID,
         route_id: valueRouteId
       });
+
+    // formData cho admin tránh nhầm lẫn với Operator
+    } else if (validateForm() && isAdmin) {
+      onSubmit(formData);
     }
   };
 

@@ -39,7 +39,11 @@ fe/package-lock.json
 fe/.vite/deps
 
 be/.env
+*.env
+*.log
 
 be/app/logs/
 
 .cursor/
+.vscode/
+__pycache__/

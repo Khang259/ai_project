@@ -3,10 +3,9 @@ import { useState, useMemo, useCallback } from "react";
 
 export function useTaskFilter(tasks, limit = 20) {
     const [currentPage, setCurrentPage] = useState(1);
-    const [orderIdFilter, setOrderIdFilter] = useState("");
-    const [deviceNumFilter, setDeviceNumFilter] = useState("");
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
+    const [searchTaskProperty, setSearchTaskProperty] = useState("");
 
     // Map all tasks first
     const mappedTasks = useMemo(() => {
@@ -17,10 +16,10 @@ export function useTaskFilter(tasks, limit = 20) {
             device_num: item.device_num || "--",
             qr_code: item.qr_code || "--",
             status: item.status || "Unknown",
-            updated_at: item.updated_at ? new Date(item.updated_at).toLocaleString("vi-VN") : "--",
-            updated_at_raw: item.updated_at,
             group: item.group_id || "Unknown",
             route: item.route_name || "Unknown",
+            updated_at: item.updated_at ? new Date(item.updated_at).toLocaleString("vi-VN") : "--",
+            updated_at_raw: item.updated_at,
         }));
     }, [tasks]);
 
@@ -28,17 +27,10 @@ export function useTaskFilter(tasks, limit = 20) {
     const filteredTasks = useMemo(() => {
         let filtered = [...mappedTasks];
 
-        // Filter by Order ID
-        if (orderIdFilter.trim()) {
+        if (searchTaskProperty.trim()) {
             filtered = filtered.filter(task =>
-                task.order_id.toLowerCase().includes(orderIdFilter.toLowerCase())
-            );
-        }
-
-        // Filter by Device Number
-        if (deviceNumFilter.trim()) {
-            filtered = filtered.filter(task =>
-                task.device_num.toLowerCase().includes(deviceNumFilter.toLowerCase())
+                task.order_id.toLowerCase().includes(searchTaskProperty.toLowerCase()) ||
+                task.device_num.toLowerCase().includes(searchTaskProperty.toLowerCase())
             );
         }
 
@@ -67,7 +59,7 @@ export function useTaskFilter(tasks, limit = 20) {
         }
 
         return filtered;
-    }, [mappedTasks, orderIdFilter, deviceNumFilter, startDate, endDate]);
+    }, [mappedTasks, startDate, endDate, searchTaskProperty]);
 
     // Pagination for filtered results
     const paginatedTasks = useMemo(() => {
@@ -82,8 +74,7 @@ export function useTaskFilter(tasks, limit = 20) {
     }, []);
 
     const handleReset = useCallback(() => {
-        setOrderIdFilter("");
-        setDeviceNumFilter("");
+        setSearchTaskProperty("");
         setStartDate(null);
         setEndDate(null);
         setCurrentPage(1);
@@ -91,14 +82,12 @@ export function useTaskFilter(tasks, limit = 20) {
 
     const totalPages = Math.ceil(filteredTasks.length / limit);
     const total = filteredTasks.length;
-    const hasActiveFilters = orderIdFilter || deviceNumFilter || startDate || endDate;
+    const hasActiveFilters = searchTaskProperty || startDate || endDate ;
 
     return {
         // Filter states
-        orderIdFilter,
-        setOrderIdFilter,
-        deviceNumFilter,
-        setDeviceNumFilter,
+        searchTaskProperty,
+        setSearchTaskProperty,
         startDate,
         setStartDate,
         endDate,

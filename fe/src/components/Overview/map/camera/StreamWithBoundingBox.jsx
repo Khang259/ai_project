@@ -1,3 +1,5 @@
+//Vẽ vùng ROI trên stream
+
 import React, { useRef, useState, useEffect } from 'react';
 
 const StreamWithBoundingBox = ({ streamUrl, initialROIs = [], onROIsChange, cameraName }) => {

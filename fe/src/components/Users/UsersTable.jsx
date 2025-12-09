@@ -1,10 +1,10 @@
 import React from "react";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
 
-export default function UsersTable({ users, onDelete, onEdit, onCreateRoute }) {
+export default function UsersTable({ users, onDelete, onEdit }) {
   const {t} = useTranslation();
 
   const formatVNTime = (isoString) => {
@@ -48,9 +48,6 @@ export default function UsersTable({ users, onDelete, onEdit, onCreateRoute }) {
                 ))}
               </TableCell>
               <TableCell className="space-x-2">
-                <Button variant="secondary" size="sm" onClick={() => onCreateRoute(user.id, user)}>
-                  {t('users.createRoute')}
-                </Button>
                 <Button variant="default" size="sm" onClick={() => onEdit(user.id, user)}>
                   {t('users.edit')}
                 </Button>

@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.be
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./be:/app
+      - /app/__pycache__/
+    environment:
+      - PYTHONUNBUFFERED=1
+    tty: true
+  
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile.fe
+    ports:
+      - "3000:5173"
+    volumes:
+      - ./fe:/app
+      - /app/node_modules/
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    tty: true

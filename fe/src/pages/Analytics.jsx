@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateFilter } from "@/components/Analytics/DateFilter";
 import { AMRFilter } from "@/components/Analytics/AMRFilter";
 import { useTranslation } from "react-i18next";
+import { TrophySpin } from 'react-loading-indicators';
 
 
 export default function AnalyticsPage() {
@@ -41,6 +42,7 @@ export default function AnalyticsPage() {
   const [workStatusSummary, setWorkStatusSummary] = useState(null)
   const [payloadSummary, setPayloadSummary] = useState(null)
   const [selectedDeviceCodes, setSelectedDeviceCodes] = useState([])
+  const [loading, setLoading] = useState(false)
 
   // Helper: Date -> YYYY-MM-DD (tránh lệch múi giờ/locale)
   const toYMD = (d) => {
@@ -94,6 +96,7 @@ export default function AnalyticsPage() {
 
   // Hàm để lấy dữ liệu từ backend
   const fetchData = async () => {
+    setLoading(true)
     try {
       // Chỉ fetch khi đã chọn range từ DateFilter
       if (!dateFilter.startDate || !dateFilter.endDate) {
@@ -123,6 +126,8 @@ export default function AnalyticsPage() {
 
     } catch (err) {
       console.error("[Analytics] Lỗi khi lấy dữ liệu:", err)
+    } finally {
+      setLoading(false)
     }
   }
   useEffect(() => {
@@ -138,6 +143,22 @@ export default function AnalyticsPage() {
       clearInterval(interval)
     }
   }, [dateFilter, selectedDeviceCodes]) // Re-run khi filter thay đổi
+
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-6">
+        <div className="scale-350 translate-y-80">
+          <TrophySpin 
+            color="rgb(41, 125, 146)" 
+            size="large-lg" 
+            text={t('analytics.loading')} 
+            textColor="rgb(41, 125, 146)" 
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
       <div className="space-y-8">

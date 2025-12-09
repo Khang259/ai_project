@@ -7,6 +7,7 @@ import AreaTable from "@/components/Area/AreaTable";
 import AddAreaModal from "@/components/Area/AddAreaModal";
 import { useAreas } from "@/hooks/Area/useAreas";
 import { useTranslation } from "react-i18next";
+import { TrophySpin } from 'react-loading-indicators';
 
 export default function AreaDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -25,8 +26,21 @@ export default function AreaDashboard() {
     error,
   } = useAreas();
 
-  if (loading) return <div className="p-6">Đang tải danh sách khu vực...</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-6">
+        <div className="scale-350 translate-y-80">
+          <TrophySpin 
+            color="rgb(41, 125, 146)" 
+            size="large-lg" 
+            text={t('area.loading')} 
+            textColor="rgb(41, 125, 146)" 
+          />
+        </div>
+      </div>
+    );
+  }
+  
 
   const handleAddAreaSubmit = async (areaData) => {
     try {
@@ -34,7 +48,7 @@ export default function AreaDashboard() {
       toast.success("Thêm khu vực thành công");
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Lỗi khi thêm area:", error);
+      window.alert(error);
       toast.error(error?.message || "Thêm khu vực thất bại");
     }
   };

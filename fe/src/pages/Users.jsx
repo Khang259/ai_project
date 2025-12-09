@@ -6,16 +6,15 @@ import UsersFilters from "@/components/Users/UsersFilters";
 import UsersTable from "@/components/Users/UsersTable";
 import AddUserModal from "@/components/Users/AddUserModal";
 import UpdateUserModal from "@/components/Users/UpdateUserModal";
-import CreateRouteModal from "@/components/Users/CreateRouteModal";
 import { useUsers } from "@/hooks/Users/useUsers";
 import Username from "@/components/Users/username";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/hooks/useAuth";
+import { TrophySpin } from 'react-loading-indicators';
 
 export default function UserDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [isCreateRouteModalOpen, setIsCreateRouteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const { t } = useTranslation();
   const { auth } = useAuth();
@@ -48,8 +47,20 @@ export default function UserDashboard() {
     return filteredUsers;
   }, [filteredUsers, auth?.user?.roles]);
 
-  if (loading) return <div className="p-6">{t('users.loading')}</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-6">
+        <div className="scale-350 translate-y-80">
+          <TrophySpin 
+            color="rgb(41, 125, 146)" 
+            size="large-lg" 
+            text={t('users.loading')} 
+            textColor="rgb(41, 125, 146)" 
+          />
+        </div>
+      </div>
+    );
+  }
 
   const handleAddUserSubmit = async (userData) => {
     try {
@@ -57,8 +68,8 @@ export default function UserDashboard() {
       toast.success(t('users.addUserSuccess'));
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Lỗi khi thêm user:", error);
-      toast.error(error?.message || t('users.addUserError'));
+      window.alert(error);
+      toast.error(t('users.addUserError'));
     }
   };
 
@@ -74,13 +85,9 @@ export default function UserDashboard() {
       toast.success(t('users.updateUserSuccess'));
       setIsUpdateModalOpen(false);
     } catch (error) {
+      window.alert(error);
       toast.error(error?.message || t('users.updateUserError'));
     }
-  };
-
-  const handleCreateRoute = (id, user) => {
-    setSelectedUser(user);
-    setIsCreateRouteModalOpen(true);
   };
 
   return (
@@ -98,13 +105,11 @@ export default function UserDashboard() {
         users={displayUsers.map((u) => ({ 
           ...u, 
           name: <Username name={u.username} />,
-          // Giữ nguyên roles array để UsersTable có thể hiển thị đúng
           roles: u.roles || [],
           status: u.is_active ? "Active" : "Inactive",
         }))}
         onDelete={handleDelete}
         onEdit={handleEdit}
-        onCreateRoute={handleCreateRoute}
       />
 
       <AddUserModal
@@ -120,14 +125,6 @@ export default function UserDashboard() {
         onSubmit={handleUpdateUserSubmit}
         loading={loading}
         userData={selectedUser}
-      />
-      
-      <CreateRouteModal
-        isOpen={isCreateRouteModalOpen}
-        onClose={() => setIsCreateRouteModalOpen(false)}
-        onSubmit={handleCreateRoute}
-        loading={loading}
-        user={selectedUser}
       />
     </div>
   );

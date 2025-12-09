@@ -17,16 +17,14 @@ export default function TableNoti({ alerts }) {
 
   const getBadgeVariant = (level) => {
     switch (level) {
-      case "Alert":
-      case "High":
+      case "Fatal":
         return "destructive";
-      case "Warning":
-      case "Medium":
+      case "Alert":
         return "default";
-      case "Low":
-        return "secondary";
+      case "Warning":
+        return "ghost"; 
       default:
-        return "outline";
+        return "default";
     }
   };
 

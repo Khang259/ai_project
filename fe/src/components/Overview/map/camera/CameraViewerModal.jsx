@@ -92,26 +92,28 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
         {/* Body */}
         <div className="p-6 space-y-6">
           {/* Stream + Canvas */}
-          {loading && (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              <p className="ml-2 text-gray-600">Đang tải stream...</p>
-            </div>
-          )}
-          {error && (
-            <div className="text-red-600 text-center py-8">
-              Lỗi: {error}
-              <p className="text-sm mt-2 text-gray-500">RTSP: {cameraData.cameraPath}</p>
-            </div>
-          )}
-          {streamUrl && !loading && (
-            <StreamWithBoundingBox
-              streamUrl={streamUrl}
-              initialROIs={ROIs}
-              onROIsChange={setROIs}
-              cameraName={cameraData.cameraName}
-            />
-          )}
+          <div className='w-full h-full'>
+            {loading && (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <p className="ml-2 text-gray-600">Đang tải stream...</p>
+              </div>
+            )}
+            {error && (
+              <div className="text-red-600 text-center py-8">
+                Lỗi: {error}
+                <p className="text-sm mt-2 text-gray-500">RTSP: {cameraData.cameraPath}</p>
+              </div>
+            )}
+            {streamUrl && !loading && (
+              <StreamWithBoundingBox
+                streamUrl={streamUrl}
+                initialROIs={ROIs}
+                onROIsChange={setROIs}
+                cameraName={cameraData.cameraName}
+              />
+            )} 
+          </div>
 
           {/* Bảng tọa độ */}
           <div className="border rounded-lg overflow-hidden text-black">

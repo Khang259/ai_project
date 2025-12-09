@@ -2,78 +2,18 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, X } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth, isAfter, parse, isValid } from "date-fns";
+import { format, isValid } from "date-fns";
 import { vi } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
-const PRESET_RANGES = [
-    {
-        label: "Hôm nay",
-        getValue: () => ({
-            start: new Date(),
-            end: new Date(),
-        }),
-    },
-    {
-        label: "7 ngày qua",
-        getValue: () => ({
-            start: subDays(new Date(), 6),
-            end: new Date(),
-        }),
-    },
-    {
-        label: "14 ngày qua",
-        getValue: () => ({
-            start: subDays(new Date(), 13),
-            end: new Date(),
-        }),
-    },
-    {
-        label: "30 ngày qua",
-        getValue: () => ({
-            start: subDays(new Date(), 29),
-            end: new Date(),
-        }),
-    },
-    {
-        label: "Tháng này",
-        getValue: () => ({
-            start: startOfMonth(new Date()),
-            end: endOfMonth(new Date()),
-        }),
-    },
-];
 
 export default function DateRangePicker({ startDate, endDate, onDateChange }) {
     const [isOpen, setIsOpen] = useState(false);
     const [tempStartDate, setTempStartDate] = useState(startDate);
     const [tempEndDate, setTempEndDate] = useState(endDate);
-
-    const handleDateSelect = (date) => {
-        if (!tempStartDate || (tempStartDate && tempEndDate)) {
-            // Start new selection
-            setTempStartDate(date);
-            setTempEndDate(null);
-        } else if (tempStartDate && !tempEndDate) {
-            // Select end date
-            if (isAfter(date, tempStartDate) || date.getTime() === tempStartDate.getTime()) {
-                setTempEndDate(date);
-            } else {
-                // If selected date is before start, make it new start
-                setTempEndDate(tempStartDate);
-                setTempStartDate(date);
-            }
-        }
-    };
-
-    const handlePresetClick = (preset) => {
-        const range = preset.getValue();
-        setTempStartDate(range.start);
-        setTempEndDate(range.end);
-    };
-
+    const { t } = useTranslation();
     const handleStartDateInput = (e) => {
         const value = e.target.value;
         if (value) {
@@ -117,29 +57,23 @@ export default function DateRangePicker({ startDate, endDate, onDateChange }) {
         setIsOpen(false);
     };
 
-    const handleClearAll = () => {
-        setTempStartDate(null);
-        setTempEndDate(null);
-        onDateChange(null, null);
-        setIsOpen(false);
-    };
-
     const getDaysBetween = () => {
         if (!startDate || !endDate) return null;
         const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-        return days;
+        const AbsDays = Math.abs(days);;
+        return AbsDays;
     };
 
     const formatDateRange = () => {
         if (!startDate && !endDate) return "Chọn khoảng thời gian";
         if (startDate && !endDate) {
-            return `Từ ${format(startDate, "dd/MM/yyyy", { locale: vi })}`;
+            return `Từ ${format(startDate, "dd/mm/yyyy", { locale: vi })}`;
         }
         if (!startDate && endDate) {
-            return `Đến ${format(endDate, "dd/MM/yyyy", { locale: vi })}`;
+            return `Đến ${format(endDate, "dd/mm/yyyy", { locale: vi })}`;
         }
-        const days = getDaysBetween();
-        return `${format(startDate, "dd/MM/yyyy", { locale: vi })} - ${format(endDate, "dd/MM/yyyy", { locale: vi })} (${days} ngày)`;
+        const AbsDays = getDaysBetween();
+        return `${AbsDays} ${t("taskManagement.days")})`;
     };
 
     const formatDateForInput = (date) => {
@@ -160,30 +94,16 @@ export default function DateRangePicker({ startDate, endDate, onDateChange }) {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                    <div className="flex">
+                    <div className="flex glass">
                         {/* Presets Sidebar */}
-                        <div className="border-r border-gray-200 p-4 bg-gray-50 min-w-[160px]">
-                            <div className="text-sm font-semibold mb-3 text-gray-700">Chọn nhanh</div>
-                            <div className="flex flex-col gap-1">
-                                {PRESET_RANGES.map((preset) => (
-                                    <Button
-                                        key={preset.label}
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handlePresetClick(preset)}
-                                        className="justify-start text-left hover:bg-gray-200"
-                                    >
-                                        {preset.label}
-                                    </Button>
-                                ))}
-                            </div>
-
+                        
+                        <div className="border-r border-gray-200 p-4 min-w-[160px]">
                             {/* Custom Date Inputs */}
-                            <div className="mt-4 pt-4 border-t border-gray-300">
-                                <div className="text-sm font-semibold mb-3 text-gray-700">Tùy chỉnh</div>
+                            <div className="">
+                                <span className="text-xl font-semibold mb-3 text-gray-700">{t("taskManagement.custom")}</span>
                                 <div className="space-y-3">
                                     <div>
-                                        <label className="text-xs text-gray-600 mb-1 block">Từ ngày</label>
+                                        <label className="text-xs text-gray-600 mb-1 block">{t("taskManagement.from-date")}</label>
                                         <div className="flex items-center gap-1">
                                             <Input
                                                 type="date"
@@ -204,7 +124,7 @@ export default function DateRangePicker({ startDate, endDate, onDateChange }) {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs text-gray-600 mb-1 block">Đến ngày</label>
+                                        <label className="text-xs text-gray-600 mb-1 block">{t("taskManagement.to-date")}</label>
                                         <div className="flex items-center gap-1">
                                             <Input
                                                 type="date"
@@ -229,47 +149,28 @@ export default function DateRangePicker({ startDate, endDate, onDateChange }) {
                         </div>
 
                         {/* Calendar */}
+                        
                         <div className="p-4">
-                            <Calendar
-                                mode="single"
-                                selected={tempStartDate || tempEndDate}
-                                onSelect={handleDateSelect}
-                                initialFocus
-                                modifiers={{
-                                    start: tempStartDate,
-                                    end: tempEndDate,
-                                    range: tempStartDate && tempEndDate ? {
-                                        from: tempStartDate,
-                                        to: tempEndDate,
-                                    } : undefined,
-                                }}
-                                modifiersClassNames={{
-                                    start: "bg-primary text-primary-foreground rounded-l-md",
-                                    end: "bg-primary text-primary-foreground rounded-r-md",
-                                    range: "bg-primary/20",
-                                }}
-                            />
-
                             {/* Selection Info */}
                             <div className="mt-3 pt-3 border-t border-gray-200">
                                 <div className="text-sm space-y-1">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">Từ ngày:</span>
+                                        <span className="text-gray-600">{t("taskManagement.from-date")}:</span>
                                         <span className="font-medium">
                                             {tempStartDate ? format(tempStartDate, "dd/MM/yyyy", { locale: vi }) : "---"}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">Đến ngày:</span>
+                                        <span className="text-gray-600">{t("taskManagement.to-date")}:</span>
                                         <span className="font-medium">
                                             {tempEndDate ? format(tempEndDate, "dd/MM/yyyy", { locale: vi }) : "---"}
                                         </span>
                                     </div>
                                     {tempStartDate && tempEndDate && (
                                         <div className="flex justify-between items-center pt-1 border-t">
-                                            <span className="text-gray-600">Số ngày:</span>
+                                            <span className="text-gray-600">{t("taskManagement.number-of-days")}:</span>
                                             <span className="font-medium text-primary">
-                                                {Math.ceil((tempEndDate - tempStartDate) / (1000 * 60 * 60 * 24)) + 1} ngày
+                                                {Math.abs((tempEndDate - tempStartDate) / (1000 * 60 * 60 * 24)) + 1} {t("taskManagement.days")}
                                             </span>
                                         </div>
                                     )}
@@ -278,43 +179,24 @@ export default function DateRangePicker({ startDate, endDate, onDateChange }) {
 
                             {/* Action Buttons */}
                             <div className="mt-4 flex gap-2 justify-between">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleClearAll}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                    Xóa tất cả
-                                </Button>
                                 <div className="flex gap-2">
                                     <Button variant="ghost" size="sm" onClick={handleCancel}>
-                                        Hủy
+                                        {t("taskManagement.cancel")}
                                     </Button>
                                     <Button
                                         size="sm"
                                         onClick={handleApply}
                                         disabled={!tempStartDate && !tempEndDate}
                                     >
-                                        Áp dụng
+                                        {t("taskManagement.apply")}
                                     </Button>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </PopoverContent>
             </Popover>
-
-            {/* External Clear Button */}
-            {(startDate || endDate) && (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearAll}
-                    className="text-gray-400 hover:text-white hover:bg-white/10"
-                >
-                    <X className="h-4 w-4" />
-                </Button>
-            )}
         </div>
     );
 }

@@ -44,8 +44,8 @@ export function useAuth() {
     localStorage.removeItem("mapData");
     localStorage.removeItem("importedMapData");
 
-    console.log('[useAuth] Logout successful - removed items:');
-    
+    console.log('[useAuth] Logout successful');
+
     // Clear user-specific area localStorage
     const keys = Object.keys(localStorage);
     keys.forEach(key => {
@@ -53,7 +53,7 @@ export function useAuth() {
         localStorage.removeItem(key);
       }
     });
-    
+
     setAuth({ token: null, user: null });
   };
 

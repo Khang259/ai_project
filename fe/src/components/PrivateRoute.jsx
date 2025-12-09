@@ -20,13 +20,12 @@ function PrivateRoute({ children, requiredRole = null }) {
     );
   }
 
-  // === KIỂM TRA REQUIRED ROLE (mảng hoặc chuỗi) ===
   if (requiredRole) {
     const requiredRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     const hasPermission = user.roles?.some(role => requiredRoles.includes(role));
 
     if (!hasPermission) {
-      console.log('User does not have required role', { userRoles: user.roles, requiredRoles });
+      //console.log('User does not have required role', { userRoles: user.roles, requiredRoles });
 
       if (user.roles?.includes("user")) {
         return <Navigate to="/mobile-grid-display" replace />;
@@ -36,11 +35,9 @@ function PrivateRoute({ children, requiredRole = null }) {
     }
   }
 
-  // === KIỂM TRA USER THƯỜNG: chỉ được vào /mobile-grid-display ===
   if (
     user.roles?.includes("user") &&
-    !user.roles?.includes("admin") &&
-    !user.roles?.includes("superuser")
+    !user.roles?.includes("admin")
   ) {
     if (window.location.pathname !== "/mobile-grid-display") {
       return <Navigate to="/mobile-grid-display" replace />;
