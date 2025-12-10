@@ -11,6 +11,7 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: "",
+    password: "",
     roles: [], // Sẽ được set từ API
     permissions: [],
     groupId: "" //Thêm group ID vào từng đối tượng nếu là opertaor mới xuất hiện trường này 
@@ -24,6 +25,7 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
     if (isOpen && userData) {
       setFormData({
         username: userData.username || "",
+        password: userData.password || "",
         roles: Array.isArray(userData.roles) && userData.roles.length > 0 ? [userData.roles[0]] : ["user"],
         permissions: userData.permissions || []
       });
@@ -57,8 +59,12 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
     const newErrors = {};
     if (!formData.username.trim()) {
       newErrors.username = t('users.usernameRequired');
-    } else if (formData.username.length < 3) {
+    } else if (formData.username.length < 1) {
       newErrors.username = t('users.usernameMinLength');
+    } else if (!formData.password.trim()) {
+      newErrors.password = t('users.passwordRequired');
+    } else if (formData.password.length < 1) {
+      newErrors.password = t('users.passwordMinLength');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -69,8 +75,10 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
     if (validateForm()) {
       onSubmit({
         username: formData.username,
+        password: formData.password,
         roles: formData.roles
       });
+      console.log(onSubmit)
     }
   };
 
@@ -92,7 +100,8 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
   const handleClose = () => {
     setFormData({
       username: "",
-      roles: ["user"]
+      password: "",
+      roles: [],
     });
     setErrors({});
     onClose();
@@ -103,6 +112,7 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
   return (
     <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
       <Card className="w-full max-w-md mx-4 bg-gray-400" style={{ borderRadius: "30px" }}>
+        {/* Header */}
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
             <CardTitle>{t('users.updateUser')}</CardTitle>
@@ -117,6 +127,7 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
         
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {/* Username */}
             <div className="space-y-2">
               <Label htmlFor="username">{t('users.username')}</Label>
               <Input
@@ -134,6 +145,21 @@ export default function UpdateUserModal({ isOpen, onClose, onSubmit, loading, us
             </div>
 
             {/* Password không cập nhật tại đây, tách riêng endpoint đổi mật khẩu */}
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('users.password')}</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder={t('users.passwordPlaceholder')}
+                style={{ backgroundColor: "#fff" }} // Đổi màu nền placeholder
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                className={errors.password ? "border-red-500" : ""}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password}</p>
+              )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="roles">{t('users.role')}</Label>

@@ -105,6 +105,8 @@ async def update_user(
     update_data = {}
     if user_update.username is not None:
         update_data["username"] = user_update.username
+    if user_update.password is not None:
+        update_data["hashed_password"] = user_update.password
     if user_update.is_active is not None:
         update_data["is_active"] = user_update.is_active
     if user_update.roles is not None:
