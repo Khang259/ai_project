@@ -337,3 +337,28 @@ async def process_caller(node: ProcessCaller, priority: Optional[int] = None) ->
         raise ValueError("Invalid caller type")
 
     return payload
+
+async def process_caller_WE(node: ProcessCaller) -> dict:
+    """Gọi process caller cho xưởng hàn (Welding) - modelProcessCode và Priority cố định, chỉ có start và end"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
+    order_id = f"caller_we_{timestamp}_{str(uuid.uuid4())[:8]}"
+    
+    # Cố định modelProcessCode và Priority cho xưởng hàn
+    MODEL_PROCESS_CODE = "moveShelf3"  # Thay bằng giá trị thực tế bạn cần
+    FIXED_PRIORITY = 6  # Thay bằng giá trị thực tế bạn cần
+
+    # Mặc định chỉ có start và end
+    payload = {
+        "modelProcessCode": MODEL_PROCESS_CODE, 
+        "priority": FIXED_PRIORITY, 
+        "fromSystem": "Thadosoft", 
+        "orderId": order_id,
+        "taskOrderDetail": [ 
+            {    
+                "taskPath": f"{node.start},{node.end}", 
+            } 
+        ] 
+    }
+    print(payload)
+    return payload

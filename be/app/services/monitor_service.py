@@ -6,8 +6,8 @@ from bson import ObjectId
 from pymongo import UpdateOne
 from app.api.agv_websocket import broadcast_monitor_data
 # ===== CONSTANTS - Business rules cho mapping node_end -> category =====
-FRAME_NODES = {56789,789} 
-TANK_NODES = {6789}   
+FRAME_NODES = {40000942,40000939,40000937,40000928} 
+TANK_NODES = {40000934,40000932,40000930}   
 
 
 async def save_monitors_with_bulk(items: List[MonitorRequest]) -> dict:

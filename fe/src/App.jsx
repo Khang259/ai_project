@@ -13,6 +13,7 @@ import MonitorPackaged from './pages/MonitorPackaged';
 import MobileGridDisplay from './pages/MobileGridDisplay';
 import MonitorPage from './pages/Monitor';
 import Area from './pages/Area';
+import CallerWE from './pages/CallerWE';
 import PrivateRoute from './components/PrivateRoute';
 import { AreaProvider } from './contexts/AreaContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -135,6 +136,14 @@ function App() {
                 <DashboardLayout>
                   <Area />
                 </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/caller-we"
+            element={
+              <PrivateRoute>
+                  <CallerWE />
               </PrivateRoute>
             }
           />

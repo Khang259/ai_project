@@ -10,7 +10,7 @@ import { useArea } from '../contexts/AreaContext';
 import { useTranslation } from "react-i18next";
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState('button');
+  const [activeTab, setActiveTab] = useState('monitor');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { currAreaName, currAreaId } = useArea();
   const { t } = useTranslation();
