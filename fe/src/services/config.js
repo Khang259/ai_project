@@ -34,32 +34,29 @@ export const fetchConfig = async (serverIPs, username) => {
     }
   };
   
-  export const saveConfig = async (serverIPs, configData, username) => {
-    if (!serverIPs || !Array.isArray(serverIPs) || serverIPs.length === 0) {
-      throw new Error('Không có IP server hợp lệ.');
-    }
-  
-    const serverIP = serverIPs[0]; // Chọn IP đầu tiên
-    console.log('Debug serverIP:', serverIP);
-    console.log('Debug configData:', configData);
-    console.log('Debug username:', username);
-  
-    const url = `http://${serverIP}/config`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ configData, username }) // Thêm username vào body
-    });
-  
-    if (!response.ok) {
-      console.log('Debug response:', await response.text());
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  
-    const result = await response.json();
-    if (result.status !== 'success') {
-      throw new Error(result.message || 'Không thể lưu cấu hình');
-    }
-  
-    return result.data;
-  };
+export const saveConfig = async (serverIPs, configData, username) => {
+  if (!serverIPs || !Array.isArray(serverIPs) || serverIPs.length === 0) {
+    throw new Error('Không có IP server hợp lệ.');
+  }
+
+  const serverIP = serverIPs[0]; // Chọn IP đầu tiên
+
+  const url = `http://${serverIP}/config`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ configData, username }) // Thêm username vào body
+  });
+
+  if (!response.ok) {
+    console.log('Debug response:', await response.text());
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+
+  const result = await response.json();
+  if (result.status !== 'success') {
+    throw new Error(result.message || 'Không thể lưu cấu hình');
+  }
+
+  return result.data;
+};

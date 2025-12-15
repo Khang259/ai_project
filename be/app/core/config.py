@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     app_host: str = "0.0.0.0"
     app_port: int = 8000
     
+    #redis
+    redis_host: str = "redis"
+    redis_port: int = 6379
+    
     # Logging
     log_level: str = "INFO"
 

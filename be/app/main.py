@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 
 import sys
 import os
+import asyncio
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
@@ -30,6 +31,8 @@ from app.services.heartbeat_service import websocket_heartbeat_service
 from app.services.task_service import task_service
 from app.services.websocket_service import manager as websocket_manager
 from app.services.modbusTCP_service import modbus_device_manager
+from app.api.camera_event import router as camera_event_router
+from app.services.camera_ping_service import monitor_loop
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -75,6 +78,9 @@ async def lifespan(app: FastAPI):
     logger.info("Heartbeat service started")
     await modbus_device_manager.start()
     logger.info("Modbus device manager started")
+
+    monitor_task = asyncio.create_task(monitor_loop())
+    logger.info("Camera ping service started")
     yield
     
     # Shutdown - Thứ tự quan trọng: đóng connections trước, sau đó stop services
@@ -100,6 +106,12 @@ async def lifespan(app: FastAPI):
     # 4. Dừng scheduler (đợi jobs đang chạy hoàn thành với timeout)
     shutdown_scheduler()
     logger.info("AGV Scheduler stopped")
+
+    # Shutdown
+    monitor_task.cancel()
+    logger.info("Camera ping service stopped")
+    await close_mongo_connection()
+    logger.info("CameraAI Backend shutdown completed")
     
     # 5. Đóng database connection cuối cùng
     await close_mongo_connection()
@@ -153,6 +165,8 @@ app.include_router(notification.router, tags=["Notification"])
 app.include_router(task_status.router, tags=["Task Status"])
 app.include_router(monitor.router, prefix="/monitor", tags=["Monitor Management"])
 app.include_router(analytic.router, tags=["Analysis"])
+
+app.include_router(camera_event_router, tags=["Camera Event"])
 
 
 @app.get("/")

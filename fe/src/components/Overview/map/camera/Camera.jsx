@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import onlineCameraIcon from '@/assets/online_camera.png';
 import offlineCameraIcon from '@/assets/offline_camera.png';
+import { useCameraState } from '@/hooks/MapDashboard/useCameraState';
 
 // Tính kích thước icon camera theo zoom hiện tại của map (CRS.Simple)
 const getCameraIconSizeByZoom = (map) => {
@@ -24,7 +25,7 @@ const Camera = ({
 }) => {
   const layerRef = useRef(null);
   const markersRef = useRef({}); // Lưu markers để tra cứu
-
+  const { cameraState } = useCameraState();
   useEffect(() => {
     try {
       if (!mapInstance || !mapData || !showCameras) {
@@ -32,7 +33,7 @@ const Camera = ({
           try {
             mapInstance.removeLayer(layerRef.current);
           } catch (error) {
-            console.warn('⚠️ Error removing camera layer:', error);
+            console.warn('Error removing camera layer:', error);
           }
           layerRef.current = null;
         }
@@ -41,7 +42,7 @@ const Camera = ({
 
       // Kiểm tra map container vẫn tồn tại
       if (!mapInstance.getContainer()) {
-        console.warn('⚠️ Map container missing, skipping camera render');
+        console.warn('Map container missing, skipping camera render');
         return;
       }
 
@@ -50,7 +51,7 @@ const Camera = ({
         try {
           mapInstance.removeLayer(layerRef.current);
         } catch (error) {
-          console.warn('⚠️ Error removing existing camera layer:', error);
+          console.warn('Error removing existing camera layer:', error);
         }
       }
 
@@ -66,7 +67,7 @@ const Camera = ({
             if (typeof node.name === 'string' && /^Camera\d+$/i.test(node.name.trim())) {
               // Extract camera ID from name (Camera1, Camera2...)
               const cameraIndex = parseInt(node.name.replace(/Camera/i, ''));
-              const isOnline = cameraStatus[cameraIndex]?.online || false;
+              const isOnline = cameraState[cameraIndex]?.online || false;
 
               // Map theo index với -1 để Camera1 -> DB[0]
               const cameraFromDB = camerasData[cameraIndex - 1];
@@ -148,7 +149,7 @@ const Camera = ({
               if (cameraName) markersRef.current[cameraName] = marker;
             }
           } catch (nodeError) {
-            console.error('🚨 Error processing camera node:', node, nodeError);
+            console.error('Error processing camera node:', node, nodeError);
           }
         });
       }
@@ -158,17 +159,17 @@ const Camera = ({
         camerasLayer.addTo(mapInstance);
         layerRef.current = camerasLayer;
       } else {
-        console.warn('⚠️ Map container missing, cannot add camera layer');
+        console.warn(' Map container missing, cannot add camera layer');
       }
 
     } catch (error) {
-      console.error('🚨 Camera useEffect error:', error);
+      console.error('Camera useEffect error:', error);
       // Cleanup on error
       if (layerRef.current && mapInstance) {
         try {
           mapInstance.removeLayer(layerRef.current);
         } catch (cleanupError) {
-          console.warn('⚠️ Error during cleanup:', cleanupError);
+          console.warn('Error during cleanup:', cleanupError);
         }
         layerRef.current = null;
       }
@@ -180,13 +181,13 @@ const Camera = ({
         try {
           mapInstance.removeLayer(layerRef.current);
         } catch (error) {
-          console.warn('⚠️ Error removing camera layer in cleanup:', error);
+          console.warn('Error removing camera layer in cleanup:', error);
         }
         layerRef.current = null;
       }
       markersRef.current = {};
     };
-  }, [mapInstance, mapData, showCameras, onCameraClick, cameraStatus, camerasData]);
+  }, [mapInstance, mapData, showCameras, onCameraClick, cameraState, camerasData]);
 
   // useEffect để xử lý focus + tooltip khi cameraFilter thay đổi
   useEffect(() => {
@@ -244,7 +245,7 @@ const Camera = ({
           mapInstance.removeLayer(layerRef.current);
           layerRef.current = null;
         } catch (error) {
-          console.warn('⚠️ Error cleaning up on route change:', error);
+          console.warn('Error cleaning up on route change:', error);
         }
       }
     };

@@ -15,8 +15,8 @@ const Button = () => {
         data-text="Awesome"
         onClick={handleClick}
       >
-        <span className="actual-text">&nbsp;uiverse&nbsp;</span>
-        <span aria-hidden="true" className="hover-text">&nbsp;uiverse&nbsp;</span>
+        <span className="actual-text">&nbsp;AI_MODE&nbsp;</span>
+        <span aria-hidden="true" className="hover-text">&nbsp;AI_MODE&nbsp;</span>
       </button>
     </StyledWrapper>
   );

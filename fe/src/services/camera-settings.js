@@ -31,6 +31,7 @@ export const deleteCamera = async (cameraId) => {
   }
 };
 
+//Get list camera follow area id
 export const getCamerasByArea = async (areaId) => {
   try {
     const response = await api.get(`/cameras/area/${areaId}/cameras`);
@@ -40,3 +41,15 @@ export const getCamerasByArea = async (areaId) => {
     throw new Error(error.message || "Lỗi khi lấy camera theo khu vực");
   }
 };
+
+
+//Camera state:on/off
+export const getCamerasStatus = async () => {
+  try {
+    const response = await api.get('/cameras_status');
+    return response.data;
+  } catch (error) {
+    console.error("Error getting cameras status:", error);
+    throw new Error(error.message || "Lỗi khi lấy trạng thái camera");
+  }
+}

@@ -4,14 +4,10 @@ import 'leaflet/dist/leaflet.css';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-// Import camera images
-// Camera layer moved to dedicated component
 import Camera from '../camera/Camera';
 import { getCamerasByArea } from '@/services/camera-settings';
 import { useArea } from "@/contexts/AreaContext";
-// Import NodeComponent
 import NodeComponent from './Node';
-// MapFilters is handled in parent AMRWarehouseMap component
 
 // Error Boundary Component
 class CameraErrorBoundary extends React.Component {

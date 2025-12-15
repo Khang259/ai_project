@@ -1,0 +1,144 @@
+2025-12-10 01:31:59,204 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-10 01:31:59,207 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-10 01:31:59,877 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-10 01:31:59,878 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-10 01:32:00,370 - camera_ai_app - INFO - Default permissions initialized
+2025-12-10 01:32:00,370 - camera_ai_app - INFO - Initializing default roles...
+2025-12-10 01:32:00,469 - camera_ai_app - INFO - Default roles initialized
+2025-12-10 01:32:00,470 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-10 01:32:00,986 - camera_ai_app - INFO - Default permissions initialized
+2025-12-10 01:32:00,986 - camera_ai_app - INFO - Initializing default roles...
+2025-12-10 01:32:01,086 - camera_ai_app - INFO - Default roles initialized
+2025-12-10 01:32:01,088 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-12-10 01:32:01,089 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-10 23:00:00+00:00
+2025-12-10 01:32:01,089 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-10 01:32:01,090 - camera_ai_app - INFO - Notification service started
+2025-12-10 01:32:01,090 - camera_ai_app - INFO - Task service started
+2025-12-10 01:32:01,091 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-10 01:32:01,091 - camera_ai_app - INFO - Heartbeat service started
+2025-12-10 01:32:01,091 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-12-10 01:32:01,121 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-12-10 01:32:01,122 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-12-10 01:32:01,122 - camera_ai_app - INFO - Modbus device manager started
+2025-12-10 01:50:28,349 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-10 01:50:28,350 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-10 01:50:28,351 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-10 01:50:28,351 - camera_ai_app - INFO - No active WebSocket connections to close
+2025-12-10 01:50:28,351 - camera_ai_app - INFO - All WebSocket connections closed
+2025-12-10 01:50:28,352 - camera_ai_app - INFO - Notification service stopped
+2025-12-10 01:50:28,353 - camera_ai_app - INFO - Task service stopped
+2025-12-10 01:50:28,353 - camera_ai_app - INFO - Stopping Modbus Device Manager...
+2025-12-10 01:50:28,353 - camera_ai_app - INFO - Modbus Device Manager stopped
+2025-12-10 01:50:28,354 - camera_ai_app - INFO - Modbus device manager stopped
+2025-12-10 01:50:28,355 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-10 01:50:28,355 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-10 01:50:28,382 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-10 01:50:28,382 - camera_ai_app - INFO - MongoDB connection closed
+2025-12-10 01:50:28,383 - camera_ai_app - INFO - CameraAI Backend shutdown completed
+2025-12-10 01:50:31,939 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-10 01:50:31,942 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-10 01:50:32,582 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-10 01:50:32,582 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-10 01:50:33,146 - camera_ai_app - INFO - Default permissions initialized
+2025-12-10 01:50:33,146 - camera_ai_app - INFO - Initializing default roles...
+2025-12-10 01:50:33,262 - camera_ai_app - INFO - Default roles initialized
+2025-12-10 01:50:33,262 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-10 01:50:33,830 - camera_ai_app - INFO - Default permissions initialized
+2025-12-10 01:50:33,830 - camera_ai_app - INFO - Initializing default roles...
+2025-12-10 01:50:33,946 - camera_ai_app - INFO - Default roles initialized
+2025-12-10 01:50:33,949 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-12-10 01:50:33,950 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-10 23:00:00+00:00
+2025-12-10 01:50:33,950 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-10 01:50:33,951 - camera_ai_app - INFO - Notification service started
+2025-12-10 01:50:33,951 - camera_ai_app - INFO - Task service started
+2025-12-10 01:50:33,952 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-10 01:50:33,953 - camera_ai_app - INFO - Heartbeat service started
+2025-12-10 01:50:33,953 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-12-10 01:50:33,984 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-12-10 01:50:33,984 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-12-10 01:50:33,985 - camera_ai_app - INFO - Modbus device manager started
+2025-12-10 01:50:40,102 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-10 01:50:40,102 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-10 01:50:40,103 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-10 01:50:40,103 - camera_ai_app - INFO - No active WebSocket connections to close
+2025-12-10 01:50:40,104 - camera_ai_app - INFO - All WebSocket connections closed
+2025-12-10 01:50:40,104 - camera_ai_app - INFO - Notification service stopped
+2025-12-10 01:50:40,105 - camera_ai_app - INFO - Task service stopped
+2025-12-10 01:50:40,105 - camera_ai_app - INFO - Stopping Modbus Device Manager...
+2025-12-10 01:50:40,106 - camera_ai_app - INFO - Modbus Device Manager stopped
+2025-12-10 01:50:40,106 - camera_ai_app - INFO - Modbus device manager stopped
+2025-12-10 01:50:40,107 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-10 01:50:40,107 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-10 01:50:40,139 - camera_ai_app - INFO - Disconnected from MongoDB
+2025-12-10 01:50:40,139 - camera_ai_app - INFO - MongoDB connection closed
+2025-12-10 01:50:40,140 - camera_ai_app - INFO - CameraAI Backend shutdown completed
+2025-12-10 01:50:43,314 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-10 01:50:43,317 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-10 01:50:43,754 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-10 01:50:43,755 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-10 01:50:44,287 - camera_ai_app - INFO - Default permissions initialized
+2025-12-10 01:50:44,288 - camera_ai_app - INFO - Initializing default roles...
+2025-12-10 01:50:44,395 - camera_ai_app - INFO - Default roles initialized
+2025-12-10 01:50:44,396 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-10 01:50:44,909 - camera_ai_app - INFO - Default permissions initialized
+2025-12-10 01:50:44,910 - camera_ai_app - INFO - Initializing default roles...
+2025-12-10 01:50:45,022 - camera_ai_app - INFO - Default roles initialized
+2025-12-10 01:50:45,024 - camera_ai_app - INFO - AGV Scheduler started successfully.
+2025-12-10 01:50:45,024 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-10 23:00:00+00:00
+2025-12-10 01:50:45,025 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-10 01:50:45,025 - camera_ai_app - INFO - Notification service started
+2025-12-10 01:50:45,026 - camera_ai_app - INFO - Task service started
+2025-12-10 01:50:45,027 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-10 01:50:45,027 - camera_ai_app - INFO - Heartbeat service started
+2025-12-10 01:50:45,028 - camera_ai_app - INFO - Starting Modbus Device Manager...
+2025-12-10 01:50:45,053 - camera_ai_app - INFO - Loaded 1 Modbus devices from database
+2025-12-10 01:50:45,054 - camera_ai_app - INFO - Modbus Device Manager started with 1 devices
+2025-12-10 01:50:45,054 - camera_ai_app - INFO - Modbus device manager started
+2025-12-10 01:57:22,741 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-10 01:57:22,849 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:57:27,093 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:57:27,505 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:57:27,533 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 01:57:27,609 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 01:57:29,497 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 01:57:41,293 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 01:57:48,231 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:57:48,511 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:58:32,839 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 01:58:38,836 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:58:38,908 - camera_ai_app - WARNING - Invalid role ID format: 
+2025-12-10 01:58:39,016 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:59:00,118 - camera_ai_app - WARNING - Login failed: invalid password or username
+2025-12-10 01:59:00,118 - camera_ai_app - ERROR - Login attempt with invalid username='hau_admin'
+2025-12-10 01:59:11,948 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-12-10 01:59:12,045 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:59:20,191 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:59:20,599 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-12-10 01:59:20,603 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-12-10 01:59:20,679 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-12-10 01:59:22,651 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-12-10 02:03:02,717 - camera_ai_app - INFO - User 'hau_admin' granted admin access via 'admin' role
+2025-12-10 02:03:09,213 - camera_ai_app - INFO - User '68f1a5d4991d17d6c5c5ae99' has wildcard permission (*) - granting ALL permissions
+2025-12-10 02:03:09,493 - camera_ai_app - WARNING - Permission denied: User 'hau_admin' lacks permission 'users:read'
+2025-12-10 02:03:15,332 - camera_ai_app - WARNING - Permission denied: User 'hau_admin' lacks permission 'users:write'
+2025-12-10 02:03:15,440 - camera_ai_app - WARNING - Permission denied: User 'hau_admin' lacks permission 'users:read'
+2025-12-10 02:14:01,639 - camera_ai_app - WARNING - Admin access denied: User 'hau_admin' is not admin
+2025-12-10 02:14:13,503 - camera_ai_app - WARNING - Permission denied: User 'hau_admin' lacks permission 'users:write'
+2025-12-10 02:14:13,611 - camera_ai_app - WARNING - Permission denied: User 'hau_admin' lacks permission 'users:read'
+2025-12-10 02:18:45,897 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-10 02:18:45,994 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 02:18:50,734 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 02:18:51,150 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 02:18:51,210 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 02:18:51,306 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 02:18:52,184 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 02:18:57,131 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 02:19:04,123 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 02:19:04,403 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 02:19:28,962 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 02:23:54,703 - camera_ai_app - INFO - User 'khang_admin' granted admin access via 'admin' role
+2025-12-10 02:23:59,068 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 02:23:59,399 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 03:08:00,450 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-10 03:08:00,549 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-10 03:37:53,657 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
