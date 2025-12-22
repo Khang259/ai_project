@@ -1,6 +1,5 @@
 // fe/src/hooks/MapDashboard/useCameraState.js
-import { getCamerasStatus } from '@/services/camera-settings';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const normalizeCameraState = (raw) => {
   const result = {};
@@ -21,26 +20,83 @@ const normalizeCameraState = (raw) => {
 
 export function useCameraState() {
   const [cameraState, setCameraState] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchCameraState = useCallback(async () => {
+  useEffect(() => {
+    let eventSource = null;
+    
     try {
       setLoading(true);
-      const raw = await getCamerasStatus();
-      setCameraState(normalizeCameraState(raw));
       setError(null);
+      
+      // Tạo SSE connection
+      const baseURL = import.meta.env.VITE_API_URL;
+      const sseUrl = `${baseURL}/camera-event`;
+      eventSource = new EventSource(sseUrl);
+      
+      eventSource.onopen = () => {
+        console.log('SSE connection opened');
+        setLoading(false);
+      };
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'initial') {
+            // Nhận initial snapshot
+            const normalized = normalizeCameraState(data.data);
+            setCameraState(normalized);
+            setLoading(false);
+          } else if (data.type === 'update') {
+            // Nhận update từng camera
+            const cameraId = data.camera_id;
+            const match = cameraId.match(/^Camera(\d{2,3})$/i);
+            if (match) {
+              const idx = parseInt(match[1], 10);
+              setCameraState(prev => ({
+                ...prev,
+                [idx]: {
+                  online: Boolean(data.status),
+                  last_seen: data.last_seen,
+                  raw: { status: data.status, last_seen: data.last_seen }
+                }
+              }));
+            }
+          }
+        } catch (err) {
+          console.error('Error parsing SSE message:', err);
+        }
+      };
+      
+      eventSource.onerror = (err) => {
+        console.error('SSE error:', err);
+        setError('Lỗi kết nối SSE');
+        setLoading(false);
+        // Tự động reconnect sau 3 giây
+        if (eventSource) {
+          eventSource.close();
+        }
+        setTimeout(() => {
+          // Reconnect sẽ được trigger bởi useEffect cleanup và re-run
+        }, 3000);
+      };
+      
     } catch (err) {
-      console.error('Error fetching camera state:', err);
-      setError(err.message || 'Lỗi khi lấy trạng thái camera');
-    } finally {
+      console.error('Error setting up SSE:', err);
+      setError(err.message || 'Lỗi khi khởi tạo SSE');
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchCameraState();
-  }, [fetchCameraState]);
+    
+    // Cleanup khi component unmount
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+        console.log('SSE connection closed');
+      }
+    };
+  }, []); // Chỉ chạy một lần khi mount
 
   return { cameraState, loading, error };
 }

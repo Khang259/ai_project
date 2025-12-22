@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import onlineCameraIcon from '@/assets/online_camera.png';
 import offlineCameraIcon from '@/assets/offline_camera.png';
@@ -19,12 +19,11 @@ const Camera = ({
   mapData,
   showCameras,
   onCameraClick,
-  cameraStatus,
   camerasData,
   focusCamera,
 }) => {
   const layerRef = useRef(null);
-  const markersRef = useRef({}); // Lưu markers để tra cứu
+  const markersRef = useRef({});
   const { cameraState } = useCameraState();
   useEffect(() => {
     try {
@@ -40,13 +39,11 @@ const Camera = ({
         return;
       }
 
-      // Kiểm tra map container vẫn tồn tại
       if (!mapInstance.getContainer()) {
         console.warn('Map container missing, skipping camera render');
         return;
       }
 
-      // Remove existing camera layer
       if (layerRef.current) {
         try {
           mapInstance.removeLayer(layerRef.current);

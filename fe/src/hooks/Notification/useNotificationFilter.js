@@ -5,6 +5,7 @@ export function useNotificationFilter(notifications, limit = 20) {
     const [currentPage, setCurrentPage] = useState(1);
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
+    const [priorityFilter, setPriorityFilter] = useState('all');
 
     const mappedNotifications = useMemo(() => {
         return notifications.map((item) => ({
@@ -59,9 +60,13 @@ export function useNotificationFilter(notifications, limit = 20) {
                 return true;
             });
         }
+
+        if (priorityFilter !== 'all') {
+            filtered = filtered.filter(notification => notification.alarmLevel === priorityFilter);
+        }
     
         return filtered;
-    }, [mappedNotifications, startDate, endDate, searchNotificationProperty]);
+    }, [mappedNotifications, startDate, endDate, searchNotificationProperty, priorityFilter]);
 
     const paginatedNotifications = useMemo(() => {
         const startIndex = (currentPage - 1) * limit;
@@ -78,6 +83,7 @@ export function useNotificationFilter(notifications, limit = 20) {
         setSearchNotificationProperty("");
         setStartDate(null);
         setEndDate(null);
+        setPriorityFilter('all');
         setCurrentPage(1);
     }, []);
 
@@ -102,5 +108,7 @@ export function useNotificationFilter(notifications, limit = 20) {
 
         searchNotificationProperty,
         setSearchNotificationProperty,
+        priorityFilter,
+        setPriorityFilter,
     };
 }

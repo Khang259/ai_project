@@ -30,6 +30,8 @@ export default function Notification() {
   const {
     searchNotificationProperty,
     setSearchNotificationProperty,
+    priorityFilter,
+    setPriorityFilter,
     startDate,
     setStartDate,
     endDate,
@@ -68,6 +70,8 @@ export default function Notification() {
         <TableFilter
           searchNotificationProperty={searchNotificationProperty}
           setSearchNotificationProperty={setSearchNotificationProperty}
+          priorityFilter={priorityFilter}
+          setPriorityFilter={setPriorityFilter}
           startDate={startDate}
           setStartDate={setStartDate}
           endDate={endDate}

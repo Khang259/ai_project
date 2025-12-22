@@ -100,7 +100,7 @@ export const useAreas = () => {
       
       await api.delete(`/areas/${areaId}`);
       
-      setAreas(prev => prev.filter(area => area.area_id !== areaId));
+      setAreas(prev => prev.filter(area => area.id !== areaId));
       console.log('[useAreas] ✅ Area deleted successfully');
     } catch (error) {
       console.error('[useAreas] ❌ Error deleting area:', error);

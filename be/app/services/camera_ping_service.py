@@ -1,11 +1,14 @@
 # camera_ping_service.py
 
 import asyncio
-import time
 from collections import deque
 from app.services.camera_state import get_camera_state, set_camera_state
+from shared import get_logger
 
-# Danh sách camera (giảm xuống để test nhanh)
+
+logger = get_logger("camera_ping_service", "INFO", "camera_ping_service")
+
+# Mock data
 CAMERAS = []
 for cam in range(100, 110):  # 1 -> 300
     CAMERAS.append({
@@ -34,7 +37,7 @@ async def ping_camera(host: str, port: int, timeout: int = 3):
         await writer.wait_closed()
         return True
     except Exception:
-        print(f"Ping failed {host}:{port}")
+        logger.error(f"Ping failed {host}:{port}")
         return False
 
 async def check_camera_status(cam):
@@ -45,8 +48,6 @@ async def check_camera_status(cam):
         
         windows = camera_windows[cam["id"]]
         windows.append(ok)
-
-        # Nếu 3 lần ping liên tiếp thành công -> online (True)
         new_status = True if windows.count(True) >= WINDOW_SIZE else False
 
         old = get_camera_state(cam["id"])
