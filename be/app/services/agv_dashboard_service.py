@@ -5,7 +5,7 @@ from shared.logging import get_logger
 from typing import Optional
 import httpx
 from app.core.config import settings
-
+import requests
 
 ics_url = f"http://{settings.ics_host}:7000"
 logger = get_logger("camera_ai_app")
@@ -231,40 +231,43 @@ async def save_agv_position_snapshot(grouped_data: dict = None):
 
 async def filter_count_task(payload):
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(f'{ics_url}/ics/out/task/getOrderList', json=payload)
-            response.raise_for_status()
-            response_data = response.json()
+        response = requests.post(
+            f"{ics_url}/ics/out/task/getOrderList",
+            json=payload,
+            timeout=5
+        )
+
+        data = response.json()
             
-            # Kiểm tra response code
-            if response_data.get("code") != 1000:
-                logger.warning(f"API returned code {response_data.get('code')}: {response_data.get('desc', 'Unknown error')}")
-                return {
-                    "status": "error",
-                    "message": response_data.get("desc", "API returned error code"),
-                    "tasks_with_end_time": [],
-                    "total_tasks": 0,
-                    "filtered_count": 0
-                }
-            
-            # Lấy danh sách tasks từ response
-            tasks = response_data.get("data", {}).get("Tasks", [])
-            total_tasks = len(tasks)
-            
-            # Lọc các task có ActualEndTime
-            tasks_with_end_time = [
-                task for task in tasks 
-                if task.get("ActualEndTime") is not None and task.get("ActualEndTime") != ""
-            ]
-            filtered_count = len(tasks_with_end_time)
-            
-            logger.info(f"Filtered {filtered_count} tasks with ActualEndTime out of {total_tasks} total tasks")
-            
+        # Kiểm tra response code
+        if data.get("code") != 1000:
+            logger.warning(f"API returned code {data.get('code')}: {data.get('desc', 'Unknown error')}")
             return {
-                "status": "success",
-                "total_tasks": total_tasks,
-                "filtered_count": filtered_count
+                "status": "error",
+                "message": data.get("desc", "API returned error code"),
+                "tasks_with_end_time": [],
+                "total_tasks": 0,
+                "filtered_count": 0
             }
+        
+        # Lấy danh sách tasks từ response
+        tasks = data.get("data", {}).get("Tasks", [])
+        total_tasks = len(tasks)
+        
+        # Lọc các task có ActualEndTime
+        tasks_with_end_time = [
+            task for task in tasks 
+            if task.get("ActualEndTime") is not None and task.get("ActualEndTime") != ""
+        ]
+        filtered_count = total_tasks - len(tasks_with_end_time)
+        
+        logger.info(f"Filtered {filtered_count} tasks with ActualEndTime out of {total_tasks} total tasks")
+        
+        return {
+            "status": "success",
+            "total_tasks": total_tasks,
+            "filtered_count": filtered_count
+        }
 
     except httpx.HTTPError as e:
         logger.error(f"HTTP error when calling get_in_progress_task: {e}")
@@ -308,7 +311,7 @@ async def get_in_progress_task(group_id: Optional[str] = None):
             "filtered_count": filtered_count
         }
 
-async def get_task_dashboard(group_id: Optional[str] = None):
+async def get_task_dashboard(group_id):
     tasks_collection = get_collection("tasks")
     base_query = {}
     query_by_week = {}
@@ -318,7 +321,15 @@ async def get_task_dashboard(group_id: Optional[str] = None):
     week_ago = (datetime.now() - timedelta(weeks=1)).isoformat()
     month_ago = (datetime.now() - timedelta(days=30)).isoformat()
 
-    if group_id:
+    if group_id == 0:
+        result = await get_in_progress_task()
+        if result["status"] == "success":
+            in_progress_tasks = result["filtered_count"]
+        else:
+            in_progress_tasks = 0
+        query_by_week["updated_at"] = {"$gte": week_ago}
+        query_by_month["updated_at"] = {"$gte": month_ago}
+    else:
         result = await get_in_progress_task(group_id)
         if result["status"] == "success":
             in_progress_tasks = result["filtered_count"]
@@ -328,16 +339,7 @@ async def get_task_dashboard(group_id: Optional[str] = None):
         query_by_week["group_id"] = group_id
         query_by_week["updated_at"] = {"$gte": week_ago}
         query_by_month["group_id"] = group_id
-        query_by_month["updated_at"] = {"$gte": month_ago}
-    else:
-        # If no group_id, still filter by time for week/month queries
-        result = await get_in_progress_task()
-        if result["status"] == "success":
-            in_progress_tasks = result["filtered_count"]
-        else:
-            in_progress_tasks = 0
-        query_by_week["updated_at"] = {"$gte": week_ago}
-        query_by_month["updated_at"] = {"$gte": month_ago}
+        query_by_month["updated_at"] = {"$gte": month_ago}    
     
     tasks = tasks_collection.find(base_query)
     tasks = await tasks.to_list(length=None)
@@ -349,11 +351,11 @@ async def get_task_dashboard(group_id: Optional[str] = None):
     tasks_by_month = await tasks_by_month.to_list(length=None)
     
     # Count tasks from list (not from collection)
-    completed_tasks = len([task for task in tasks if task.get("status") == 9])
+    completed_tasks = len([task for task in tasks if task.get("status") == 8])
     cancelled_tasks = len([task for task in tasks if task.get("status") == 3])
 
-    completed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 9])
-    completed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 9])
+    completed_tasks_by_week = len([task for task in tasks_by_week if task.get("status") == 8])
+    completed_tasks_by_month = len([task for task in tasks_by_month if task.get("status") == 8])
     total_tasks_by_week = len([task for task in tasks_by_week])
     total_tasks_by_month = len([task for task in tasks_by_month])
 
@@ -948,7 +950,8 @@ def get_time_filter_complicated(time_filter: str):
 
 
 async def get_all_robots_payload_data(
-    time_filter: str,
+    start_date: str,
+    end_date: str,
     device_code: str = None
 ):
     """
@@ -967,22 +970,30 @@ async def get_all_robots_payload_data(
         dict: dữ liệu payload của từng robot riêng biệt
     """
     try:
-        start, end, collection_name = get_time_filter_complicated(time_filter)
+        # Parse date range
+        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
+        # Chọn collection phù hợp theo độ dài range
+        days_diff = (end - start).days
+        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
         collection = get_collection(collection_name)
 
         # Base query
-        base_query = {
-            "created_at": {"$gte": start, "$lt": end}
-        }
+        if collection_name == "agv_data":
+            base_query = {"created_at": {"$gte": start, "$lt": end}}
+        else:
+            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
-        # Lọc theo device_code nếu có
+        # Lọc theo device_code nếu có (hỗ trợ danh sách phân tách bằng dấu phẩy)
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         robots_data = {}
 
         # ===== LOGIC CHO FILTER THEO NGÀY ("d") - Query từ raw data =====
-        if time_filter == "d":
+        if collection_name == "agv_data":
             # Xác định format date
             date_format = "%Y-%m-%d"
             
@@ -1083,9 +1094,7 @@ async def get_all_robots_payload_data(
         # ===== TÍNH PHẦN TRĂM CHO SUMMARY (áp dụng cho cả 2 trường hợp) =====
         for device_code_key in robots_data:
             robot = robots_data[device_code_key]
-            
-            # Nếu filter "d", cần tính phần trăm cho time_series
-            if time_filter == "d":
+            if collection_name == "agv_data":
                 for date_key in robot["time_series"]:
                     total_daily = robot["time_series"][date_key]["total_records"]
                     if total_daily > 0:
@@ -1101,8 +1110,7 @@ async def get_all_robots_payload_data(
         
         return {
             "status": "success",
-            "time_range": f"{start} to {end}",
-            "time_unit": time_filter,
+            "time_range": f"{start_date} to {end_date}",
             "collection_used": collection_name,
             "total_robots": len(robots_data),
             "robots": list(robots_data.values())
@@ -1117,40 +1125,48 @@ async def get_all_robots_payload_data(
 
 
 async def get_all_robots_work_status(
-    time_filter: str,
+    start_date: str,
+    end_date: str,
     device_code: str = None
 ):
     """
     Lấy dữ liệu work status (InTask/Idle) của TẤT CẢ robot
     
-    Logic:
-    - "d": Query từ agv_data (raw data) và tính toán - data nhiều, nặng
-    - "w", "m": Query từ agv_daily_statistics (đã tính sẵn), chỉ tổng hợp lại
-    
     Args:
-        time_filter: "d", "w", "m"
+        start_date: Ngày bắt đầu (YYYY-MM-DD)
+        end_date: Ngày kết thúc (YYYY-MM-DD)
         device_code: mã thiết bị để lọc (tùy chọn)
     
     Returns:
         dict: dữ liệu work status của từng robot riêng biệt
     """
     try:
-        start, end, collection_name = get_time_filter_complicated(time_filter)
+        # Parse date range
+        start = datetime.strptime(start_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # Chọn collection dựa theo độ dài range: <=7 ngày dùng raw, ngược lại dùng daily
+        days_diff = (end - start).days
+        collection_name = "agv_data" if days_diff <= 7 else "agv_daily_statistics"
         collection = get_collection(collection_name)
 
         # Base query
-        base_query = {
-            "created_at": {"$gte": start, "$lt": end}
-        }
+        if collection_name == "agv_data":
+            base_query = {"created_at": {"$gte": start, "$lt": end}}
+        else:
+            # daily stats dùng field 'date' dạng YYYY-MM-DD
+            base_query = {"date": {"$gte": start.strftime("%Y-%m-%d"), "$lte": end.strftime("%Y-%m-%d")}}
 
-        # Lọc theo device_code nếu có
+        # Lọc theo device_code nếu có (hỗ trợ danh sách phân tách bằng dấu phẩy)
         if device_code:
-            base_query["device_code"] = device_code
+            codes = [c.strip() for c in device_code.split(",") if c.strip()]
+            if codes:
+                base_query["device_code"] = {"$in": codes}
 
         robots_data = {}
 
         # ===== LOGIC CHO FILTER THEO NGÀY ("d") - Query từ raw data =====
-        if time_filter == "d":
+        if collection_name == "agv_data":
             # Xác định format date
             date_format = "%Y-%m-%d"
             
@@ -1248,8 +1264,8 @@ async def get_all_robots_work_status(
         for device_code_key in robots_data:
             robot = robots_data[device_code_key]
             
-            # Nếu filter "d", cần tính phần trăm cho time_series
-            if time_filter == "d":
+            # Nếu dùng raw data, cần tính phần trăm cho time_series
+            if collection_name == "agv_data":
                 for date_key in robot["time_series"]:
                     total_daily = robot["time_series"][date_key]["total_records"]
                     if total_daily > 0:
@@ -1265,8 +1281,7 @@ async def get_all_robots_work_status(
         
         return {
             "status": "success",
-            "time_range": f"{start} to {end}",
-            "time_unit": time_filter,
+            "time_range": f"{start_date} to {end_date}",
             "collection_used": collection_name,
             "total_robots": len(robots_data),
             "robots": list(robots_data.values())

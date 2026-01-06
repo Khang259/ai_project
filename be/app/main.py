@@ -12,9 +12,10 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared import setup_logger
 from app.core.config import settings
-from app.api import auth, users, permissions, agv_dashboard, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, route
+from app.api import auth, users, permissions, agv_dashboard, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, monitor, analytic,route,dashboard_performance, agv_websocket,request_end_slot, slot_block
 from app.core.database import connect_to_mongo, close_mongo_connection
-from app.scheduler import start_scheduler, shutdown_scheduler
+from app.scheduler.agv_scheduler import start_scheduler as start_agv_scheduler, shutdown_scheduler as shutdown_agv_scheduler
+from app.scheduler.clean_up_scheduler import start_scheduler as start_cleanup_scheduler, shutdown_scheduler as shutdown_cleanup_scheduler
 from app.routers.parts_summary import router as parts_router
 from app.routers.part_detail import router as part_detail_router
 from app.routers.update_parts import router as update_router
@@ -52,8 +53,9 @@ async def lifespan(app: FastAPI):
         logger.error(f"Error initializing default permissions/roles: {e}")
     
     # Khởi động scheduler
-    start_scheduler()
-    logger.info("AGV Scheduler started")
+    start_agv_scheduler()
+    start_cleanup_scheduler()
+    logger.info("Schedulers started")
     await notification_service.start()
     logger.info("Notification service started")
     await task_service.start()
@@ -85,8 +87,9 @@ async def lifespan(app: FastAPI):
     logger.info("Modbus device manager stopped")
     
     # 4. Dừng scheduler (đợi jobs đang chạy hoàn thành với timeout)
-    shutdown_scheduler()
-    logger.info("AGV Scheduler stopped")
+    shutdown_agv_scheduler()
+    shutdown_cleanup_scheduler()
+    logger.info("Schedulers stopped")
     
     # 5. Đóng database connection cuối cùng
     await close_mongo_connection()
@@ -122,9 +125,11 @@ app.include_router(node.router, prefix="/nodes", tags=["Node Management"])
 app.include_router(camera.router, prefix="/cameras", tags=["Camera Management"])
 app.include_router(agv_dashboard.router, tags=["AGV Dashboard"])
 app.include_router(websocket_api.router, tags=["WebSocket"])
+app.include_router(agv_websocket.router, tags=["WebSocket"])
 app.include_router(caller.router, prefix="/caller", tags=["Caller"])
 app.include_router(notification.router, tags=["Notification"])
 app.include_router(task_status.router, tags=["Task Status"])
+app.include_router(dashboard_performance.router, tags=["Dashboard Performance"])
 # Add Maintenance API
 app.include_router(parts_router, prefix="/api", tags=["Parts Summary"])
 app.include_router(part_detail_router, prefix="/api", tags=["Part Detail"])
@@ -133,8 +138,16 @@ app.include_router(sum_parts_router, prefix="/api", tags=["Sum Parts Replace"])
 app.include_router(update_part_log_router, prefix="/api", tags=["Update Part With Log"])
 app.include_router(maintenance_check_router, prefix="/api", tags=["Maintenance Check"])
 app.include_router(update_amr_name_router, prefix="/api", tags=["Update AMR Name"])
+#API monitor
+app.include_router(request_end_slot.router, prefix="/api", tags=["End Slot Management"])
+app.include_router(slot_block.router, prefix="/api", tags=["Block Slot"])
 
 app.include_router(pdf_router, tags=["PDF"])
+app.include_router(notification.router, tags=["Notification"])
+app.include_router(task_status.router, tags=["Task Status"])
+app.include_router(monitor.router, prefix="/monitor", tags=["Monitor Management"])
+app.include_router(analytic.router, tags=["Analysis"])
+
 
 @app.get("/")
 async def root():

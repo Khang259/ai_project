@@ -233,19 +233,12 @@ async def get_nodes_by_owner_and_type(owner: str, node_type: str) -> List[NodeOu
     return [NodeOut(**node, id=str(node["_id"])) for node in node_list]
 
 def _get_caller_type_from_node_name(node_name: str) -> int:
-    """Xác định type từ node_name
-    Returns:
-        0: PT - nếu phần cuối sau dấu - chỉ là số hoặc rỗng
-        1: VL PHP - nếu phần cuối sau dấu - có chứa chữ cái
-    """
-    parts = node_name.split('-')
-    last_part = parts[-1] if parts else ""
-    
-    # Kiểm tra xem phần cuối có chứa chữ cái không
-    if last_part and any(c.isalpha() for c in last_part):
-        return 1  # VL - có chữ cái
-    else:
-        return 0  # PT - chỉ số hoặc rỗng
+    if not node_name:
+        return 0  # an toàn, coi như PT
+
+    last_char = node_name[-1]
+
+    return 1 if last_char.isalpha() else 0
 
 async def get_nodes_advanced(owner: str) -> dict:
     """Lấy danh sách nodes theo owner và phân loại thành PT/VL, đồng thời nhóm theo node_type và line."""
@@ -295,6 +288,7 @@ async def process_caller(node: ProcessCaller, priority: Optional[int] = None) ->
     # # Nếu priority là None, sử dụng giá trị mặc định (ví dụ: 5)
     if priority is None:
         priority = 6  # Giá trị mặc định, có thể thay đổi theo yêu cầu
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
     # Sử dụng 8 ký tự đầu của UUID để giảm độ dài nhưng vẫn đảm bảo tính duy nhất
@@ -348,4 +342,29 @@ async def process_caller(node: ProcessCaller, priority: Optional[int] = None) ->
     else:
         raise ValueError("Invalid caller type")
 
+    return payload
+
+async def process_caller_WE(node: ProcessCaller) -> dict:
+    """Gọi process caller cho xưởng hàn (Welding) - modelProcessCode và Priority cố định, chỉ có start và end"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Tạo order_id duy nhất với format: owner_timestamp_uuid_short
+    order_id = f"caller_we_{timestamp}_{str(uuid.uuid4())[:8]}"
+    
+    # Cố định modelProcessCode và Priority cho xưởng hàn
+    MODEL_PROCESS_CODE = "moveSheft_we"  # Thay bằng giá trị thực tế bạn cần
+    FIXED_PRIORITY = 6  # Thay bằng giá trị thực tế bạn cần
+
+    # Mặc định chỉ có start và end
+    payload = {
+        "modelProcessCode": MODEL_PROCESS_CODE, 
+        "priority": FIXED_PRIORITY, 
+        "fromSystem": "Thadosoft", 
+        "orderId": order_id,
+        "taskOrderDetail": [ 
+            {    
+                "taskPath": f"{node.start},{node.end}", 
+            } 
+        ] 
+    }
+    print("O day la xong phan service gui ra",payload)
     return payload

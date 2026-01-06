@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Query
-from app.services.task_service import filter_raw_task, get_tasks_from_db, put_to_service, track_task
+from app.services.task_service import filter_raw_task, get_tasks_from_db, put_to_service, track_task, get_unlock_list
 from app.services.websocket_service import manager
 import json
 from shared.logging import get_logger
@@ -10,8 +10,9 @@ logger = get_logger("camera_ai_app")
 @router.post("/task-status")
 async def receive_task_status(request: Request):
     payload = await request.json()
-    # print(payload)
+
     data = await filter_raw_task(payload)
+
     return {"status": "success", "data": data}
 
     # if data["status"] == "success":
@@ -31,11 +32,12 @@ async def get_tasks(page: int = 1, limit: int = 20):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/clear-monitor")
 async def clear_monitor(request: Request):
     payload = await request.json()
     try:
-        logger.info(f"Clearing monitor: {payload}")
+        logger.info(f"Clearing monitor: {payload['end']}")
         return await put_to_service(payload)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -49,3 +51,14 @@ async def tracking_task(request: Request):
         return await track_task(payload)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/unlock")
+async def unlock_pt(request: Request):
+    payload = await request.json()
+    try:
+        logger.info(f"Get unlock: {payload}")
+        return await get_unlock_list(payload)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+        
