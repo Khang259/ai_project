@@ -1,72 +1,40 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import '@/styles/SwitchButton.css';
+import { testAi } from '@/services/ai-service';
 
-const Button = () => {
+const AIToggleButton = () => {
   const [isToggled, setIsToggled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleClick = () => {
-    setIsToggled(!isToggled);
+  const handleClick = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
+    try{
+      const newEnabled = await testAi();
+      setIsToggled(!isToggled);
+      console.log("New enabled:", newEnabled);
+    }catch(error){
+      alert("Không thể thay đổi trạng thái AI. Vui lòng thử lại.");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <StyledWrapper>
+    <div className="switch-button-wrapper">
       <button 
-        className={`button ${isToggled ? 'active' : ''}`} 
+        className={`button ${isToggled ? 'active' : ''} ${isLoading ? 'loading' : ''}`} 
         data-text="Awesome"
         onClick={handleClick}
+        disabled={isLoading}
       >
         <span className="actual-text">&nbsp;AI_MODE&nbsp;</span>
         <span aria-hidden="true" className="hover-text">&nbsp;AI_MODE&nbsp;</span>
       </button>
-    </StyledWrapper>
+    </div>
   );
-}
+};
 
-const StyledWrapper = styled.div`
-  .button {
-    margin: 0;
-    height: auto;
-    background: transparent;
-    padding: 0;
-    border: none;
-    cursor: pointer;
-  }
-
-  /* button styling */
-  .button {
-    --border-right: 6px;
-    --text-stroke-color: rgba(255,255,255,0.6);
-    --animation-color: #37FF8B;
-    --fs-size: 2em;
-    letter-spacing: 3px;
-    text-decoration: none;
-    font-size: var(--fs-size);
-    font-family: "Arial";
-    position: relative;
-    text-transform: uppercase;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--text-stroke-color);
-  }
-
-  /* this is the text, when you click on button */
-  .hover-text {
-    position: absolute;
-    box-sizing: border-box;
-    content: attr(data-text);
-    color: var(--animation-color);
-    width: 0%;
-    inset: 0;
-    // border-right: var(--border-right) solid var(--animation-color); //viền phải của text
-    overflow: hidden;
-    transition: 0.5s;
-    -webkit-text-stroke: 1px var(--animation-color);
-  }
-
-  /* active state - giữ nguyên khi toggle */
-  .button.active .hover-text {
-    width: 100%;
-    filter: drop-shadow(0 0 23px var(--animation-color));
-  }
-`;
-
-export default Button;
+export default AIToggleButton;

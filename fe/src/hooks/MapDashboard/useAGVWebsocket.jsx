@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
-const API_HTTP_URL = import.meta.env.VITE_API_URL || '';
+const API_HTTP_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
 // Tự động chuyển http(s) -> ws(s)
 const DEFAULT_WS_URL = API_HTTP_URL
   ? API_HTTP_URL.replace(/^http/i, (m) => (m.toLowerCase() === 'https' ? 'wss' : 'ws')).replace(/^https/i, 'wss')

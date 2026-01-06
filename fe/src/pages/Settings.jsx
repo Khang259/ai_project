@@ -6,21 +6,33 @@ import CameraSettings from '../components/Settings/CameraSettings';
 import MonitorSettings from '../components/Settings/MonitorSettings';
 import RouteSettings from '../components/Settings/RouteSettings/RouteTable';
 import { Settings2 } from 'lucide-react';
-import { useArea } from '../contexts/AreaContext';
 import { useTranslation } from "react-i18next";
+import { useAuth } from '@/hooks/useAuth';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('button');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { currAreaName, currAreaId } = useArea();
   const { t } = useTranslation();
+  const { auth } = useAuth();
 
   const renderActiveTab = () => {
+    const isAdmin = auth?.user?.roles?.includes('admin');
+
     switch (activeTab) {
       case 'button':
         return <ButtonSettings />;
       case 'camera':
-        return <CameraSettings />;
+        if (isAdmin) {
+          return <CameraSettings />;
+        } else {
+          return (
+            <div className="flex items-center justify-center p-8">
+              <p className="text-red-500 text-lg">
+                {t('settings.accessDenied') || 'Bạn không có quyền truy cập tính năng này'}
+              </p>
+            </div>
+        );
+        }
       case 'monitor':
         return <MonitorSettings />;
       case 'route':

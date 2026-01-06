@@ -45,41 +45,79 @@ export const useHandleSaveCameras = (cameras, refetchCameras, t) => {
         return;
       }
 
-      // Save each camera
+      let successCount = 0;
+      let failCount = 0;
+
       for (const camera of cameras) {
-        // Convert ROI từ frontend format sang backend schema (MappingItem)
-        const mapping = camera.roi
+        const rois = camera.roi
           .filter(validateROI)
           .map(roi => ({
+            nodeID: roi.node_id ? parseInt(roi.node_id) : 0,
             roi: [
               Math.round(roi.x),
               Math.round(roi.y),
               Math.round(roi.width),
               Math.round(roi.height)
             ],
-            position: roi.task_path ? parseInt(roi.task_path) : 0
           }));
-
+        // TODO: ??? Payload gửi lên backend ??? Sửa kiểu đéo gì để đông bộ với CameraSettings.jsx
         const cameraData = {
-          camera_id: camera.camera_id,
-          camera_name: camera.camera_name,
-          camera_path: camera.camera_path,
-          mapping: mapping, // Gửi theo format schema backend
-          area: camera.area
+          client_id: parseInt(camera.client_id) || 0,
+          cameras: [
+            {
+              url: camera.camera_path || '',
+              cameraId: parseInt(camera.camera_id) || 0,
+              area_id: parseInt(camera.area_id) || 0,
+              source_owner: parseInt(camera.source_owner) || 0,
+              type_model: parseInt(camera.type_model) || 0,
+              rois: rois
+            }
+          ],
         };
 
         if (camera.isNew) {
-          if (camera.camera_name && camera.camera_path) {
-            await addCamera(cameraData);
+          if (camera.camera_path && camera.camera_id) {
+            try {
+              const result = await addCamera(cameraData);
+              if (result.status === 200 || result.status === 201) {
+                successCount++;
+              } else {
+                failCount++;
+              }
+            } catch (error) {
+              console.error('[FE] Error adding camera:', error);
+              failCount++;
+            }
           }
         } else {
-          await updateCamera({ ...cameraData, id: camera.id });
+          try {
+            const result = await updateCamera({
+              id: camera.id,
+              client_id: parseInt(camera.client_id),
+              cameras: cameraData.cameras
+            });
+            
+            if (result) {
+              successCount++;
+            } else {
+              failCount++;
+            }
+          } catch (error) {
+            console.error('[FE] Error updating camera:', error);
+            failCount++;
+          }
         }
       }
 
       // Reload cameras from database
       await refetchCameras();
-      alert(t('settings.cameraConfigurationSavedSuccessfully'));
+      
+      // Hiển thị thông báo dựa trên kết quả
+      if (successCount > 0 && failCount === 0) {
+        alert(t('settings.cameraConfigurationSavedSuccessfully'));
+      } else if (failCount > 0) {
+        alert(t('settings.errorSavingCameraConfiguration'));
+      }
     } catch (error) {
       console.error('Error saving cameras:', error);
       alert(t('settings.errorSavingCameraConfiguration'));
@@ -91,8 +129,7 @@ export const useHandleSaveCameras = (cameras, refetchCameras, t) => {
   return {
     handleSaveCameras,
     saving,
-    validateRTSPUrl, // Export để component có thể dùng cho validation realtime
+    validateRTSPUrl,
     validateROI
   };
 };
-

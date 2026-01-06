@@ -20,35 +20,48 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
     """Tạo camera mới"""
     cameras = get_collection("cameras")
     
-    # Validate area tồn tại
-    if not await validate_area_exists(camera_in.area_id):
-        logger.warning(f"Camera creation failed: area '{camera_in.area_id}' does not exist")
-        raise ValueError("Area does not exist")
-    
-    # Kiểm tra xem camera_id đã tồn tại chưa
-    existing_id = await cameras.find_one({"camera_id": camera_in.camera_id})
-    if existing_id:
-        logger.warning(f"Camera creation failed: camera_id '{camera_in.camera_id}' already exists")
-        raise ValueError("Camera ID already exists")
-    
-    # Kiểm tra xem camera_name đã tồn tại chưa
-    existing_name = await cameras.find_one({"camera_name": camera_in.camera_name})
-    if existing_name:
-        logger.warning(f"Camera creation failed: camera_name '{camera_in.camera_name}' already exists")
-        raise ValueError("Camera name already exists")
+    for cam in camera_in.cameras:
+        # Validate area tồn tại
+        if not await validate_area_exists(cam.area_id):
+            logger.warning(f"Camera creation failed: area '{cam.area_id}' does not exist")
+            raise ValueError("Area does not exist")
+        
+        # Kiểm tra xem camera_id đã tồn tại chưa
+        existing_id = await cameras.find_one({
+            "cameras.cameraId": cam.cameraId
+            })
+        if existing_id:
+            logger.warning(f"Camera creation failed: camera_id '{cam.cameraId}' already exists")
+            raise ValueError("Camera ID already exists")
     
     camera_data = {
-        "camera_id": camera_in.camera_id,
-        "camera_name": camera_in.camera_name,
-        "camera_path": camera_in.camera_path,
-        "area_id": camera_in.area_id,
-        "mapping": [item.dict() for item in camera_in.mapping],
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "client_id": camera_in.client_id,
+        "cameras": []
     }
+
+    for cam in camera_in.cameras:
+        rois_list = []
+        if cam.rois:
+            for node_id, roi in cam.rois.item():
+                rois_list.append({
+                    "node_id":str(node_id),
+                    "roi": roi
+                })
+
+        camera_data["cameras"].append({
+            "url":cam.url,
+            "cameraId":cam.cameraId,
+            "area_id": cam.area_id,
+            "source_owner": cam.source_owner,
+            "type_model": cam.type_model,
+            "rois":rois_list
+        })
+
+    camera_data["created_at"] = datetime.utcnow()
+    camera_data["updated_at"] = datetime.utcnow()
     
     result = await cameras.insert_one(camera_data)
-    logger.info(f"Camera created successfully: {camera_in.camera_name} with camera_id: {camera_in.camera_id}")
+    #logger.info(f"Camera created successfully: {camera_in.camera_name} with camera_id: {camera_in.camera_id}")
     
     # Lấy camera vừa tạo để trả về
     created_camera = await cameras.find_one({"_id": result.inserted_id})
@@ -80,7 +93,7 @@ async def get_camera_by_camera_id(camera_id: int) -> Optional[CameraOut]:
     
     return CameraOut(**camera, id=str(camera["_id"]))
 
-async def get_cameras(skip: int = 0, limit: int = 100) -> List[CameraOut]:
+async def get_cameras(skip: int = 0, limit: int = 1000) -> List[CameraOut]:
     """Lấy danh sách tất cả cameras"""
     cameras = get_collection("cameras")
     
@@ -92,72 +105,103 @@ async def get_cameras(skip: int = 0, limit: int = 100) -> List[CameraOut]:
 async def get_cameras_by_area(area_id: int) -> List[CameraOut]:
     """Lấy danh sách cameras theo area"""
     cameras = get_collection("cameras")
+    cursor = cameras.find({"cameras.area_id": area_id})
+    documents = await cursor.to_list(length=None)
+    result = []
+    for doc in documents:
+        filtered_cameras = [
+            camera_item 
+            for camera_item in doc.get("cameras", []) 
+            if camera_item.get("area_id") == area_id
+        ]
+        if filtered_cameras:
+            camera_data = {
+                "id": str(doc["_id"]),
+                "client_id": doc.get("client_id", 0),
+                "cameras": filtered_cameras,
+                "created_at": doc.get("created_at"),
+                "updated_at": doc.get("updated_at")
+            }
+            result.append(CameraOut(**camera_data))
     
-    cursor = cameras.find({"area_id": area_id})
-    camera_list = await cursor.to_list(length=None)
-    
-    return [CameraOut(**camera, id=str(camera["_id"])) for camera in camera_list]
+    return result
 
 async def update_camera(camera_id: str, camera_update: CameraUpdate) -> Optional[CameraOut]:
-    """Cập nhật camera"""
+    """Cập nhật camera theo MongoDB ID với payload CameraUpdate"""
     cameras = get_collection("cameras")
-    
+
+    # 1. Validate ID
     if not ObjectId.is_valid(camera_id):
         logger.warning(f"Invalid camera ID format: {camera_id}")
         return None
-    
-    # Kiểm tra camera có tồn tại không
+
     existing_camera = await cameras.find_one({"_id": ObjectId(camera_id)})
     if not existing_camera:
         logger.warning(f"Camera not found for update: {camera_id}")
         return None
-    
-    # Chuẩn bị dữ liệu cập nhật
-    update_data = {}
-    for field, value in camera_update.dict(exclude_unset=True).items():
-        if value is not None:
-            update_data[field] = value
-    
-    # Validate area nếu có thay đổi
-    if "area_id" in update_data:
-        if not await validate_area_exists(update_data["area_id"]):
-            logger.warning(f"Camera update failed: area '{update_data['area_id']}' does not exist")
-            raise ValueError("Area does not exist")
-    
-    # Kiểm tra camera_id mới có trùng không (nếu có thay đổi)
-    if "camera_id" in update_data:
-        existing_id = await cameras.find_one({
-            "camera_id": update_data["camera_id"],
-            "_id": {"$ne": ObjectId(camera_id)}
-        })
-        if existing_id:
-            logger.warning(f"Camera update failed: camera_id '{update_data['camera_id']}' already exists")
-            raise ValueError("Camera ID already exists")
-    
-    # Kiểm tra camera_name mới có trùng không (nếu có thay đổi)
-    if "camera_name" in update_data:
-        existing_name = await cameras.find_one({
-            "camera_name": update_data["camera_name"],
-            "_id": {"$ne": ObjectId(camera_id)}
-        })
-        if existing_name:
-            logger.warning(f"Camera update failed: camera_name '{update_data['camera_name']}' already exists")
-            raise ValueError("Camera name already exists")
-    
-    update_data["updated_at"] = datetime.utcnow()
-    
+
+    update_doc = {}
+
+    # 2. Cập nhật client_id (nếu gửi lên)
+    if camera_update.client_id is not None:
+        update_doc["client_id"] = camera_update.client_id
+
+    # 3. Cập nhật danh sách cameras (nếu gửi lên)
+    if camera_update.cameras:
+        # 3.1. Validate area tồn tại cho từng camera
+        for cam in camera_update.cameras:
+            if not await validate_area_exists(cam.area_id):
+                logger.warning(f"Camera update failed: area '{cam.area_id}' does not exist")
+                raise ValueError("Area does not exist")
+
+        # 3.2. Check trùng cameraId ở document khác
+        for cam in camera_update.cameras:
+            existing_id = await cameras.find_one({
+                "cameras.cameraId": cam.cameraId,
+                "_id": {"$ne": ObjectId(camera_id)}
+            })
+            if existing_id:
+                logger.warning(f"Camera update failed: cameraId '{cam.cameraId}' already exists")
+                raise ValueError("Camera ID already exists")
+
+        # 3.3. Build lại mảng cameras theo format đang lưu trong Mongo
+        new_cameras = []
+        for cam in camera_update.cameras:
+            rois_list = []
+            if cam.rois:
+                for roi in cam.rois:
+                    # Schema vào là RoisList(nodeID:int, roi:list[float])
+                    rois_list.append({
+                        "node_id": str(roi.nodeID),  # lưu string node_id trong DB
+                        "roi": roi.roi,
+                    })
+
+            new_cameras.append({
+                "url": cam.url,
+                "cameraId": cam.cameraId,
+                "area_id": cam.area_id,
+                "source_owner": cam.source_owner,
+                "type_model": cam.type_model,
+                "rois": rois_list,
+            })
+
+        update_doc["cameras"] = new_cameras
+
+    # 4. Nếu không có field nào để update → trả về bản cũ
+    if not update_doc:
+        return CameraOut(**existing_camera, id=str(existing_camera["_id"]))
+
+    # 5. Ghi updated_at và update vào DB
+    update_doc["updated_at"] = datetime.utcnow()
+
     result = await cameras.update_one(
         {"_id": ObjectId(camera_id)},
-        {"$set": update_data}
+        {"$set": update_doc}
     )
-    
+
     if result.modified_count == 0:
         logger.warning(f"No changes made to camera: {camera_id}")
-        return None
-    
-    logger.info(f"Camera updated successfully: {camera_id}")
-    
-    # Lấy camera đã cập nhật để trả về
+
     updated_camera = await cameras.find_one({"_id": ObjectId(camera_id)})
     return CameraOut(**updated_camera, id=str(updated_camera["_id"]))
 
@@ -174,17 +218,12 @@ async def delete_camera(camera_id: str) -> bool:
     if not camera:
         logger.warning(f"Camera not found for deletion: {camera_id}")
         return False
-    
-    camera_name = camera["camera_name"]
-    
     # Xóa camera
     result = await cameras.delete_one({"_id": ObjectId(camera_id)})
     
     if result.deleted_count == 0:
         logger.warning(f"Camera not found for deletion: {camera_id}")
         return False
-    
-    logger.info(f"Camera '{camera_name}' deleted successfully")
     return True
 
 async def get_camera_count_by_area(area_id: int) -> int:

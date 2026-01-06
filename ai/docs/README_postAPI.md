@@ -264,7 +264,7 @@ id=102, key="101 -> 203", timestamp=T3
 
 ```python
 def build_payload(pair_id, start_slot, end_slot, order_id):
-    task_path = f"{start_slot},{end_slot}"
+    nodeId = f"{start_slot},{end_slot}"
     
     return {
         "modelProcessCode": "checking_camera_work",
@@ -272,7 +272,7 @@ def build_payload(pair_id, start_slot, end_slot, order_id):
         "orderId": str(order_id),
         "taskOrderDetail": [
             {
-                "taskPath": task_path
+                "taskPath": nodeId
             }
         ]
     }

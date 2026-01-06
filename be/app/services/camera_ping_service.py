@@ -3,10 +3,6 @@
 import asyncio
 from collections import deque
 from app.services.camera_state import get_camera_state, set_camera_state
-from shared import get_logger
-
-
-logger = get_logger("camera_ping_service", "INFO", "camera_ping_service")
 
 # Mock data
 CAMERAS = []
@@ -36,8 +32,8 @@ async def ping_camera(host: str, port: int, timeout: int = 3):
         writer.close()
         await writer.wait_closed()
         return True
-    except Exception:
-        logger.error(f"Ping failed {host}:{port}")
+    except Exception as e:
+        # print(f"Ping failed {host}:{port}: {e}")
         return False
 
 async def check_camera_status(cam):

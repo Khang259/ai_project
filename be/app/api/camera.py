@@ -171,10 +171,13 @@ async def delete_camera_by_id(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Camera not found"
             )
+            
+        camera_id_value = camera.cameras[0].cameraId if camera.cameras else None
         
         return {
-            "message": f"Camera '{camera.camera_name}' deleted successfully",
-            "camera_name": camera.camera_name
+            "message": f"Camera deleted successfully",
+            "camera_id": camera_id_value,
+            "id": camera.id
         }
     except HTTPException:
         raise

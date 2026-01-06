@@ -12,7 +12,7 @@ from queue_store import SQLiteQueue
 def utc_now_iso() -> str:
     return datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
 
-
+# Đéo hiểu hàm này làm cái gì ???
 def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
     """Ray casting algorithm to test if a point is inside a polygon."""
     x, y = point
@@ -40,27 +40,30 @@ class StablePairProcessor:
     def __init__(self, db_path: str = "../queues.db", config_path: str = "slot_pairing_config.json",
                  stable_seconds: float = 20.0, cooldown_seconds: float = 10.0) -> None:
         self.queue = SQLiteQueue(db_path)
-        self.config_path = config_path
-        self.stable_seconds = stable_seconds
-        self.cooldown_seconds = cooldown_seconds
+        self.config_path = config_path # Nhận file cấu hình tĩnh cần chuyển sang DB để user dễ config hơn
+        self.stable_seconds = stable_seconds # Thời gian ổn định trước khi gửi ư ?
+        self.cooldown_seconds = cooldown_seconds # cooldown for what???
 
         # Slot state store per slot_key "cam-x:slot_number"
         # value: {status: "shelf"|"empty", since: float(epoch_seconds)}
-        self.slot_state: Dict[str, Dict[str, Any]] = {}
+        self.slot_state: Dict[str, Dict[str, Any]] = {} # Trạng thái của điểm trước khi gửi 
 
         # Pair blocklist to avoid spamming: pair_id -> last_published_epoch
-        self.published_at: Dict[str, float] = {}
+        self.published_at: Dict[str, float] = {}  # Thời gian cho 1 sự kiện nào đấy 
         
         # Track published pairs by minute to avoid duplicates
         # Format: {pair_id: {minute_key: True}} where minute_key = "YYYY-MM-DD HH:MM"
-        self.published_by_minute: Dict[str, Dict[str, bool]] = {}
+        self.published_by_minute: Dict[str, Dict[str, bool]] = {} # Thời gian cho 1 sự kiện nào đấy nhưng tính bằng phút ???
 
         # Pairing config
-        self.qr_to_slot: Dict[int, Tuple[str, int]] = {}  # qr_code -> (camera_id, slot_number)
-        self.pairs: List[Tuple[int, List[int]]] = []      # (start_qr, [end_qrs])
+        self.qr_to_slot: Dict[int, Tuple[str, int]] = {}  # qr_code -> (camera_id, slot_number) # Convert qr code thành camera_id và slot_number
+        self.pairs: List[Tuple[int, List[int]]] = []      # (start_qr, [end_qrs]) # Bắt cặp  start_qr và end_qrs
 
-        self._load_pairing_config()
-
+        self._load_pairing_config() 
+    
+    """
+        Load file 
+    """
     def _load_pairing_config(self) -> None:
         with open(self.config_path, "r", encoding="utf-8") as f:
             cfg = json.load(f)

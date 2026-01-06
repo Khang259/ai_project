@@ -15,26 +15,48 @@ export const useLoadCameraFromDatabase = (areaId, t) => {
     try {
       setLoading(true);
       const camerasData = await getCamerasByArea(areaId);
-      const formattedCameras = camerasData.map(cam => ({
-        ...cam,
-        roi: cam.mapping && Array.isArray(cam.mapping) && cam.mapping.length > 0
-          ? cam.mapping.map((item, i) => {
-            // Convert từ backend format: { roi: [x, y, w, h], position }
-            // Sang frontend format: { x, y, width, height, label, task_path }
-            if (item.roi && Array.isArray(item.roi) && item.roi.length === 4) {
-              return {
-                x: item.roi[0],
-                y: item.roi[1],
-                width: item.roi[2],
-                height: item.roi[3],
-                label: `ROI ${i + 1}`,
-                task_path: item.position
-              };
-            }
-            return null;
-          }).filter(roi => roi !== null && roi.width > 0 && roi.height > 0)
-          : []
-      }));
+      
+      // Flatten và transform dữ liệu từ backend
+      const formattedCameras = camerasData.flatMap(item => 
+        item.cameras.map(cam => ({
+          id: item.id, // Dùng ID từ parent
+          client_id: item.client_id,
+          camera_id: cam.cameraId,
+          camera_path: cam.url,
+          area_id: cam.area_id,
+          source_owner: cam.source_owner,
+          type_model: cam.type_model,
+          roi: cam.rois && Array.isArray(cam.rois) && cam.rois.length > 0
+            ? cam.rois.map((roi, i) => {
+                // Transform từ backend format sang frontend format
+                if (Array.isArray(roi) && roi.length === 4) {
+                  return {
+                    x: roi[0],
+                    y: roi[1],
+                    width: roi[2],
+                    height: roi[3],
+                    label: `ROI ${i + 1}`,
+                    nodeId: roi.node_id || ''
+                  };
+                }
+                // Nếu roi là object có format khác
+                if (roi.x !== undefined) {
+                  return {
+                    x: roi.x,
+                    y: roi.y,
+                    width: roi.width || roi.w,
+                    height: roi.height || roi.h,
+                    label: roi.label || `ROI ${i + 1}`,
+                    nodeId: roi.nodeId || roi.node_id || ''
+                  };
+                }
+                return null;
+              }).filter(roi => roi !== null && roi.width > 0 && roi.height > 0)
+            : [],
+          node_id: '' // Có thể lấy từ roi nếu cần
+        }))
+      );
+      
       setCameras(formattedCameras);
       console.log('[DEBUG-formattedCameras]', formattedCameras);
     } catch (error) {

@@ -36,16 +36,16 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
   }, [cameraData]);
 
   const handleSave = () => {
-    // Format bao gồm x, y, width, height, label và task_path (nodeId)
+    // Format bao gồm x, y, width, height, label và nodeId (nodeId)
     const convertedROIs = ROIs.map(roi => {
-      const { x, y, width, height, label, task_path } = roi;
+      const { x, y, width, height, label, node_id } = roi;
       return {
         x,
         y,
         width,
         height,
         label,
-        task_path: task_path || '' // Lưu nodeId dưới tên task_path
+        node_id: node_id || ''
       };
     });
 
@@ -55,7 +55,7 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
 
   const handleNodeIdChange = (index, value) => {
     setROIs(prev => prev.map((roi, i) =>
-      i === index ? { ...roi, task_path: value } : roi
+      i === index ? { ...roi, node_id: value } : roi
     ));
   };
 
@@ -129,29 +129,29 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
                 <thead className="bg-gray-100 justify-between">
                   <tr>
                     <th className="px-3 py-2 text-left">ROI</th>
-                    <th className="px-3 py-2 text-center">x1</th>
-                    <th className="px-3 py-2 text-center">y1</th>
+                    <th className="px-3 py-2 text-center">x</th>
+                    <th className="px-3 py-2 text-center">y</th>
                     <th className="px-3 py-2 text-center">w</th>
                     <th className="px-3 py-2 text-center">h</th>
-                    <th className="px-3 py-2 text-center">{t('taskPath.nodeId')}</th>
+                    <th className="px-3 py-2 text-center">{t('taskPath.node_id')}</th>
                     <th className="px-3 py-2 text-center">{t('taskPath.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ROIs.map((roi, i) => {
-                    const { x, y, width, height, task_path } = roi;
+                    const { x, y, width, height, node_id } = roi;
                     return (
                       <tr key={i} className="border-t hover:bg-gray-50">
                         <td className="px-3 py-2 font-medium">ROI {i + 1}</td>
-                        <td className="px-3 py-2 text-center">{Math.round(x)}</td>
+                        <td className="px-3 py-2 text-center">{Math.round(x)}</td>S
                         <td className="px-3 py-2 text-center">{Math.round(y)}</td>
                         <td className="px-3 py-2 text-center">{Math.round(width)}</td>
                         <td className="px-3 py-2 text-center">{Math.round(height)}</td>
 
                         <td className="px-3 py-2 text-center">
                           <Input
-                            placeholder="nodeId"
-                            value={task_path || ''}
+                            placeholder="node_id"
+                            value={node_id || ''}
                             onChange={(e) => handleNodeIdChange(i, e.target.value)}
                           />
                         </td>

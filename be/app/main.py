@@ -33,6 +33,7 @@ from app.services.websocket_service import manager as websocket_manager
 from app.services.modbusTCP_service import modbus_device_manager
 from app.api.camera_event import router as camera_event_router
 from app.services.camera_ping_service import monitor_loop
+from app.api.ai import router as ai_router
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -167,7 +168,7 @@ app.include_router(monitor.router, prefix="/monitor", tags=["Monitor Management"
 app.include_router(analytic.router, tags=["Analysis"])
 
 app.include_router(camera_event_router, tags=["Camera Event"])
-
+app.include_router(ai_router, prefix="/ai", tags=["AI"])
 
 @app.get("/")
 async def root():

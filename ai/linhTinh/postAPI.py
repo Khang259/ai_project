@@ -92,14 +92,14 @@ def get_after_id_topic(queue: SQLiteQueue, topic: str, after_id: int, limit: int
 
 
 def build_payload(pair_id: str, start_slot: str, end_slot: str, order_id: int) -> Dict[str, Any]:
-    task_path = f"{start_slot},{end_slot}"
+    nodeId = f"{start_slot},{end_slot}"
     return {
         "modelProcessCode": "checking_camera_work",
         "fromSystem": "ICS",
         "orderId": str(order_id),
         "taskOrderDetail": [
             {
-                "taskPath": task_path
+                "taskPath": nodeId
             }
         ]
     }

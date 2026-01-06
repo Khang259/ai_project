@@ -2,31 +2,32 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
-class MappingItem(BaseModel):
-    roi: List[int] = Field(..., description="Danh sách tọa độ [x1, y1, x2, y2]")
-    position: int = Field(..., description="Vị trí hoặc ID gắn với ROI")
+class RoisList(BaseModel):
+    nodeID: int = Field(..., description="Vị trí gắn với ROI")
+    roi: List[float] = Field(..., description="Danh sách tọa độ [x1, y1, w,h]")
+
+class CameraItem(BaseModel):
+    url: str = Field(..., description="URL RTSP của camera")
+    cameraId: int = Field(..., description="ID của camera theo bản CAD")
+    area_id: int = Field(..., description="ID của map")
+    source_owner: int = Field(..., description="ID của nguồn chủ")
+    type_model: int = Field(..., description="ID của loại model AI")
+    rois: Optional[List[RoisList]] = Field(default_factory=list)
 
 class CameraCreate(BaseModel):
-    camera_id: int
-    camera_name: str
-    camera_path: str
-    area_id: int
-    mapping: List[MappingItem] = Field(default_factory=list)
+    client_id: int = Field(..., description="ID của thiết bị phục vụ phần load-balancing")
+    cameras: List[CameraItem] = Field(default_factory=list)
+
 
 class CameraOut(BaseModel):
     id: str  # MongoDB ObjectId
-    camera_id: int  # Camera ID duy nhất để quản lý
-    camera_name: str
-    camera_path: str
-    area_id: int  # Area ID
-    mapping: List[MappingItem] = Field(default_factory=list) # Danh sách các vùng ROI (array chứa các object)
+    client_id: int = Field(..., description="ID của thiết bị phục vụ phần load-balancing")
+    cameras: List[CameraItem] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
 class CameraUpdate(BaseModel):
-    camera_id: Optional[int] = None
-    camera_name: Optional[str] = None
-    camera_path: Optional[str] = None
-    area_id: Optional[int] = None
-    mapping: List[MappingItem] = Field(default_factory=list)
+    client_id: Optional[int] = Field(..., description="ID của thiết bị phục vụ phần load-balancing")
+    cameras: List[CameraItem] = Field(default_factory=list)
+
 

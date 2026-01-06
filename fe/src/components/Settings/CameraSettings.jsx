@@ -23,19 +23,10 @@ const CameraSettings = () => {
   const { t } = useTranslation();
   const { currAreaId, currAreaName } = useArea();
   const { cameras, setCameras, loading, refetch: loadCamerasFromDatabase } = useLoadCameraFromDatabase(currAreaId, t);
-  const { handleSaveCameras, saving, validateRTSPUrl, validateROI } = useHandleSaveCameras(cameras, loadCamerasFromDatabase, t);
+  const { handleSaveCameras, saving, validateRTSPUrl } = useHandleSaveCameras(cameras, loadCamerasFromDatabase, t);
   const [ healthCheckStatus, setHealthCheckStatus ] = useState([]);
   const [ selectedCamera, setSelectedCamera ] = useState(null);
   const [loadingStream, setLoadingStream] = useState(false);
-
-  // useEffect(() => {
-  //   const fetchHealthCheckStatus = async () => {
-  //     const status = await healthCheckCamera();
-  //     setHealthCheckStatus(status);
-  //     console.log('Health check status:', status);
-  //   };
-  //   fetchHealthCheckStatus();
-  // }, []);
 
   const selectCameraForViewing = (camera) => {
     if (!camera.camera_path) {
@@ -45,7 +36,8 @@ const CameraSettings = () => {
 
     setSelectedCamera({
       id: camera.id,
-      cameraName: camera.camera_name || `Camera ${camera.camera_id}`,
+      client_id: camera.client_id,
+      cameraName: camera.camera_id || `Camera ${camera.camera_id}`,
       cameraPath: camera.camera_path,
       roi: camera.roi || []
     });
@@ -64,21 +56,24 @@ const CameraSettings = () => {
 
     setSelectedCamera(null);
   };
-
-  const addNewCamera = () => {
+  // Hàm này để tạo form mới dựa trên schema CameraCreate và CameraItem
+  const addNewFormCamera = () => {
     setCameras([...cameras, {
       id: `temp_${Date.now()}`,
-      camera_id: Date.now(),
-      camera_name: '',
-      camera_path: '',
-      roi: [],
-      area: currAreaId,
+      client_id: '',
+      camera_id: '', // tương ứng với cameraId trong CameraItem schema
+      camera_path: '', // tương ứng với url trong CameraItem schema
+      area_id: currAreaId, // tương ứng với area_id trong CameraItem schema
+      source_owner: '', // tương ứng với source_owner trong CameraItem schema
+      type_model: '', // tương ứng với type_model trong CameraItem schema
+      roi: [], // tương ứng với rois trong CameraItem schema (frontend format)
+      node_id: '', // dùng cho UI, sẽ map vào roi[].nodeID
       isNew: true
     }]);
   };
 
   const removeCamera = async (cameraId) => {
-    if (cameras.length <= 1) return;
+    if (cameras.length ===0) return;
 
     try {
       if (cameraId.startsWith('temp_')) {
@@ -142,15 +137,46 @@ const CameraSettings = () => {
                   }}
                 >
                   <div className="flex-1 space-y-4">
-                    {/* Tên & RTSP */}
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Client ID & Camera Name & RTSP */}
+                    <div className="grid grid-cols-3 grid-rows-2 gap-3">
+                      {/* Client ID */}
                       <div>
-                        <Label className="text-xs text-black">{t('settings.cameraName')}</Label>
+                        <Label className="text-xs text-black">{t('settings.clientId')}</Label>
+                        <Input
+                          placeholder={t('settings.clientId')}
+                          value={camera.client_id || ''}
+                          onChange={(e) => updateCameraField(camera.id, 'client_id', e.target.value)}
+                          className="text-sm pr-10 border border-gray-500 rounded-md text-black"
+                        />
+                      </div>
+                      {/* Source owner */}
+                      <div>
+                        <Label className="text-xs text-black">{t('settings.sourceOwner')}</Label>
+                        <Input
+                          placeholder={t('settings.clientId')}
+                          value={camera.source_owner || ''}
+                          onChange={(e) => updateCameraField(camera.id, 'source_owner', e.target.value)}
+                          className="text-sm pr-10 border border-gray-500 rounded-md text-black"
+                        />
+                      </div>
+                      {/* Type model */}
+                      <div>
+                        <Label className="text-xs text-black">{t('settings.typeModel')}</Label>
+                        <Input
+                          placeholder={t('settings.typeModel')}
+                          value={camera.type_model || ''}
+                          onChange={(e) => updateCameraField(camera.id, 'type_model', e.target.value)}
+                          className="text-sm pr-10 border border-gray-500 rounded-md text-black"
+                        />
+                      </div>
+                      {/* Camera Id + camera draw ROI*/}
+                      <div>
+                        <Label className="text-xs text-black">{t('settings.cameraId')}</Label>
                         <div className="relative">
                           <Input
-                            placeholder={t('settings.cameraName')}
-                            value={camera.camera_name || ''}
-                            onChange={(e) => updateCameraField(camera.id, 'camera_name', e.target.value)}
+                            placeholder={t('settings.cameraId')}
+                            value={camera.camera_id || ''}
+                            onChange={(e) => updateCameraField(camera.id, 'camera_id', e.target.value)}
                             className="text-sm pr-10 border border-gray-500 rounded-md text-black"
                           />
                           <button
@@ -205,7 +231,7 @@ const CameraSettings = () => {
                                   <TableCell className="text-center">{roi.y}</TableCell>
                                   <TableCell className="text-center">{roi.width}</TableCell>
                                   <TableCell className="text-center">{roi.height}</TableCell>
-                                  <TableCell className="text-center">{roi.task_path}</TableCell>
+                                  <TableCell className="text-center">{roi.nodeId}</TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -224,7 +250,7 @@ const CameraSettings = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeCamera(camera.id)}
-                    disabled={cameras.length === 1}
+                    // disabled={cameras.length === 0}
                     className="mt-6 text-red-600 hover:text-red-800 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -236,7 +262,7 @@ const CameraSettings = () => {
 
           {/* Thêm camera */}
           <Button
-            onClick={addNewCamera}
+            onClick={addNewFormCamera}
             // variant="outline"
             className="w-full border-dashed border-2"
           >
@@ -284,23 +310,34 @@ const CameraSettings = () => {
           ) : (
             <div className="rounded-md border overflow-hidden">
               <Table>
+
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-8 text-center text-white">ID</TableHead>
+                    <TableHead className="text-white">{t('settings.clientId')}</TableHead>
+                    <TableHead className="text-white">{t('settings.sourceOwner')}</TableHead>
+                    <TableHead className="text-white">{t('settings.typeModel')}</TableHead>
                     <TableHead className="text-white">{t('settings.cameraName')}</TableHead>
                     <TableHead className="text-white">{t('settings.rtspUrl')}</TableHead>
-                    <TableHead className="text-white">{t('settings.area')}</TableHead>
                     <TableHead className="text-white">{t('settings.status')}</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {cameras.map((camera, index) => {
                     const isConnected = !!camera.camera_path && validateRTSPUrl(camera.camera_path);
                     return (
                       <TableRow key={camera.id} className="text-sm">
                         <TableCell className="text-center font-medium">{index + 1}</TableCell>
+                        <TableCell className="text-center font-medium">{camera.client_id}</TableCell>
+                        <TableCell className="text-center font-medium">{camera.source_owner}</TableCell>
+                        <TableCell className="text-center font-medium">{camera.type_model}</TableCell>
                         <TableCell className="font-medium">
-                          {camera.camera_name || `${t('settings.camera')} ${index + 1}`}
+                          {camera.camera_id || (
+                            <span className="text-muted-foreground italic">
+                              {t('settings.notConfigured')}
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <code className="text-xs font-mono px-1 py-0.5 rounded">
@@ -311,7 +348,6 @@ const CameraSettings = () => {
                             )}
                           </code>
                         </TableCell>
-                        <TableCell>{camera.area}</TableCell>
 
                         {/* Check online status */}
                         <TableCell>

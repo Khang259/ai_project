@@ -5,9 +5,13 @@ export const addCamera = async (cameraData) => {
   try {
     const response = await api.post("/cameras", cameraData);
     console.log("[camera-settings] addCamera response:", response);
-    return response.data;
+    return {
+      data: response.data,
+      status: response.status
+    }
   } catch (error) {
     console.error("Error adding camera:", error);
+    throw error
   }
 };
 

@@ -4,7 +4,7 @@ import api, { startAutoRefresh } from "./api";
 
 // Tạo axios instance riêng cho refresh token để tránh circular dependency
 const refreshApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://192.168.1.6:8001",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
   headers: {
     "Content-Type": "application/json",
   },
