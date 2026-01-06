@@ -1,0 +1,19 @@
+2025-12-08 15:15:03,535 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-08 15:15:03,535 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-08 15:15:09,044 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-08 15:15:09,045 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-08 15:15:09,533 - camera_ai_app - INFO - Default permissions initialized
+2025-12-08 15:15:09,534 - camera_ai_app - INFO - Initializing default roles...
+2025-12-08 15:15:09,637 - camera_ai_app - INFO - Default roles initialized
+2025-12-08 15:15:09,641 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-08 15:15:09,641 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-08 23:00:00+07:00
+2025-12-08 15:15:09,642 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-08 15:15:09,642 - camera_ai_app - INFO - Notification service started
+2025-12-08 15:15:09,643 - camera_ai_app - INFO - Task service started
+2025-12-08 15:15:09,643 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-08 15:15:09,643 - camera_ai_app - INFO - Heartbeat service started
+2025-12-08 15:15:27,353 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-08 15:15:27,449 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-08 15:15:54,516 - camera_ai_app - INFO - Login success for username='hau_admin'
+2025-12-08 23:00:00,002 - camera_ai_app - INFO - Starting reverse_dashboard_data for 2025-12-08
+2025-12-08 23:00:00,381 - camera_ai_app - INFO - Reverse dashboard completed: 0 records inserted for 2025-12-08

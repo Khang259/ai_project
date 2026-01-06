@@ -16,3 +16,33 @@
 2025-12-04 09:50:45,599 - camera_ai_app - INFO - MANUAL_BLOCK_SLOT: qr_code=911, reason=manual_api
 2025-12-04 09:51:02,781 - camera_ai_app - INFO - MANUAL_UNBLOCK_SLOT: qr_code=911, reason=manual_api
 2025-12-04 10:46:51,951 - camera_ai_app - INFO - MANUAL_UNBLOCK_SLOT: qr_code=911, reason=manual_api
+2025-12-04 11:24:59,656 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-04 11:24:59,656 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-04 11:25:05,046 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-04 11:25:05,047 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-04 11:25:05,607 - camera_ai_app - INFO - Default permissions initialized
+2025-12-04 11:25:05,607 - camera_ai_app - INFO - Initializing default roles...
+2025-12-04 11:25:05,719 - camera_ai_app - INFO - Default roles initialized
+2025-12-04 11:25:05,722 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-04 11:25:05,722 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-04 23:00:00+07:00
+2025-12-04 11:25:05,723 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-04 11:25:05,723 - camera_ai_app - INFO - Notification service started
+2025-12-04 11:25:05,723 - camera_ai_app - INFO - Task service started
+2025-12-04 11:25:05,724 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-04 11:25:05,724 - camera_ai_app - INFO - Heartbeat service started
+2025-12-04 11:25:15,740 - camera_ai_app - INFO - Login success for username='khang_admin'
+2025-12-04 11:25:15,838 - camera_ai_app - INFO - User '68f214016f9a2421e62e37ad' has wildcard permission (*) - granting ALL permissions
+2025-12-04 11:25:25,358 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 1
+2025-12-04 11:25:28,379 - camera_ai_app - INFO - WebSocket connected to group 1. Total: 2
+2025-12-04 11:54:13,304 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-12-04 11:54:13,304 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 1
+2025-12-04 11:54:13,306 - camera_ai_app - INFO - WebSocket disconnected from notification channel 1
+2025-12-04 11:54:13,307 - camera_ai_app - INFO - WebSocket disconnected. Total connections: 0
+2025-12-04 11:54:13,412 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-04 11:54:13,413 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-04 11:54:13,414 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-04 11:54:13,416 - camera_ai_app - INFO - Task service stopped
+2025-12-04 11:54:13,417 - camera_ai_app - INFO - Notification service stopped
+2025-12-04 11:54:13,418 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-04 11:54:13,419 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-04 11:54:13,462 - camera_ai_app - INFO - Disconnected from MongoDB

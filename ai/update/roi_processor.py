@@ -66,9 +66,8 @@ class ROIProcessor:
         self.cache_lock = threading.RLock()
         # Running flag
         self.running = False
-        # Blocked ROI slots theo camera với ownership tracking
-        # {camera_id: {slot_number: {'expire_time': float, 'owner_qr': int, 'block_reason': str, 'block_time': float}}}
-        self.blocked_slots: Dict[str, Dict[int, Dict[str, Any]]] = {}
+        # Blocked ROI slots theo camera: {camera_id: {slot_number: expire_epoch}}
+        self.blocked_slots: Dict[str, Dict[int, float]] = {}
         # Thời gian block mặc định (giây) - vô thời hạn, chỉ unlock khi end đạt điều kiện
         self.block_seconds: float = math.inf
         # Mapping qr_code -> (camera_id, slot_number)
@@ -99,10 +98,6 @@ class ROIProcessor:
         
         # Force refresh detection cache: {camera_id: timestamp}
         self.force_refresh_cameras: Dict[str, float] = {}
-        
-        # Cache để hiển thị video: {camera_id: detection_data}
-        self.latest_detections: Dict[str, Dict[str, Any]] = {}
-        self.latest_roi_detections: Dict[str, Dict[str, Any]] = {}
 
     def _load_qr_mapping(self) -> None:
         try:
@@ -595,7 +590,7 @@ class ROIProcessor:
     
     def _block_slot_by_qr(self, qr_code: int, reason: str = "manual") -> None:
         """
-        Block slot theo QR code và lưu ownership
+        Block slot theo QR code
         Chỉ block thủ công, không tạo dual monitoring
         """
         try:
@@ -611,28 +606,22 @@ class ROIProcessor:
             
             camera_id, slot_number = cam_slot
             
-            # Block ROI slot với ownership tracking
+            # Kiểm tra xem slot đã bị block chưa
             with self.cache_lock:
                 if camera_id not in self.blocked_slots:
                     self.blocked_slots[camera_id] = {}
                 
                 was_blocked = slot_number in self.blocked_slots[camera_id]
-                old_owner = self.blocked_slots[camera_id].get(slot_number, {}).get('owner_qr') if was_blocked else None
                 
-                # Lưu thông tin block với QR owner
-                self.blocked_slots[camera_id][slot_number] = {
-                    'expire_time': math.inf,  # Vô thời hạn
-                    'owner_qr': qr_code,      # QR chủ sở hữu
-                    'block_reason': reason,
-                    'block_time': time.time()
-                }
+                # Block ROI slot
+                self.blocked_slots[camera_id][slot_number] = math.inf  # Vô thời hạn
                 
                 if was_blocked:
-                    log_msg = f"[BLOCK_SLOT] Slot {slot_number} trên {camera_id} đã bị block bởi QR {old_owner}, cập nhật owner mới: QR {qr_code} (reason: {reason})"
+                    log_msg = f"[BLOCK_SLOT] Slot {slot_number} trên {camera_id} đã bị block trước đó, cập nhật lại (QR: {qr_code}, reason: {reason})"
                 else:
-                    log_msg = f"[BLOCK_SLOT] Đã block slot {slot_number} trên {camera_id} bởi QR {qr_code} (reason: {reason})"
+                    log_msg = f"[BLOCK_SLOT] Đã block slot {slot_number} trên {camera_id} (QR: {qr_code}, reason: {reason})"
                 
-                self.block_logger.info(f"BLOCK_SLOT_SUCCESS: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}, was_blocked={was_blocked}, old_owner={old_owner}")
+                self.block_logger.info(f"BLOCK_SLOT_SUCCESS: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}, was_blocked={was_blocked}")
                 print(log_msg)
             
         except Exception as e:
@@ -642,70 +631,91 @@ class ROIProcessor:
     
     def _unblock_slot_by_qr(self, qr_code: int, reason: str = "manual") -> None:
         """
-        Unblock slot theo QR code - Quét toàn bộ RAM tìm slot có owner == QR
-        KHÔNG phụ thuộc vào file config
+        Unblock slot theo QR code
         Hoạt động với cả slot bị lock tự động (dual) và lock thủ công
         """
         try:
-            slot_found = False
-            slots_unblocked = []
-            dual_ids_to_cleanup = []
+            # Load lại mapping để đảm bảo mới nhất
+            self._load_qr_mapping()
             
-            # BƯỚC 1: Quét toàn bộ RAM để tìm tất cả slots thuộc về QR này
+            # Tìm camera và slot từ QR code
+            cam_slot = self.qr_to_slot.get(qr_code)
+            if not cam_slot:
+                print(f"[UNBLOCK_FAILED] Không tìm thấy slot cho QR code={qr_code}")
+                self.block_logger.warning(f"UNBLOCK_SLOT_FAILED: qr_code={qr_code}, reason=qr_not_found")
+                return
+            
+            camera_id, slot_number = cam_slot
+            slot_was_blocked = False
+            dual_id_found = None
+            
+            # Bước 1: Kiểm tra và unblock từ blocked_slots
             with self.cache_lock:
-                for camera_id, camera_slots in list(self.blocked_slots.items()):
-                    for slot_number, slot_info in list(camera_slots.items()):
-                        # Kiểm tra owner_qr
-                        if isinstance(slot_info, dict) and slot_info.get('owner_qr') == qr_code:
-                            # Tìm thấy slot thuộc về QR này
-                            slot_found = True
-                            slots_unblocked.append((camera_id, slot_number))
-                            
-                            # Xóa slot khỏi blocked_slots
-                            del self.blocked_slots[camera_id][slot_number]
-                            
-                            log_msg = f"[UNBLOCK_SLOT] Đã unblock slot {slot_number} trên {camera_id} (owner QR: {qr_code}, reason: {reason})"
-                            self.block_logger.info(f"UNBLOCK_SLOT_SUCCESS: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}")
-                            print(log_msg)
-                            
-                            # FORCE REFRESH: Đánh dấu camera cần refresh
-                            self.force_refresh_cameras[camera_id] = time.time()
-                            print(f"[FORCE_REFRESH] Đã đánh dấu camera {camera_id} cần refresh detection sau unblock")
+                if camera_id in self.blocked_slots:
+                    if slot_number in self.blocked_slots[camera_id]:
+                        del self.blocked_slots[camera_id][slot_number]
+                        slot_was_blocked = True
+                        log_msg = f"[UNBLOCK_SLOT] Đã unblock slot {slot_number} trên {camera_id} (QR: {qr_code}, reason: {reason})"
+                        self.block_logger.info(f"UNBLOCK_SLOT_SUCCESS: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}")
+                        print(log_msg)
                 
-                # BƯỚC 2: Tìm dual_id liên quan đến QR này
+                # Bước 2: Kiểm tra xem slot này có phải là dual blocked không
+                # Tìm dual_id tương ứng với qr_code này
                 for dual_id, pair_info in list(self.dual_blocked_pairs.items()):
                     if pair_info.get("start_qr") == qr_code:
-                        dual_ids_to_cleanup.append(dual_id)
-            
-            # BƯỚC 3: Cleanup dual monitoring (nếu có)
-            for dual_id in dual_ids_to_cleanup:
-                with self.cache_lock:
+                        dual_id_found = dual_id
+                        break
+                
+                # Bước 3: Nếu là dual blocked, cleanup toàn bộ dual monitoring
+                if dual_id_found:
                     # Xóa khỏi dual_blocked_pairs
-                    if dual_id in self.dual_blocked_pairs:
-                        del self.dual_blocked_pairs[dual_id]
-                        print(f"[UNBLOCK_SLOT] Đã xóa dual pair {dual_id} khỏi dual_blocked_pairs")
+                    if dual_id_found in self.dual_blocked_pairs:
+                        end_qrs = self.dual_blocked_pairs[dual_id_found].get("end_qrs")
+                        del self.dual_blocked_pairs[dual_id_found]
+                        print(f"[UNBLOCK_SLOT] Đã xóa dual pair {dual_id_found} khỏi dual_blocked_pairs")
                     
                     # Xóa khỏi dual_end_monitoring
                     for (cam, slot), monitored_dual_id in list(self.dual_end_monitoring.items()):
-                        if monitored_dual_id == dual_id:
+                        if monitored_dual_id == dual_id_found:
                             del self.dual_end_monitoring[(cam, slot)]
-                            print(f"[UNBLOCK_SLOT] Đã xóa end monitoring cho dual {dual_id} tại slot {slot} camera {cam}")
+                            print(f"[UNBLOCK_SLOT] Đã xóa end monitoring cho dual {dual_id_found} tại slot {slot} camera {cam}")
                     
-                    # Xóa khỏi end_slot_states
-                    for end_slot, state in list(self.end_slot_states.items()):
-                        if state.get('dual_id') == dual_id:
-                            del self.end_slot_states[end_slot]
-                            print(f"[UNBLOCK_SLOT] Đã xóa end_slot_states cho {end_slot}")
+                    # Xóa khỏi end_slot_states nếu có
+                    end_slot_to_remove = []
+                    for end_slot, state in self.end_slot_states.items():
+                        if state.get('dual_id') == dual_id_found:
+                            end_slot_to_remove.append(end_slot)
                     
-                    self.block_logger.info(f"UNBLOCK_DUAL_CLEANUP: dual_id={dual_id}, qr_code={qr_code}, reason={reason}")
-            
-            # BƯỚC 4: Báo cáo kết quả
-            if not slot_found:
-                print(f"[UNBLOCK_SLOT] Không tìm thấy slot nào thuộc về QR {qr_code} trong RAM")
-                self.block_logger.warning(f"UNBLOCK_SLOT_NOT_FOUND: qr_code={qr_code}, reason={reason}")
-            else:
-                print(f"[UNBLOCK_SLOT] Đã unblock {len(slots_unblocked)} slot(s) thuộc về QR {qr_code}")
-                self.block_logger.info(f"UNBLOCK_SLOT_SUMMARY: qr_code={qr_code}, slots_count={len(slots_unblocked)}, slots={slots_unblocked}, reason={reason}")
+                    for end_slot in end_slot_to_remove:
+                        del self.end_slot_states[end_slot]
+                        print(f"[UNBLOCK_SLOT] Đã xóa end_slot_states cho {end_slot}")
+                    
+                    self.block_logger.info(f"UNBLOCK_DUAL_CLEANUP: dual_id={dual_id_found}, camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}")
+                
+                # Bước 4: Cleanup regular pair monitoring (nếu có)
+                start_slot_tuple = (camera_id, slot_number)
+                end_slot_to_remove = None
+                for end_slot, start_slot in self.end_to_start_mapping.items():
+                    if start_slot == start_slot_tuple:
+                        end_slot_to_remove = end_slot
+                        break
+                
+                if end_slot_to_remove and end_slot_to_remove in self.end_slot_states:
+                    # Chỉ xóa nếu không phải dual monitoring
+                    if not self.end_slot_states[end_slot_to_remove].get('dual_id'):
+                        del self.end_slot_states[end_slot_to_remove]
+                        print(f"[UNBLOCK_SLOT] Đã xóa regular end slot {end_slot_to_remove} khỏi monitoring")
+                
+                # Thông báo kết quả
+                if not slot_was_blocked and not dual_id_found:
+                    print(f"[UNBLOCK_SLOT] Slot {slot_number} trên {camera_id} (QR: {qr_code}) không bị block")
+                    self.block_logger.warning(f"UNBLOCK_SLOT_NOT_BLOCKED: camera={camera_id}, slot={slot_number}, qr_code={qr_code}")
+                
+                # FORCE REFRESH: Đánh dấu camera cần refresh detection ngay lập tức
+                if slot_was_blocked or dual_id_found:
+                    self.force_refresh_cameras[camera_id] = time.time()
+                    print(f"[FORCE_REFRESH] Đã đánh dấu camera {camera_id} cần refresh detection sau unblock")
+                    self.block_logger.info(f"FORCE_REFRESH_MARKED: camera={camera_id}, slot={slot_number}, qr_code={qr_code}, reason={reason}")
             
         except Exception as e:
             error_msg = f"Lỗi khi unblock slot theo QR code: {e}"
@@ -821,12 +831,7 @@ class ROIProcessor:
                 if start_camera_id not in self.blocked_slots:
                     self.blocked_slots[start_camera_id] = {}
                 
-                self.blocked_slots[start_camera_id][start_slot_number] = {
-                    'expire_time': math.inf,
-                    'owner_qr': start_qr,
-                    'block_reason': 'dual_block',
-                    'block_time': time.time()
-                }
+                self.blocked_slots[start_camera_id][start_slot_number] = math.inf  # Vô thời hạn
             
             # Lưu thông tin dual đã block
             self.dual_blocked_pairs[dual_id] = {

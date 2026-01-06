@@ -16,10 +16,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from queue_store import SQLiteQueue
 
 
-API_URL = "http://10.250.161.134:7000/ics/taskOrder/addTask"
-#API_URL = "http://192.168.1.110:7000/ics/taskOrder/addTask"
+# API_URL = "http://10.250.161.134:7000/ics/taskOrder/addTask"
+# #API_URL = "http://192.168.1.110:7000/ics/taskOrder/addTask"
+API_URL = "http://localhost:7000/ics/taskOrder/addTask"
+TRACKING_API_URL = "http://localhost:6868/track-task"
+UNLOCK_API_URL = "http://localhost:6868/unlock"
 
-TRACKING_API_URL = "http://192.168.50.39:6868/track-task"
 DB_PATH = "../queues.db"  # relative to this script folder
 # ORDER_ID_FILE = os.path.join(os.path.dirname(__file__), "order_id.txt")
 TOPICS = ["stable_pairs", "stable_dual"]  # Subscribe to both topics
@@ -253,6 +255,72 @@ def send_tracking_api(order_id: str, end_qrs: str, logger: logging.Logger) -> bo
     except Exception as e:
         print(f"[TRACKING_API] ✗ Lỗi: {e}")
         logger.error(f"TRACKING_API_ERROR: orderId={order_id}, end_qrs={end_qrs}, error={str(e)}")
+        return False
+
+
+def send_unlock_api(order_id: str, qr_unlock: str, logger: logging.Logger) -> bool:
+    """
+    Gửi unlock API cho task Cap_tra_phu_tung (4-point dual)
+    
+    Args:
+        order_id: OrderID của task chính
+        qr_unlock: QR code của start_slot cần unlock
+        logger: Logger instance
+    
+    Returns:
+        bool: True nếu gửi thành công, False nếu thất bại
+    """
+    unlock_payload = {
+        "orderId": order_id,
+        "qr_unlock": qr_unlock
+    }
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    try:
+        print(f"[UNLOCK_API] Gửi unlock cho orderId={order_id}, qr_unlock={qr_unlock}")
+        logger.info(f"UNLOCK_API_START: orderId={order_id}, qr_unlock={qr_unlock}, url={UNLOCK_API_URL}")
+        logger.info(
+            "UNLOCK_API_PAYLOAD: orderId=%s, qr_unlock=%s, payload=%s",
+            order_id,
+            qr_unlock,
+            json.dumps(unlock_payload, ensure_ascii=False),
+        )
+        
+        resp = requests.post(UNLOCK_API_URL, headers=headers, json=unlock_payload, timeout=15)
+        resp_text = resp.text
+        
+        status_ok = (200 <= resp.status_code < 300)
+        try:
+            resp_body = resp.json()
+        except ValueError:
+            resp_body = {"raw": resp_text}
+        logger.info(
+            "UNLOCK_API_RESPONSE: orderId=%s, qr_unlock=%s, status=%s, body=%s",
+            order_id,
+            qr_unlock,
+            resp.status_code,
+            json.dumps(resp_body, ensure_ascii=False),
+        )
+        
+        if status_ok:
+            print(f"[UNLOCK_API] ✓ Thành công | Status: {resp.status_code}")
+            logger.info(f"UNLOCK_API_SUCCESS: orderId={order_id}, qr_unlock={qr_unlock}, status_code={resp.status_code}")
+            return True
+        else:
+            print(f"[UNLOCK_API] ✗ Thất bại | Status: {resp.status_code}")
+            logger.warning(f"UNLOCK_API_FAILED: orderId={order_id}, qr_unlock={qr_unlock}, status_code={resp.status_code}")
+            return False
+            
+    except requests.exceptions.Timeout:
+        print(f"[UNLOCK_API] ✗ Timeout sau 15s")
+        logger.error(f"UNLOCK_API_TIMEOUT: orderId={order_id}, qr_unlock={qr_unlock}")
+        return False
+    except Exception as e:
+        print(f"[UNLOCK_API] ✗ Lỗi: {e}")
+        logger.error(f"UNLOCK_API_ERROR: orderId={order_id}, qr_unlock={qr_unlock}, error={str(e)}")
         return False
 
 
@@ -517,6 +585,11 @@ def main() -> int:
                             if is_3_point_pair:
                                 print(f"\n[3-POINT PAIR] Gửi tracking API cho orderId={current_order_id}")
                                 send_tracking_api(current_order_id, end_slot, logger)
+                            
+                            # Nếu là 4-point dual (Cap_tra_phu_tung), gửi unlock API
+                            if topic == "stable_dual" and order_type == "4p":
+                                print(f"\n[4-POINT DUAL] Gửi unlock API cho orderId={current_order_id}")
+                                send_unlock_api(current_order_id, start_slot, logger)
                             
                             break
                         else:

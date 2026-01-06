@@ -1,0 +1,8 @@
+2025-12-11 09:42:28,187 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-11 09:42:28,189 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-11 09:42:28,189 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-11 09:42:28,190 - camera_ai_app - INFO - Task service stopped
+2025-12-11 09:42:28,191 - camera_ai_app - INFO - Notification service stopped
+2025-12-11 09:42:28,191 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-11 09:42:28,192 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-11 09:42:28,218 - camera_ai_app - INFO - Disconnected from MongoDB

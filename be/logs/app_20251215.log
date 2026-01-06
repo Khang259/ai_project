@@ -1,0 +1,10 @@
+2025-12-16 23:00:00,015 - camera_ai_app - INFO - Starting reverse_dashboard_data for 2025-12-16
+2025-12-16 23:00:00,599 - camera_ai_app - INFO - Reverse dashboard completed: 0 records inserted for 2025-12-16
+2025-12-17 09:19:34,736 - camera_ai_app - INFO - Shutting down CameraAI Backend...
+2025-12-17 09:19:34,737 - camera_ai_app - INFO - AGV Scheduler shut down successfully.
+2025-12-17 09:19:34,738 - camera_ai_app - INFO - AGV Scheduler stopped
+2025-12-17 09:19:34,741 - camera_ai_app - INFO - Task service stopped
+2025-12-17 09:19:34,741 - camera_ai_app - INFO - Notification service stopped
+2025-12-17 09:19:34,742 - camera_ai_app - INFO - WebSocket Heartbeat service stopped
+2025-12-17 09:19:34,743 - camera_ai_app - INFO - Heartbeat service stopped
+2025-12-17 09:19:34,770 - camera_ai_app - INFO - Disconnected from MongoDB

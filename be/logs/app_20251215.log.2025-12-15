@@ -1,0 +1,16 @@
+2025-12-15 15:39:16,549 - camera_ai_app - INFO - Starting CameraAI Backend...
+2025-12-15 15:39:16,550 - camera_ai_app - INFO - Connecting to MongoDB: mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/
+2025-12-15 15:39:22,502 - camera_ai_app - INFO - Connected to MongoDB: CamAI_Honda
+2025-12-15 15:39:22,503 - camera_ai_app - INFO - Initializing default permissions...
+2025-12-15 15:39:22,982 - camera_ai_app - INFO - Default permissions initialized
+2025-12-15 15:39:22,983 - camera_ai_app - INFO - Initializing default roles...
+2025-12-15 15:39:23,079 - camera_ai_app - INFO - Default roles initialized
+2025-12-15 15:39:23,095 - camera_ai_app - INFO - AGV Scheduler started successfully. Job scheduled at 23:00 daily.
+2025-12-15 15:39:23,096 - camera_ai_app - INFO - Scheduled job: Reverse Dashboard Data Daily at 11 PM - Next run: 2025-12-15 23:00:00+07:00
+2025-12-15 15:39:23,096 - camera_ai_app - INFO - AGV Scheduler started
+2025-12-15 15:39:23,097 - camera_ai_app - INFO - Notification service started
+2025-12-15 15:39:23,097 - camera_ai_app - INFO - Task service started
+2025-12-15 15:39:23,097 - camera_ai_app - INFO - WebSocket Heartbeat service started (interval: 30s)
+2025-12-15 15:39:23,098 - camera_ai_app - INFO - Heartbeat service started
+2025-12-15 23:00:00,002 - camera_ai_app - INFO - Starting reverse_dashboard_data for 2025-12-15
+2025-12-15 23:00:00,367 - camera_ai_app - INFO - Reverse dashboard completed: 0 records inserted for 2025-12-15
