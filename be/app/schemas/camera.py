@@ -11,6 +11,7 @@ class CameraCreate(BaseModel):
     camera_name: str
     camera_path: str
     area_id: int
+    group_id: int
     mapping: List[MappingItem] = Field(default_factory=list)
 
 class CameraOut(BaseModel):
@@ -19,6 +20,7 @@ class CameraOut(BaseModel):
     camera_name: str
     camera_path: str
     area_id: int  # Area ID
+    group_id: int  # Group ID
     mapping: List[MappingItem] = Field(default_factory=list) # Danh sách các vùng ROI (array chứa các object)
     created_at: datetime
     updated_at: datetime
@@ -28,5 +30,6 @@ class CameraUpdate(BaseModel):
     camera_name: Optional[str] = None
     camera_path: Optional[str] = None
     area_id: Optional[int] = None
+    group_id: Optional[int] = None
     mapping: List[MappingItem] = Field(default_factory=list)
 

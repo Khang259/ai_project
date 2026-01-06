@@ -11,6 +11,7 @@ from app.services.camera_service import (
     delete_camera,
     get_camera_count_by_area,
     generate_frames_from_rtsp,
+    get_cameras_by_group,
 )
 from shared.logging import get_logger
 from typing import List
@@ -212,6 +213,20 @@ async def get_camera_count_by_area_endpoint(
         }
     except Exception as e:
         logger.error(f"Error getting camera count for area {area_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+@router.get("/group/{group_id}/cameras", response_model=List[CameraOut])
+async def get_cameras_by_group_endpoint(
+    group_id: int,
+):
+    """Lấy danh sách cameras theo group"""
+    try:
+        return await get_cameras_by_group(group_id)
+    except Exception as e:
+        logger.error(f"Error getting cameras by group {group_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

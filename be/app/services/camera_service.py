@@ -42,6 +42,7 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
         "camera_name": camera_in.camera_name,
         "camera_path": camera_in.camera_path,
         "area_id": camera_in.area_id,
+        "group_id": camera_in.group_id,
         "mapping": [item.dict() for item in camera_in.mapping],
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
@@ -86,6 +87,15 @@ async def get_cameras(skip: int = 0, limit: int = 100) -> List[CameraOut]:
     
     cursor = cameras.find().skip(skip).limit(limit)
     camera_list = await cursor.to_list(length=limit)
+    
+    return [CameraOut(**camera, id=str(camera["_id"])) for camera in camera_list]
+
+async def get_cameras_by_group(group_id: int) -> List[CameraOut]:
+    """Lấy danh sách cameras theo group"""
+    cameras = get_collection("cameras")
+    
+    cursor = cameras.find({"group_id": group_id})
+    camera_list = await cursor.to_list(length=None)
     
     return [CameraOut(**camera, id=str(camera["_id"])) for camera in camera_list]
 
