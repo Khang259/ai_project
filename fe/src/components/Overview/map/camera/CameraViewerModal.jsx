@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Loader2, Save, Trash2 } from 'lucide-react';
 import { getStreamCamera } from '@/services/infocamera-dashboard';
 import StreamWithBoundingBox from './StreamWithBoundingBox';
@@ -63,6 +63,10 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
     setROIs(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleROIsChange = useCallback((newROIs) => {
+    setROIs(newROIs);
+  }, []);
+
   if (!cameraData) return null;
 
   return (
@@ -109,7 +113,7 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
               <StreamWithBoundingBox
                 streamUrl={streamUrl}
                 initialROIs={ROIs}
-                onROIsChange={setROIs}
+                onROIsChange={handleROIsChange}
                 cameraName={cameraData.cameraName}
               />
             )} 
@@ -143,7 +147,7 @@ const CameraViewerModal = ({ cameraData, onClose, onSaveROIs }) => {
                     return (
                       <tr key={i} className="border-t hover:bg-gray-50">
                         <td className="px-3 py-2 font-medium">ROI {i + 1}</td>
-                        <td className="px-3 py-2 text-center">{Math.round(x)}</td>S
+                        <td className="px-3 py-2 text-center">{Math.round(x)}</td>
                         <td className="px-3 py-2 text-center">{Math.round(y)}</td>
                         <td className="px-3 py-2 text-center">{Math.round(width)}</td>
                         <td className="px-3 py-2 text-center">{Math.round(height)}</td>

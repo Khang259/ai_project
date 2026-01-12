@@ -231,7 +231,7 @@ const CameraSettings = () => {
                                   <TableCell className="text-center">{roi.y}</TableCell>
                                   <TableCell className="text-center">{roi.width}</TableCell>
                                   <TableCell className="text-center">{roi.height}</TableCell>
-                                  <TableCell className="text-center">{roi.nodeId}</TableCell>
+                                  <TableCell className="text-center">{roi.node_id}</TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>

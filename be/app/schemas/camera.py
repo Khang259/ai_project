@@ -3,12 +3,12 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 class RoisList(BaseModel):
-    nodeID: int = Field(..., description="Vị trí gắn với ROI")
+    node_id: str = Field(..., description="Vị trí gắn với ROI")
     roi: List[float] = Field(..., description="Danh sách tọa độ [x1, y1, w,h]")
 
 class CameraItem(BaseModel):
     url: str = Field(..., description="URL RTSP của camera")
-    cameraId: int = Field(..., description="ID của camera theo bản CAD")
+    cameraId: str = Field(..., description="ID của camera theo bản CAD")
     area_id: int = Field(..., description="ID của map")
     source_owner: int = Field(..., description="ID của nguồn chủ")
     type_model: int = Field(..., description="ID của loại model AI")

@@ -18,6 +18,7 @@ export const addCamera = async (cameraData) => {
 
 export const updateCamera = async (cameraData) => {
   try {
+    console.log(`[DEBUG] cameraData debug`, cameraData)
     const response = await api.put(`/cameras/${cameraData.id}`, cameraData);
     return response.data;
   } catch (error) {

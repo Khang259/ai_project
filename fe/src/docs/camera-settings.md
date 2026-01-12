@@ -4,7 +4,6 @@
 - Tạo form để người dùng điền các thông số cấu hình cho camera
 - Vẽ ROI cho các vùng trong camera sau khi lưu được path của camera
 - Bảng thông tin các giá trị đã điền của các camera 
-
 ## 2. Luồng xử lý:
 ### 2.1 Load dữ liệu cameras
 - Dependencies:useLoadCameraFromDatabase, useArea, 

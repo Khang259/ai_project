@@ -27,31 +27,21 @@ export const useLoadCameraFromDatabase = (areaId, t) => {
           source_owner: cam.source_owner,
           type_model: cam.type_model,
           roi: cam.rois && Array.isArray(cam.rois) && cam.rois.length > 0
-            ? cam.rois.map((roi, i) => {
-                // Transform từ backend format sang frontend format
-                if (Array.isArray(roi) && roi.length === 4) {
+            ? cam.rois.map((roiItem, i) => {
+                if (roiItem && roiItem.roi && Array.isArray(roiItem.roi)) {
                   return {
-                    x: roi[0],
-                    y: roi[1],
-                    width: roi[2],
-                    height: roi[3],
+                    x: roiItem.roi[0],
+                    y: roiItem.roi[1],
+                    width: roiItem.roi[2],
+                    height: roiItem.roi[3],
                     label: `ROI ${i + 1}`,
-                    nodeId: roi.node_id || ''
+                    node_id: roiItem.node_id || ''
                   };
                 }
-                // Nếu roi là object có format khác
-                if (roi.x !== undefined) {
-                  return {
-                    x: roi.x,
-                    y: roi.y,
-                    width: roi.width || roi.w,
-                    height: roi.height || roi.h,
-                    label: roi.label || `ROI ${i + 1}`,
-                    nodeId: roi.nodeId || roi.node_id || ''
-                  };
+                else {
+                  return null;
                 }
-                return null;
-              }).filter(roi => roi !== null && roi.width > 0 && roi.height > 0)
+              })
             : [],
           node_id: '' // Có thể lấy từ roi nếu cần
         }))

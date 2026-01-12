@@ -5,8 +5,8 @@ from typing import List, Optional, Tuple
 from datetime import datetime
 from bson import ObjectId
 import cv2
-import numpy as np
-from io import BytesIO
+# import numpy as np
+# from io import BytesIO
 
 logger = get_logger("camera_ai_app")
 
@@ -61,8 +61,6 @@ async def create_camera(camera_in: CameraCreate) -> CameraOut:
     camera_data["updated_at"] = datetime.utcnow()
     
     result = await cameras.insert_one(camera_data)
-    #logger.info(f"Camera created successfully: {camera_in.camera_name} with camera_id: {camera_in.camera_id}")
-    
     # Lấy camera vừa tạo để trả về
     created_camera = await cameras.find_one({"_id": result.inserted_id})
     return CameraOut(**created_camera, id=str(created_camera["_id"]))
@@ -172,7 +170,7 @@ async def update_camera(camera_id: str, camera_update: CameraUpdate) -> Optional
                 for roi in cam.rois:
                     # Schema vào là RoisList(nodeID:int, roi:list[float])
                     rois_list.append({
-                        "node_id": str(roi.nodeID),  # lưu string node_id trong DB
+                        "node_id": str(roi.node_id),  # lưu string node_id trong DB
                         "roi": roi.roi,
                     })
 

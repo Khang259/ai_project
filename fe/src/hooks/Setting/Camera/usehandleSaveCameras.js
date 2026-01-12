@@ -52,7 +52,7 @@ export const useHandleSaveCameras = (cameras, refetchCameras, t) => {
         const rois = camera.roi
           .filter(validateROI)
           .map(roi => ({
-            nodeID: roi.node_id ? parseInt(roi.node_id) : 0,
+            node_id: roi.node_id,
             roi: [
               Math.round(roi.x),
               Math.round(roi.y),
@@ -66,7 +66,7 @@ export const useHandleSaveCameras = (cameras, refetchCameras, t) => {
           cameras: [
             {
               url: camera.camera_path || '',
-              cameraId: parseInt(camera.camera_id) || 0,
+              cameraId: camera.camera_id || '',
               area_id: parseInt(camera.area_id) || 0,
               source_owner: parseInt(camera.source_owner) || 0,
               type_model: parseInt(camera.type_model) || 0,

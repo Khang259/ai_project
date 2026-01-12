@@ -15,7 +15,7 @@ const StreamWithBoundingBox = ({ streamUrl, initialROIs = [], onROIsChange, came
 
   useEffect(() => {
     onROIsChange?.(ROIs);
-  }, [ROIs, onROIsChange]);
+  }, [ROIs]);
 
   const draw = () => {
     const canvas = canvasRef.current;
