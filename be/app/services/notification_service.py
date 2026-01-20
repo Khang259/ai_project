@@ -3,10 +3,10 @@ import contextlib
 import json
 from typing import Any, Dict, Optional
 from datetime import datetime
-from .websocket_service import manager
-from app.core.database import get_collection
-from shared.logging import get_logger
-from app.services.modbusTCP_service import modbus_device_manager
+from be.app.services.websocket_service import manager
+from be.app.core.database import get_collection
+from be.shared.logging import get_logger
+from be.app.services.modbusTCP_service import modbus_device_manager
 
 logger = get_logger("camera_ai_app")
 class NotificationService:

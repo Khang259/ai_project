@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from app.core.database import get_collection
-from app.schemas.part_schema import UpdateAMRNameRequest, UpdateAMRNameResponse
+from be.app.core.database import get_collection
+from be.app.schemas.part_schema import UpdateAMRNameRequest, UpdateAMRNameResponse
 
 router = APIRouter()
 

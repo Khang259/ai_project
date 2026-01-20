@@ -1,9 +1,9 @@
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from app.core.config import settings
-from app.core.database import get_collection
-from shared.logging import get_logger
+from be.app.core.config import settings
+from be.app.core.database import get_collection
+from be.shared.logging import get_logger
 from typing import Optional
 from bson import ObjectId
 

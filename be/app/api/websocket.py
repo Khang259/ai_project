@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from app.services.websocket_service import manager
-from shared.logging import get_logger
+from be.app.services.websocket_service import manager
+from be.shared.logging import get_logger
 
 logger = get_logger("camera_ai_app")
 

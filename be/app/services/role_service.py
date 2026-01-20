@@ -1,10 +1,10 @@
 from re import U
-from app.core.database import get_collection
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.shared.logging import get_logger
 from typing import List, Dict, Optional
 from datetime import datetime
 from bson import ObjectId
-from app.schemas.user import RoleOut
+from be.app.schemas.user import RoleOut
 
 logger = get_logger("camera_ai_app")
 

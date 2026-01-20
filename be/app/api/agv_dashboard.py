@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Query
-from app.services.agv_dashboard_service import (
+from be.app.services.agv_dashboard_service import (
     get_data_by_time, 
     get_agv_position,
     get_all_robots_payload_data,
@@ -9,10 +9,10 @@ from app.services.agv_dashboard_service import (
     get_task_dashboard,
     get_success_task_by_hour
 )
-from app.services.websocket_service import manager
+from be.app.services.websocket_service import manager
 import json
 from typing import Optional
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 
 logger = get_logger("camera_ai_app")
 

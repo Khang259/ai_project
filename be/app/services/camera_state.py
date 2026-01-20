@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from app.core.redis import redis_client
+from be.app.core.redis import redis_client
 
 TTL_SECONDS = 5
 

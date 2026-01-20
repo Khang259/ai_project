@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from app.schemas.user import UserCreate, Token, UserLogin, UserOut, RoleOut, PermissionOut, RoleCreate, RoleUpdate, RefreshTokenRequest
-from app.services.auth_service import register_user, authenticate_user, create_user_token, get_current_user_info, refresh_access_token
-from app.core.permissions import get_current_active_user
-from shared.logging import get_logger
+from be.app.schemas.user import UserCreate, Token, UserLogin, UserOut, RoleOut, PermissionOut, RoleCreate, RoleUpdate, RefreshTokenRequest
+from be.app.services.auth_service import register_user, authenticate_user, create_user_token, get_current_user_info, refresh_access_token
+from be.app.core.permissions import get_current_active_user
+from be.shared.logging import get_logger
 from typing import List
 
 router = APIRouter()

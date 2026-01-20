@@ -2,7 +2,7 @@ import asyncio
 import contextlib
 import json
 from typing import Optional
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 from .websocket_service import manager
 
 logger = get_logger("camera_ai_app")

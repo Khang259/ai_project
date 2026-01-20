@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from app.core.database import get_collection
+from be.app.core.database import get_collection
 
 router = APIRouter()
 

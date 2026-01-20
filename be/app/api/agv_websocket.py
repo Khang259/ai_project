@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 import asyncio
 import json
 import datetime
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 
 logger = get_logger("camera_ai_app")
 router = APIRouter()

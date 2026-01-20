@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
-from app.core.database import get_collection
-from app.schemas.part_schema import UpdatePartRequest, UpdatePartResponse
+from be.app.core.database import get_collection
+from be.app.schemas.part_schema import UpdatePartRequest, UpdatePartResponse
 
 router = APIRouter()
 

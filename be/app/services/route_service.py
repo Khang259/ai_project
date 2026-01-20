@@ -1,6 +1,6 @@
-from app.core.database import get_collection
-from app.schemas.route import RouteCreate, RouteOut, RouteUpdate
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.app.schemas.route import RouteCreate, RouteOut, RouteUpdate
+from be.shared.logging import get_logger
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId

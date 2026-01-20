@@ -1,8 +1,8 @@
 from datetime import datetime, date, time, timedelta
 from typing import List, Dict, Any
-from app.core.database import get_collection
+from be.app.core.database import get_collection
 from fastapi import HTTPException
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 
 logger = get_logger(__name__)
 

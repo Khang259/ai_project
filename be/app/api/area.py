@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Body
-from app.schemas.area import AreaCreate, AreaOut, AreaUpdate
-from app.services.area_service import (
+from be.app.schemas.area import AreaCreate, AreaOut, AreaUpdate
+from be.app.services.area_service import (
     create_area,
     get_area,
     get_areas,
@@ -12,8 +12,8 @@ from app.services.area_service import (
     save_map,
     get_map_by_area_id,
 )
-from app.core.permissions import get_current_user
-from shared.logging import get_logger
+from be.app.core.permissions import get_current_user
+from be.shared.logging import get_logger
 from typing import List
 
 router = APIRouter()

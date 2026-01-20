@@ -1,8 +1,8 @@
-from app.core.database import get_collection
-from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_refresh_token
-from app.schemas.user import UserCreate, UserOut
-from app.services.role_service import get_user_permissions
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_refresh_token
+from be.app.schemas.user import UserCreate, UserOut
+from be.app.services.role_service import get_user_permissions
+from be.shared.logging import get_logger
 from typing import Optional, Dict, List
 from datetime import datetime
 from bson import ObjectId

@@ -5,7 +5,7 @@ MongoDB connection using Motor (async driver)
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from typing import Optional
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 
 logger = get_logger("camera_ai_app")
 

@@ -1,11 +1,11 @@
 from datetime import datetime
-from app.core.database import get_collection
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.shared.logging import get_logger
 import asyncio
 from typing import Dict, Any, Optional, List
 import contextlib
 import json
-from .websocket_service import manager
+from be.app.services.websocket_service import manager
 
 logger = get_logger("camera_ai_app")
 

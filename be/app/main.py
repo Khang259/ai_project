@@ -10,30 +10,32 @@ from contextlib import asynccontextmanager
 import sys
 import os
 import asyncio
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from shared import setup_logger
-from app.core.config import settings
-from app.api import auth, users, permissions, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, monitor, analytic, route, agv_dashboard, dashboard_performance
-from app.core.database import connect_to_mongo, close_mongo_connection
-from app.scheduler import start_scheduler, shutdown_scheduler
-from app.services.role_service import initialize_default_permissions, initialize_default_roles
-from app.routers.parts_summary import router as parts_router
-from app.routers.part_detail import router as part_detail_router
-from app.routers.update_parts import router as update_router
-from app.routers.sum_parts_replace import router as sum_parts_router
-from app.routers.update_part_with_log import router as update_part_log_router
-from app.routers.maintenance_check import router as maintenance_check_router
-from app.routers.update_amr_name import router as update_amr_name_router
-from app.routers.pdf import router as pdf_router
-from app.services.role_service import initialize_default_permissions, initialize_default_roles
-from app.services.notification_service import notification_service
-from app.services.heartbeat_service import websocket_heartbeat_service
-from app.services.task_service import task_service
-from app.services.websocket_service import manager as websocket_manager
-from app.services.modbusTCP_service import modbus_device_manager
-from app.api.camera_event import router as camera_event_router
-from app.services.camera_ping_service import monitor_loop
-from app.api.ai import router as ai_router
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+from be.shared import setup_logger
+from be.app.core.config import settings
+from be.app.api import auth, users, permissions, websocket as websocket_api, node, roles, area, caller, notification, camera, task_status, monitor, analytic, route, agv_dashboard, dashboard_performance
+from be.app.core.database import connect_to_mongo, close_mongo_connection
+from be.app.scheduler import start_scheduler, shutdown_scheduler
+from be.app.services.role_service import initialize_default_permissions, initialize_default_roles
+from be.app.routers.parts_summary import router as parts_router
+from be.app.routers.part_detail import router as part_detail_router
+from be.app.routers.update_parts import router as update_router
+from be.app.routers.sum_parts_replace import router as sum_parts_router
+from be.app.routers.update_part_with_log import router as update_part_log_router
+from be.app.routers.maintenance_check import router as maintenance_check_router
+from be.app.routers.update_amr_name import router as update_amr_name_router
+from be.app.routers.pdf import router as pdf_router
+from be.app.services.role_service import initialize_default_permissions, initialize_default_roles
+from be.app.services.notification_service import notification_service
+from be.app.services.heartbeat_service import websocket_heartbeat_service
+from be.app.services.task_service import task_service
+from be.app.services.websocket_service import manager as websocket_manager
+from be.app.services.modbusTCP_service import modbus_device_manager
+from be.app.api.camera_event import router as camera_event_router
+from be.app.services.camera_ping_service import monitor_loop
+from be.app.api.ai import router as ai_router
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 

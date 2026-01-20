@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Request, HTTPException, Query
 from typing import Optional
-from app.services.node_service import process_caller
-from app.services.monitor_service import increment_produced_quantity_by_node_end
-from app.schemas.node import ProcessCaller
+from be.app.services.node_service import process_caller
+from be.app.services.monitor_service import increment_produced_quantity_by_node_end
+from be.app.schemas.node import ProcessCaller
 import httpx
-from shared.logging import get_logger
-from app.core.config import settings
+from be.shared.logging import get_logger
+from be.app.core.config import settings
 
 logger = get_logger("camera_ai_app")
 ics_url = f"http://{settings.ics_host}:7000"

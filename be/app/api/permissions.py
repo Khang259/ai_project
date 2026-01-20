@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from app.schemas.permission import PermissionCreate, PermissionUpdate, PermissionOut
-from app.services.role_service import (
+from be.app.schemas.permission import PermissionCreate, PermissionUpdate, PermissionOut
+from be.app.services.role_service import (
     create_permission, get_all_permissions, get_permission_by_id,
     update_permission, delete_permission, get_permissions_by_resource,
     get_permissions_by_action, initialize_default_permissions
 )
-from app.core.auth_middleware import require_admin
-from shared.logging import get_logger
+from be.app.core.auth_middleware import require_admin
+from be.shared.logging import get_logger
 from typing import List, Optional
 
 router = APIRouter()

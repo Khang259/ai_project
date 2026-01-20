@@ -2,7 +2,7 @@
 
 import asyncio
 from collections import deque
-from app.services.camera_state import get_camera_state, set_camera_state
+from be.app.services.camera_state import get_camera_state, set_camera_state
 
 # Mock data
 CAMERAS = []

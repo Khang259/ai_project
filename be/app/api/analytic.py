@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, Body
 from typing import Optional, List, Dict, Any, Tuple
 from datetime import date, datetime, time
-from ..schemas.analytic import AMRData, AMRDataResponse
-from ..services.analytic_service import (
+from be.app.schemas.analytic import AMRData, AMRDataResponse
+from be.app.services.analytic_service import (
     save_amr_data,
     get_payload_per_amr,
     get_payload_summary,
@@ -10,7 +10,7 @@ from ..services.analytic_service import (
     get_work_status_per_amr,
     get_work_status_summary
 )
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/analysis", tags=["Analysis"])

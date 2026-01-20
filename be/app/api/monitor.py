@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Query
 from typing import List
 from datetime import datetime
-from app.schemas.monitor import (
+from be.app.schemas.monitor import (
     MonitorRequest,
     MonitorResponse,
     MonitorOut,
 )
-from app.services.monitor_service import (
+from be.app.services.monitor_service import (
     save_monitors_with_bulk,
     get_monitor,
 )

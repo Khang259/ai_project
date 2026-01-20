@@ -1,6 +1,6 @@
-from app.core.database import get_collection
-from app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
+from be.shared.logging import get_logger
 from typing import List, Optional, Tuple
 from datetime import datetime
 from bson import ObjectId
@@ -274,12 +274,39 @@ def generate_frames_from_rtsp(rtsp_url: str):
         cap.release()
         logger.info(f"Camera stream closed: {rtsp_url}")
 
-# async def health_check_camera(camera_id: str) -> bool:
-#     """Kiểm tra kết nối của camera"""
-#     cameras = get_collection("cameras")
+async def get_all_bounding_boxes_by_camera():
+    cameras = get_collection("cameras")
+    cursor = cameras.find()
+    documents = await cursor.to_list(length=None)
+    result = []
+
+    if not documents:
+        logger.warning("No camera configs found in DB")
+        return {}
+
+    for doc in documents:
+        starts = []
+        ends = []
+
+        for cam in doc.get("cameras", []):
+            for roi_item in cam.get("rois",[]):
+                node_id = roi_item.get("node_id", "").strip()
+                roi = roi_item.get("roi", [])
+
+                x, y, w, h = map(float, roi)
+                bbox =  [x, y, x+w, y+h]
+
+                if node_id.startwith("start"):
+                    starts.append(bbox)
+                else:
+                    ends.append(bbox)
+
+        result.append({
+            "starts": starts,
+            "ends": ends
+        })
     
-#     camera = await cameras.find_one({"_id": ObjectId(camera_id)})
-#     if not camera:
-#         logger.warning(f"Camera not found for health check: {camera_id}")
-#         return False
-#     return True
+    if not result:
+        logger.warning("Not found any document in collection `cameras`")
+
+    return result

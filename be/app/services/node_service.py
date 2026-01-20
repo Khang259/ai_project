@@ -1,6 +1,6 @@
-from app.core.database import get_collection
-from app.schemas.node import NodeCreate, NodeOut, NodeUpdate, ProcessCaller
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.app.schemas.node import NodeCreate, NodeOut, NodeUpdate, ProcessCaller
+from be.shared.logging import get_logger
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId

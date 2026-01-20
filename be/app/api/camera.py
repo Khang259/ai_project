@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Query, Body
 from fastapi.responses import Response, StreamingResponse
-from app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
-from app.services.camera_service import (
+from be.app.schemas.camera import CameraCreate, CameraOut, CameraUpdate
+from be.app.services.camera_service import (
     create_camera,
     get_camera,
     get_camera_by_camera_id,
@@ -12,7 +12,7 @@ from app.services.camera_service import (
     get_camera_count_by_area,
     generate_frames_from_rtsp,
 )
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 from typing import List
 
 router = APIRouter()

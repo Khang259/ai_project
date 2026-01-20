@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from app.core.database import get_collection
-from app.schemas.user import UserOut, UserUpdate
-from app.core.permissions import require_permission, require_role
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.app.schemas.user import UserOut, UserUpdate
+from be.app.core.permissions import require_permission, require_role
+from be.shared.logging import get_logger
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
-from app.services.auth_service import get_users_for_operator
+from be.app.services.auth_service import get_users_for_operator
 
 router = APIRouter()
 logger = get_logger("camera_ai_app")

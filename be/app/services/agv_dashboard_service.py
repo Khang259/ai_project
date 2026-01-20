@@ -1,10 +1,10 @@
 import collections
 from datetime import datetime, timedelta
-from app.core.database import get_collection
-from shared.logging import get_logger
+from be.app.core.database import get_collection
+from be.shared.logging import get_logger
 from typing import Optional
 import httpx
-from app.core.config import settings
+from be.app.core.config import settings
 
 
 ics_url = f"http://{settings.ics_host}:7000"

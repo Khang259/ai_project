@@ -2,8 +2,8 @@ import asyncio
 import json
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
-from app.core.redis import redis_client
-from shared import setup_logger
+from be.app.core.redis import redis_client
+from be.shared import setup_logger
 
 logger = setup_logger("sse_camera_event", "INFO", "sse_camera_event")
 

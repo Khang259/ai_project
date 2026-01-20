@@ -1,8 +1,8 @@
 from pymodbus.client import ModbusTcpClient
 from typing import Dict, Any
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 from dataclasses import dataclass
-from app.core.database import get_collection
+from be.app.core.database import get_collection
 import asyncio
 import time
 

@@ -10,8 +10,8 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from shared.logging import get_logger
-from app.services.agv_dashboard_service import reverse_dashboard_data
+from be.shared.logging import get_logger
+from be.app.services.agv_dashboard_service import reverse_dashboard_data
 
 logger = get_logger("camera_ai_app")
 

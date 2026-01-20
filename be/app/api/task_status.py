@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, HTTPException, Query
-from app.services.task_service import filter_raw_task, get_tasks_from_db, put_to_service, track_task
-from app.services.websocket_service import manager
+from be.app.services.task_service import filter_raw_task, get_tasks_from_db, put_to_service, track_task
+from be.app.services.websocket_service import manager
 import json
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 
 router = APIRouter()
 logger = get_logger("camera_ai_app")

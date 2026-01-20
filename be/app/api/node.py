@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from app.schemas.node import NodeCreate, NodeOut, NodeUpdate, NodeBatchUpdate, NodeBatchUpdateResponse, NodesAdvancedResponse
-from app.services.node_service import (
+from be.app.schemas.node import NodeCreate, NodeOut, NodeUpdate, NodeBatchUpdate, NodeBatchUpdateResponse, NodesAdvancedResponse
+from be.app.services.node_service import (
     create_node,
     get_nodes,
     update_node,
@@ -9,7 +9,7 @@ from app.services.node_service import (
     get_nodes_by_owner_and_type,
     get_nodes_advanced,
 )
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 from typing import List
 
 router = APIRouter()

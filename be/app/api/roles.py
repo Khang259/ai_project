@@ -1,15 +1,15 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from app.schemas.user import RoleCreate, RoleOut, RoleUpdate
-from app.services.role_service import (
+from be.app.schemas.user import RoleCreate, RoleOut, RoleUpdate
+from be.app.services.role_service import (
     create_role, get_all_roles, get_role_by_id, update_role,
     delete_role, assign_permission_to_role, remove_permission_from_role,
     initialize_default_roles
 )
-from app.core.permissions import require_permission
-from shared.logging import get_logger
+from be.app.core.permissions import require_permission
+from be.shared.logging import get_logger
 from typing import List, Optional
 from pydantic import BaseModel
-from app.core.auth_middleware import require_admin
+from be.app.core.auth_middleware import require_admin
 
 router = APIRouter()
 logger = get_logger("camera_ai_app")

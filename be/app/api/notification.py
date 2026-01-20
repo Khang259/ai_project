@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, HTTPException, Query
-from app.services.websocket_service import manager
+from be.app.services.websocket_service import manager
 import json
-from app.services.notification_service import filter_notification, get_notifications_from_db
-from shared.logging import get_logger
+from be.app.services.notification_service import filter_notification, get_notifications_from_db
+from be.shared.logging import get_logger
 
 logger = get_logger("camera_ai_app")
 router = APIRouter()

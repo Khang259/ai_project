@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict, Set
 import asyncio
-from shared.logging import get_logger
+from be.shared.logging import get_logger
 
 import json
 

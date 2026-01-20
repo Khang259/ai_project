@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from datetime import datetime
-from app.core.database import get_collection
-from app.schemas.part_schema import MaintenanceCheckItem, UpdateMaintenanceRequest, UpdateMaintenanceResponse, CheckMaintenanceRequest, CheckMaintenanceResponse
+from be.app.core.database import get_collection
+from be.app.schemas.part_schema import MaintenanceCheckItem, UpdateMaintenanceRequest, UpdateMaintenanceResponse, CheckMaintenanceRequest, CheckMaintenanceResponse
 
 router = APIRouter()
 

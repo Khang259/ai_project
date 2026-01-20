@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Body
-from app.schemas.route import RouteCreate, RouteOut, RouteUpdate
-from app.services.route_service import (
+from be.app.schemas.route import RouteCreate, RouteOut, RouteUpdate
+from be.app.services.route_service import (
     create_route,
     get_route,
     get_routes,
@@ -9,8 +9,8 @@ from app.services.route_service import (
     get_routes_by_creator,
     get_routes_by_group_id,
 )
-from app.core.permissions import get_current_user
-from shared.logging import get_logger
+from be.app.core.permissions import get_current_user
+from be.shared.logging import get_logger
 from typing import List
 
 router = APIRouter()
