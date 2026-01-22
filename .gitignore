@@ -46,6 +46,9 @@ be/app/logs/
 
 be/logs/*
 
+ai/__pycache__
+ai/logs
+
 .cursor/
 .vscode/
 __pycache__/
