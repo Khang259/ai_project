@@ -14,14 +14,14 @@ VALIDATE_PAIRS = [
 CAMERAS = [
     {
         "rtsp": "rtsp://127.0.0.1:8554/start",
-        "rois": [{"node_id": "start_10000565", "roi": [281, 405, 166, 127]}],
-        "rois": [{"node_id": "start_10000570", "roi": [460, 412, 205, 128]}],
+        "rois": [{"node_id": "start_10000452", "roi": [281, 405, 166, 127]}],
+        "rois": [{"node_id": "start_10000455", "roi": [460, 412, 205, 128]}],
     },
     {
         "rtsp": "rtsp://127.0.0.1:8554/end",
         "rois": [
-            {"node_id": "start_10000452", "roi": [673, 406, 198, 138]},
-            {"node_id": "end_10000557", "roi": [878, 381, 161, 167]},
+            {"node_id": "end_10000557", "roi": [334, 267, 175, 200]},
+            {"node_id": "end_10000558", "roi": [513, 251, 206, 215]},
         ],
     },
     # Add more cameras as needed
