@@ -83,21 +83,21 @@ def setup_block_unblock_logger(log_dir: str = "../logs") -> logging.Logger:
     return logger
 
 
-def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
-    """Kiểm tra điểm có nằm trong hình chữ nhật hay không."""
-    x, y = point
-    if len(polygon) < 4:
-        return False
+# def is_point_in_polygon(point: Tuple[float, float], polygon: List[List[int]]) -> bool:
+#     """Kiểm tra điểm có nằm trong hình chữ nhật hay không."""
+#     x, y = point
+#     if len(polygon) < 4:
+#         return False
     
-    # Lấy min/max của tất cả các điểm trong polygon (hình chữ nhật)
-    x_coords = [p[0] for p in polygon]
-    y_coords = [p[1] for p in polygon]
+#     # Lấy min/max của tất cả các điểm trong polygon (hình chữ nhật)
+#     x_coords = [p[0] for p in polygon]
+#     y_coords = [p[1] for p in polygon]
     
-    min_x, max_x = min(x_coords), max(x_coords)
-    min_y, max_y = min(y_coords), max(y_coords)
+#     min_x, max_x = min(x_coords), max(x_coords)
+#     min_y, max_y = min(y_coords), max(y_coords)
     
-    # Kiểm tra điểm có nằm trong khoảng
-    return min_x <= x <= max_x and min_y <= y <= max_y
+#     # Kiểm tra điểm có nằm trong khoảng
+#     return min_x <= x <= max_x and min_y <= y <= max_y
 
 
 class StablePairProcessor:
@@ -232,52 +232,79 @@ class StablePairProcessor:
             cur = conn.execute("SELECT DISTINCT key FROM messages WHERE topic = 'roi_detection' ORDER BY key")
             return [row[0] for row in cur.fetchall()]
 
-    def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
-        """
-        Tính trạng thái slot dựa trên trường slot_number gắn tại roi_processor.
-        Quy ước: mỗi frame có đủ các slot empty nếu không thấy hang.
-        Ở đây, chúng ta tạo status_by_slot từ các detection hiện có: nếu có hang ở slot X thì slot X=shelf, các slot khác giữ nguyên theo state cũ hoặc không cập nhật.
-        """
-        status_by_slot: Dict[int, str] = {}
-        # mark shelf by present detections (class "hang" = shelf có hàng)
-        for det in roi_detections:
-            cls = det.get("class_name")
-            slot_num = det.get("slot_number")
-            if slot_num is None:
-                continue
-            if cls == "hang":
-                status_by_slot[int(slot_num)] = "shelf"
-            elif cls == "empty" and int(slot_num) not in status_by_slot:
-                # only mark empty if hang not seen for that slot in this batch
-                status_by_slot[int(slot_num)] = "empty"
-        return status_by_slot
     # def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
     #     """
-    #     Tính trạng thái slot:
-    #     - Nếu thấy class "hang" -> status = "shelf" (Ưu tiên cao nhất)
-    #     - Nếu thấy class "qr" (hoặc khác) mà KHÔNG thấy "hang" -> status = "empty"
+    #     Tính trạng thái slot dựa trên trường slot_number gắn tại roi_processor.
+    #     Quy ước: mỗi frame có đủ các slot empty nếu không thấy hang.
+    #     Ở đây, chúng ta tạo status_by_slot từ các detection hiện có: nếu có hang ở slot X thì slot X=shelf, các slot khác giữ nguyên theo state cũ hoặc không cập nhật.
     #     """
     #     status_by_slot: Dict[int, str] = {}
-    
+    #     # mark shelf by present detections (class "hang" = shelf có hàng)
     #     for det in roi_detections:
+    #         cls = det.get("class_name")
     #         slot_num = det.get("slot_number")
     #         if slot_num is None:
     #             continue
-                
-    #         slot_idx = int(slot_num)
-    #         cls = det.get("class_name")
-
     #         if cls == "hang":
-    #             # Gặp hàng -> Chốt luôn là SHELF (ghi đè bất kể trước đó là gì)
-    #             status_by_slot[slot_idx] = "shelf"
-                
-    #         else: 
-    #             # Trường hợp còn lại (ví dụ class "qr")
-    #             # Chỉ gán là EMPTY nếu slot này CHƯA được xác định là SHELF
-    #             if status_by_slot.get(slot_idx) != "shelf":
-    #                 status_by_slot[slot_idx] = "empty"
-                    
+    #             status_by_slot[int(slot_num)] = "shelf"
+    #         elif cls == "empty" and int(slot_num) not in status_by_slot:
+    #             # only mark empty if hang not seen for that slot in this batch
+    #             status_by_slot[int(slot_num)] = "empty"
     #     return status_by_slot
+    # # def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
+    # #     """
+    # #     Tính trạng thái slot:
+    # #     - Nếu thấy class "hang" -> status = "shelf" (Ưu tiên cao nhất)
+    # #     - Nếu thấy class "qr" (hoặc khác) mà KHÔNG thấy "hang" -> status = "empty"
+    # #     """
+    # #     status_by_slot: Dict[int, str] = {}
+    
+    # #     for det in roi_detections:
+    # #         slot_num = det.get("slot_number")
+    # #         if slot_num is None:
+    # #             continue
+                
+    # #         slot_idx = int(slot_num)
+    # #         cls = det.get("class_name")
+
+    # #         if cls == "hang":
+    # #             # Gặp hàng -> Chốt luôn là SHELF (ghi đè bất kể trước đó là gì)
+    # #             status_by_slot[slot_idx] = "shelf"
+                
+    # #         else: 
+    # #             # Trường hợp còn lại (ví dụ class "qr")
+    # #             # Chỉ gán là EMPTY nếu slot này CHƯA được xác định là SHELF
+    # #             if status_by_slot.get(slot_idx) != "shelf":
+    # #                 status_by_slot[slot_idx] = "empty"
+                    
+    # #     return status_by_slot
+    def _compute_slot_statuses(self, camera_id: str, roi_detections: List[Dict[str, Any]]) -> Dict[int, str]:
+        """
+        Tính trạng thái slot:
+        - Nếu thấy class "hang" -> status = "shelf" (Ưu tiên cao nhất)
+        - Nếu thấy class "qr" (hoặc khác) mà KHÔNG thấy "hang" -> status = "empty"
+        """
+        status_by_slot: Dict[int, str] = {}
+    
+        for det in roi_detections:
+            slot_num = det.get("slot_number")
+            if slot_num is None:
+                continue
+                
+            slot_idx = int(slot_num)
+            cls = det.get("class_name")
+
+            if cls == "hang":
+                # Gặp hàng -> Chốt luôn là SHELF (ghi đè bất kể trước đó là gì)
+                status_by_slot[slot_idx] = "shelf"
+                
+            else: 
+                # Trường hợp còn lại (ví dụ class "qr")
+                # Chỉ gán là EMPTY nếu slot này CHƯA được xác định là SHELF
+                if status_by_slot.get(slot_idx) != "shelf":
+                    status_by_slot[slot_idx] = "empty"
+                    
+        return status_by_slot
     def _update_slot_state(self, camera_id: str, status_by_slot: Dict[int, str]) -> None:
         now = time.time()
         for slot_num, status in status_by_slot.items():
@@ -306,23 +333,23 @@ class StablePairProcessor:
         dt = datetime.utcfromtimestamp(epoch_seconds)
         return dt.strftime("%Y-%m-%d %H:%M")
     
-    # def _is_already_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> bool:
-    #     """Check if this pair was already published in the same minute"""
-    #     minute_key = self._get_minute_key(stable_since_epoch)
+    def _is_already_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> bool:
+        """Check if this pair was already published in the same minute"""
+        minute_key = self._get_minute_key(stable_since_epoch)
         
-    #     if pair_id not in self.published_by_minute:
-    #         self.published_by_minute[pair_id] = {}
+        if pair_id not in self.published_by_minute:
+            self.published_by_minute[pair_id] = {}
         
-    #     return minute_key in self.published_by_minute[pair_id]
+        return minute_key in self.published_by_minute[pair_id]
     
-    # def _mark_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> None:
-    #     """Mark this pair as published for this minute"""
-    #     minute_key = self._get_minute_key(stable_since_epoch)
+    def _mark_published_this_minute(self, pair_id: str, stable_since_epoch: float) -> None:
+        """Mark this pair as published for this minute"""
+        minute_key = self._get_minute_key(stable_since_epoch)
         
-    #     if pair_id not in self.published_by_minute:
-    #         self.published_by_minute[pair_id] = {}
+        if pair_id not in self.published_by_minute:
+            self.published_by_minute[pair_id] = {}
         
-    #     self.published_by_minute[pair_id][minute_key] = True
+        self.published_by_minute[pair_id][minute_key] = True
 
     def _maybe_publish_dual(self, dual_config: Dict[str, int], stable_since_epoch: float, is_four_points: bool) -> bool:
         """Publish dual pair dựa trên configuration, trả True nếu thực sự publish"""
@@ -384,7 +411,8 @@ class StablePairProcessor:
         print(console_msg)
         
         # Block start_qr sau khi publish dual
-        self._publish_dual_block(dual_config, dual_id)
+        # Truyền thêm is_four_points để _publish_dual_block biết có cần monitor hay không
+        self._publish_dual_block(dual_config, dual_id, is_four_points)
         return True
 
     # def _is_dual_already_published_this_minute(self, dual_id: str, stable_since_epoch: float) -> bool:
@@ -405,15 +433,21 @@ class StablePairProcessor:
         
     #     self.dual_published_by_minute[dual_id][minute_key] = True
     
-    def _publish_dual_block(self, dual_config: Dict[str, int], dual_id: str) -> None:
-        """Publish message để block start_qr sau khi dual pair được phát hiện"""
+    def _publish_dual_block(self, dual_config: Dict[str, int], dual_id: str, is_four_points: bool) -> None:
+        """
+        Publish message để block start_qr sau khi dual pair được phát hiện.
+        
+        CẢ 4P VÀ 2P đều CHỈ gửi block, KHÔNG monitor để unblock tự động.
+        Unblock chỉ có thể thực hiện thủ công qua trigger từ bên ngoài.
+        """
         start_qr = dual_config["start_qr"]
         end_qrs = dual_config["end_qrs"]
         
         # Lưu thông tin dual đã block
         self.dual_blocked_pairs[dual_id] = {
             "start_qr": start_qr,
-            "end_qrs": end_qrs
+            "end_qrs": end_qrs,
+            "is_four_points": is_four_points  # Đánh dấu loại dual
         }
         
         # Publish block message cho roi_processor
@@ -422,72 +456,78 @@ class StablePairProcessor:
             "start_qr": start_qr,
             "end_qrs": end_qrs,
             "action": "block",
+            "is_four_points": is_four_points,  # Thêm thông tin loại dual
             "timestamp": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
         }
         
         self.queue.publish("dual_block", dual_id, block_payload)
         
         # Log dual block
-        self.block_logger.info(f"DUAL_BLOCK_PUBLISHED: dual_id={dual_id}, start_qr={start_qr}, end_qrs={end_qrs}, action=block")
+        block_type = "4P" if is_four_points else "2P"
+        self.block_logger.info(f"DUAL_BLOCK_PUBLISHED: dual_id={dual_id}, start_qr={start_qr}, end_qrs={end_qrs}, type={block_type}, action=block")
         
-        # Bắt đầu monitor end_qrs state
-        end_cam_slot = self.qr_to_slot.get(end_qrs)
-        if end_cam_slot:
-            end_cam, end_slot = end_cam_slot
-            self.dual_end_states[(end_cam, end_slot)] = {
-                "state": "empty",  # Bắt đầu với empty
-                "since": time.time(),
-                "dual_id": dual_id,
-                "stable_time": 15.0  # Cần stable 15s
-            }
-        
-        log_msg = f"[DUAL_BLOCK] Đã block start_qr={start_qr} cho dual {dual_id}, monitoring end_qrs={end_qrs}"
+        # CHỈ gửi block, KHÔNG monitor để unblock tự động (áp dụng cho cả 4P và 2P)
+        log_msg = f"[DUAL_BLOCK_{block_type}] Đã block start_qr={start_qr} cho dual {dual_id} (KHÔNG tự động unblock)"
         print(log_msg)
     
-    def _monitor_dual_end_states(self) -> None:
-        """Monitor trạng thái của các end_qrs trong dual pairs để unblock khi cần"""
-        current_time = time.time()
+    # def _monitor_dual_end_states(self) -> None:
+    #     """
+    #     KHÔNG SỬ DỤNG NỮA: CẢ 4P VÀ 2P đều không tự động unblock.
+    #     Monitor trạng thái của các end_qrs trong dual pairs để unblock khi cần.
+    #     """
+    #     current_time = time.time()
         
-        # Duyệt qua tất cả dual end states đang monitor
-        for (end_cam, end_slot), state_info in list(self.dual_end_states.items()):
-            dual_id = state_info["dual_id"]
+    #     # Duyệt qua tất cả dual end states đang monitor
+    #     for (end_cam, end_slot), state_info in list(self.dual_end_states.items()):
+    #         dual_id = state_info["dual_id"]
             
-            # Kiểm tra trạng thái hiện tại của slot này
-            current_state_ok, current_since = self._is_slot_stable(end_cam, end_slot, expect_status="shelf")
+    #         # BẢO VỆ: Bỏ qua nếu đây là 4P (không nên xảy ra nhưng để chắc chắn)
+    #         blocked_info = self.dual_blocked_pairs.get(dual_id, {})
+    #         if blocked_info.get("is_four_points", False):
+    #             print(f"[DUAL_MONITOR_WARNING] Phát hiện 4P trong monitor list: {dual_id}, bỏ qua!")
+    #             continue
             
-            if current_state_ok and current_since is not None:
-                # End slot đang stable shelf
-                prev_state = state_info["state"]
-                if prev_state == "empty":
-                    # Chuyển từ empty -> shelf: bắt đầu đếm thời gian
-                    state_info["state"] = "shelf"
-                    state_info["since"] = current_since
-                    log_msg = f"[DUAL_MONITOR] End slot {end_cam}:{end_slot} (dual {dual_id}): empty -> shelf"
-                    print(log_msg)
-                elif prev_state == "shelf":
-                    # Đã ở trạng thái shelf: kiểm tra thời gian stable
-                    stable_duration = current_time - state_info["since"]
-                    if stable_duration >= state_info["stable_time"]:
-                        # Đủ thời gian stable: unblock start_qr
-                        self._unblock_dual_start(dual_id)
-                        # Xóa khỏi monitoring
-                        del self.dual_end_states[(end_cam, end_slot)]
-            else:
-                # End slot không phải shelf stable
-                if state_info["state"] == "shelf":
-                    # Chuyển từ shelf -> empty: reset
-                    state_info["state"] = "empty"
-                    state_info["since"] = current_time
-                    print(f"[DUAL_MONITOR] End slot {end_cam}:{end_slot} (dual {dual_id}): shelf -> empty (reset)")
+    #         # Kiểm tra trạng thái hiện tại của slot này
+    #         current_state_ok, current_since = self._is_slot_stable(end_cam, end_slot, expect_status="shelf")
+            
+    #         if current_state_ok and current_since is not None:
+    #             # End slot đang stable shelf
+    #             prev_state = state_info["state"]
+    #             if prev_state == "empty":
+    #                 # Chuyển từ empty -> shelf: bắt đầu đếm thời gian
+    #                 state_info["state"] = "shelf"
+    #                 state_info["since"] = current_since
+    #                 log_msg = f"[DUAL_MONITOR_2P] End slot {end_cam}:{end_slot} (dual {dual_id}): empty -> shelf"
+    #                 print(log_msg)
+    #             elif prev_state == "shelf":
+    #                 # Đã ở trạng thái shelf: kiểm tra thời gian stable
+    #                 stable_duration = current_time - state_info["since"]
+    #                 if stable_duration >= state_info["stable_time"]:
+    #                     # Đủ thời gian stable: unblock start_qr
+    #                     self._unblock_dual_start(dual_id)
+    #                     # Xóa khỏi monitoring
+    #                     del self.dual_end_states[(end_cam, end_slot)]
+    #         else:
+    #             # End slot không phải shelf stable
+    #             if state_info["state"] == "shelf":
+    #                 # Chuyển từ shelf -> empty: reset
+    #                 state_info["state"] = "empty"
+    #                 state_info["since"] = current_time
+    #                 print(f"[DUAL_MONITOR_2P] End slot {end_cam}:{end_slot} (dual {dual_id}): shelf -> empty (reset)")
     
     def _unblock_dual_start(self, dual_id: str) -> None:
-        """Unblock start_qr khi end_qrs đã stable shelf"""
+        """
+        Unblock start_qr khi nhận được trigger từ bên ngoài.
+        Áp dụng cho CẢ 4P VÀ 2P (chỉ unblock khi có trigger thủ công).
+        """
         if dual_id not in self.dual_blocked_pairs:
             return
         
         blocked_info = self.dual_blocked_pairs[dual_id]
         start_qr = blocked_info["start_qr"]
         end_qrs = blocked_info["end_qrs"]
+        is_four_points = blocked_info.get("is_four_points", False)
+        block_type = "4P" if is_four_points else "2P"
         
         # Publish unblock message
         unblock_payload = {
@@ -495,19 +535,20 @@ class StablePairProcessor:
             "start_qr": start_qr,
             "end_qrs": end_qrs,
             "action": "unblock",
-            "reason": "end_qrs_stable_shelf",
+            "is_four_points": is_four_points,
+            "reason": "manual_trigger",
             "timestamp": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
         }
         
         self.queue.publish("dual_unblock", dual_id, unblock_payload)
         
         # Log dual unblock
-        self.block_logger.info(f"DUAL_UNBLOCK_PUBLISHED: dual_id={dual_id}, start_qr={start_qr}, end_qrs={end_qrs}, reason=end_qrs_stable_shelf")
+        self.block_logger.info(f"DUAL_UNBLOCK_PUBLISHED: dual_id={dual_id}, type={block_type}, start_qr={start_qr}, end_qrs={end_qrs}, reason=manual_trigger")
         
         # Xóa khỏi danh sách blocked
         del self.dual_blocked_pairs[dual_id]
         
-        log_msg = f"[DUAL_UNBLOCK] Đã unblock start_qr={start_qr} cho dual {dual_id} (end_qrs={end_qrs} stable shelf)"
+        log_msg = f"[DUAL_UNBLOCK_{block_type}] Đã unblock start_qr={start_qr} cho dual {dual_id} (thủ công via trigger)"
         print(log_msg)
     
     def _subscribe_end_slot_requests(self) -> None:
@@ -873,8 +914,8 @@ class StablePairProcessor:
                 # Evaluate dual pairs
                 self._evaluate_dual_pairs()
                 
-                # Note: Dual end state monitoring is now handled by roi_processor
-                # via dual_unblock_trigger subscription thread
+                # KHÔNG monitor dual end states nữa: CẢ 4P VÀ 2P đều chỉ block, không tự động unblock
+                # self._monitor_dual_end_states()
 
                 time.sleep(0.2) 
 
@@ -896,3 +937,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
