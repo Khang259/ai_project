@@ -75,12 +75,8 @@ class BoundingBoxDrawerFFmpeg:
 
 def main():
     rtsp_urls = [
-        # "rtsp://admin:Soncave1!@192.168.1.27:554/streaming/channels/101",
-        # "rtsp://admin:Soncave1!@192.168.1.28:554/streaming/channels/101",
-        # "rtsp://admin:Soncave1!@192.168.1.29:554/streaming/channels/101",
-        #  "rtsp://admin:Soncave1!@192.168.1.30:554/streaming/channels/101",
-        # "rtsp://admin:Soncave1!@192.168.1.31:554/streaming/channels/101",
-        "rtsp://127.0.0.1:8554/start"
+        #"rtsp://admin:Thado12@@192.168.1.130:554/Streaming/Channels/102",
+        "rtsp://admin:Thado12@@192.168.1.143:554/Streaming/Channels/102"
     ]
 
     width, height = 1280, 720  # Cập nhật theo độ phân giải camera thật

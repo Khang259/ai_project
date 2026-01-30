@@ -29,18 +29,29 @@ def main():
     while True:
         print("Starting ...")
         state_manager.process_starts()
+        #logger.debug(f"Ready start list: {state_manager.ready_start_list}")
         state_manager.process_ends()
+        #logger.debug(f"Ready end list: {state_manager.ready_end_list}")
         
-        ready_pairs = pair_points(state_manager.ready_start_list, state_manager.ready_end_list, validate_pairs)
+        ready_pair, payloads = pair_points(state_manager.ready_start_list, state_manager.ready_end_list, validate_pairs)
         
-        for pair in ready_pairs:
-            success = trigger_post(pair, ICS_URL)
-            if success:
-                state_manager.points[pair[0]]["flag"] = True
-                logger.info(f"Set flag True for {pair[0]}")
-            else:
-                logger.error("Failed to post")
-        
+        for pair in ready_pair:
+            for payload in payloads:
+                success = trigger_post(ICS_URL, payload)
+                logger.debug(f"Trigger POST for pair {pair} with payload {payload}")
+                logger.debug(f"POST success: {success}")
+                if success:
+                    state_manager.points[pair[0]]["flag"] = True
+                    state_manager.ready_start_list.remove(pair[0])
+                    state_manager.waiting_start_list.append(pair[0])
+                    logger.debug(f"state_manager.points[pair[0]]: {state_manager.points[pair[0]]}")
+                    state_manager.points[pair[1]]["flag"] = True
+                    state_manager.ready_end_list.remove(pair[1])
+                    state_manager.waiting_end_list.append(pair[1])
+                    logger.debug(f"state_manager.points[pair[1]]: {state_manager.points[pair[1]]}")
+                else:
+                    logger.error("Failed to post")
+
         time.sleep(1)  # Main loop delay
 
 if __name__ == "__main__":

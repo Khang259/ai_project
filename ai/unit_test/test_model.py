@@ -44,7 +44,7 @@ def main():
         logger.warning("GPU not available, using CPU.")
 
     # Kết nối RTSP
-    rtsp_url = "rtsp://127.0.0.1:8554/start"
+    rtsp_url = "rtsp://admin:Thado12@@192.168.1.155:554/Streaming/Channels/101"
     cap = cv2.VideoCapture(rtsp_url)
     if not cap.isOpened():
         logger.error(f"Failed to open RTSP stream: {rtsp_url}")

@@ -38,7 +38,7 @@ class CameraProcessor(threading.Thread):
             self.FRAME_WIDTH = 1280
             self.FRAME_HEIGHT = 720
 
-        logger.debug(f"Thread bắt đầu xử lý RTSP: {self.rtsp}")
+        logger.debug(f"Thread starting with rtsp: {self.rtsp}")
 
         while self.running and cap.isOpened():
             ret, frame = cap.read()
@@ -56,18 +56,18 @@ class CameraProcessor(threading.Thread):
             detections, annotated_frame = predict_and_visualize(frame)
             frame = annotated_frame.copy()   # đã có bbox YOLO
 
-            # ── Tính trạng thái từng ROI trong frame hiện tại ───────
-            current_states = {}
+            coverage_dict = {}
+            current_states = {} # Kích thước biến không tăng vì type_format(current_states) = dict
             for roi_dict in self.rois:
                 node_id = roi_dict["node_id"]
                 roi = roi_dict["roi"]
-                has_obj = has_object_in_roi(detections, roi, node_id)
+                has_obj, coverage = has_object_in_roi(detections, roi, node_id)
                 current_states[node_id] = has_obj
-                self.state_manager.update_state(node_id, has_obj)
+                coverage_dict[node_id] = coverage
+                self.state_manager.get_state_nodes(node_id, current_states[node_id])
 
-            # ── Vẽ ROI với màu theo trạng thái ──────────────────────
-            draw_rois_on_frame(frame, self.rois, current_states)
-            cv2.imshow(self.window_name, frame)
+            draw_rois_on_frame(frame, self.rois, current_states, coverage_dict)
+            cv2.imshow(self.rtsp, frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.running = False
@@ -76,6 +76,6 @@ class CameraProcessor(threading.Thread):
 
         cap.release()
         try:
-            cv2.destroyWindow(self.window_name)
+            cv2.destroyWindow(self.rtsp)
         except:
             pass
