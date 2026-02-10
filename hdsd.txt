@@ -2,3 +2,7 @@
 python roi_tool --cam cam-99 --save
 
 2. conda activate ai_conda
+
+
+ffmpeg -re -stream_loop -1 -i video-test-end.mp4 -c copy -f rtsp rtsp://localhost:8554/cam100
+ffmpeg -re -stream_loop -1 -i video-test-end.mp4 -c copy -f rtsp rtsp://localhost:8554/cam100

@@ -145,14 +145,55 @@ class CameraOrchestrator:
             self._stop()
     
     def _stop(self):
-        """Dừng tất cả process"""
+        """Dừng tất cả process và giải phóng resources"""
+        print("\nStopping all processes...")
+        
+        # 1. Terminate tất cả processes
         for process in self.processes:
-            process.terminate()
+            if process.is_alive():
+                process.terminate()
         
+        # 2. Join với timeout
         timeout = system_config.PROCESS_TERMINATE_TIMEOUT
-        
         for process in self.processes:
             process.join(timeout=timeout)
+            if process.is_alive():
+                process.kill()  # Force kill nếu vẫn còn sống
+        
+        # 3. Clear và close Queues
+        self._cleanup_queue(self.detection_queue)
+        self._cleanup_queue(self.roi_result_queue)
+        
+        # 4. Clear shared dicts
+        try:
+            self.shared_dict.clear()
+            self.result_dict.clear()
+        except:
+            pass
+        
+        # 5. Shutdown Manager
+        try:
+            self.manager.shutdown()
+        except:
+            pass
+        
+        # 6. Clear process list
+        self.processes.clear()
+        
+        print("All processes stopped and resources released")
+    
+    def _cleanup_queue(self, queue):
+        """Drain và close một queue"""
+        try:
+            while not queue.empty():
+                try:
+                    queue.get_nowait()
+                except:
+                    break
+            queue.close()
+            queue.join_thread()
+        except:
+            pass
 
 
 def load_camera_config(config_file: str = "camera_config.json") -> dict:

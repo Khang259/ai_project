@@ -80,11 +80,17 @@ class TwoPointLogic(LogicRule):
         if not (s_state and e_state):
             return None
 
-        stability_time = self.params.get("stability_time_sec", 10)
+        stability_time = self.params.get("stability_time_sec", 30)
 
+        # Kiểm tra điểm s có bị block không
+        if self.hash_tables.is_point_blocked(s_qr):
+            logger = logging.getLogger("LogicProcessor")
+            logger.debug(f"[{self.rule_name}] Điểm s({s_qr}) đang bị block, skip trigger")
+            return None
+        
         # Kiểm tra điều kiện & stability bằng helper của base class
-        qr_codes = [s_qr,e_qr]
-        expected_states = ["shelf", "empty"]
+        qr_codes = [s_qr, e_qr]
+        expected_states = ["hang", "empty"]  # "hang" = có hàng (từ model)
 
         condition_met, stable_duration = self._check_stability(
             qr_codes=qr_codes,
@@ -103,6 +109,19 @@ class TwoPointLogic(LogicRule):
         )
 
         if condition_met and stable_duration >= stability_time:
+            # Block điểm s trước khi trigger
+            self.hash_tables.update_state(s_qr, {
+                "status": "block",
+                "blocked_by": self.rule_name,
+                "blocked_at": timestamp
+            })
+            
+            # Gửi thông báo block đến visualizer
+            self.hash_tables.send_block_notification(s_qr, self.visualizer_queue)
+            
+            logger = logging.getLogger("LogicProcessor")
+            logger.info(f"[{self.rule_name}] Đã block điểm s({s_qr})")
+            
             # TRIGGER
             output = self._create_output(
                 timestamp=timestamp,
@@ -110,6 +129,9 @@ class TwoPointLogic(LogicRule):
                 e_state=e_state,
                 stable_duration=stable_duration,
             )
+            
+            # Thêm thông tin blocked_point vào output để API biết unblock điểm nào
+            output["blocked_point"] = s_qr
 
             self.stats["triggers_fired"] += 1
             self.stats["last_trigger_time"] = timestamp
@@ -163,7 +185,7 @@ class TwoPointLogic(LogicRule):
         """Mô tả chi tiết rule này"""
         s_qr = self.config.get("s")
         e_qr = self.config.get("e")
-        stability_time = self.params.get("stability_time_sec", 10)
+        stability_time = self.params.get("stability_time_sec", 30)
 
         return (
             f"TwoPointLogic '{self.rule_name}': "

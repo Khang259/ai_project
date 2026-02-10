@@ -1,4 +1,6 @@
 import time
+import signal
+import atexit
 from typing import List, Tuple, Dict, Any, Optional
 
 from camera_thread import CameraThread
@@ -34,6 +36,28 @@ def camera_process_worker(process_id: int,
         threads.append(thread)
         thread.start()
     
+    def cleanup_threads():
+        """Cleanup function để dừng tất cả threads"""
+        for thread in threads:
+            thread.stop()
+        join_timeout = system_config.THREAD_JOIN_TIMEOUT
+        for thread in threads:
+            thread.join(timeout=join_timeout)
+        local_dict.clear()
+    
+    # Đăng ký cleanup khi process bị terminate
+    atexit.register(cleanup_threads)
+    
+    # Handler cho SIGTERM (khi bị terminate)
+    def sigterm_handler(signum, frame):
+        cleanup_threads()
+        raise SystemExit(0)
+    
+    try:
+        signal.signal(signal.SIGTERM, sigterm_handler)
+    except Exception:
+        pass  # Windows có thể không hỗ trợ SIGTERM trong subprocess
+    
     # Vòng lặp cập nhật từ local_dict lên shared_dict
     try:
         update_interval = camera_config.DICT_UPDATE_INTERVAL
@@ -45,15 +69,9 @@ def camera_process_worker(process_id: int,
             
             time.sleep(update_interval)
             
-    except KeyboardInterrupt:
-        # Dừng tất cả thread
-        for thread in threads:
-            thread.stop()
-        
-        # Đợi thread kết thúc
-        join_timeout = system_config.THREAD_JOIN_TIMEOUT
-        for thread in threads:
-            thread.join(timeout=join_timeout)
-    
-    except Exception:
-        raise
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    finally:
+        # Cleanup threads khi thoát
+        cleanup_threads()
+        atexit.unregister(cleanup_threads)

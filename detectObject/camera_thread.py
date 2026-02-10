@@ -103,27 +103,64 @@ class CameraThread(threading.Thread):
     def run(self):
         """Vòng lặp chính đọc frame liên tục"""
         self.running = True
+        cap = None
         
-        # Thử kết nối camera ban đầu
-        cap = self._try_connect_camera()
-        if cap is None:
-            # Thử kết nối lại nếu thất bại
-            while self.running and self.retry_count < self.max_retry_attempts:
-                if not self._handle_connection_failure():
-                    return  # Đã thử hết số lần cho phép
-                
-                cap = self._try_connect_camera()
-                if cap is not None:
-                    break  # Kết nối thành công
-        
-        while self.running:
-            try:
-                ret, frame = cap.read()
-                if not ret:
-                    # Camera mất tín hiệu - thử kết nối lại
-                    cap.release()
+        try:
+            # Thử kết nối camera ban đầu
+            cap = self._try_connect_camera()
+            if cap is None:
+                # Thử kết nối lại nếu thất bại
+                while self.running and self.retry_count < self.max_retry_attempts:
+                    if not self._handle_connection_failure():
+                        return  # Đã thử hết số lần cho phép
                     
-                    # Thử kết nối lại
+                    cap = self._try_connect_camera()
+                    if cap is not None:
+                        break  # Kết nối thành công
+            
+            while self.running:
+                try:
+                    ret, frame = cap.read()
+                    if not ret:
+                        # Camera mất tín hiệu - thử kết nối lại
+                        self._safe_release(cap)
+                        cap = None
+                        
+                        # Thử kết nối lại
+                        cap = self._try_connect_camera()
+                        if cap is None:
+                            # Nếu không kết nối được, thử retry
+                            if not self._handle_connection_failure():
+                                return  # Đã thử hết số lần cho phép
+                            continue
+                        else:
+                            continue
+                    
+                    # Kiểm tra FPS - chỉ xử lý frame nếu đã đủ thời gian
+                    if not self.fps_controller.should_process():
+                        continue  # Bỏ qua frame này để duy trì FPS mục tiêu
+                    
+                    # Resize frame
+                    frame = resize_frame(frame, camera_config.FRAME_SIZE)
+                    if frame is None:
+                        continue
+                    
+                    # Encode JPEG để giảm dung lượng
+                    jpeg_bytes = encode_frame_to_jpeg(frame)
+                    if jpeg_bytes is None:
+                        continue
+                    
+                    # Lưu vào local_dict
+                    self.local_dict[self.cam_name] = build_camera_status(
+                        'ok',
+                        frame=jpeg_bytes
+                    )
+                    
+                except Exception:
+                    self._safe_release(cap)
+                    cap = None
+                    
+                    # Thử kết nối lại sau lỗi
                     cap = self._try_connect_camera()
                     if cap is None:
                         # Nếu không kết nối được, thử retry
@@ -132,41 +169,17 @@ class CameraThread(threading.Thread):
                         continue
                     else:
                         continue
-                
-                # Kiểm tra FPS - chỉ xử lý frame nếu đã đủ thời gian
-                if not self.fps_controller.should_process():
-                    continue  # Bỏ qua frame này để duy trì FPS mục tiêu
-                
-                # Resize frame
-                frame = resize_frame(frame, camera_config.FRAME_SIZE)
-                if frame is None:
-                    continue
-                
-                # Encode JPEG để giảm dung lượng
-                jpeg_bytes = encode_frame_to_jpeg(frame)
-                if jpeg_bytes is None:
-                    continue
-                
-                # Lưu vào local_dict
-                self.local_dict[self.cam_name] = build_camera_status(
-                    'ok',
-                    frame=jpeg_bytes
-                )
-                
-            except Exception:
+        finally:
+            # Đảm bảo release camera khi thoát
+            self._safe_release(cap)
+    
+    def _safe_release(self, cap):
+        """Release VideoCapture một cách an toàn"""
+        if cap is not None:
+            try:
                 cap.release()
-                
-                # Thử kết nối lại sau lỗi
-                cap = self._try_connect_camera()
-                if cap is None:
-                    # Nếu không kết nối được, thử retry
-                    if not self._handle_connection_failure():
-                        return  # Đã thử hết số lần cho phép
-                    continue
-                else:
-                    continue
-                
-        cap.release()
+            except Exception:
+                pass
     
     def stop(self):
         """Dừng thread"""

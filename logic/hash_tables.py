@@ -52,6 +52,9 @@ class HashTables:
             return
         
         try:
+            import time
+            init_timestamp = int(time.time())  # Lấy timestamp khởi tạo (integer để đồng bộ với event timestamp)
+            
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
             
@@ -77,8 +80,12 @@ class HashTables:
                 self.state_tracker[qr_code] = {
                     "object_type": "empty",  # "shelf", "empty", hoặc "class_X"
                     "confidence": 0.0,
-                    "last_update": 0,
-                    "stable_since": 0  # Thời điểm bắt đầu trạng thái ổn định
+                    "last_update": init_timestamp,
+                    "stable_since": init_timestamp,  # Set = thời điểm khởi tạo để tránh trigger ngay
+                    "status": "free",  # "free" | "block"
+                    "blocked_by": None,  # rule_name đã block (để debug)
+                    "blocked_at": 0,  # timestamp block
+                    "manually_disabled": False  # True = user tắt điểm này, logic KHÔNG kiểm tra
                 }
             
             print(f"Hash Tables đã nạp {len(points)} points vào RAM")
@@ -187,4 +194,85 @@ class HashTables:
         print(f"   - QR codes with triggers: {stats['total_qr_codes_with_triggers']}")
         print(f"   - Total rule registrations: {stats['total_rules_registered']}")
         print(f"   - State tracker entries: {stats['state_tracker_size']}")
+    
+    def unblock_point(self, qr_code: str, visualizer_callback=None):
+        """
+        Unblock một điểm sau khi robot hoàn thành task
+        
+        Args:
+            qr_code: Mã QR code cần unblock
+            visualizer_callback: Callback function để notify visualizer (optional)
+        """
+        if qr_code in self.state_tracker:
+            old_status = self.state_tracker[qr_code].get("status")
+            self.state_tracker[qr_code].update({
+                "status": "free",
+                "blocked_by": None,
+                "blocked_at": 0
+            })
+            import logging
+            logger = logging.getLogger("HashTables")
+            logger.info(f"✅ Đã unblock điểm {qr_code} (status: {old_status} -> free)")
+            
+            # Notify visualizer nếu có callback
+            if visualizer_callback:
+                point_info = self.qr_to_key_map.get(qr_code)
+                if point_info:
+                    camera_id, slot_id = point_info
+                    state = self.state_tracker[qr_code]
+                    visualizer_callback(camera_id, slot_id, state)
+        else:
+            import logging
+            logger = logging.getLogger("HashTables")
+            logger.warning(f"⚠️  Không tìm thấy qr_code {qr_code} để unblock")
+    
+    def is_point_blocked(self, qr_code: str) -> bool:
+        """
+        Kiểm tra xem một điểm có đang bị block không
+        
+        Args:
+            qr_code: Mã QR code cần kiểm tra
+            
+        Returns:
+            True nếu điểm đang bị block, False nếu available
+        """
+        state = self.state_tracker.get(qr_code)
+        if not state:
+            return False
+        return state.get("status") == "block"
+    
+    def send_block_notification(self, qr_code: str, visualizer_queue=None):
+        """
+        Gửi thông báo block đến visualizer
+        
+        Args:
+            qr_code: Mã QR code đã bị block
+            visualizer_queue: Queue để gửi thông báo đến visualizer
+        """
+        if not visualizer_queue:
+            return
+        
+        point_info = self.qr_to_key_map.get(qr_code)
+        if not point_info:
+            return
+        
+        camera_id, slot_id = point_info
+        state = self.state_tracker.get(qr_code)
+        if not state:
+            return
+        
+        # Tạo message giống format của roi_checker để visualizer nhận được
+        message = {
+            "camera_id": camera_id,
+            "slot_id": slot_id,
+            "object_type": state.get("object_type", "shelf"),
+            "confidence": state.get("confidence", 0.0),
+            "status": "block",  # Trường đặc biệt để visualizer biết
+            "bbox": []  # Không có bbox
+        }
+        
+        try:
+            visualizer_queue.put(message, block=False)
+        except Exception:
+            pass
 

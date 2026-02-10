@@ -79,7 +79,7 @@ class PairsLogic(LogicRule):
         # Kiểm tra điều kiện và stability sử dụng Hash Table helper
         # Sử dụng _check_stability từ base class để đảm bảo tính nhất quán
         qr_codes = [s1_qr, e1_qr, e2_qr]
-        expected_states = ["shelf", "empty", "empty"]
+        expected_states = ["hang", "empty", "empty"]  # "hang" = có hàng (từ model)
         
         # Check xem tất cả QR codes có states không
         states_exist = all(
@@ -88,6 +88,13 @@ class PairsLogic(LogicRule):
         )
         
         if not states_exist:
+            return None
+        
+        # Kiểm tra điểm s1 có bị block không
+        if self.hash_tables.is_point_blocked(s1_qr):
+            import logging
+            logger = logging.getLogger("LogicProcessor")
+            logger.debug(f"[{self.rule_name}] Điểm s1({s1_qr}) đang bị block, skip trigger")
             return None
         
         # Sử dụng Hash Table để kiểm tra stability
@@ -120,6 +127,20 @@ class PairsLogic(LogicRule):
             
             # Kiểm tra đã ổn định đủ lâu chưa (dựa trên stable_duration từ Hash Table)
             if stable_duration >= stability_time:
+                # Block điểm s1 trước khi trigger
+                self.hash_tables.update_state(s1_qr, {
+                    "status": "block",
+                    "blocked_by": self.rule_name,
+                    "blocked_at": timestamp
+                })
+                
+                # Gửi thông báo block đến visualizer
+                self.hash_tables.send_block_notification(s1_qr, self.visualizer_queue)
+                
+                import logging
+                logger = logging.getLogger("LogicProcessor")
+                logger.info(f"[{self.rule_name}] Đã block điểm s1({s1_qr})")
+                
                 # TRIGGER! Tạo output
                 s1_state = self.hash_tables.get_state(s1_qr)
                 e1_state = self.hash_tables.get_state(e1_qr)
@@ -132,6 +153,9 @@ class PairsLogic(LogicRule):
                     e2_state=e2_state,
                     stable_duration=stable_duration
                 )
+                
+                # Thêm thông tin blocked_point vào output để API biết unblock điểm nào
+                output["blocked_point"] = s1_qr
                 
                 # Update statistics
                 self.stats["triggers_fired"] += 1

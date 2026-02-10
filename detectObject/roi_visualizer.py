@@ -40,13 +40,12 @@ class ROIVisualizer:
         self.fps_trackers: Dict[str, deque] = defaultdict(lambda: deque(maxlen=30))
         
         # Color palette (BGR format - Blue, Green, Red)
+        # Chỉ dùng 2 màu chính: shelf, empty
         self.colors = {
-            'shelf': (0, 255, 0),      # Xanh lá - có hàng
-            'empty': (0, 0, 255),      # Đỏ - trống
-            'roi_normal': (0, 255, 255),  # Vàng - ROI chưa detect
-            'roi_match': (0, 255, 0),     # Xanh lá - ROI có match
-            'text': (255, 255, 255),      # Trắng - text
-            'bg': (0, 0, 0)               # Đen - background
+            'shelf': (0, 255, 0),      # Xanh lá - có hàng (hang + conf > 0.65)
+            'empty': (0, 0, 255),      # Đỏ - trống (còn lại)
+            'text': (255, 255, 255),   # Trắng - text
+            'bg': (0, 0, 0)            # Đen - background
         }
     
     def load_roi_config(self):
@@ -92,10 +91,9 @@ class ROIVisualizer:
     def update_roi_match(self, match_result: Dict[str, Any]):
         """
         Cập nhật kết quả ROI matching
-        Lưu tất cả kết quả bao gồm cả "empty" để hiển thị đầy đủ
         
         Args:
-            match_result: Kết quả match từ ROI Checker
+            match_result: Kết quả match từ ROI Checker hoặc Logic Processor
         """
         camera_id = match_result.get('camera_id', 'unknown')
         slot_id = match_result.get('slot_id', 'unknown')
@@ -142,10 +140,16 @@ class ROIVisualizer:
         
         slot_id = roi.get('slot_id', 'unknown')
         
-        # Chọn màu dựa trên trạng thái
+        # Chọn màu dựa trên trạng thái shelf/empty
         if match_info:
-            object_type = match_info.get('object_type', 'unknown')
-            color = self.colors.get(object_type, self.colors['roi_match'])
+            object_type = match_info.get('object_type', 'empty')
+            confidence = match_info.get('confidence', 0.0)
+            
+            # Logic: hang + conf > 0.65 → shelf, còn lại → empty
+            if object_type == 'hang' and confidence > 0.65:
+                color = self.colors['shelf']
+            else:
+                color = self.colors['empty']
             thickness = 1
             
             # Vẽ bbox detection nếu có (scale về kích thước frame)
@@ -158,7 +162,8 @@ class ROIVisualizer:
                 y2 = int(bbox[3] * scale_y)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 1)
         else:
-            color = self.colors['roi_normal']
+            # Chưa có match_info → mặc định empty
+            color = self.colors['empty']
             thickness = 1
         
         # Vẽ ROI rectangle
@@ -167,11 +172,15 @@ class ROIVisualizer:
         # Vẽ label: slot_id + class (shelf/empty) + confidence
         if match_info:
             obj_type = match_info.get('object_type', 'empty')
-            # Đảm bảo chỉ hiển thị shelf hoặc empty
-            if obj_type not in ['shelf', 'empty']:
-                obj_type = 'empty'
             confidence = match_info.get('confidence', 0.0)
-            label = f"{slot_id}|{obj_type}|{confidence:.2f}"
+            
+            # Logic: hang + conf > 0.65 → shelf, còn lại → empty
+            if obj_type == 'hang' and confidence > 0.65:
+                display_type = 'shelf'
+            else:
+                display_type = 'empty'
+            
+            label = f"{slot_id}|{display_type}|{confidence:.2f}"
         else:
             # Nếu chưa có match_info, hiển thị empty mặc định
             label = f"{slot_id}|empty|0.00"
@@ -270,22 +279,16 @@ def roi_visualizer_worker(
     # Khởi tạo visualizer
     visualizer = ROIVisualizer(roi_config_path)
     
+    # Flag để dừng thread
+    stop_flag = threading.Event()
+    
     # Thread để đọc ROI matches từ queue
     def roi_match_reader():
         """Thread để đọc ROI match results từ queue"""
-        update_count = 0
-        while True:
+        while not stop_flag.is_set():
             try:
                 match_result = roi_result_queue.get(timeout=0.1)
                 visualizer.update_roi_match(match_result)
-                update_count += 1
-                
-                # # Debug: Log mỗi 10 updates
-                # if update_count % 10 == 0:
-                #     cam_id = match_result.get('camera_id', '?')
-                #     slot_id = match_result.get('slot_id', '?')
-                #     obj_type = match_result.get('object_type', '?')
-                #     print(f"[Visualizer] Updated {update_count}: {cam_id}/{slot_id} = {obj_type}")
             except:
                 pass
     
@@ -370,4 +373,15 @@ def roi_visualizer_worker(
     except Exception:
         pass
     finally:
+        # Cleanup resources
+        stop_flag.set()  # Báo thread dừng
+        reader_thread.join(timeout=1.0)  # Đợi thread kết thúc
+        
+        # Cleanup visualizer cache
+        with visualizer.lock:
+            visualizer.roi_matches.clear()
+            visualizer.fps_trackers.clear()
+        
+        # Cleanup OpenCV windows
         cv2.destroyAllWindows()
+        cv2.waitKey(1)  # Flush events

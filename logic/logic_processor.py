@@ -28,14 +28,16 @@ class LogicProcessor:
     5. Gửi outputs vào Queue 2
     """
     
-    def __init__(self, config_path: str = "config.json"):
+    def __init__(self, config_path: str = "config.json", visualizer_queue=None):
         """
         Khởi tạo Logic Processor
         
         Args:
             config_path: Đường dẫn đến file config.json
+            visualizer_queue: Queue để gửi thông báo block/unblock đến visualizer (optional)
         """
         self.config_path = config_path
+        self.visualizer_queue = visualizer_queue
         
         # Khởi tạo Hash Tables (4 Hash Tables trong RAM)
         self.hash_tables = HashTables(config_path)
@@ -121,16 +123,16 @@ class LogicProcessor:
             LogicRule instance hoặc None nếu không hợp lệ
         """
         if logic_type == "Pairs":
-            return PairsLogic(rule_name, rule_cfg, params, self.hash_tables)
+            return PairsLogic(rule_name, rule_cfg, params, self.hash_tables, self.visualizer_queue)
         elif logic_type == "Dual":
-            return DualLogic(rule_name, rule_cfg, params, self.hash_tables)
+            return DualLogic(rule_name, rule_cfg, params, self.hash_tables, self.visualizer_queue)
         elif logic_type == "2point":
             # Import động vì tên file là '2point.py' (không phải identifier hợp lệ)
             import importlib
 
             module = importlib.import_module("logic.2point")
             TwoPointLogic = getattr(module, "TwoPointLogic")
-            return TwoPointLogic(rule_name, rule_cfg, params, self.hash_tables)
+            return TwoPointLogic(rule_name, rule_cfg, params, self.hash_tables, self.visualizer_queue)
         else:
             # Có thể thêm các logic types khác ở đây
             return None
@@ -298,7 +300,8 @@ def logic_processor_worker(
     input_queue: Queue,
     output_queue: Queue,
     config_path: str = "config.json",
-    log_file: Optional[str] = None
+    log_file: Optional[str] = None,
+    visualizer_queue: Optional[Queue] = None
 ):
     """
     Worker process - "Trái tim" của hệ thống
@@ -310,6 +313,8 @@ def logic_processor_worker(
         input_queue: Queue 1 - Nhận events từ roi_checker
         output_queue: Queue 2 - Gửi kết quả ra ngoài
         config_path: Đường dẫn file config.json
+        log_file: File log (optional)
+        visualizer_queue: Queue để gửi thông báo block/unblock đến visualizer (optional)
     """
     import logging
     # Thiết lập logging trong process nếu có log_file được truyền vào
@@ -328,7 +333,7 @@ def logic_processor_worker(
     logger.info("=" * 60)
     
     # Khởi tạo Logic Processor
-    processor = LogicProcessor(config_path)
+    processor = LogicProcessor(config_path, visualizer_queue)
     
     logger.info(f"Configuration:")
     logger.info(f"  - Config path: {config_path}")
@@ -415,8 +420,23 @@ def logic_processor_worker(
                 
     except KeyboardInterrupt:
         logger.info("Received KeyboardInterrupt, shutting down...")
-        logger.info(f"Final Summary - Events: {event_count}, Outputs: {output_count}")
         
     except Exception as e:
         logger.error(f"Fatal error in Logic Processor Worker: {e}")
+    finally:
+        # Cleanup resources
+        logger.info(f"Final Summary - Events: {event_count}, Outputs: {output_count}")
+        
+        # Cleanup Logic Processor
+        if processor:
+            # Clear hash tables
+            processor.hash_tables.key_to_qr_map.clear()
+            processor.hash_tables.qr_to_key_map.clear()
+            processor.hash_tables.trigger_map.clear()
+            processor.hash_tables.state_tracker.clear()
+            
+            # Clear logic rules
+            processor.logic_rules.clear()
+        
+        logger.info("Logic Processor Worker cleaned up")
 

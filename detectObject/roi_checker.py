@@ -135,8 +135,8 @@ def classify_object(class_id: int, confidence: float, conf_threshold: float = 0.
     Phân loại object dựa trên detection của model "hang"
     
     Logic:
-    - Có detection (class_id = 0 = "hang", confidence >= threshold) → "shelf" (có hàng)
-    - Confidence thấp → "empty" (không chắc chắn có hàng)
+    - Có detection (class_id = 0 = "hang", confidence >= threshold) → "hang"
+    - Confidence thấp hoặc không detect → "empty"
     
     Args:
         class_id: Class ID từ YOLO (0 = "hang")
@@ -144,14 +144,14 @@ def classify_object(class_id: int, confidence: float, conf_threshold: float = 0.
         conf_threshold: Ngưỡng confidence tối thiểu (mặc định 0.5)
         
     Returns:
-        "shelf" nếu detect "hang" với confidence đủ mạnh
-        "empty" nếu confidence thấp (không chắc chắn)
+        "hang" nếu detect class "hang" với confidence >= threshold
+        "empty" nếu confidence thấp hoặc không detect
     """
     # Model detect class "hang" (class_id = 0)
     if class_id == 0 and confidence >= conf_threshold:
-        return "shelf"  # Có hàng (detection hợp lệ)
+        return "hang"  # Detect được "hang"
     else:
-        return "empty"  # Confidence thấp hoặc class không hợp lệ
+        return "empty"  # Không detect hoặc confidence thấp
 
 
 def check_detection_in_roi(
@@ -165,13 +165,13 @@ def check_detection_in_roi(
     Args:
         detection: Detection object {"class": 0, "bbox": [x1,y1,x2,y2], "confidence": 0.95}
         roi: ROI object {"slot_id": "ROI_1", "rect": [x, y, w, h]}
-        conf_threshold: Ngưỡng confidence để phân biệt shelf/empty
+        conf_threshold: Ngưỡng confidence để xác định detection hợp lệ
         
     Returns:
         Tuple (is_match, object_type, score)
         - is_match: True nếu detection nằm trong ROI (bằng center)
-        - object_type: "shelf" nếu conf > conf_threshold, "empty" nếu conf <= conf_threshold
-        - score: 1.0 nếu center nằm trong ROI, ngược lại 0.0 (giữ trường 'iou' tương thích downstream)
+        - object_type: "hang" nếu conf >= conf_threshold, "empty" nếu conf < conf_threshold
+        - score: 1.0 nếu center nằm trong ROI, ngược lại 0.0
     """
     # Validation: Lấy bbox và roi_rect
     bbox = detection.get("bbox", [])
@@ -214,8 +214,8 @@ def process_detection_result(
     """
     Xử lý kết quả detection từ Queue
     Model có 1 class "hang" (class_id = 0), logic:
-    - Có detection "hang" với conf >= threshold trong ROI → "shelf" (có hàng)
-    - Không có detection hoặc conf < threshold → "empty" (trống)
+    - Có detection "hang" với conf >= threshold trong ROI → "hang"
+    - Không có detection hoặc conf < threshold → "empty"
     
     Args:
         result: Detection result từ Queue
@@ -227,7 +227,7 @@ def process_detection_result(
                   ]
                 }
         roi_hash_table: ROI Hash Table
-        conf_threshold: Ngưỡng confidence để phân biệt shelf/empty
+        conf_threshold: Ngưỡng confidence để xác định detection hợp lệ
         
     Returns:
         Danh sách kết quả match
@@ -236,7 +236,7 @@ def process_detection_result(
             "camera_id": "cam-88",
             "timestamp": 1678886400,
             "slot_id": "ROI_1",
-            "object_type": "shelf",  # hoặc "empty"
+            "object_type": "hang",  # hoặc "empty"
             "confidence": 0.95,
             "bbox": [10, 15, 50, 60]
           }
@@ -359,6 +359,10 @@ def roi_checker_worker(
         pass
     except Exception:
         pass
+    finally:
+        # Cleanup ROI Hash Table
+        roi_hash_table.roi_table.clear()
+        roi_hash_table.camera_id_mapping.clear()
 
 
 def roi_result_consumer(result_queue: Queue):

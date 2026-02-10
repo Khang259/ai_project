@@ -8,6 +8,9 @@
     "555": { "camera_id": "cam-2", "slot_id": 2 },
     "666": { "camera_id": "cam-2", "slot_id": 3 },
     "911": { "camera_id": "cam-99", "slot_id": 1 },
+    "912": { "camera_id": "cam-99", "slot_id": 2 },
+    "913": { "camera_id": "cam-99", "slot_id": 3 },
+    "914": { "camera_id": "cam-99", "slot_id": 4 },
     "1011": { "camera_id": "cam-100", "slot_id": 1 }
   },
   "rules": [
@@ -19,7 +22,7 @@
         "e": "1011"
       },
       "params": {
-        "stability_time_sec": 10,
+        "stability_time_sec": 30,
         "output_queue": "Queue_A"
       }
     },

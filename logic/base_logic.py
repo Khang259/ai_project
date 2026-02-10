@@ -23,7 +23,8 @@ class LogicRule(ABC):
         rule_name: str, 
         config: Dict[str, Any], 
         params: Dict[str, Any], 
-        hash_tables: Any
+        hash_tables: Any,
+        visualizer_queue=None
     ):
         """
         Khởi tạo Logic Rule
@@ -33,11 +34,13 @@ class LogicRule(ABC):
             config: Config của rule (ví dụ: {"s1": "000", "e1": "111"})
             params: Parameters của rule (ví dụ: {"stability_time_sec": 10})
             hash_tables: Reference đến HashTables object
+            visualizer_queue: Queue để gửi thông báo block/unblock đến visualizer (optional)
         """
         self.rule_name = rule_name
         self.config = config
         self.params = params
         self.hash_tables = hash_tables
+        self.visualizer_queue = visualizer_queue
         
         # Internal state của rule (mỗi rule tự quản lý)
         self.internal_state: Dict[str, Any] = {}
@@ -135,12 +138,14 @@ class LogicRule(ABC):
         
         if current_state:
             old_object_type = current_state.get("object_type")
+            old_stable_since = current_state.get("stable_since", timestamp)
             
             # Nếu object_type thay đổi, reset stable_since
             if old_object_type != object_type:
                 stable_since = timestamp
             else:
-                stable_since = current_state.get("stable_since", timestamp)
+                # Giữ nguyên stable_since cũ (đã được set khi khởi tạo hoặc khi state thay đổi)
+                stable_since = old_stable_since
             
             # Update state
             self.hash_tables.update_state(qr_code, {
@@ -160,6 +165,12 @@ class LogicRule(ABC):
         Helper method: Kiểm tra xem các qr_code đã ở trạng thái mong muốn
         và ổn định trong bao lâu
         
+        Logic: TẤT CẢ các điểm phải giữ đúng trạng thái trong SUỐT thời gian stability.
+        Thời gian ổn định = thời gian của điểm bắt đầu ổn định MUỘN nhất.
+        
+        QUAN TRỌNG: Nếu điểm nào có manually_disabled=True → return (False, 0.0)
+        Điều này cho phép user TẮT điểm để logic không trigger.
+        
         Args:
             qr_codes: List các qr_code cần kiểm tra
             expected_states: List các trạng thái mong muốn tương ứng
@@ -167,11 +178,16 @@ class LogicRule(ABC):
             
         Returns:
             Tuple (all_match, min_stable_duration)
-            - all_match: True nếu tất cả đều match
-            - min_stable_duration: Thời gian ổn định tối thiểu (giây)
+            - all_match: True nếu tất cả đều match trạng thái mong muốn
+            - min_stable_duration: Thời gian ổn định tối thiểu = thời gian của điểm ổn định MUỘN nhất
+        
+        Example:
+            - Điểm 911: "hang" từ T=0s (stable_since=0)
+            - Điểm 1011: "empty" từ T=5s (stable_since=5)
+            - Tại T=15s: min_stable_duration = 15-5 = 10s (vì 1011 mới ổn định sau)
         """
         all_match = True
-        min_stable_since = timestamp
+        max_stable_since = 0.0  # Thời điểm MUỘN nhất mà điểm bắt đầu ổn định
         
         for qr_code, expected_state in zip(qr_codes, expected_states):
             state = self.hash_tables.get_state(qr_code)
@@ -180,17 +196,23 @@ class LogicRule(ABC):
                 all_match = False
                 break
             
+            # QUAN TRỌNG: Nếu điểm bị tắt bởi user → logic KHÔNG kiểm tra
+            if state.get("manually_disabled", False):
+                all_match = False
+                break
+            
             if state.get("object_type") != expected_state:
                 all_match = False
                 break
             
-            # Track thời điểm ổn định sớm nhất
+            # Track thời điểm ổn định MUỘN nhất (để đảm bảo TẤT CẢ đều ổn định đủ lâu)
             stable_since = state.get("stable_since", timestamp)
-            if stable_since < min_stable_since:
-                min_stable_since = stable_since
+            if stable_since > max_stable_since:
+                max_stable_since = stable_since
         
         if all_match:
-            min_stable_duration = timestamp - min_stable_since
+            # Thời gian ổn định = từ điểm MUỘN nhất đến hiện tại
+            min_stable_duration = timestamp - max_stable_since
         else:
             min_stable_duration = 0.0
         

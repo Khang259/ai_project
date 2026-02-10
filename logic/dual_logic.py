@@ -152,9 +152,16 @@ class DualLogic(LogicRule):
         Returns:
             Output dict nếu trigger, None nếu không
         """
+        # Kiểm tra điểm s có bị block không
+        if self.hash_tables.is_point_blocked(s_qr):
+            import logging
+            logger = logging.getLogger("LogicProcessor")
+            logger.debug(f"[{self.rule_name}] Điểm {pair_name} s({s_qr}) đang bị block, skip trigger")
+            return None
+        
         # Sử dụng Hash Table helper để kiểm tra stability
         qr_codes = [s_qr, e_qr]
-        expected_states = ["shelf", "empty"]
+        expected_states = ["hang", "empty"]  # "hang" = có hàng (từ model)
         
         # Check điều kiện và stability từ Hash Table
         pair_condition, stable_duration = self._check_stability(
@@ -177,6 +184,20 @@ class DualLogic(LogicRule):
             
             # Kiểm tra đã ổn định đủ lâu chưa (stable_duration từ Hash Table)
             if stable_duration >= stability_time:
+                # Block điểm s trước khi trigger
+                self.hash_tables.update_state(s_qr, {
+                    "status": "block",
+                    "blocked_by": self.rule_name,
+                    "blocked_at": timestamp
+                })
+                
+                # Gửi thông báo block đến visualizer
+                self.hash_tables.send_block_notification(s_qr, self.visualizer_queue)
+                
+                import logging
+                logger = logging.getLogger("LogicProcessor")
+                logger.info(f"[{self.rule_name}] Đã block điểm {pair_name} s({s_qr})")
+                
                 # TRIGGER!
                 output = self._create_output(
                     pair_name=pair_name,
@@ -187,6 +208,9 @@ class DualLogic(LogicRule):
                     timestamp=timestamp,
                     stable_duration=stable_duration
                 )
+                
+                # Thêm thông tin blocked_point vào output để API biết unblock điểm nào
+                output["blocked_point"] = s_qr
                 
                 # Update statistics
                 self.stats["triggers_fired"] += 1

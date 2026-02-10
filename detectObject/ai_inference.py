@@ -41,6 +41,7 @@ class YOLOInference:
         self.device = "cuda:0"
         self.model_path = model_path
         self.use_fp16 = use_fp16
+        self.model = None
 
         # Load model và chuyển sang thiết bị tương ứng
         try:
@@ -63,6 +64,17 @@ class YOLOInference:
             self._warmup_gpu()
         except Exception as e:
             raise
+    
+    def cleanup(self):
+        """Giải phóng GPU memory và resources"""
+        try:
+            if self.model is not None:
+                del self.model
+                self.model = None
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+        except Exception:
+            pass
     
     def _warmup_gpu(self):
         """Warm-up GPU với một vài lần inference để tránh cold start"""
@@ -174,7 +186,7 @@ def ai_inference_worker(shared_dict: Dict[str, Any],
     
     Args:
         shared_dict: Dict chứa frame từ camera
-        result_dict: Dict để lưu kết quả detection (không sử dụng)
+        result_dict: Dict để lưu kết quả detection (legacy - không sử dụng)
         detection_queue: Queue để gửi kết quả detection
         model_path: Đường dẫn model YOLO (mặc định từ config)
         target_fps: FPS mục tiêu cho AI inference (mặc định từ config)
@@ -182,6 +194,9 @@ def ai_inference_worker(shared_dict: Dict[str, Any],
     # Sử dụng config nếu không truyền tham số
     model_path = model_path or ai_config.DEFAULT_MODEL_PATH
     target_fps = target_fps or ai_config.TARGET_FPS
+    
+    yolo = None
+    cuda_stream = None
     
     # Load YOLO model
     try:
@@ -331,3 +346,11 @@ def ai_inference_worker(shared_dict: Dict[str, Any],
         pass
     except Exception:
         pass
+    finally:
+        # Cleanup resources khi thoát
+        if yolo is not None:
+            yolo.cleanup()
+        if cuda_stream is not None:
+            del cuda_stream
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
