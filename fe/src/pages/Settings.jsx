@@ -5,7 +5,6 @@ import ButtonSettings from '../components/Settings/ButtonSettings';
 import CameraSettings from '../components/Settings/CameraSettings';
 import MonitorSettings from '../components/Settings/MonitorSettings';
 import RouteSettings from '../components/Settings/RouteSettings/RouteTable';
-import PointSettings from '../components/Settings/PointSettings';
 import { Settings2 } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { useAuth } from '@/hooks/useAuth';
@@ -22,8 +21,6 @@ const Settings = () => {
     switch (activeTab) {
       case 'button':
         return <ButtonSettings />;
-      case 'point':
-        return <PointSettings />;
       case 'camera':
         if (isAdmin) {
           return <CameraSettings />;

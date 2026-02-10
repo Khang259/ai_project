@@ -4,10 +4,11 @@ import cv2
 import threading
 
 class BoundingBoxDrawerFFmpeg:
-    def __init__(self, rtsp_url, width, height, window_name):
+    def __init__(self, rtsp_url, width, height, frame_size, window_name):
         self.rtsp_url = rtsp_url
         self.width = width
         self.height = height
+        self.frame_size = frame_size
         self.window_name = window_name
         self.drawing = False
         self.ix, self.iy = -1, -1
@@ -49,11 +50,9 @@ class BoundingBoxDrawerFFmpeg:
         cv2.namedWindow(self.window_name)
         cv2.setMouseCallback(self.window_name, self.draw_rectangle)
 
-        frame_size = self.width * self.height * 3
-
         while True:
-            raw_frame = pipe.stdout.read(frame_size)
-            if len(raw_frame) != frame_size:
+            raw_frame = pipe.stdout.read(self.frame_size)
+            if len(raw_frame) != self.frame_size:
                 print(f"[{self.window_name}] ⚠️ Không đủ dữ liệu frame. Có thể mất kết nối.")
                 break
 
@@ -75,20 +74,17 @@ class BoundingBoxDrawerFFmpeg:
 
 def main():
     rtsp_urls = [
-        # "rtsp://admin:Soncave1!@192.168.1.27:554/streaming/channels/101",
-        # "rtsp://admin:Soncave1!@192.168.1.28:554/streaming/channels/101",
-        # "rtsp://admin:Soncave1!@192.168.1.29:554/streaming/channels/101",
-        #  "rtsp://admin:Soncave1!@192.168.1.30:554/streaming/channels/101",
-        # "rtsp://admin:Soncave1!@192.168.1.31:554/streaming/channels/101",
-        "rtsp://127.0.0.1:8554/start"
+        #"rtsp://admin:Thado12@@192.168.1.130:554/Streaming/Channels/102",
+        "rtsp://admin:Thado12@@192.168.1.140:554/Streaming/Channels/102"
     ]
 
-    width, height = 1280, 720  # Cập nhật theo độ phân giải camera thật
+    width, height = 640, 480  # Cập nhật theo độ phân giải camera thật
+    frame_size = width * height * 3  # Tính frame_size
 
     threads = []
     for i, url in enumerate(rtsp_urls):
         window_name = f"Camera {i+1}"
-        drawer = BoundingBoxDrawerFFmpeg(url, width, height, window_name)
+        drawer = BoundingBoxDrawerFFmpeg(url, width, height, frame_size, window_name)
         t = threading.Thread(target=drawer.run)
         t.start()
         threads.append(t)

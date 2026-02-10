@@ -9,9 +9,7 @@ if platform.system() == 'Windows':
 
 logger = setup_logger("yolo_visualizer", "logs/yolo_visualizer/log")
 
-model = YOLO("models/model_vl_0205.pt")  # Replace with custom model if trained
-
-def predict_and_visualize(frame):
+def predict_and_visualize(model, frame):
     """Predict YOLO trên toàn bộ frame và trả về detections + annotated frame (không show riêng)."""
     try:
         results = model(frame)

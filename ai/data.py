@@ -1,14 +1,16 @@
 from datetime import datetime
 
-now = datetime.now()
-formatted_time = now.strftime("%H:%M:%S")
-
 def payload_sent_ICS(start_point, end_point):
+    now = datetime.now()
+    start_num = ''.join(filter(str.isdigit, str(start_point)))
+    end_num = ''.join(filter(str.isdigit, str(end_point)))
+    
     data = {
-            "modelProcessCode": "test",
+            "modelProcessCode": "moveShelfLimit",
             "fromSystem": "ICS",
-            "orderId": f"thaod_1_3_{formatted_time}",
+            "orderId": f"{now}_{start_num}-{end_num}",
             "taskOrderDetail": [
-                {"taskPath": f"{start_point},{end_point}"}
+                {"taskPath": f"{start_num},{end_num}"}
             ]
         }
+    return data

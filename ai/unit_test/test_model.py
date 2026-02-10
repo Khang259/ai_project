@@ -24,27 +24,27 @@ logger = logging.getLogger("test_model")
 # Cấu hình
 FRAME_WIDTH = 1280
 FRAME_HEIGHT = 720
-THRESHOLD_DETECT = 0.7  # Từ detection.py
+THRESHOLD_DETECT = 0.6  # Từ detection.py
 TARGET_CLASS = 0  # Assume class 0 là object cần detect
 
 def main():
     # Load model
-    model_path = "best.pt"  # Thay đổi nếu model ở đường dẫn khác
+    model_path = "models/Third_try.engine"  # Thay đổi nếu model ở đường dẫn khác
     try:
-        model = YOLO(model_path)
+        model = YOLO(model_path, verbose=False, task="detect")
     except Exception as e:
         logger.error(f"Failed to load model: {e}")
         return
 
     # Kiểm tra và sử dụng GPU nếu có sẵn
-    if torch.cuda.is_available():
-        model.to('cuda')
-        logger.info("Using GPU (CUDA) for model inference.")
-    else:
-        logger.warning("GPU not available, using CPU.")
+    # if torch.cuda.is_available():
+    #     model.to('cuda')
+    #     logger.info("Using GPU (CUDA) for model inference.")
+    # else:
+    #     logger.warning("GPU not available, using CPU.")
 
     # Kết nối RTSP
-    rtsp_url = "rtsp://127.0.0.1:8554/start"
+    rtsp_url = "rtsp://admin:Thado12@@192.168.1.155:554/Streaming/Channels/101"
     cap = cv2.VideoCapture(rtsp_url)
     if not cap.isOpened():
         logger.error(f"Failed to open RTSP stream: {rtsp_url}")
