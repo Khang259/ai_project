@@ -7,6 +7,7 @@ from state_manager import StateManager
 from setup_log import setup_logger
 from yolo_visualizer import predict_and_visualize
 from roi_drawer import draw_rois_on_frame
+from ultralytics import YOLO
 
 logger = setup_logger("camera_processor", "logs/camera_processor/log")
 
@@ -14,10 +15,11 @@ class CameraProcessor(threading.Thread):
     def __init__(self, rtsp, rois, state_manager):
         super().__init__()
         self.rtsp = rtsp
-        self.rois = rois  # list of {"node_id": ..., "roi": ...}
+        self.rois = rois
         self.state_manager = state_manager
         self.running = True
         self.window_name = f"Camera {rtsp.split('/')[-1]}"
+        self.model = YOLO("models/ModelHondaHaNamAE_0302261.pt", verbose=False)
 
     def run(self):
         cap = cv2.VideoCapture(self.rtsp, cv2.CAP_FFMPEG)
@@ -29,16 +31,6 @@ class CameraProcessor(threading.Thread):
         # Lấy kích thước frame thực tế
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        if width > 0 and height > 0:
-            self.FRAME_WIDTH = width
-            self.FRAME_HEIGHT = height
-            logger.debug(f"Stream size: {width}x{height} cho {self.rtsp}")
-        else:
-            logger.warning("Không lấy được size frame")
-            self.FRAME_WIDTH = 1280
-            self.FRAME_HEIGHT = 720
-
-        logger.debug(f"Thread starting with rtsp: {self.rtsp}")
 
         while self.running and cap.isOpened():
             ret, frame = cap.read()
@@ -53,7 +45,7 @@ class CameraProcessor(threading.Thread):
                 continue
 
             # ── YOLO predict ────────────────────────────────────────
-            detections, annotated_frame = predict_and_visualize(frame)
+            detections, annotated_frame = predict_and_visualize(self.model, frame)
             frame = annotated_frame.copy()   # đã có bbox YOLO
 
             coverage_dict = {}
@@ -67,7 +59,7 @@ class CameraProcessor(threading.Thread):
                 self.state_manager.get_state_nodes(node_id, current_states[node_id])
 
             draw_rois_on_frame(frame, self.rois, current_states, coverage_dict)
-            cv2.imshow(self.rtsp, frame)
+            cv2.imshow(self.rtsp, frame) #### DEBUG
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.running = False

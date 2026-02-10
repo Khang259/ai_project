@@ -12,6 +12,8 @@ class StateManager:
         self.ready_end_list = []
         self.waiting_start_list = []
         self.waiting_end_list = []
+        self.pair_mapping = {}
+        self.order_mapping = {}  # {orderId: (start_point, end_point)}
 
     def get_state_nodes(self, node_id, state):
         current = self.points[node_id]
@@ -69,5 +71,11 @@ class StateManager:
                 if data["state"]:
                     if node_id in self.waiting_end_list:
                         self.waiting_end_list.remove(node_id)
+                        data["flag"] = False
                         data["time"] = 0
+                        if node_id in self.pair_mapping:
+                            start_id = self.pair_mapping[node_id]
+                            self.points[start_id]["flag"] = False
+                            del self.pair_mapping[node_id]  # Xóa mapping sau khi dùng
+                            logger.info(f"Reset flag for pair ({start_id}, {node_id})")
                         logger.info(f"Removed {node_id} from ready_end_list at {current_time} and reset time")

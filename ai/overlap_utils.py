@@ -2,20 +2,31 @@
 import numpy as np
 
 def calculate_coverage(detection_box, roi_box):
-    """Tính IoU giữa hai bounding boxes (format [x1, y1, x2, y2])."""
-    x1_1, y1_1, x2_1, y2_1 = detection_box
-    x1_2, y1_2, x2_2, y2_2 = roi_box
+    """
+    Tính IoU giữa detection box và ROI.
+    detection_box: format [x1, y1, x2, y2]
+    roi_box: format [x, y, w, h]
+    """
+    # Unpack detection_box [x1, y1, x2, y2]
+    det_x1, det_y1, det_x2, det_y2 = detection_box
+    
+    # Unpack roi_box [x, y, w, h]
+    roi_x, roi_y, roi_w, roi_h = roi_box
+    
+    # Convert roi_box sang [x1, y1, x2, y2]
+    roi_x1, roi_y1 = roi_x, roi_y
+    roi_x2, roi_y2 = roi_x + roi_w, roi_y + roi_h
     
     # Tính intersection
-    inter_x1 = max(x1_1, x1_2)
-    inter_y1 = max(y1_1, y1_2)
-    inter_x2 = min(x2_1, x2_2)
-    inter_y2 = min(y2_1, y2_2)
+    inter_x1 = max(det_x1, roi_x1)
+    inter_y1 = max(det_y1, roi_y1)
+    inter_x2 = min(det_x2, roi_x2)
+    inter_y2 = min(det_y2, roi_y2)
     
     inter_area = max(0, inter_x2 - inter_x1) * max(0, inter_y2 - inter_y1)
     
-    # Tính union
-    roi_area = (x2_2 - x1_2) * (y2_2 - y1_2)
+    # Tính diện tích ROI
+    roi_area = roi_w * roi_h
 
     if roi_area == 0:
         return 0.0

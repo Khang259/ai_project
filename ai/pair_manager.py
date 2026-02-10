@@ -24,13 +24,11 @@ def pair_points(ready_starts, ready_ends, validate_pairs):
 def trigger_post(ICS_URL, payload):  # Thay đổi tham số thành payload (dict một cái)
     """Send POST request với một payload."""
     try:
-        response = requests.post(ICS_URL, json=payload, timeout=5)  # Tăng timeout lên 5s
-        logger.debug(f"Payload sent: {payload}")
+        response = requests.post(ICS_URL, json=payload, timeout=0.5)  # Tăng timeout lên 5s
         
         if response.status_code == 200:
             response_from_ics = response.json()
             if response_from_ics.get("code") == 1000:
-                logger.info(f"POST success for orderId: {payload['orderId']}")
                 return True
             else:
                 logger.error(f"ICS error response: {response_from_ics}")
