@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # Environment
     app_env: str = "development"
     app_debug: bool = True
-    app_host: str = "0.0.0.0"
+    app_host: str = "127.0.0.1"
     app_port: int = 8000
     
     #redis

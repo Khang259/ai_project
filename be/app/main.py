@@ -36,6 +36,7 @@ from be.app.services.modbusTCP_service import modbus_device_manager
 from be.app.api.camera_event import router as camera_event_router
 from be.app.services.camera_ping_service import monitor_loop
 from be.app.api.ai import router as ai_router
+from be.app.routers.points_settings import router as points_router
 
 logger = setup_logger("camera_ai_app", "INFO", "app")
 
@@ -130,6 +131,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+origins=["http://localhost:5173",
+"http://192.168.1.114:5173", "http://100.93.141.62:5173"]
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -171,6 +174,7 @@ app.include_router(analytic.router, tags=["Analysis"])
 
 app.include_router(camera_event_router, tags=["Camera Event"])
 app.include_router(ai_router, prefix="/ai", tags=["AI"])
+app.include_router(points_router)
 
 @app.get("/")
 async def root():
