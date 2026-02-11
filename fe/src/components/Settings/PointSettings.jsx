@@ -1,45 +1,49 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { useUsers } from '../../hooks/Users/useUsers';
-import useNodesBySelectedUser from '../../hooks/Setting/useNodesBySelectedUser';
-
-import { useTranslation } from "react-i18next"; 
+import { useTranslation } from "react-i18next";
 import { Video, Plus, Trash2, Edit2, FileSpreadsheet, ArrowRight, AlertCircle } from 'lucide-react';
+import api from '@/services/api';
 
 export default function PointSettings() {
     const { t } = useTranslation();
     const fileInputRef = useRef(null);
-    
-    // --- State Management ---
-    const [pairs, setPairs] = useState([]); 
+    const [isLoading, setIsLoading] = useState(false);
+    const [pairs, setPairs] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPair, setEditingPair] = useState(null);
     const [error, setError] = useState("");
 
-    const { users, usersLoading } = useUsers();
-    const [selectedUser, setSelectedUser] = useState({});
-    const { data, fetchData } = useNodesBySelectedUser(selectedUser);
-
+    const loadData = async () => {
+        setIsLoading(true);
+        try {
+            const response = await api.get('/points');
+            if (Array.isArray(response.data)) {
+                setPairs(response.data);
+            }
+        } catch (err) {
+            console.error("Load Error:", err);
+            setError(t("Failed to load points from server."));
+        } finally {
+            setIsLoading(false);
+        }
+    };
     useEffect(() => {
-        if (data) setPairs(data);
-    }, [data]);
+        loadData();
+    }, []);
 
-    // --- Validation Logic ---
     const validate = (load, unload, currentId) => {
         const l = load.trim().toLowerCase();
         const u = unload.trim().toLowerCase();
         if (l === u) return t("Load and Unload points cannot be the same.");
-        
-        const isDup = pairs.some(p => p.id !== currentId && 
+
+        const isDup = pairs.some(p => p.id !== currentId &&
             p.loadName.toLowerCase() === l && p.unloadName.toLowerCase() === u);
         if (isDup) return t("This pair already exists.");
-        
+
         return null;
     };
-
-    // --- Actions ---
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
         setError("");
         const formData = new FormData(e.target);
@@ -52,23 +56,39 @@ export default function PointSettings() {
             return;
         }
 
-        const newPair = {
-            id: editingPair?.id || Date.now(),
+        const pairData = {
             loadName: load.trim(),
             unloadName: unload.trim(),
             area: formData.get("area"),
         };
 
-        setPairs(editingPair 
-            ? pairs.map(p => p.id === editingPair.id ? newPair : p) 
-            : [...pairs, newPair]
-        );
-        closeModal();
+        try {
+            if (editingPair) {
+                await api.put(`/points/${editingPair.id}`, pairData);
+            } else {
+                await api.post(`/points`, pairData);
+            }
+
+            const response = await api.get(`/points`);
+            if (Array.isArray(response.data)) {
+                setPairs(response.data);
+            }
+
+            closeModal();
+        } catch (err) {
+            console.error("API Error:", err);
+            setError(t("Failed to save data. Please check your connection."));
+        }
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm(t("Delete this pair?"))) {
-            setPairs(pairs.filter(p => p.id !== id));
+            try {
+                await api.delete(`/points/${id}`);
+                setPairs(pairs.filter(p => p.id !== id));
+            } catch (err) {
+                setError(t("Could not delete item."));
+            }
         }
     };
 
@@ -78,26 +98,57 @@ export default function PointSettings() {
         setError("");
     };
 
-    const handleImportExcel = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-            const wb = XLSX.read(evt.target.result, { type: 'binary' });
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            const imported = XLSX.utils.sheet_to_json(ws);
-            
-            const valid = imported.filter(row => {
-                const l = (row.Load || "").toString();
-                const u = (row.Unload || "").toString();
-                return l && u && l.trim().toLowerCase() !== u.trim().toLowerCase();
-            }).map((row, i) => ({
-                id: Date.now() + i,
-                loadName: row.Load,
-                unloadName: row.Unload,
-                area: row.Area || "",
-            }));
+    const downloadTemplate = () => {
+        const templateData = [
+            {
+                Load: "Example Load Point",
+                Unload: "Example Unload Point",
+                Area: "Example Area"
+            }
+        ];
+        const ws = XLSX.utils.json_to_sheet(templateData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Template");
 
-            setPairs([...pairs, ...valid]);
+        // 3. Generate the file and trigger download
+        XLSX.writeFile(wb, "Points_Import_Template.xlsx");
+    };
+
+    const handleImportExcel = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+            try {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const imported = XLSX.utils.sheet_to_json(ws);
+                const validData = imported
+                    .filter(row => {
+                        const l = (row.Load || "").toString().trim();
+                        const u = (row.Unload || "").toString().trim();
+                        // Ensure points are not empty and not identical
+                        return l && u && l.toLowerCase() !== u.toLowerCase();
+                    })
+                    .map(row => ({
+                        loadName: row.Load.toString().trim(),
+                        unloadName: row.Unload.toString().trim(),
+                        area: (row.Area || "").toString().trim(),
+                    }));
+
+                if (validData.length === 0) {
+                    setError(t("No valid pairs found in the Excel file."));
+                    return;
+                }
+                await api.post('/points/bulk', validData);
+                await loadData();
+                e.target.value = null;
+
+            } catch (err) {
+                console.error("Import Error:", err);
+                setError(t("Failed to import Excel data. Check console for details."));
+            }
         };
         reader.readAsBinaryString(file);
     };
@@ -116,6 +167,12 @@ export default function PointSettings() {
                         </CardDescription>
                     </div>
                     <div className="flex gap-2">
+                        <button
+                            onClick={downloadTemplate}
+                            className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded border border-gray-600 text-xs transition text-gray-300"
+                        >
+                            <FileSpreadsheet className="h-4 w-4" /> {t('Download Template')}
+                        </button>
                         <input type="file" ref={fileInputRef} onChange={handleImportExcel} className="hidden" accept=".xlsx,.csv" />
                         <button onClick={() => fileInputRef.current.click()} className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded border border-gray-600 text-xs transition">
                             <FileSpreadsheet className="h-4 w-4" /> {t('Import')}
