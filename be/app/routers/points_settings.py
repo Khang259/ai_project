@@ -5,7 +5,7 @@ from typing import List, Optional
 from bson import ObjectId
 
 client = AsyncIOMotorClient("mongodb+srv://CamAI_DB:Xinhzai1102%40%40@cluster0.1xazymq.mongodb.net/")
-db = client.logistics_db
+db = client.CamAI_Honda
 
 class PointPair(BaseModel):
     id: str = Field(default=None, alias="_id") 
