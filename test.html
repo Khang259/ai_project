@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button, textarea {
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px;
+            font-size: 14px;
+        }
+        textarea {
+            height: 300px;
+            resize: vertical;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+        .row button {
+            width: auto;
+        }
+        .notifications {
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+        .notifications h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        .notification-item {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .notification-item:last-child {
+            margin-bottom: 0;
+        }
+        .notification-item .time {
+            color: #666;
+            font-size: 11px;
+        }
+        .notification-item .field {
+            margin: 4px 0;
+        }
+        .notification-item .field strong {
+            display: inline-block;
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>WebSocket Client</h2>
+
+<label>WebSocket URL</label>
+<input id="wsUrl" type="text" placeholder="ws://localhost:8080/ws" />
+
+<div class="row">
+    <button onclick="connect()">Kết nối</button>
+    <button onclick="disconnect()">Ngắt kết nối</button>
+</div>
+
+<label>Gửi message</label>
+<input id="messageInput" type="text" placeholder="Nhập message để gửi..." />
+<button onclick="sendMessage()">Gửi</button>
+
+<label>Data nhận được (log)</label>
+<textarea id="log" readonly></textarea>
+
+<label>Thông báo (type = notification)</label>
+<div class="notifications" id="notifications">
+    <p style="color:#999; margin:0;">Chưa có thông báo. Kết nối WS và chờ message có type "notification".</p>
+</div>
+
+<script>
+    let socket = null;
+
+    function log(message) {
+        const logArea = document.getElementById("log");
+        logArea.value += message + "\n";
+        logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    function addNotification(data) {
+        const container = document.getElementById("notifications");
+        // Xóa dòng placeholder nếu có
+        const placeholder = container.querySelector("p");
+        if (placeholder) placeholder.remove();
+
+        const item = document.createElement("div");
+        item.className = "notification-item";
+        const time = data.alarm_date ? new Date(data.alarm_date).toLocaleString("vi-VN") : new Date().toLocaleString("vi-VN");
+        item.innerHTML = [
+            '<div class="time">' + time + '</div>',
+            '<div class="field"><strong>Mã alarm:</strong> ' + (data.alarm_code ?? "-") + '</div>',
+            '<div class="field"><strong>Thiết bị:</strong> ' + (data.device_name ?? "-") + '</div>',
+            '<div class="field"><strong>Cấp độ:</strong> ' + (data.alarm_grade ?? "-") + '</div>',
+            '<div class="field"><strong>Trạng thái:</strong> ' + (data.alarm_status ?? "-") + '</div>',
+            '<div class="field"><strong>Khu vực:</strong> ' + (data.area_id ?? "-") + '</div>',
+            '<div class="field"><strong>Nguồn:</strong> ' + (data.alarm_source ?? "-") + '</div>',
+            '<div class="field"><strong>Route:</strong> ' + (data.route_id ?? "-") + '</div>'
+        ].join("");
+        container.insertBefore(item, container.firstChild);
+    }
+
+    function connect() {
+        const url = document.getElementById("wsUrl").value;
+        if (!url) {
+            alert("Vui lòng nhập WebSocket URL");
+            return;
+        }
+
+        socket = new WebSocket(url);
+
+        socket.onopen = () => {
+            log("[OPEN] Đã kết nối");
+        };
+
+        socket.onmessage = (event) => {
+            const raw = event.data;
+            log("[MESSAGE] " + raw);
+
+            try {
+                const data = JSON.parse(raw);
+                if (data && data.type === "notification") {
+                    addNotification(data);
+                }
+            } catch (e) {
+                // Không phải JSON hoặc parse lỗi — bỏ qua, đã log raw ở trên
+            }
+        };
+
+        socket.onerror = (error) => {
+            log("[ERROR] Có lỗi xảy ra");
+            console.error(error);
+        };
+
+        socket.onclose = () => {
+            log("[CLOSE] Đã ngắt kết nối");
+        };
+    }
+
+    function disconnect() {
+        if (socket) {
+            socket.close();
+            socket = null;
+        }
+    }
+
+    function sendMessage() {
+        const message = document.getElementById("messageInput").value;
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            alert("WebSocket chưa được kết nối");
+            return;
+        }
+        socket.send(message);
+        log("[SEND] " + message);
+        document.getElementById("messageInput").value = "";
+    }
+</script>
+
+</body>
+</html>

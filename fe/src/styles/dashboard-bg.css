@@ -1,0 +1,212 @@
+/* ===== Nền: xanh đậm (navy / chàm như ảnh tham khảo) ===== */
+html {
+  min-height: 100%;
+  background-color: #0c1442;
+}
+
+body {
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+#root {
+  background: transparent !important;
+  min-height: 100vh;
+}
+
+/* Lớp .app-bg: fixed phía sau content, chứa sao + mặt trăng (nền thật đã đặt trên html) */
+.app-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Vệt thiên hà: nhiều vệt rõ ràng (từng component), góc dưới bên phải */
+.app-bg::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 72%;
+  height: 60%;
+  background-repeat: no-repeat;
+  background-position:
+    100% 100%,
+    95% 92%,
+    88% 88%,
+    82% 95%,
+    100% 78%,
+    92% 70%;
+  background-size:
+    55% 10%,
+    45% 8%,
+    38% 9%,
+    42% 7%,
+    32% 11%,
+    40% 8%;
+  background-image:
+    /* Vệt 1 – hồng đậm, chéo phải */
+    linear-gradient(
+      28deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255, 20, 147, 0.65) 44%,
+      rgba(255, 105, 180, 0.5) 50%,
+      rgba(219, 112, 219, 0.35) 56%,
+      transparent 64%
+    ),
+    /* Vệt 2 – tím hồng */
+    linear-gradient(
+      15deg,
+      transparent 0%,
+      transparent 40%,
+      rgba(219, 112, 219, 0.55) 46%,
+      rgba(186, 85, 211, 0.4) 52%,
+      transparent 60%
+    ),
+    /* Vệt 3 – hồng nhạt */
+    linear-gradient(
+      35deg,
+      transparent 0%,
+      transparent 42%,
+      rgba(255, 105, 180, 0.5) 48%,
+      rgba(255, 182, 193, 0.3) 54%,
+      transparent 62%
+    ),
+    /* Vệt 4 – tím */
+    linear-gradient(
+      5deg,
+      transparent 0%,
+      transparent 45%,
+      rgba(186, 85, 211, 0.45) 50%,
+      rgba(138, 43, 226, 0.25) 56%,
+      transparent 64%
+    ),
+    /* Vệt 5 – ngắn, sáng */
+    linear-gradient(
+      95deg,
+      transparent 0%,
+      transparent 35%,
+      rgba(255, 182, 193, 0.5) 42%,
+      rgba(255, 105, 180, 0.35) 48%,
+      transparent 56%
+    ),
+    /* Vệt 6 */
+    linear-gradient(
+      22deg,
+      transparent 0%,
+      transparent 40%,
+      rgba(219, 112, 219, 0.4) 46%,
+      rgba(138, 43, 226, 0.2) 52%,
+      transparent 60%
+    );
+  pointer-events: none;
+}
+
+/* Lớp nền trong .app-bg không cần nữa (nền đã ở html), giữ để tương thích hoặc ẩn */
+.app-bg__base {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+/* Tinh vân: tắt, không dùng (chỉ nền xanh đen) */
+.app-bg__nebula {
+  display: none;
+}
+
+/* Mặt trăng: bỏ bóng (box-shadow), không glow */
+.app-bg__moon {
+  position: absolute;
+  top: 10%;
+  right: 12%;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(255, 252, 240, 0.9) 0%,
+    rgba(255, 250, 220, 0.5) 40%,
+    transparent 70%
+  );
+}
+
+/* Lớp sao: ít sao, sao to hơn */
+.app-bg__stars {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(4px 4px at 80px 100px, rgba(255,255,255,1), transparent),
+    radial-gradient(3px 3px at 280px 180px, rgba(255,255,255,0.95), transparent),
+    radial-gradient(4px 4px at 480px 60px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(3px 3px at 120px 320px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(4px 4px at 380px 280px, rgba(255,255,255,0.95), transparent),
+    radial-gradient(3px 3px at 200px 220px, rgba(255,255,255,0.9), transparent);
+  background-size: 560px 400px;
+  background-repeat: repeat;
+  opacity: 1;
+  animation: starFade 8s ease-in-out infinite alternate;
+}
+
+.app-bg__stars-layer2 {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(3px 3px at 200px 80px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(4px 4px at 400px 260px, rgba(255,255,255,0.85), transparent),
+    radial-gradient(3px 3px at 60px 240px, rgba(255,255,255,0.9), transparent);
+  background-size: 480px 360px;
+  background-repeat: repeat;
+  opacity: 0.95;
+}
+
+/* Sao nháy: ít hơn, to hơn, nháy đậm hơn */
+.app-bg__stars-twinkle {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(5px 5px at 150px 120px, rgba(255,255,255,1), transparent),
+    radial-gradient(4px 4px at 350px 280px, rgba(255,255,255,0.95), transparent),
+    radial-gradient(4px 4px at 80px 300px, rgba(255,255,255,0.95), transparent),
+    radial-gradient(5px 5px at 420px 100px, rgba(255,255,255,0.9), transparent);
+  background-size: 500px 420px;
+  background-repeat: repeat;
+  animation: twinkleSlow 6s ease-in-out infinite;
+}
+
+.app-bg__stars-twinkle-2 {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(4px 4px at 260px 60px, rgba(255,255,255,0.95), transparent),
+    radial-gradient(5px 5px at 180px 340px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(4px 4px at 380px 200px, rgba(255,255,255,0.95), transparent);
+  background-size: 460px 400px;
+  background-repeat: repeat;
+  animation: twinkleSlow 7s ease-in-out infinite 1.5s;
+}
+
+@keyframes nebulaDrift {
+  0%, 100% { opacity: 0.45; transform: scale(1) translate(0, 0); }
+  50% { opacity: 0.55; transform: scale(1.02) translate(-1%, -0.5%); }
+}
+
+/* moonGlow bỏ (không dùng filter/brightness) */
+
+@keyframes starFade {
+  0% { opacity: 0.88; }
+  100% { opacity: 1; }
+}
+
+/* Nháy đậm: từ rất mờ → sáng rõ rồi lại mờ */
+@keyframes twinkleSlow {
+  0%, 100% { opacity: 0.12; }
+  25% { opacity: 0.6; }
+  50% { opacity: 1; }
+  75% { opacity: 0.4; }
+}

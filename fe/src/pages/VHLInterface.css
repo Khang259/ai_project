@@ -1,0 +1,615 @@
+/* VHL Interface — tất cả class dùng prefix vhl- để tránh conflict */
+
+.vhl-app {
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #0b0f1a;
+  color: #eeeded;
+  font-family: 'Segoe UI', sans-serif;
+
+  /* CSS variables cục bộ */
+  --vhl-bg: #0b0f1a;
+  --vhl-surface: #161b2c;
+  --vhl-surface-hover: #1f263d;
+  --vhl-fg: #eeeded;
+  --vhl-fg-muted: #3c6cac;
+  --vhl-accent: #a6e4e9;
+  --vhl-border: #2d3748;
+  --vhl-shelf: #10b981;
+  --vhl-empty: #4a5568;
+  --vhl-ok: #10b981;
+  --vhl-err: #ef4444;
+  --vhl-bg-card: #161b2c;
+  --vhl-bg-sub: #1f263d;
+  --vhl-muted: #6b7280;
+}
+
+.vhl-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: var(--vhl-muted);
+}
+
+/* ─── Header ─── */
+.vhl-header {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 1rem;
+  min-height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vhl-header-logo {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 3.5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.vhl-header-title {
+  text-align: center;
+}
+
+.vhl-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--vhl-fg);
+}
+
+.vhl-sub {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--vhl-muted);
+}
+
+.vhl-sub code {
+  font-family: ui-monospace, monospace;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: var(--vhl-bg-sub);
+}
+
+/* ─── Toast thông báo ─── */
+.vhl-toast {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  animation: vhl-slideDown 0.25s ease;
+}
+
+.vhl-toast.ok {
+  background: var(--vhl-ok);
+  color: #0d1f0d;
+}
+
+.vhl-toast.err {
+  background: var(--vhl-err);
+  color: #1f0d0d;
+}
+
+/* ─── Confirm Dialog ─── */
+.vhl-toast-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: vhl-fadeIn 0.2s ease-out;
+}
+
+.vhl-toast-confirm {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  animation: vhl-scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.vhl-toast-content {
+  margin-bottom: 20px;
+}
+
+.vhl-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.vhl-toast-content p {
+  font-size: 16px;
+  color: #333;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+}
+
+.vhl-toast-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.vhl-toast-actions button {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vhl-btn-cancel {
+  background: #f1f1f1;
+  color: #666;
+}
+
+.vhl-btn-cancel:hover {
+  background: #e5e5e5;
+}
+
+.vhl-btn-confirm {
+  background: #007bff;
+  color: white;
+}
+
+.vhl-btn-confirm:hover {
+  background: #0056b3;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* ─── Layout chính ─── */
+.vhl-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  min-height: 0;
+  width: 100%;
+}
+
+.vhl-main-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.vhl-main-right {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Cards ─── */
+.vhl-card,
+.vhl-card2 {
+  padding: 1.25rem;
+  background: var(--vhl-bg-card);
+  border: 1px solid var(--vhl-border);
+  border-radius: 12px;
+}
+
+.vhl-card h2,
+.vhl-card2 h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--vhl-fg);
+}
+
+.vhl-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.vhl-card-head h2 {
+  margin: 0;
+}
+
+.vhl-hint {
+  font-size: 0.8rem;
+  color: var(--vhl-muted);
+  margin: 0 0 0.75rem;
+}
+
+.vhl-hint code {
+  font-family: ui-monospace, monospace;
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  background: var(--vhl-bg-sub);
+}
+
+/* ─── Selection display ─── */
+.vhl-selection-display {
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  font-size: 18px;
+  color: #000000;
+}
+
+/* ─── Node buttons ─── */
+.vhl-node-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.vhl-nodes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.vhl-node-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vhl-node-group-label {
+  font-size: 0.75rem;
+  color: var(--vhl-accent);
+  opacity: 0.8;
+}
+
+.vhl-btn-opt {
+  padding: 10px 12px;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  color: #000;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.vhl-btn-opt:hover {
+  border-color: #40a9ff;
+  color: #000;
+}
+
+.vhl-btn-opt.active {
+  background-color: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+  font-weight: 500;
+}
+
+/* ─── Action buttons ─── */
+.vhl-btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+
+.vhl-btn:hover {
+  filter: brightness(1.1);
+}
+
+.vhl-btn:active {
+  transform: scale(0.98);
+}
+
+.vhl-btn.primary {
+  background: var(--vhl-accent);
+  color: var(--vhl-bg);
+  width: 100%;
+}
+
+.vhl-btn.small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--vhl-bg-sub);
+  color: var(--vhl-fg);
+  border: 1px solid var(--vhl-border);
+}
+
+/* ─── Carriage grid ─── */
+.vhl-carriage-grid {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vhl-grid {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  padding: 4px;
+  overflow-x: auto;
+  align-items: stretch;
+}
+
+.vhl-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.vhl-grid::-webkit-scrollbar-thumb {
+  background: var(--vhl-border);
+  border-radius: 10px;
+}
+
+.vhl-carriage {
+  flex: 1;
+  min-width: 140px;
+  background: var(--vhl-surface);
+  border: 1px solid var(--vhl-border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease;
+}
+
+.vhl-carriage:hover {
+  border-color: var(--vhl-fg-muted);
+}
+
+.vhl-carriage-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--vhl-accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  border-bottom: 1px solid var(--vhl-border);
+  padding-bottom: 8px;
+}
+
+.vhl-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.vhl-slot-btn {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  border-radius: 8px;
+  height: 60px;
+  margin-bottom: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.vhl-slot-btn.shelf {
+  background: rgba(67, 132, 236, 0.1);
+  border: 1px solid var(--vhl-shelf);
+  color: var(--vhl-shelf);
+  box-shadow: 0 0 10px rgba(67, 132, 236, 0.1);
+}
+
+.vhl-slot-btn.shelf:hover {
+  background: var(--vhl-shelf);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(67, 132, 236, 0.4);
+}
+
+.vhl-slot-btn.empty {
+  background: rgba(74, 85, 104, 0.1);
+  border: 1px solid var(--vhl-empty);
+  color: var(--vhl-fg-muted);
+}
+
+.vhl-slot-btn.empty:hover {
+  background: var(--vhl-empty);
+  color: var(--vhl-fg);
+  border-color: var(--vhl-fg-muted);
+}
+
+.vhl-slot-btn:active {
+  transform: scale(0.95);
+}
+
+.vhl-slot-num {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  opacity: 0.7;
+}
+
+.vhl-slot-status {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vhl-no-data {
+  font-size: 0.8rem;
+  color: var(--vhl-muted);
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* ─── Animations ─── */
+@keyframes vhl-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes vhl-scaleUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes vhl-slideDown {
+  from { opacity: 0; transform: translate(-50%, -0.5rem); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ─── Responsive: Tablet / 1200px ─── */
+@media (max-width: 1200px) {
+  .vhl-app {
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .vhl-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .vhl-main-left {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    order: 1;
+    width: 100%;
+  }
+
+  .vhl-main-left > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .vhl-main-right {
+    order: 2;
+    width: 100%;
+  }
+
+  .vhl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    overflow-x: visible;
+  }
+}
+
+/* ─── Responsive: Mobile / 768px ─── */
+@media (max-width: 768px) {
+  .vhl-app {
+    padding: 0.5rem;
+  }
+
+  .vhl-header {
+    flex-direction: column;
+    height: auto;
+    padding: 10px 0;
+    margin-bottom: 0.5rem;
+    gap: 10px;
+  }
+
+  .vhl-header-logo {
+    position: static;
+    transform: none;
+    height: 3rem;
+    margin: 0 auto;
+  }
+
+  .vhl-header-title {
+    width: 100%;
+  }
+
+  .vhl-header h1 {
+    font-size: 1.4rem;
+    margin-bottom: 2px;
+  }
+
+  .vhl-main-left {
+    grid-template-columns: 1fr;
+  }
+
+  .vhl-node-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .vhl-btn-opt {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .vhl-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .vhl-slots {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+
+  .vhl-slot-btn {
+    aspect-ratio: 1 / 1;
+    height: auto;
+  }
+
+  .vhl-carriage {
+    min-width: unset;
+    padding: 8px;
+    border-radius: 8px;
+  }
+
+  .vhl-carriage-title {
+    font-size: 12px;
+    padding-bottom: 5px;
+  }
+
+  .vhl-slot-num {
+    font-size: 10px;
+    margin: 0;
+  }
+
+  .vhl-slot-status {
+    font-size: 8px;
+    font-weight: 500;
+  }
+}

@@ -1,0 +1,269 @@
+/* ============================================= */
+/*           GLOWING NEON CSS - FULL PACK        */
+/*       Dành cho nền tối #0E1838 / #100453      */
+/*       Hỗ trợ: Button, Border, Text, Input... */
+/* ============================================= */
+
+/* === CÁC MÀU NEON CHÍNH === */
+:root {
+    --neon-blue: #1004d8;
+    --neon-cyan: #00d0ff;
+    --neon-purple: #8b5cf6;
+    --neon-green: #10b981;
+    --neon-pink: #ec4899;
+    --bg-dark: #0E1838;
+    --bg-card: rgba(16, 4, 83, 0.95);
+  }
+  
+  /* ============================================= */
+  /* 1. BUTTON NEON                                */
+  /* ============================================= */
+  .neon-btn {
+    position: relative;
+    padding: 12px 28px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #e0f2fe;
+    background: rgba(16, 4, 216, 0.2);
+    border: 1px solid rgba(16, 4, 216, 0.6);
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    text-shadow: 0 0 8px rgba(16, 4, 216, 0.7);
+    z-index: 1;
+  }
+  
+  .neon-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(16, 4, 216, 0.5), transparent);
+    transition: 0.7s;
+    z-index: -1;
+  }
+  
+  .neon-btn:hover::before {
+    left: 100%;
+  }
+  
+  .neon-btn:hover {
+    background: rgba(16, 4, 216, 0.4);
+    box-shadow: 
+      0 0 20px rgba(16, 4, 216, 0.8),
+      0 0 40px rgba(16, 4, 216, 0.5);
+    transform: translateY(-3px);
+    border-color: #00d0ff;
+  }
+  
+  /* Các loại màu button */
+  .neon-btn.green { border-color: #10b981; background: rgba(16, 187, 129, 0.2); }
+  .neon-btn.green:hover { box-shadow: 0 0 20px rgba(16, 187, 129, 0.8); }
+  .neon-btn.purple { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.2); }
+  .neon-btn.purple:hover { box-shadow: 0 0 20px rgba(139, 92, 246, 0.8); }
+  
+  /* ============================================= */
+  /* 2. BORDER / CARD NEON                         */
+  /* ============================================= */
+  .neon-card {
+    margin: 0 auto;
+    padding: 3px;
+    width: 95%;
+    position: relative;
+    border-radius: 16px;
+    z-index: 1;
+  }
+
+  .neon-card::after, .neon-card::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-image: conic-gradient(#ff4545, #00ff99, #006aff, #ff0095);
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    z-index: -10;
+    padding: 3px;
+    border-radius: 16px;
+  }
+
+  .neon-card::before {
+    filter: blur(10px);
+    opacity: 0.5;
+  }
+
+
+  /* 2.1 Neoncard for today chart */
+
+  .neon-card-today-chart {
+    margin: 0 auto;
+    padding: 3px;
+    width: 100%;
+    position: relative;
+    border-radius: 16px;
+    z-index: 1;
+  }
+
+  .neon-card-today-chart::after, .neon-card-today-chart::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-image: conic-gradient(#ff4545, #00ff99, #006aff, #ff0095);
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    z-index: -10;
+    padding: 3px;
+    border-radius: 16px;
+  }
+
+  .neon-card-today-chart::before {
+    filter: blur(10px);
+    opacity: 0.5;
+  }
+  
+  /* ============================================= */
+  /* 3. TEXT NEON                                  */
+  /* ============================================= */
+  .neon-text {
+    color: #e0f2fe;
+    font-weight: bold;
+    text-shadow: 
+      0 0 5px rgba(16, 4, 216, 0.8),
+      0 0 10px rgba(16, 4, 216, 0.6),
+      0 0 20px rgba(16, 4, 216, 0.4);
+    letter-spacing: 1px;
+  }
+  
+  .neon-text.green { text-shadow: 0 0 10px rgba(16, 187, 129, 0.8); }
+  .neon-text.purple { text-shadow: 0 0 10px rgba(139, 92, 246, 0.8); }
+  
+  /* ============================================= */
+  /* 4. PROGRESS BAR NEON                          */
+  /* ============================================= */
+  .neon-progress {
+    height: 14px;
+    background: rgba(16, 4, 83, 0.9);
+    border-radius: 7px;
+    overflow: hidden;
+    border: 1px solid rgba(16, 4, 216, 0.5);
+    box-shadow: 
+      0 0 10px rgba(16, 4, 216, 0.4),
+      inset 0 0 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+  }
+  
+  .neon-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan));
+    border-radius: 7px;
+    box-shadow: 0 0 15px rgba(16, 4, 216, 0.9);
+    transition: width 0.6s ease;
+    position: relative;
+  }
+  
+  .neon-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 20px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  /* ============================================= */
+  /* 5. INPUT NEON                                 */
+  /* ============================================= */
+  .neon-input {
+    background: rgba(16, 4, 83, 0.8);
+    border: 1px solid rgba(16, 4, 216, 0.6);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #e0f2fe;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(16, 4, 216, 0.3);
+  }
+  
+  .neon-input:focus {
+    border-color: #00d0ff;
+    box-shadow: 
+      0 0 15px rgba(0, 208, 255, 0.6),
+      0 0 25px rgba(0, 208, 255, 0.4);
+    background: rgba(16, 4, 83, 1);
+  }
+  
+  /* ============================================= */
+  /* 6. BADGE / TAG NEON                           */
+  /* ============================================= */
+  .neon-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .neon-badge.active {
+    background: rgba(16, 187, 129, 0.3);
+    color: #10b981;
+    border: 1px solid #10b981;
+    box-shadow: 0 0 15px rgba(16, 187, 129, 0.5);
+  }
+  
+  .neon-badge.maintenance {
+    background: rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+    border: 1px solid #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+  }
+  
+  .neon-badge.stopped {
+    background: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+  }
+  
+  /* ============================================= */
+  /* 7. ICON NEON                                  */
+  /* ============================================= */
+  .neon-icon {
+    filter: drop-shadow(0 0 8px rgba(16, 4, 216, 0.7));
+    transition: all 0.3s ease;
+  }
+  
+  .neon-icon:hover {
+    filter: drop-shadow(0 0 15px rgba(0, 208, 255, 0.9));
+    transform: scale(1.1);
+  }
+  
+  /* ============================================= */
+  /* 8. PULSE ANIMATION                            */
+  /* ============================================= */
+  @keyframes neonPulse {
+    0%, 100% { 
+      box-shadow: 0 0 15px rgba(16, 4, 216, 0.5); 
+    }
+    50% { 
+      box-shadow: 0 0 35px rgba(16, 4, 216, 0.9), 0 0 70px rgba(16, 4, 216, 0.5); 
+    }
+  }
+  
+  .neon-pulse { animation: neonPulse 2s infinite ease-in-out; }

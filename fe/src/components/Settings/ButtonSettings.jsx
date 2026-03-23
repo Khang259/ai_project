@@ -1,0 +1,834 @@
+import React, { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
+import { Plus, Grid3x3, User, Upload, Settings, Download } from 'lucide-react';
+import GridPreview from './GridPreview';
+import CellNameEditor from './CellNameEditor';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { useUsers } from '../../hooks/Users/useUsers';
+import useNodesBySelectedUser from '../../hooks/Setting/useNodesBySelectedUser';
+import useNodeSettingsLazy from '../../hooks/Setting/useNodeSettingsLazy';
+import { useTranslation } from "react-i18next"; 
+const ButtonSettings = () => {
+  const { t } = useTranslation();
+
+  const [columnsWantToShow, setColumnsWantToShow] = useState(5); // Cột muốn hiển thị trong Grid Preview có thể tùy chỉnh
+  
+  // Mapping cho các giá trị node_type (dùng i18n)
+  const nodeTypeMapping = {
+    'supply': t('settings.supplyLabel'),
+    'returns': t('settings.returnsLabel'),
+    'both': t('settings.bothLabel'),
+    'auto': t('settings.autoLabel')
+  };
+  
+  // Color palette cho các lines (dùng cho line có sẵn; line khác dùng màu từ hash)
+  const LINE_COLORS = {
+    'Line 1': '#016B61',   'Line 2': '#2563EB',   'Line 3': '#DC2626',   'Line 4': '#9333EA',   'Line 5': '#EA580C',
+    'Line 6': '#059669',   'Line 7': '#DB2777',   'Line 8': '#7C3AED',   'Line 9': '#0891B2',   'Line 10': '#CA8A04',
+  };
+  const getLineColor = (lineName) => {
+    if (LINE_COLORS[lineName]) return LINE_COLORS[lineName];
+    let h = 0;
+    for (let i = 0; i < (lineName || '').length; i++) h = ((h << 5) - h) + (lineName || '').charCodeAt(i) | 0;
+    return '#' + (Math.abs(h) % 0xFFFFFF).toString(16).padStart(6, '0');
+  };
+
+  // State cho form thêm node mới
+  const [newNodeData, setNewNodeData] = useState({
+    node_name: "",
+    nodeType: "",
+    line: "",
+    process_code: "",
+    start: 0,
+    end: 0,
+    next_start: 0,
+    next_end: 0
+  });
+  const {users, usersLoading, usersError } = useUsers();
+  const [selectedUser, setSelectedUser] = useState({});
+  const [selectedNodeType, setSelectedNodeType] = useState();
+  const [dataFilteredByNodes, setdataFilteredByNodes] = useState([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedLine, setSelectedLine] = useState();
+
+  const {
+    data,
+    fetchData,
+  } = useNodesBySelectedUser(selectedUser);
+  const {
+    addNode,
+    deleteNode,
+    updateBatch,
+  } = useNodeSettingsLazy(selectedUser);
+
+  // Line options = nhóm các line có trong nút của user đang chọn (không cố định Line 1–10)
+  const lineOptionsFromData = React.useMemo(() => {
+    const lines = [...new Set((data || []).map((n) => n.line).filter(Boolean))];
+    return lines.sort((a, b) => String(a).localeCompare(String(b)));
+  }, [data]);
+
+  // ===========================================
+  // 2. EFFECTS VÀ COMPUTED VALUES
+  // ===========================================
+  
+  // Fetch data khi chọn user
+  useEffect(() => {
+    if (selectedUser?.id) fetchData();
+  }, [selectedUser, fetchData]);
+
+  // Định nghĩa các chế độ cố định
+  const fixedNodeTypes = ["Cấp", "Trả", "Cấp&Trả"];
+  
+  // Tính nodeTypes và tổng số theo loại từ data thô
+  const nodeTypes = React.useMemo(() => {
+    return (data || []).reduce((acc, n) => {
+      const t = n.node_type || 'unknown';
+      acc[t] = (acc[t] || 0) + 1;
+      return acc;
+    }, {});
+  }, [data]);
+
+  // Tính tổng số cells theo selectedNodeType và selectedLine
+  const totalCellsSelectedType = React.useMemo(() => {
+    let filteredData = data || [];
+    
+    // Filter theo node type
+    if (selectedNodeType) {
+      filteredData = filteredData.filter(n => n.node_type === selectedNodeType);
+    }
+    
+    // Filter theo line
+    if (selectedLine) {
+      filteredData = filteredData.filter(n => n.line === selectedLine);
+    }
+    
+    return filteredData.length;
+  }, [data, selectedNodeType, selectedLine]);
+
+  // Lọc data theo selectedNodeType và selectedLine
+  useEffect(() => {
+    let filteredData = data || [];
+    
+    // Filter theo node type
+    if (selectedNodeType) {
+      filteredData = filteredData.filter(n => n.node_type === selectedNodeType);
+    }
+    
+    // Filter theo line
+    if (selectedLine) {
+      filteredData = filteredData.filter(n => n.line === selectedLine);
+    }
+    
+    setdataFilteredByNodes(filteredData);
+  }, [data, selectedNodeType, selectedLine, fetchData]);
+  // ===========================================
+  // 3. HANDLERS CHO CHỌN USER
+  // ===========================================
+  
+  // Chọn người dùng khi đã có dữ liệu
+  const handleUserSelect = (userId) => {
+    const user = users.find(user => user.id === userId);
+    if (user) {
+      setSelectedUser({
+        id: userId,
+        username: user.username,
+        role: user.is_superuser ? "Administrator" : "User",
+      });
+    }
+  };
+
+  // ===========================================
+  // 4. HANDLERS CHO CHỌN NODETYPE
+  // ===========================================
+  
+  // Chọn nodeType khi đã có dữ liệu
+  const handleNodeTypeChange = (newNodeType) => {
+    setSelectedNodeType(newNodeType);
+  };
+
+  // ===========================================
+  // 5. HANDLERS CHO TÁC VỤ ADD NODE
+  // ===========================================
+  
+  // Hiển thị form thêm node
+  const showAddNodeForm = () => {
+    setShowAddForm(true);
+  };
+
+  // Xác nhận thêm node mới
+  const handleConfirmAddNode = async () => {
+    
+    if (!newNodeData.line || !newNodeData.node_name || !newNodeData.process_code || !newNodeData.start || !newNodeData.end) {
+      alert(t('settings.fillRequiredFields'));
+      return;
+    }
+    
+    // Gọi API tạo node qua hook để có id từ server
+    const payload = {
+      node_name: newNodeData.node_name,
+      node_type: selectedNodeType || newNodeData.nodeType,
+      owner: selectedUser.username,
+      line: selectedLine || newNodeData.line,
+      process_code: newNodeData.process_code || "",
+      start: newNodeData.start,
+      end: newNodeData.end,
+      next_start: newNodeData.next_start || 0,
+      next_end: newNodeData.next_end || 0,
+    };
+    console.log("payload", payload);
+    const res = await addNode(payload);
+    if (!res.success) { 
+      console.error(t('settings.errorResponse'), res);
+      alert(t('settings.createNodeFailed', { status: res.status, error: res.error || t('settings.unknownError') }))
+    }
+    if (res.status === 201 || res.status === 200) {
+      const newNode = res.data; 
+      alert(t('settings.successCreateNode', { nodeName: newNode.node_name, nodeId: newNode.id }));
+    }
+    
+    await fetchData();
+    // Đóng form và reset dữ liệu
+    setShowAddForm(false);
+    setNewNodeData({
+      node_name: "",
+      nodeType: "",
+      owner: "",
+      line: "",
+      process_code: "",
+      start: 0,
+      end: 0,
+      next_start: 0,
+      next_end: 0
+    });
+  };
+
+  // Tăng số ô (giữ nguyên để tương thích với code cũ)
+  const increaseCells = () => {
+    showAddNodeForm();
+  };
+
+  // ===========================================
+  // 6. HANDLERS CHO TÁC VỤ DELETE NODE
+  // ===========================================
+  
+  // Xóa ô có confirm UI, sau đó gọi hook
+  const handleDeleteCell = async (cellId) => {
+    const nodeToDelete = dataFilteredByNodes.find(node => node.id === cellId);
+    if (!nodeToDelete) return;
+    if (confirm(t('settings.confirmDeleteCell', {nodeName: nodeToDelete.node_name}))) {
+      const res = await deleteNode(cellId);
+      await fetchData();
+    }
+  };
+
+  // ===========================================
+  // 7. HANDLERS CHO TÁC VỤ UPDATE NODE (IMPORT EXCEL)
+  // ===========================================
+  
+  // Import Excel bằng SheetJS (xlsx)
+  const handleExcelImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          alert(t('settings.fileDoesNotHaveAnySheet'));
+          return;
+        }
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        console.log('=== ROWS ===');
+        console.log(rows);
+        if (!rows || rows.length === 0) {
+          alert(t('settings.noDataToImport'));
+          return;
+        }
+
+        // Chuẩn hóa key header về lowercase, trim
+        const normalisedRows = rows.map((row) => {
+          const obj = {};
+          Object.keys(row).forEach((key) => {
+            const normKey = String(key).trim().toLowerCase();
+            obj[normKey] = row[key];
+          });
+          return obj;
+        });
+
+        const requiredHeaders = ['node_name', 'node_type', 'line', 'process_code', 'start', 'end', 'next_start', 'next_end'];
+        const firstRowKeys = Object.keys(normalisedRows[0] || {});
+        const isValid = requiredHeaders.every((h) => firstRowKeys.includes(h));
+        if (!isValid) {
+          alert('Header không hợp lệ. Cần các cột: node_name, node_type, line, process_code, start, end, next_start, next_end');
+          return;
+        }
+        // Tạo danh sách node từ file và hợp nhất vào allNodes
+        const importedNodes = normalisedRows.map((r, idx) => {
+          const nodeName = String(r.node_name ?? '').trim();
+          const nodeType = String(r.node_type ?? '').trim();
+          const existing = (data || []).find((n) => n.node_name === nodeName && n.node_type === nodeType);
+          const isBoth = nodeType === 'both';
+          const lineFromExcel = String(r.line ?? '').trim();
+          return {
+            id: existing ? existing.id : String(idx),
+            node_name: nodeName,
+            node_type: nodeType,
+            owner: selectedUser?.username,
+            line: lineFromExcel || selectedLine || '',
+            process_code: String(r.process_code ?? '').trim(),
+            start: Number(r.start),
+            end: Number(r.end),
+            next_start: isBoth ? (Number(r.next_start) || 0) : 0,
+            next_end: isBoth ? (Number(r.next_end) || 0) : 0,
+          };
+        });
+
+        // Merge trên toàn bộ data của user: base = data, import ghi đè
+        const mergedMap = new Map();
+        (data || []).forEach((n) => {
+          const key = `${n.node_name}__${n.node_type}`;
+          mergedMap.set(key, n);
+        });
+        importedNodes.forEach((n) => {
+          const key = `${n.node_name}__${n.node_type}`;
+          mergedMap.set(key, n);
+        });
+        const mergedNodes = Array.from(mergedMap.values());
+
+        // Kiểm tra node_type hợp lệ trước khi import
+        const validTypes = ['supply', 'returns', 'both', 'auto'];
+        const invalidNode = mergedNodes.find(node => 
+          node && node.node_type && !validTypes.includes(node.node_type)
+        );
+        if (invalidNode) {
+          alert(`❌ Phát hiện node_type không hợp lệ: "${invalidNode.node_type}" tại node "${invalidNode.node_name}".\n\nChỉ chấp nhận: supply, returns, both, auto.\n\nImport đã bị hủy.`);
+          event.target.value = '';
+          return;
+        }
+
+        // Gọi saveBatchWithNodes để gửi API ngay sau khi import
+        // Chỉ gửi các trường cần thiết, loại bỏ created_at, updated_at và các trường khác
+        const cleanedNodes = mergedNodes
+          .filter(node => node && node.node_name && node.node_type) // Lọc bỏ phần tử rỗng/undefined
+          .map(node => ({
+            id: node.id,
+            node_name: node.node_name,
+            node_type: node.node_type,
+            owner: node.owner,
+            line: node.line,
+            process_code: node.process_code || "",
+            start: node.start,
+            end: node.end,
+            next_start: node.next_start,
+            next_end: node.next_end
+          }));
+        const payload = {'nodes': cleanedNodes};
+        console.log("payload", payload);
+        const result = await updateBatch(payload);
+        if (result?.success) {
+          await fetchData();
+          alert(t('settings.successImportAndSave', {count: importedNodes.length}));
+        } else {
+          alert(t('settings.successImportButSaveFailed', {error: result?.error || t('settings.unknownError')}));
+        }
+
+        event.target.value = '';
+      } catch (error) {
+        console.error(error);
+        alert(t('settings.errorReadingExcelFile', {error: error.message}));
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleUpdateBatch = async (nodes) => {
+    const cleanedNodes = nodes.map(node => ({
+      id: node.id,
+      node_name: node.node_name,
+      node_type: node.node_type,
+      owner: node.owner,
+      line: node.line,
+      process_code: node.process_code || "",
+      start: node.start,
+      end: node.end,
+      next_start: node.next_start,
+      next_end: node.next_end
+    }));
+    const payload = {'nodes': cleanedNodes};
+    console.log("payload", payload);
+    const result = await updateBatch(payload);
+    if (result?.success) {
+      alert(t('settings.successUpdate'));
+      await fetchData();
+    }
+  };
+
+
+  const handleExportData = () => {
+    let exportData;
+    let filename;
+
+    // Nếu có dữ liệu thật, export data
+    if (data && data.length > 0) {
+      exportData = data.map(node => ({
+        node_name: node.node_name,
+        node_type: node.node_type,
+        owner: node.owner,
+        line: node.line,
+        process_code: node.process_code || "",
+        start: node.start,
+        end: node.end,
+        next_start: node.next_start || 0,
+        next_end: node.next_end || 0
+      }));
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      filename = `nodes_${selectedUser?.username || 'user'}_${timestamp}.xlsx`;
+    } 
+    // Nếu không có dữ liệu, export mẫu
+    else {
+      exportData = [
+        {
+          node_name: 'Tên ô cấp',
+          node_type: 'supply',
+          line: 'Line 1',
+          process_code: 'PROC_A',
+          start: 100,
+          end: 200,
+          next_start: 0,
+          next_end: 0
+        },
+        {
+          node_name: 'Tên ô trả',
+          node_type: 'returns',
+          line: 'Line 2',
+          process_code: 'PROC_B',
+          start: 300,
+          end: 400,
+          next_start: 0,
+          next_end: 0
+        },
+        {
+          node_name: 'Tên cấp&trả',
+          node_type: 'both',
+          line: 'Line 3',
+          process_code: 'PROC_C',
+          start: 500,
+          end: 600,
+          next_start: 700,
+          next_end: 800
+        },
+        {
+          node_name: 'Tên tự động',
+          node_type: 'auto',
+          line: 'Line 4',
+          process_code: 'PROC_AUTO',
+          start: 900,
+          end: 1000,
+          next_start: 0,
+          next_end: 0
+        }
+      ];
+      
+      filename = 'mau_import_nodes.xlsx';
+    }
+
+    // Tạo và tải file
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Nodes');
+    XLSX.writeFile(workbook, filename);
+  };
+
+  return (
+    <div className="space-y-6 min-w-0">
+      <Card className="border-2 glass">
+        <CardHeader className="pb-4">
+          <div className="flex flex-wrap justify-between items-center gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl lg:text-2xl text-white">
+                <Grid3x3 className="h-6 w-6 lg:h-7 lg:w-7 text-white" />
+                {t('settings.buttonSettings')}
+              </CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Dropdown Menu for quick select user */}
+              <div className="flex items-center gap-2">
+              <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2 glass text-base lg:text-lg h-10 lg:h-11 px-3 lg:px-4">
+                  <User className="h-5 w-5 glass" />
+                  {selectedUser?.username || t('settings.userRoleUser')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" 
+                className="w-64 glass" 
+                style={{ 
+                  backgroundColor: "rgba(139,92,246,0.25)", 
+                  border: "1px solid rgba(255,255,255,0.25)" 
+                  }}
+                >
+                <div className="px-2 py-1.5 text-sm font-semibold text-white">
+                  {t('settings.selectUser')}
+                </div>
+                {usersLoading ? (
+                  <div className="px-2 py-1.5 text-sm text-white">
+                    {t('settings.loadingUserList')}
+                  </div>
+                ) : usersError ? (
+                  <div className="px-2 py-1.5 text-sm text-red-500">
+                    {t('settings.error', {error: usersError})}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      maxHeight: users.length > 4 ? "200px" : "auto",
+                      overflowY: users.length > 4 ? "auto" : "visible",
+                      color: "white",
+                      backgroundColor: "rgba(255,255,255,0.25)",
+                      borderRadius: "8px"
+                    }}
+                  >
+                    {users.map((user) => (
+                      <DropdownMenuItem 
+                        key={user.id}
+                        onClick={() => handleUserSelect(user.id)}
+                        className="flex justify-between items-center"
+                      >
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-white" />
+                          <div>
+                            <div className="font-medium">{user.username}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {user.is_superuser ? t('settings.userRoleAdmin') : t('settings.userRoleUser')}
+                            </div>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            </div>
+            </div>
+          </div>
+        </CardHeader>
+
+        {/* Chu trình */}
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="line" className="text-base lg:text-lg font-medium text-white">
+              {t('settings.selectLine')} *
+            </Label>
+            <Select 
+              value={selectedLine || ""} 
+              onValueChange={(value) => {
+                setSelectedLine(value);
+                setNewNodeData(prev => ({ ...prev, line: value }));
+              }}
+            >
+              <SelectTrigger id="line" className="text-base lg:text-lg h-11 lg:h-12">
+                <SelectValue placeholder={lineOptionsFromData.length === 0 ? (data?.length ? t('settings.noLine') : t('settings.selectUserToViewLine')) : t('settings.selectLineOption')} />
+              </SelectTrigger>
+              <SelectContent>
+                {lineOptionsFromData.map((lineOption) => (
+                  <SelectItem key={lineOption} value={lineOption}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full border border-gray-300"
+                        style={{ backgroundColor: getLineColor(lineOption) }}
+                      />
+                      <span>{lineOption}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="nodeType" className="text-base lg:text-lg font-medium text-white">
+              {t('settings.cycleMode')}
+            </Label>
+            <Select value={selectedNodeType} onValueChange={handleNodeTypeChange}>
+              <SelectTrigger id="nodeType" className="text-base lg:text-lg h-11 lg:h-12">
+                <SelectValue placeholder={t('settings.selectCycleMode')}>
+                  {selectedNodeType ? nodeTypeMapping[selectedNodeType] || selectedNodeType : t('settings.selectMode')}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent 
+                className="glass" 
+                style={{ 
+                backgroundColor: "rgba(139,92,246,0.25)", 
+                // border: "1px solid rgba(255,255,255,0.25)" 
+                }}>
+                {Object.keys(nodeTypes).map((nodeType) => (
+                  <SelectItem key={nodeType} value={nodeType}>
+                    {nodeTypeMapping[nodeType] }
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex gap-3 flex-col">
+              <Label className="text-base lg:text-lg font-medium text-white">{t('settings.totalCells')}:</Label>
+              <div className="text-3xl lg:text-4xl font-bold font-mono text-white">{totalCellsSelectedType}</div>
+            </div>
+            <div className="flex items-center gap-3 flex-col">
+              <Label className="text-base lg:text-lg font-medium text-white">{t('settings.createNew')}:</Label>
+              <Button variant="ghost" size="icon" onClick={increaseCells} className="h-11 w-11 lg:h-12 lg:w-12">
+                <Plus className="h-5 w-5 lg:h-6 lg:w-6" />
+              </Button>
+            </div>
+          </div>
+          {/* Form thêm node mới */}
+          {showAddForm && (
+            <div className="pt-4 border-t">
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-lg text-blue-800">{t('settings.addNewNode')}</CardTitle>
+                  <CardDescription className="text-black">
+                    {t('settings.enterInformationForNewNode')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-black">
+                {!selectedLine && (
+                    <div className="space-y-2">
+                      <Label htmlFor="line-new" className="text-sm font-medium text-black">
+                        {t('settings.lineLabel')} *
+                      </Label>
+                      <input
+                        id="line-new"
+                        type="text"
+                        value={newNodeData.line || ""}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, line: e.target.value }))}
+                        placeholder={t('settings.enterLinePlaceholder')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white placeholder:text-gray-600"
+                      />
+                    </div>
+                  )}
+                  {/* Chu trình - chỉ hiển thị khi chưa có selectedNodeType */}
+                  {!selectedNodeType && (
+                    <div className="space-y-2">
+                      <Label htmlFor="nodeType" className="text-sm font-medium text-black">
+                        {t('settings.cycleMode')} *
+                      </Label>
+                      <select
+                        id="nodeType"
+                        value={newNodeData.nodeType || ""}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, nodeType: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+                      >
+                        <option value="">{t('settings.selectCycleType')}</option>
+                        <option value="supply">{t('settings.cycleSupply')}</option>
+                        <option value="returns">{t('settings.cycleReturns')}</option>
+                        <option value="both">{t('settings.cycleBoth')}</option>
+                        <option value="auto">{t('settings.cycleAuto')}</option>
+                      </select>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 grid-rows-3 gap-4">
+                    <div className="space-y-2 col-span-2">
+                      <Label htmlFor="node_name" className="text-sm font-medium text-black">
+                        {t('settings.nodeName')} *
+                      </Label>
+                      <input
+                        id="node_name"
+                        type="text"
+                        value={newNodeData.node_name}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, node_name: e.target.value }))}
+                        placeholder={t('settings.enterNodeNamePlaceholder')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white placeholder:text-gray-600"
+                      />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label htmlFor="process_code" className="text-sm font-medium text-black">
+                        {t('settings.processName')}
+                      </Label>
+                      <input
+                        id="process_code"
+                        type="text"
+                        value={newNodeData.process_code}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, process_code: e.target.value }))}
+                        placeholder={t('settings.enterProcessPlaceholder')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white placeholder:text-gray-600"
+                      />
+                    </div>
+                    <div className="space-y-2  row-start-2">
+                      <Label htmlFor="start" className="text-sm font-medium text-black">
+                        {t('settings.start')} *
+                      </Label>
+                      <input
+                        id="start"
+                        type="number"
+                        value={newNodeData.start}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, start: parseInt(e.target.value) || null }))}
+                        placeholder={t('settings.enterStartValue')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white placeholder:text-gray-600"
+                      />
+                    </div>
+                    <div className="space-y-2 row-start-2">
+                      <Label htmlFor="end" className="text-sm font-medium text-black">
+                        {t('settings.end')} *
+                      </Label>
+                      <input
+                        id="end"
+                        type="number"
+                        value={newNodeData.end}
+                        onChange={(e) => setNewNodeData(prev => ({ ...prev, end: parseInt(e.target.value) || null }))}
+                        placeholder={t('settings.enterEndValue')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white placeholder:text-gray-600"
+                      />
+                    </div>
+                    {(selectedNodeType === 'both' ||newNodeData.nodeType === 'both') && (
+                      <>
+                        <div className="space-y-2 row-start-3">
+                          <Label htmlFor="next_start" className="text-sm font-medium text-black">
+                            {t('settings.nextStart')} ({t('settings.optionalLabel')})
+                          </Label>
+                          <input
+                            id="next_start"
+                            type="number"
+                            value={newNodeData.next_start}
+                            onChange={(e) => setNewNodeData(prev => ({ ...prev, next_start: parseInt(e.target.value) || null }))}
+                            placeholder={t('settings.enterNextStartValue')}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white placeholder:text-gray-600"
+                          />
+                        </div>
+                        <div className="space-y-2 row-start-3">
+                          <Label htmlFor="next_end" className="text-sm font-medium text-black">
+                            {t('settings.nextEnd')} ({t('settings.optionalLabel')})
+                          </Label>
+                          <input
+                            id="next_end"
+                            type="number"
+                            value={newNodeData.next_end}
+                            onChange={(e) => setNewNodeData(prev => ({ ...prev, next_end: parseInt(e.target.value) || null }))}
+                            placeholder={t('settings.enterNextEndValue')}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white placeholder:text-gray-600"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setNewNodeData({
+                          node_name: "",
+                          nodeType: "",
+                          line: "",
+                          process_code: "",
+                          start: 0,
+                          end: 0,
+                          next_start: 0,
+                          next_end: 0
+                        });
+                      }}
+                    >
+                      {t('settings.cancel')}
+                    </Button>
+                    <Button 
+                      onClick={handleConfirmAddNode}
+                      disabled={(!newNodeData.line && !selectedLine) || !newNodeData.node_name || !newNodeData.process_code || !newNodeData.start || !newNodeData.end || (!selectedNodeType && !newNodeData.nodeType)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {t('settings.confirm')}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          <div className="pt-4 border-t min-w-0 overflow-hidden">
+            <GridPreview columns={columnsWantToShow} cells={dataFilteredByNodes} onDeleteCell={handleDeleteCell} selectedNodeType={selectedNodeType} />
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="border-2 glass min-w-0">
+        <CardHeader className="pb-4">
+          <div className="flex flex-wrap justify-between items-center gap-4">
+            <div>
+              <CardTitle className="text-xl lg:text-2xl text-white">{t('settings.cellNameEditor')}</CardTitle>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <input
+                id="excel-import"
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                className="hidden"
+                onChange={handleExcelImport}
+              />
+              <div className="flex flex-row flex-wrap items-end gap-2">
+              <Button
+                className="glass text-sm lg:text-base h-10 lg:h-11 px-3 lg:px-4"
+                onClick={handleExportData}
+                size="sm"
+                title={data && data.length > 0 ? t('settings.exportCurrentData') : t('settings.downloadTemplate')}
+              >
+                <Download className="h-4 w-4 lg:h-5 lg:w-5 mr-2" />
+                {data && data.length > 0 ? t('settings.exportExcel') : t('settings.downloadExcelTemplate')}
+              </Button>
+
+              {(() => {
+                if (!selectedUser?.id) {
+                  return (
+                    <div className="relative inline-block group">
+                      <Button
+                        className="glass text-sm lg:text-base h-10 lg:h-11 px-3 lg:px-4"
+                        disabled
+                        onClick={() => {}}
+                        size="sm"
+                      >
+                        <Upload className="h-4 w-4 lg:h-5 lg:w-5 mr-2" />
+                        {t('settings.importExcel')}
+                      </Button>
+                      <div className="pointer-events-none absolute -top-8 left-0 -translate-x-1/2 whitespace-nowrap rounded bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 transition-opacity group-hover:opacity-100 border shadow-sm">
+                        {t('settings.selectUserBeforeImportExcel')}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    className="glass text-sm lg:text-base h-10 lg:h-11 px-3 lg:px-4"
+                    onClick={() => document.getElementById('excel-import').click()}
+                    size="sm"
+                  >
+                    <Upload className="h-4 w-4 lg:h-5 lg:w-5 mr-2" />
+                    {t('settings.importExcel')}
+                  </Button>
+                );
+              })()}
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="text-white min-w-0">
+          <div className="min-w-0 overflow-x-auto">
+            <CellNameEditor 
+              cells={dataFilteredByNodes} 
+              handleUpdateBatch={handleUpdateBatch} 
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default ButtonSettings;
