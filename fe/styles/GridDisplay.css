@@ -1,0 +1,112 @@
+Mặc định cho grid-cell
+.grid-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 80px; /* Mặc định cho màn hình lớn */
+    margin: 5px; /* Giảm margin từ 10px xuống 5px */
+  }
+  
+  /* Giảm padding của cột Bootstrap */
+  .row {
+    --bs-gutter-x: 0.5rem; /* Giảm khoảng cách giữa các cột từ 1.5rem (default) xuống 0.5rem */
+  }
+  
+
+  @media (max-width: 800px) {
+    .grid-cell {
+      height: 60px; /* Chiều cao ô nhỏ hơn */
+      margin: 3px; /* Giảm margin xuống 3px */
+      font-size: 0.85rem;
+      border-radius: 6px;
+    }
+    .row {
+      --bs-gutter-x: 0.3rem; /* Giảm thêm khoảng cách cột */
+    }
+    .col-3,
+    .col-sm-4,
+    .col-md-3,
+    .col-lg-2,
+    .col-xl-2 {
+      padding-right: 2px; /* Giảm padding cột */
+      padding-left: 2px;
+      flex: 0 0 25%; /* 4 ô mỗi hàng */
+      max-width: 25%;
+    }
+  }
+  
+  /* Responsive cho màn hình rất nhỏ (dưới 480px, nếu cần) */
+  @media (max-width: 480px) {
+    .grid-task{
+      height: 60px;
+      font-stretch: 1rem;
+      margin: 10px;
+    }
+    .grid-cell {
+      height: 50px;
+      margin: 2px; /* Giảm margin xuống 2px */
+      font-size: 0.75rem;
+    }
+    .row {
+      --bs-gutter-x: 0.3rem; /* Giảm khoảng cách cột tối đa */
+    }
+    .col-3 {
+      padding-right: 1px;
+      padding-left: 1px;
+      flex: 0 0 25%; /* 4 ô mỗi hàng */
+      max-width: 25%;
+    }
+
+    .container, .container-fluid, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+        --bs-gutter-x: 0 !important; /* Ghi đè --bs-gutter-x thành 0 */
+    }
+
+    .card-body {
+        padding: 0 ; 
+    }
+  }
+  
+  /* Đảm bảo ô bị vô hiệu hóa vẫn rõ ràng */
+  .grid-cell.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+/* Thêm CSS để đảm bảo dropdown hiển thị */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.form-select {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus {
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
